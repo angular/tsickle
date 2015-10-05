@@ -1,0 +1,49 @@
+{
+  "name": "ts2cl",
+  "version": "0.1.0",
+  "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
+  "main": "build/lib/main.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "source-map": "^0.4.2",
+    "source-map-support": "^0.3.1",
+    "typescript": "Microsoft/TypeScript"
+  },
+  "devDependencies": {
+    "chai": "^2.1.1",
+    "clang-format": "^1.0.25",
+    "gulp": "^3.8.11",
+    "gulp-clang-format": "^1.0.21",
+    "gulp-mocha": "^2.0.0",
+    "gulp-sourcemaps": "^1.5.0",
+    "gulp-typescript": "^2.7.6",
+    "gulp-util": "^3.0.4",
+    "merge2": "^0.3.1",
+    "temp": "^0.8.1",
+    "tsd": "^0.6.0",
+  },
+  "scripts": {
+    "prepublish": "npm install tsd@^0.6.0 && tsd reinstall --overwrite && gulp compile",
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angular/ts2cl.git"
+  },
+  "keywords": [
+    "typescript",
+    "closure"
+  ],
+  "contributors": [
+    "Alex Eagle <alexeagle@google.com> (https://angularjs.org/)",
+    "Martin Probst <martinprobst@google.com> (https://angularjs.org/)",
+    "Rado Kirov <radokirov@google.com> (https://angularjs.org/)"
+  ],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/angular/ts2cl/issues"
+  },
+  "homepage": "https://github.com/angular/ts2cl"
+}

@@ -1,0 +1,8 @@
+# Compiled JS
+build
+
+# Type definitions installed with tsd
+typings
+
+# Dependency directory
+node_modules
