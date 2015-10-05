@@ -49,15 +49,19 @@ class Annotator {
     let sf = node.getSourceFile();
     switch (node.kind) {
       case ts.SyntaxKind.VariableDeclaration:
-        this.output.push(' /**');
-        this.visit((<ts.VariableDeclaration>node).type);
-        this.output.push(' */');
+        this.visitType((<ts.VariableDeclaration>node).type);
         this.writeNode(node);
         break;
       default:
         this.writeNode(node);
         break;
     }
+  }
+
+  private visitType(type: ts.TypeNode) {
+    this.output.push(' /**');
+    this.visit(type);
+    this.output.push(' */');
   }
 
   private writeNode(node: ts.Node) {
