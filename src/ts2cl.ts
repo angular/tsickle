@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 
-function formatDiagnostics(diags: ts.Diagnostic[]): string {
+export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
                 if (d.file) res += d.file + ':';
