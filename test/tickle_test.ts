@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
 
-import {transformProgram, formatDiagnostics} from '../src/ts2cl';
+import {transformProgram, formatDiagnostics} from '../src/tickle';
 
 const OPTIONS: ts.CompilerOptions = {
   noImplicitAny: true,

@@ -1,5 +1,5 @@
 {
-  "name": "ts2cl",
+  "name": "tickle",
   "version": "0.1.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "build/lib/main.js",
@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/angular/ts2cl.git"
+    "url": "https://github.com/angular/tickle.git"
   },
   "keywords": [
     "typescript",
@@ -43,7 +43,7 @@
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/angular/ts2cl/issues"
+    "url": "https://github.com/angular/tickle/issues"
   },
-  "homepage": "https://github.com/angular/ts2cl"
+  "homepage": "https://github.com/angular/tickle"
 }
