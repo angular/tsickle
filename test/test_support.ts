@@ -73,7 +73,7 @@ function transformSource(src: string): string {
 
 export function expectSource(src: string) {
   var annotated = annotateSource(src);
-  // console.log('Annotated', annotated);
+  // console.log('Annotated:\n', annotated);
   var transformed = transformSource(annotated);
   return expect(transformed);
 }
