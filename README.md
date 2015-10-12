@@ -1,6 +1,6 @@
-# Tickle - TypeScript to Closure Annotator [![Build Status](https://travis-ci.org/angular/tickle.svg?branch=master)](https://travis-ci.org/angular/tickle)
+# Sickle - TypeScript to Closure Annotator [![Build Status](https://travis-ci.org/angular/sickle.svg?branch=master)](https://travis-ci.org/angular/sickle)
 
-Tickle processes TypeScript and adds [Closure Compiler](https://github.com/google/closure-compiler/)
+Sickle processes TypeScript and adds [Closure Compiler](https://github.com/google/closure-compiler/)
 -compatible JSDoc annotations. This allows using TypeScript to transpile your sources, and then
 Closure Compiler to bundle and optimize them, while taking advantage of type information in Closure
 Compiler.

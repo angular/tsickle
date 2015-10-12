@@ -5,8 +5,8 @@
     "noEmit": true
   },
   "files": [
-    "src/tickle.ts",
-    "test/tickle_test.ts",
+    "src/sickle.ts",
+    "test/sickle_test.ts",
     "typings/tsd.d.ts"
   ]
 }

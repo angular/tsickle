@@ -5,7 +5,7 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
                 let res = ts.DiagnosticCategory[d.category];
                 if (d.file) res += d.file + ':';
                 if (d.start) {
-                  let{line, character} = d.file.getLineAndCharacterOfPosition(d.start);
+                  let {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
                   res += line + ':' + character + ':';
                 }
                 res += d.messageText;
@@ -14,7 +14,9 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
-export type AnnotatedProgram = { [fileName: string]: string };
+export type AnnotatedProgram = {
+  [fileName: string]: string
+};
 
 /**
  * A source processor that takes TypeScript code and annotates the output with Closure-style JSDoc

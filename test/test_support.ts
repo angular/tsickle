@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
 
-import {transformProgram, formatDiagnostics} from '../src/tickle';
+import {transformProgram, formatDiagnostics} from '../src/sickle';
 
 const OPTIONS: ts.CompilerOptions = {
   noImplicitAny: true,
@@ -37,28 +37,6 @@ function transformSource(src: string): string {
   return res['main.ts'];
 }
 
-function expectSource(src: string) {
+export function expectSource(src: string) {
   return expect(transformSource(src));
 }
-
-describe('adding JSDoc types', () => {
-  it('handles variable declarations', () => {
-    expectSource('var x: string;').to.equal('var /** string */ x: string;');
-    expectSource('var x: string, y: number;')
-        .to.equal('var /** string */ x: string, /** number */ y: number;');
-  });
-  it('handles function declarations', () => {
-    expectSource('function x(a: number): string {\n' +
-                 '  return "a";\n' +
-                 '}')
-        .to.equal(' /** @return { string} */function x( /** number */a: number): string {\n' +
-                  '  return "a";\n' +
-                  '}');
-    expectSource('function x(a: number, b: number) {}')
-        .to.equal('function x( /** number */a: number, /** number */ b: number) {}');
-  });
-  it('handles arrow functions', () => {
-    expectSource('var x = (a: number): number => 12;')
-        .to.equal('var x = /** @return { number} */ ( /** number */a: number): number => 12;');
-  });
-});

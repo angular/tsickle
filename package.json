@@ -1,5 +1,5 @@
 {
-  "name": "tickle",
+  "name": "sickle",
   "version": "0.1.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "build/lib/main.js",
@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "chai": "^2.1.1",
-    "clang-format": "^1.0.25",
+    "clang-format": "1.0.30",
     "gulp": "^3.8.11",
     "gulp-clang-format": "^1.0.21",
     "gulp-mocha": "^2.0.0",
@@ -22,7 +22,7 @@
     "gulp-util": "^3.0.4",
     "merge2": "^0.3.1",
     "temp": "^0.8.1",
-    "tsd": "^0.6.0",
+    "tsd": "^0.6.0"
   },
   "scripts": {
     "prepublish": "npm install tsd@^0.6.0 && tsd reinstall --overwrite && gulp compile",
@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/angular/tickle.git"
+    "url": "https://github.com/angular/sickle.git"
   },
   "keywords": [
     "typescript",
@@ -43,7 +43,7 @@
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/angular/tickle/issues"
+    "url": "https://github.com/angular/sickle/issues"
   },
-  "homepage": "https://github.com/angular/tickle"
+  "homepage": "https://github.com/angular/sickle"
 }
