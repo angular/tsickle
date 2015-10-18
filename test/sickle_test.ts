@@ -9,8 +9,7 @@ import {expectSource, checkClosureCompile} from './test_support';
 describe('golden tests', () => {
   var tsExtRe = /\.ts$/;
   var testFolder = path.join(__dirname, '..', '..', 'test_files');
-  var files = fs.readdirSync(testFolder)
-                  .filter((fn) => !!fn.match(tsExtRe));
+  var files = fs.readdirSync(testFolder).filter((fn) => !!fn.match(tsExtRe));
   var jsMasters: string[] = [];
   files.forEach((tsFilename) => {
     var tsPath = path.join(testFolder, tsFilename);
