@@ -73,7 +73,7 @@ gulp.task('test.unit', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['build/test/**/*.js', '!build/test/**/e2e*.js']).pipe(mocha({timeout: 500}));
+  return gulp.src(['build/test/**/*.js', '!build/test/**/e2e*.js']).pipe(mocha({timeout: 1000}));
 });
 
 gulp.task('test.e2e', ['test.compile'], function(done) {
@@ -81,7 +81,7 @@ gulp.task('test.e2e', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 5000}));
+  return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 10000}));
 });
 
 gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format']);
