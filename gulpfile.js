@@ -73,12 +73,20 @@ gulp.task('test.unit', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src('build/test/**/*.js').pipe(mocha({timeout: 5000}));
+  return gulp.src(['build/test/**/*.js', '!build/test/**/e2e*.js']).pipe(mocha({timeout: 500}));
 });
 
-gulp.task('test', ['test.unit', 'test.check-format']);
+gulp.task('test.e2e', ['test.compile'], function(done) {
+  if (hasError) {
+    done();
+    return;
+  }
+  return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 5000}));
+});
 
-gulp.task('watch', ['test.unit'], function() {
+gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format']);
+
+gulp.task('watch', ['test.unit', 'test.check-format'], function() {
   failOnError = false;
   // Avoid watching generated .d.ts in the build (aka output) directory.
   return gulp.watch(['src/**/*.ts', 'test/**/*.ts', 'test_files/**'], {ignoreInitial: true},

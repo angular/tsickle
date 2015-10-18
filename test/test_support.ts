@@ -1,6 +1,7 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
-import {compile} from 'closure-compiler';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import {annotateProgram, formatDiagnostics, StringMap} from '../src/sickle';
 
@@ -67,27 +68,24 @@ function transformSource(src: string): string {
   return transformed['main.js'];
 }
 
-export function checkClosureCompile(jsFiles: string[], done: (err: Error) => void) {
-  var startTime = Date.now();
-  var total = jsFiles.length;
-  if (!total) throw new Error('No JS files in ' + JSON.stringify(jsFiles));
-
-  var CLOSURE_COMPILER_OPTS: {[k: string]: string | string[]} = {
-    'checks-only': null,
-    'jscomp_error': 'checkTypes',
-    'js': jsFiles,
-    'language_in': 'ECMASCRIPT6'
-  };
-
-  compile(null, CLOSURE_COMPILER_OPTS, (err, stdout, stderr) => {
-    // console.log('Closure compilation:', total, 'done after', Date.now() - startTime, 'ms');
-    done(err);
-  });
-}
-
 export function expectSource(src: string) {
   var annotated = annotateSource(src);
   // console.log('Annotated', annotated);
   var transformed = transformSource(annotated);
   return expect(transformed);
+}
+
+export interface GoldenFileTest { name: string, tsPath: string, jsPath: string, }
+
+export function goldenTests(): GoldenFileTest[] {
+  var tsExtRe = /\.ts$/;
+  var testFolder = path.join(__dirname, '..', '..', 'test_files');
+  var files = fs.readdirSync(testFolder).filter((fn) => !!fn.match(tsExtRe));
+  return files.map((fn) => {
+    return {
+      name: fn,
+      tsPath: path.join(testFolder, fn),
+      jsPath: path.join(testFolder, fn.replace(tsExtRe, '.js')),
+    };
+  });
 }
