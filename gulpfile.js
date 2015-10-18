@@ -73,7 +73,7 @@ gulp.task('test.unit', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src('build/test/**/*.js').pipe(mocha({timeout: 500}));
+  return gulp.src('build/test/**/*.js').pipe(mocha({timeout: 5000}));
 });
 
 gulp.task('test', ['test.unit', 'test.check-format']);
@@ -81,7 +81,8 @@ gulp.task('test', ['test.unit', 'test.check-format']);
 gulp.task('watch', ['test.unit'], function() {
   failOnError = false;
   // Avoid watching generated .d.ts in the build (aka output) directory.
-  return gulp.watch(['src/**/*.ts', 'test/**/*.ts'], {ignoreInitial: true}, ['test.unit']);
+  return gulp.watch(['src/**/*.ts', 'test/**/*.ts', 'test_files/**'], {ignoreInitial: true},
+                    ['test.unit']);
 });
 
 gulp.task('default', ['compile']);

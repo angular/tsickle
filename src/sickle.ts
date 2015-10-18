@@ -14,9 +14,11 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
-export type AnnotatedProgram = {
+export type StringMap = {
   [fileName: string]: string
 };
+
+export type AnnotatedProgram = StringMap;
 
 /**
  * A source processor that takes TypeScript code and annotates the output with Closure-style JSDoc
@@ -27,7 +29,7 @@ class Annotator {
 
   constructor() {}
 
-  transform(args: string[]): AnnotatedProgram {
+  annotate(args: string[]): AnnotatedProgram {
     let tsArgs = ts.parseCommandLine(args);
     if (tsArgs.errors) {
       this.fail(formatDiagnostics(tsArgs.errors));
@@ -35,10 +37,10 @@ class Annotator {
     let program = ts.createProgram(tsArgs.fileNames, tsArgs.options);
     let diags = ts.getPreEmitDiagnostics(program);
     if (diags && diags.length) this.fail(formatDiagnostics(diags));
-    return this.transformProgram(program);
+    return this.annotateProgram(program);
   }
 
-  transformProgram(program: ts.Program): AnnotatedProgram {
+  annotateProgram(program: ts.Program): AnnotatedProgram {
     let res: AnnotatedProgram = {};
     for (let sf of program.getSourceFiles()) {
       if (sf.fileName.match(/\.d\.ts$/)) continue;
@@ -136,13 +138,13 @@ function last<T>(elems: T[]): T {
   return elems.length ? elems[elems.length - 1] : null;
 }
 
-export function transformProgram(program: ts.Program): AnnotatedProgram {
-  return new Annotator().transformProgram(program);
+export function annotateProgram(program: ts.Program): AnnotatedProgram {
+  return new Annotator().annotateProgram(program);
 }
 
 // CLI entry point
 if (require.main === module) {
-  let res = new Annotator().transform(process.argv);
+  let res = new Annotator().annotate(process.argv);
   // TODO(martinprobst): Do something useful here...
   console.log(JSON.stringify(res));
 }
