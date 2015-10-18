@@ -1,1 +1,1 @@
-var fn3 = function (/** number */ a) { return 12; };
+var fn3 = (/** number */ a) => 12;

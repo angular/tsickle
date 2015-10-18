@@ -12,10 +12,11 @@ const OPTIONS: ts.CompilerOptions = {
   skipDefaultLibCheck: true,
 };
 
-const {cachedLibName, cachedLib} = (function() {
+const {cachedLibPath, cachedLib} = (function() {
   let host = ts.createCompilerHost(OPTIONS);
   let fn = host.getDefaultLibFileName(OPTIONS);
-  return {cachedLibName: fn, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
+  let p = ts.getDefaultLibFilePath(OPTIONS);
+  return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
 function annotateSource(src: string): string {
@@ -23,14 +24,14 @@ function annotateSource(src: string): string {
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(fileName: string, languageVersion: ts.ScriptTarget,
                                 onError?: (msg: string) => void): ts.SourceFile {
-    if (fileName === cachedLibName) return cachedLib;
+    if (fileName === cachedLibPath) return cachedLib;
     if (fileName === 'main.ts') {
       return ts.createSourceFile(fileName, src, ts.ScriptTarget.Latest, true);
     }
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram(['main.ts'], {}, host);
+  var program = ts.createProgram(['main.ts'], OPTIONS, host);
   if (program.getSyntacticDiagnostics().length) {
     throw new Error(formatDiagnostics(ts.getPreEmitDiagnostics(program)));
   }
@@ -46,14 +47,14 @@ function transformSource(src: string): string {
   var mainSrc = ts.createSourceFile('main.ts', src, ts.ScriptTarget.Latest, true);
   host.getSourceFile = function(fileName: string, languageVersion: ts.ScriptTarget,
                                 onError?: (msg: string) => void): ts.SourceFile {
-    if (fileName === cachedLibName) return cachedLib;
+    if (fileName === cachedLibPath) return cachedLib;
     if (fileName === 'main.ts') {
       return mainSrc;
     }
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram(['main.ts'], {}, host);
+  var program = ts.createProgram(['main.ts'], OPTIONS, host);
   if (program.getSyntacticDiagnostics().length) {
     throw new Error(formatDiagnostics(ts.getPreEmitDiagnostics(program)));
   }
