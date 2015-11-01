@@ -3,12 +3,12 @@ import * as ts from 'typescript';
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
-                if (d.file) res += d.file + ':';
+                if (d.file) res += ' at ' + d.file.fileName + ':';
                 if (d.start) {
                   let {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
                   res += line + ':' + character + ':';
                 }
-                res += d.messageText;
+                res += ' ' + d.messageText;
                 return res;
               })
       .join('\n');

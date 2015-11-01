@@ -16,7 +16,7 @@ export function checkClosureCompile(jsFiles: string[], done: (err: Error) => voi
     'checks-only': true,
     'jscomp_error': 'checkTypes',
     'js': jsFiles,
-    'language_in': 'ECMASCRIPT6'
+    'language_in': 'ECMASCRIPT6_STRICT'
   };
 
   compile(null, CLOSURE_COMPILER_OPTS, (err, stdout, stderr) => {

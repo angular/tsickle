@@ -86,11 +86,10 @@ gulp.task('test.e2e', ['test.compile'], function(done) {
 
 gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format']);
 
-gulp.task('watch', ['test.unit', 'test.check-format'], function() {
+gulp.task('watch', function() {
   failOnError = false;
-  // Avoid watching generated .d.ts in the build (aka output) directory.
-  return gulp.watch(
-      ['src/**/*.ts', 'test/**/*.ts', 'test_files/**'], {ignoreInitial: true}, ['test.unit']);
+  gulp.start(['test.unit']);  // Trigger initial build.
+  return gulp.watch(['src/**/*.ts', 'test/**/*.ts', 'test_files/**'], ['test.unit']);
 });
 
 gulp.task('default', ['compile']);
