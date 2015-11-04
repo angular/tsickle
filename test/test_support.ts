@@ -22,8 +22,9 @@ const {cachedLibPath, cachedLib} = (function() {
 function annotateSource(src: string): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
-  host.getSourceFile = function(fileName: string, languageVersion: ts.ScriptTarget,
-                                onError?: (msg: string) => void): ts.SourceFile {
+  host.getSourceFile = function(
+                           fileName: string, languageVersion: ts.ScriptTarget,
+                           onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
     if (fileName === 'main.ts') {
       return ts.createSourceFile(fileName, src, ts.ScriptTarget.Latest, true);
@@ -45,8 +46,9 @@ function transformSource(src: string): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
   var mainSrc = ts.createSourceFile('main.ts', src, ts.ScriptTarget.Latest, true);
-  host.getSourceFile = function(fileName: string, languageVersion: ts.ScriptTarget,
-                                onError?: (msg: string) => void): ts.SourceFile {
+  host.getSourceFile = function(
+                           fileName: string, languageVersion: ts.ScriptTarget,
+                           onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
     if (fileName === 'main.ts') {
       return mainSrc;
@@ -76,7 +78,11 @@ export function expectSource(src: string) {
   return expect(transformed);
 }
 
-export interface GoldenFileTest { name: string, tsPath: string, jsPath: string, }
+export interface GoldenFileTest {
+  name: string;
+  tsPath: string;
+  jsPath: string;
+}
 
 export function goldenTests(): GoldenFileTest[] {
   var tsExtRe = /\.ts$/;
