@@ -26,7 +26,7 @@ var tsProject = ts.createProject(TSC_OPTIONS);
 
 gulp.task('test.check-format', function() {
   return gulp.src(['*.js', 'src/**/*.ts', 'test/**/*.ts'])
-      .pipe(formatter.checkFormat('file', clangFormat))
+      .pipe(formatter.checkFormat('file', clangFormat, {verbose: true}))
       .on('warning', onError);
 });
 

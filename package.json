@@ -13,10 +13,10 @@
   },
   "devDependencies": {
     "chai": "^2.1.1",
-    "clang-format": "1.0.30",
-    "closure-compiler": "0.2.10",
+    "clang-format": "^1.0.32",
+    "closure-compiler": "^0.2.12",
     "gulp": "^3.8.11",
-    "gulp-clang-format": "^1.0.21",
+    "gulp-clang-format": "^1.0.22",
     "gulp-mocha": "^2.0.0",
     "gulp-sourcemaps": "^1.5.0",
     "gulp-typescript": "^2.7.6",
