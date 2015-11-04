@@ -94,8 +94,9 @@ class Annotator {
 
         if (ctor.body.statements.length) {
           let firstStmt = ctor.body.statements[0];
-          this.emit(ctor.body.getSourceFile().getText().substring(firstStmt.getFullStart(),
-                                                                  ctor.body.getEnd()));
+          this.emit(
+              ctor.body.getSourceFile().getText().substring(
+                  firstStmt.getFullStart(), ctor.body.getEnd()));
         } else {
           let remaining = ctor.getSourceFile().getText().substring(
               ctor.body.getLastToken().getFullStart(), ctor.body.getEnd());

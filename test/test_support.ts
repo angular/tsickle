@@ -58,8 +58,8 @@ function transformSource(src: string): string {
 
   var program = ts.createProgram(['main.ts'], OPTIONS, host);
   if (program.getSyntacticDiagnostics().length) {
-    throw new Error('Failed to parse ' + src + '\n' +
-                    formatDiagnostics(ts.getPreEmitDiagnostics(program)));
+    throw new Error(
+        'Failed to parse ' + src + '\n' + formatDiagnostics(ts.getPreEmitDiagnostics(program)));
   }
 
   var transformed: StringMap = {};
