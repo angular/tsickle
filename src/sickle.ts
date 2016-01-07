@@ -28,8 +28,9 @@ const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.Node
  */
 class Annotator {
   private output: string[];
+  private indent: number;
 
-  constructor() {}
+  constructor() { this.indent = 0; }
 
   annotate(args: string[]): AnnotatedProgram {
     let tsArgs = ts.parseCommandLine(args);
@@ -55,8 +56,17 @@ class Annotator {
 
   private emit(str: string) { this.output.push(str); }
 
+  private logWithIndent(message: string) {
+    var prefix = '';
+    for (let i = 1; i < this.indent; i++) {
+      prefix += '| ';
+    }
+    console.log(prefix + message);
+  }
+
   private visit(node: ts.Node) {
-    // console.log('node:', (<any>ts).SyntaxKind[node.kind]);
+    this.indent++;
+    // this.logWithIndent('node: ' + (<any>ts).SyntaxKind[node.kind]);
     switch (node.kind) {
       case ts.SyntaxKind.VariableDeclaration:
         this.maybeVisitType((<ts.VariableDeclaration>node).type);
@@ -133,6 +143,7 @@ class Annotator {
         this.writeNode(node);
         break;
     }
+    this.indent--;
   }
 
   private emitStubDeclarations(
