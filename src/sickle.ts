@@ -137,6 +137,9 @@ class Annotator {
         this.writeTextFromOffset(writeOffset, fnDecl.body);
         this.visit(fnDecl.body);
         break;
+      case ts.SyntaxKind.TypeAliasDeclaration:
+        this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
+        break;
       default:
         this.writeNode(node);
         break;
@@ -176,6 +179,15 @@ class Annotator {
       this.emit('}');
     }
     this.emit(' */');
+  }
+
+  private visitTypeAlias(node: ts.TypeAliasDeclaration) {
+    this.emit('/** @typedef {');
+    this.visit(node.type);
+    this.emit('} */\n');
+    this.emit('var ');
+    this.emit(node.name.getText());
+    this.emit(';\n');
   }
 
   private writeNode(node: ts.Node) {
