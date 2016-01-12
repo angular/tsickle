@@ -72,11 +72,11 @@ function transformSource(src: string): string {
   return transformed['main.js'];
 }
 
-export function expectSource(src: string) {
+export function sickleSource(src: string): string {
   var annotated = annotateSource(src);
   // console.log('Annotated:\n', annotated);
   var transformed = transformSource(annotated);
-  return expect(transformed);
+  return transformed;
 }
 
 export interface GoldenFileTest {
