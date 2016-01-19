@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import {expect} from 'chai';
 
-import {annotateProgram, formatDiagnostics} from '../src/sickle';
 import {sickleSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;

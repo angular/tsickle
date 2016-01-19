@@ -14,12 +14,6 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
-export type StringMap = {
-  [fileName: string]: string
-};
-
-export type AnnotatedProgram = StringMap;
-
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -32,27 +26,11 @@ class Annotator {
 
   constructor() { this.indent = 0; }
 
-  annotate(args: string[]): AnnotatedProgram {
-    let tsArgs = ts.parseCommandLine(args);
-    if (tsArgs.errors) {
-      this.fail(formatDiagnostics(tsArgs.errors));
-    }
-    let program = ts.createProgram(tsArgs.fileNames, tsArgs.options);
-    let diags = ts.getPreEmitDiagnostics(program);
-    if (diags && diags.length) this.fail(formatDiagnostics(diags));
-    return this.annotateProgram(program);
-  }
-
-  annotateProgram(program: ts.Program): AnnotatedProgram {
-    let res: AnnotatedProgram = {};
-    for (let sf of program.getSourceFiles()) {
-      if (sf.fileName.match(/\.d\.ts$/)) continue;
-      this.output = [];
-      this.visit(sf);
-      assert(this.indent == 0, 'visit() failed to track nesting');
-      res[sf.fileName] = this.output.join('');
-    }
-    return res;
+  annotate(file: ts.SourceFile): string {
+    this.output = [];
+    this.visit(file);
+    assert(this.indent == 0, 'visit() failed to track nesting');
+    return this.output.join('');
   }
 
   private emit(str: string) { this.output.push(str); }
@@ -235,13 +213,16 @@ function last<T>(elems: T[]): T {
   return elems.length ? elems[elems.length - 1] : null;
 }
 
-export function annotateProgram(program: ts.Program): AnnotatedProgram {
-  return new Annotator().annotateProgram(program);
+export function annotate(file: ts.SourceFile): string {
+  return new Annotator().annotate(file);
 }
 
 // CLI entry point
 if (require.main === module) {
-  let res = new Annotator().annotate(process.argv);
-  // TODO(martinprobst): Do something useful here...
-  console.log(JSON.stringify(res));
+  for (let path of process.argv.splice(2)) {
+    let sourceText = ts.sys.readFile(path, 'utf-8');
+    let sf = ts.createSourceFile(path, sourceText, ts.ScriptTarget.ES6, true);
+    console.log(path + ':');
+    console.log(annotate(sf));
+  }
 }

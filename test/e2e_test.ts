@@ -4,7 +4,6 @@ import * as ts from 'typescript';
 import {expect} from 'chai';
 import {CompileOptions, compile} from 'closure-compiler';
 
-import {annotateProgram, formatDiagnostics} from '../src/sickle';
 import {goldenTests} from './test_support';
 
 export function checkClosureCompile(jsFiles: string[], done: (err: Error) => void) {

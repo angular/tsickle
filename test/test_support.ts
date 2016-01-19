@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {annotateProgram, formatDiagnostics, StringMap} from '../src/sickle';
+import {annotate, formatDiagnostics} from '../src/sickle';
 
 const OPTIONS: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES6,
@@ -37,9 +37,7 @@ function annotateSource(src: string): string {
     throw new Error(formatDiagnostics(ts.getPreEmitDiagnostics(program)));
   }
 
-  var res = annotateProgram(program);
-  expect(Object.keys(res)).to.deep.equal(['main.ts']);
-  return res['main.ts'];
+  return annotate(program.getSourceFile('main.ts'));
 }
 
 function transformSource(src: string): string {
@@ -62,7 +60,7 @@ function transformSource(src: string): string {
         'Failed to parse ' + src + '\n' + formatDiagnostics(ts.getPreEmitDiagnostics(program)));
   }
 
-  var transformed: StringMap = {};
+  var transformed: {[fileName: string]: string} = {};
   var emitRes =
       program.emit(mainSrc, (fileName: string, data: string) => { transformed[fileName] = data; });
   if (emitRes.diagnostics.length) {
