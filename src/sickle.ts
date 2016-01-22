@@ -23,11 +23,13 @@ const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.Node
 class Annotator {
   private output: string[];
   private indent: number;
+  private file: ts.SourceFile;
 
   constructor() { this.indent = 0; }
 
   annotate(file: ts.SourceFile): string {
     this.output = [];
+    this.file = file;
     this.visit(file);
     assert(this.indent == 0, 'visit() failed to track nesting');
     return this.output.join('');
@@ -137,11 +139,33 @@ class Annotator {
   }
 
   private visitProperty(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    this.maybeVisitType(p.type, '@type');
+    this.maybeVisitType(p.type, this.existingClosureAnnotation(p) + '@type');
     this.emit('\nthis.');
     this.emit(p.name.getText());
     this.emit(';');
     this.emit('\n');
+  }
+
+  /**
+   * Returns empty string if there is no existing annotation.
+   */
+  private existingClosureAnnotation(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
+    let comments = ts.getLeadingCommentRanges(this.file.text, p.pos);
+    if (!comments || comments.length == 0) return '';
+
+    // JS compiler only considers the last comment significant.
+    let {pos, end} = comments[comments.length - 1];
+    let comment = this.file.text.substring(pos, end);
+    return Annotator.getJsDocAnnotation(comment);
+  }
+
+  // return empty string if comment is not JsDoc.
+  static getJsDocAnnotation(comment: string): string {
+    if (/^\/\*\*/.test(comment) && /\*\/$/.test(comment)) {
+      let s = comment.slice(3);
+      return s.slice(0, s.length - 2);
+    }
+    return '';
   }
 
   private maybeVisitType(type: ts.TypeNode, jsDocTag?: string) {
