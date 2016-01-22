@@ -6,3 +6,9 @@ typings
 
 # Dependency directory
 node_modules
+
+# WebStorm/IntelliJ directory
+.idea
+
+# VSCode directory
+.vscode
