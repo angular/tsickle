@@ -82,13 +82,9 @@ class Annotator {
 
         if (ctor.body.statements.length) {
           let firstStmt = ctor.body.statements[0];
-          this.emit(
-              ctor.body.getSourceFile().getText().substring(
-                  firstStmt.getFullStart(), ctor.body.getEnd()));
+          this.writeRange(firstStmt.getFullStart(), ctor.body.getEnd());
         } else {
-          let remaining = ctor.getSourceFile().getText().substring(
-              ctor.body.getLastToken().getFullStart(), ctor.body.getEnd());
-          this.emit(remaining);
+          this.writeRange(ctor.body.getLastToken().getFullStart(), ctor.body.getEnd());
         }
 
         break;
@@ -200,29 +196,35 @@ class Annotator {
     let lastEnd = node.getFullStart();
     for (let child of node.getChildren()) {
       let childStart = child.getFullStart();
-      this.writeSourceBefore(lastEnd, child);
+      this.writeTextFromOffset(lastEnd, child);
       this.visit(child);
       lastEnd = child.getEnd();
     }
     // Write any trailing text.
-    let text = node.getSourceFile().getText().slice(lastEnd, node.getEnd());
+    this.writeRange(lastEnd, node.getEnd());
+  }
+
+  // Write a span of the input file as expressed by absolute offsets.
+  // These offsets are found in attributes like node.getFullStart() and
+  // node.getEnd().
+  private writeRange(from: number, to: number) {
+    // getSourceFile().getText() is wrong here because it the text of
+    // the SourceFile node of the AST, which doesn't contain the comments
+    // preceding that node.  Semantically these ranges are just offsets
+    // into the original source file text, so slice from that.
+    let text = this.file.text.slice(from, to);
     if (text) this.emit(text);
   }
 
   private writeTextBetween(node: ts.Node, to: ts.Node) {
-    let text = node.getSourceFile().getText().slice(node.getFullStart(), to.getFullStart());
-    if (text) this.emit(text);
+    this.writeRange(node.getFullStart(), to.getFullStart());
   }
 
-  private writeTextFromOffset(from: number, to: ts.Node) {
-    let text = to.getSourceFile().getText().slice(from, to.getFullStart());
-    if (text) this.emit(text);
-  }
-
-  private writeSourceBefore(offset: number, node: ts.Node) {
-    if (node.getFullStart() == offset) return;
-    assert(node.getFullStart() > offset, 'Offset must not be smaller');
-    this.emit(node.getSourceFile().getText().slice(offset, node.getFullStart()));
+  private writeTextFromOffset(from: number, node: ts.Node) {
+    let to = node.getFullStart();
+    if (from == to) return;
+    assert(to > from, 'Offset must not be smaller');
+    this.writeRange(from, to);
   }
 
   private fail(msg: string) { throw new Error(msg); }
