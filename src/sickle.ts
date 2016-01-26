@@ -72,9 +72,32 @@ class Annotator {
         this.writeNode(classNode.getLastToken());
         break;
       }
+      case ts.SyntaxKind.PublicKeyword:
+      case ts.SyntaxKind.PrivateKeyword:
+        // The "public"/"private" keywords are encountered in two places:
+        // 1) In class fields (which don't appear in the transformed output).
+        // 2) In "parameter properties", e.g.
+        //      constructor(/** @export */ public foo: string).
+        // In case 2 it's important to not emit that JSDoc in the generated
+        // constructor, as this is illegal for Closure.  It's safe to just
+        // always skip comments preceding the 'public' keyword.
+        // See test_files/parameter_properties.ts.
+        this.writeNode(node, /* skipComments */ true);
+        break;
       case ts.SyntaxKind.Constructor: {
         let ctor = <ts.ConstructorDeclaration>node;
-        this.writeTextBetween(ctor, ctor.body);
+        // Write the "constructor(...) {" bit, but iterate through any
+        // parameters if given so that we can examine them more closely.
+        let offset = ctor.getFullStart();
+        if (ctor.parameters.length) {
+          for (let param of ctor.parameters) {
+            this.writeTextFromOffset(offset, param);
+            this.visit(param);
+            offset = param.getEnd();
+          }
+        }
+        this.writeTextFromOffset(offset, ctor.body);
+
         if (ctor.body.statements.length) {
           // Insert before the first code in the ctor.
           this.writeTextBetween(ctor.body, ctor.body.statements[0]);
@@ -152,12 +175,14 @@ class Annotator {
    * Returns empty string if there is no existing annotation.
    */
   private existingClosureAnnotation(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    let comments = ts.getLeadingCommentRanges(this.file.text, p.pos);
+    let text = p.getFullText();
+    let comments = ts.getLeadingCommentRanges(text, 0);
+
     if (!comments || comments.length == 0) return '';
 
     // JS compiler only considers the last comment significant.
     let {pos, end} = comments[comments.length - 1];
-    let comment = this.file.text.substring(pos, end);
+    let comment = text.substring(pos, end);
     return Annotator.getJsDocAnnotation(comment);
   }
 
@@ -197,11 +222,14 @@ class Annotator {
     this.emit(';\n');
   }
 
-  private writeNode(node: ts.Node) {
+  private writeNode(node: ts.Node, skipComments: boolean = false) {
     if (node.getChildCount() == 0) {
       // Directly write complete tokens.
-      this.emit(node.getFullText());
+      this.emit(skipComments ? node.getText() : node.getFullText());
       return;
+    }
+    if (skipComments) {
+      this.fail('skipComments unimplemented for complex Nodes');
     }
     let lastEnd = node.getFullStart();
     for (let child of node.getChildren()) {
