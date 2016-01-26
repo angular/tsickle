@@ -3,6 +3,7 @@ import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import {SickleOptions} from '../src/sickle';
 import {annotate, formatDiagnostics} from '../src/sickle';
 
 const OPTIONS: ts.CompilerOptions = {
@@ -19,7 +20,7 @@ const {cachedLibPath, cachedLib} = (function() {
   return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
-function annotateSource(src: string): string {
+function annotateSource(src: string, options: SickleOptions = {}): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
@@ -37,7 +38,7 @@ function annotateSource(src: string): string {
     throw new Error(formatDiagnostics(ts.getPreEmitDiagnostics(program)));
   }
 
-  return annotate(program.getSourceFile('main.ts'));
+  return annotate(program.getSourceFile('main.ts'), options);
 }
 
 function transformSource(src: string): string {
@@ -70,8 +71,8 @@ function transformSource(src: string): string {
   return transformed['main.js'];
 }
 
-export function sickleSource(src: string): string {
-  var annotated = annotateSource(src);
+export function sickleSource(src: string, options: SickleOptions = {}): string {
+  var annotated = annotateSource(src, options);
   // console.log('Annotated:\n', annotated);
   var transformed = transformSource(annotated);
   return transformed;

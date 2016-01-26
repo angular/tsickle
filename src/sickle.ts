@@ -1,5 +1,11 @@
 import * as ts from 'typescript';
 
+export interface SickleOptions {
+  // If true, convert every type to the Closure {?} type, which means
+  // "don't check types".
+  untyped?: boolean;
+}
+
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
@@ -25,7 +31,7 @@ class Annotator {
   private indent: number;
   private file: ts.SourceFile;
 
-  constructor() { this.indent = 0; }
+  constructor(private options: SickleOptions) { this.indent = 0; }
 
   annotate(file: ts.SourceFile): string {
     this.output = [];
@@ -164,14 +170,18 @@ class Annotator {
   }
 
   private maybeVisitType(type: ts.TypeNode, jsDocTag?: string) {
-    if (!type) return;
+    if (!type && !this.options.untyped) return;
     this.emit(' /**');
     if (jsDocTag) {
       this.emit(' ');
       this.emit(jsDocTag);
       this.emit(' {');
     }
-    this.visit(type);
+    if (this.options.untyped) {
+      this.emit(' ?');
+    } else {
+      this.visit(type);
+    }
     if (jsDocTag) {
       this.emit('}');
     }
@@ -238,8 +248,11 @@ function last<T>(elems: T[]): T {
   return elems.length ? elems[elems.length - 1] : null;
 }
 
-export function annotate(file: ts.SourceFile): string {
-  return new Annotator().annotate(file);
+export function annotate(file: ts.SourceFile, options: SickleOptions = {}): string {
+  let fullOptions: SickleOptions = {
+    untyped: options.untyped || false,
+  };
+  return new Annotator(fullOptions).annotate(file);
 }
 
 // CLI entry point

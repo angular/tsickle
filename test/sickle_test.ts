@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import {expect} from 'chai';
 
+import {SickleOptions} from '../src/sickle';
 import {sickleSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
@@ -19,10 +20,14 @@ describe('golden tests', () => {
       it.skip(test.name);
       return;
     }
+    let options: SickleOptions = {};
+    if (/\.untyped\./.test(test.name)) {
+      options.untyped = true;
+    }
     var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
     var jsSource = fs.readFileSync(test.jsPath, 'utf-8');
     it(test.name, () => {
-      let sickleJs = sickleSource(tsSource);
+      let sickleJs = sickleSource(tsSource, options);
       if (UPDATE_GOLDENS && sickleJs != jsSource) {
         console.log('Updating golden file for', test.jsPath);
         fs.writeFileSync(test.jsPath, sickleJs, 'utf-8');
