@@ -11,6 +11,7 @@ const OPTIONS: ts.CompilerOptions = {
   noImplicitAny: true,
   noResolve: true,
   skipDefaultLibCheck: true,
+  noEmitOnError: true,
 };
 
 const {cachedLibPath, cachedLib} = (function() {
@@ -56,9 +57,9 @@ function transformSource(src: string): string {
   };
 
   var program = ts.createProgram(['main.ts'], OPTIONS, host);
-  if (program.getSyntacticDiagnostics().length) {
-    throw new Error(
-        'Failed to parse ' + src + '\n' + formatDiagnostics(ts.getPreEmitDiagnostics(program)));
+  let diagnostics = ts.getPreEmitDiagnostics(program);
+  if (diagnostics.length) {
+    throw new Error('Failed to parse ' + src + '\n' + formatDiagnostics(diagnostics));
   }
 
   var transformed: {[fileName: string]: string} = {};

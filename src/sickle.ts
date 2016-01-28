@@ -138,6 +138,7 @@ class Annotator {
         break;
       case ts.SyntaxKind.TypeAliasDeclaration:
         this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
+        this.writeNode(node);
         break;
       default:
         this.writeNode(node);
@@ -212,12 +213,13 @@ class Annotator {
 
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
     if (this.options.untyped) return;
+    // Write a Closure typedef, which involves an unused "var" declaration.
     this.emit('/** @typedef {');
     this.visit(node.type);
     this.emit('} */\n');
     this.emit('var ');
     this.emit(node.name.getText());
-    this.emit(';\n');
+    this.emit(': void;\n');
   }
 
   private writeNode(node: ts.Node, skipComments: boolean = false) {
