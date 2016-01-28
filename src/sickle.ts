@@ -214,6 +214,7 @@ class Annotator {
   }
 
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
+    if (this.options.untyped) return;
     this.emit('/** @typedef {');
     this.visit(node.type);
     this.emit('} */\n');
