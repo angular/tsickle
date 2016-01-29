@@ -8,6 +8,7 @@ class Foo {
   field: string;
 
   constructor(private ctorArg: string) {
+    this.field = 'hello';
 
 // Sickle: begin stub declarations.
 
@@ -17,6 +18,5 @@ this.field;
 this.ctorArg;
 // Sickle: end stub declarations.
 
-    this.field = 'hello';
   }
 }

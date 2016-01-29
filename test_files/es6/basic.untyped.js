@@ -5,13 +5,13 @@ function func(/** ? */ arg1) {
 }
 class Foo {
     constructor(ctorArg) {
-        // Sickle: begin stub declarations.
         this.ctorArg = ctorArg;
+        this.field = 'hello';
+        // Sickle: begin stub declarations.
         /** @type { ?} */
         this.field;
         /** @type { ?} */
         this.ctorArg;
         // Sickle: end stub declarations.
-        this.field = 'hello';
     }
 }

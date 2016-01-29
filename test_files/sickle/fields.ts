@@ -3,6 +3,7 @@ class Klass {
   field2: number;
 
   constructor(private field3: number) {
+    this.field3 = 2 + 1;
 
 // Sickle: begin stub declarations.
 
@@ -14,7 +15,6 @@ this.field2;
 this.field3;
 // Sickle: end stub declarations.
 
-    this.field3 = 2 + 1;
   }
 
   getF1() {

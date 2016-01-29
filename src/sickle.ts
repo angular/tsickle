@@ -100,15 +100,8 @@ class Annotator {
             offset = param.getEnd();
           }
         }
-        offset = this.writeTextFromOffset(offset, ctor.body);
-
-        if (ctor.body.statements.length) {
-          // Insert before the first code in the ctor.
-          offset = this.writeTextFromOffset(offset, ctor.body.statements[0]);
-        } else {
-          // Empty ctor - just insert before the end of it.
-          offset = this.writeTextFromOffset(offset, ctor.body.getLastToken());
-        }
+        // Write all of the body up to the closing }.
+        offset = this.writeTextFromOffset(offset, ctor.body.getLastToken());
 
         let paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
         this.emitStubDeclarations(<ts.ClassLikeDeclaration>ctor.parent, paramProps);
