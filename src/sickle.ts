@@ -150,9 +150,12 @@ class Annotator {
       classDecl: ts.ClassLikeDeclaration, paramProps: ts.ParameterDeclaration[]) {
     this.emit('\n\n// Sickle: begin stub declarations.\n');
     this.emit('\n');
-    let props = <ts.PropertyDeclaration[]>(
-        classDecl.members.filter((e) => e.kind === ts.SyntaxKind.PropertyDeclaration));
-    props.forEach((p) => this.visitProperty(p));
+    let nonStaticProps = <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
+      let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
+      let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
+      return !isStatic && isProperty;
+    }));
+    nonStaticProps.forEach((p) => this.visitProperty(p));
     paramProps.forEach((p) => this.visitProperty(p));
     this.emit('// Sickle: end stub declarations.\n');
   }
