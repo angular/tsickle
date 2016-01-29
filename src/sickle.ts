@@ -96,26 +96,20 @@ class Annotator {
             offset = param.getEnd();
           }
         }
-        this.writeTextFromOffset(offset, ctor.body);
+        offset = this.writeTextFromOffset(offset, ctor.body);
 
         if (ctor.body.statements.length) {
           // Insert before the first code in the ctor.
-          this.writeTextBetween(ctor.body, ctor.body.statements[0]);
+          offset = this.writeTextFromOffset(offset, ctor.body.statements[0]);
         } else {
           // Empty ctor - just insert before the end of it.
-          this.writeTextBetween(ctor.body, ctor.body.getLastToken());
+          offset = this.writeTextFromOffset(offset, ctor.body.getLastToken());
         }
 
         let paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
         this.emitStubDeclarations(<ts.ClassLikeDeclaration>ctor.parent, paramProps);
 
-        if (ctor.body.statements.length) {
-          let firstStmt = ctor.body.statements[0];
-          this.writeRange(firstStmt.getFullStart(), ctor.body.getEnd());
-        } else {
-          this.writeRange(ctor.body.getLastToken().getFullStart(), ctor.body.getEnd());
-        }
-
+        this.writeRange(offset, ctor.body.getEnd());
         break;
       }
       case ts.SyntaxKind.FunctionDeclaration:
@@ -234,7 +228,6 @@ class Annotator {
     }
     let lastEnd = node.getFullStart();
     for (let child of node.getChildren()) {
-      let childStart = child.getFullStart();
       this.writeTextFromOffset(lastEnd, child);
       this.visit(child);
       lastEnd = child.getEnd();
@@ -246,24 +239,25 @@ class Annotator {
   // Write a span of the input file as expressed by absolute offsets.
   // These offsets are found in attributes like node.getFullStart() and
   // node.getEnd().
-  private writeRange(from: number, to: number) {
+  private writeRange(from: number, to: number): number {
     // getSourceFile().getText() is wrong here because it the text of
     // the SourceFile node of the AST, which doesn't contain the comments
     // preceding that node.  Semantically these ranges are just offsets
     // into the original source file text, so slice from that.
     let text = this.file.text.slice(from, to);
     if (text) this.emit(text);
+    return to;
   }
 
-  private writeTextBetween(node: ts.Node, to: ts.Node) {
-    this.writeRange(node.getFullStart(), to.getFullStart());
+  private writeTextBetween(node: ts.Node, to: ts.Node): number {
+    return this.writeRange(node.getFullStart(), to.getFullStart());
   }
 
-  private writeTextFromOffset(from: number, node: ts.Node) {
+  private writeTextFromOffset(from: number, node: ts.Node): number {
     let to = node.getFullStart();
-    if (from == to) return;
+    if (from == to) return to;
     assert(to > from, 'Offset must not be smaller');
-    this.writeRange(from, to);
+    return this.writeRange(from, to);
   }
 
   private fail(msg: string) { throw new Error(msg); }
