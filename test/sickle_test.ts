@@ -4,7 +4,7 @@ import * as ts from 'typescript';
 import {expect} from 'chai';
 
 import {SickleOptions} from '../src/sickle';
-import {sickleSource, goldenTests} from './test_support';
+import {annotateSource, transformSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
@@ -24,15 +24,29 @@ describe('golden tests', () => {
     if (/\.untyped\./.test(test.name)) {
       options.untyped = true;
     }
-    var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
-    var jsSource = fs.readFileSync(test.jsPath, 'utf-8');
     it(test.name, () => {
-      let sickleJs = sickleSource(tsSource, options);
-      if (UPDATE_GOLDENS && sickleJs != jsSource) {
-        console.log('Updating golden file for', test.jsPath);
-        fs.writeFileSync(test.jsPath, sickleJs, 'utf-8');
+      var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
+
+      // Run TypeScript through sickle and compare against goldens.
+      let sickleSource = annotateSource(tsSource, options);
+      let sickleGolden = fs.readFileSync(test.sicklePath, 'utf-8');
+      if (UPDATE_GOLDENS && sickleSource != sickleGolden) {
+        console.log('Updating golden file for', test.sicklePath);
+        fs.writeFileSync(test.sicklePath, sickleSource, 'utf-8');
+        sickleGolden = sickleSource;
       }
-      expect(sickleJs).to.equal(jsSource);
+      expect(sickleSource).to.equal(sickleGolden);
+
+      // Run sickled TypeScript through TypeScript compiler
+      // and compare against goldens.
+      let es6Source = transformSource(sickleSource);
+      let es6Golden = fs.readFileSync(test.es6Path, 'utf-8');
+      if (UPDATE_GOLDENS && es6Source != es6Golden) {
+        console.log('Updating golden file for', test.es6Path);
+        fs.writeFileSync(test.es6Path, es6Source, 'utf-8');
+        es6Golden = es6Source;
+      }
+      expect(es6Source).to.equal(es6Golden);
     });
   });
 });

@@ -21,7 +21,7 @@ const {cachedLibPath, cachedLib} = (function() {
   return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
-function annotateSource(src: string, options: SickleOptions = {}): string {
+export function annotateSource(src: string, options: SickleOptions = {}): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
@@ -42,7 +42,7 @@ function annotateSource(src: string, options: SickleOptions = {}): string {
   return annotate(program.getSourceFile('main.ts'), options);
 }
 
-function transformSource(src: string): string {
+export function transformSource(src: string): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
   var mainSrc = ts.createSourceFile('main.ts', src, ts.ScriptTarget.Latest, true);
@@ -72,17 +72,14 @@ function transformSource(src: string): string {
   return transformed['main.js'];
 }
 
-export function sickleSource(src: string, options: SickleOptions = {}): string {
-  var annotated = annotateSource(src, options);
-  // console.log('Annotated:\n', annotated);
-  var transformed = transformSource(annotated);
-  return transformed;
-}
-
 export interface GoldenFileTest {
   name: string;
+  // Path to input file.
   tsPath: string;
-  jsPath: string;
+  // Path to golden of post-sickle processing.
+  sicklePath: string;
+  // Path to golden of post-sickle, post TypeScript->ES6 processing.
+  es6Path: string;
 }
 
 export function goldenTests(): GoldenFileTest[] {
@@ -93,7 +90,8 @@ export function goldenTests(): GoldenFileTest[] {
     return {
       name: fn,
       tsPath: path.join(testFolder, fn),
-      jsPath: path.join(testFolder, fn.replace(tsExtRe, '.js')),
+      sicklePath: path.join(testFolder, 'sickle', fn),
+      es6Path: path.join(testFolder, 'es6', fn.replace(tsExtRe, '.js')),
     };
   });
 }

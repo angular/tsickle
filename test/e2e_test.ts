@@ -26,7 +26,7 @@ export function checkClosureCompile(jsFiles: string[], done: (err: Error) => voi
 
 describe('golden file tests', () => {
   it('generates correct Closure code', (done: (err: Error) => void) => {
-    var goldenJs = goldenTests().map((t) => t.jsPath);
+    var goldenJs = goldenTests().map((t) => t.es6Path);
     checkClosureCompile(goldenJs, done);
   });
 });
