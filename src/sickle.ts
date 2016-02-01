@@ -49,8 +49,8 @@ class Annotator {
   }
 
   private visit(node: ts.Node) {
-    this.indent++;
     // this.logWithIndent('node: ' + (<any>ts).SyntaxKind[node.kind]);
+    this.indent++;
     switch (node.kind) {
       case ts.SyntaxKind.VariableDeclaration:
         this.maybeVisitType((<ts.VariableDeclaration>node).type);
