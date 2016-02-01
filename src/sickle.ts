@@ -30,6 +30,9 @@ class Annotator {
   private output: string[];
   private indent: number;
   private file: ts.SourceFile;
+  // The node currently being visited by visit().
+  // This is only used in error messages.
+  private currentNode: ts.Node;
 
   constructor(private options: SickleOptions) { this.indent = 0; }
 
@@ -37,7 +40,7 @@ class Annotator {
     this.output = [];
     this.file = file;
     this.visit(file);
-    assert(this.indent == 0, 'visit() failed to track nesting');
+    this.assert(this.indent == 0, 'visit() failed to track nesting');
     return this.output.join('');
   }
 
@@ -49,6 +52,7 @@ class Annotator {
   }
 
   private visit(node: ts.Node) {
+    this.currentNode = node;
     // this.logWithIndent('node: ' + (<any>ts).SyntaxKind[node.kind]);
     this.indent++;
     switch (node.kind) {
@@ -261,15 +265,19 @@ class Annotator {
   private writeTextFromOffset(from: number, node: ts.Node): number {
     let to = node.getFullStart();
     if (from == to) return to;
-    assert(to > from, 'Offset must not be smaller');
+    this.assert(to > from, `Offset must not be smaller; ${to} vs ${from}`);
     return this.writeRange(from, to);
   }
 
-  private fail(msg: string) { throw new Error(msg); }
-}
+  private fail(msg: string) {
+    let offset = this.currentNode.getFullStart();
+    let {line, character} = this.file.getLineAndCharacterOfPosition(offset);
+    throw new Error(`near node starting at ${line+1}:${character+1}: ${msg}`);
+  }
 
-function assert(condition: boolean, msg: string) {
-  if (!condition) throw new Error(msg);
+  private assert(condition: boolean, msg: string) {
+    if (!condition) this.fail(msg);
+  }
 }
 
 function last<T>(elems: T[]): T {
