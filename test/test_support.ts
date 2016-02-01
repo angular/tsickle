@@ -12,6 +12,8 @@ const OPTIONS: ts.CompilerOptions = {
   noResolve: true,
   skipDefaultLibCheck: true,
   noEmitOnError: true,
+  experimentalDecorators: true,
+  emitDecoratorMetadata: true,
 };
 
 const {cachedLibPath, cachedLib} = (function() {

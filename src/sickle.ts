@@ -222,7 +222,19 @@ class Annotator {
   private writeNode(node: ts.Node, skipComments: boolean = false) {
     if (node.getChildCount() == 0) {
       // Directly write complete tokens.
-      this.emit(skipComments ? node.getText() : node.getFullText());
+      if (skipComments) {
+        // To skip comments, we skip all whitespace/comments preceding
+        // the node.  But if there was anything skipped we should emit
+        // a newline in its place so that the node remains separated
+        // from the previous node.  TODO: don't skip anything here if
+        // there wasn't any comment.
+        if (node.getFullStart() < node.getStart()) {
+          this.emit('\n');
+        }
+        this.emit(node.getText());
+      } else {
+        this.emit(node.getFullText());
+      }
       return;
     }
     if (skipComments) {

@@ -9,7 +9,7 @@
   "dependencies": {
     "source-map": "^0.4.2",
     "source-map-support": "^0.3.1",
-    "typescript": "^1.6.2"
+    "typescript": "^1.8.0"
   },
   "devDependencies": {
     "chai": "^2.1.1",

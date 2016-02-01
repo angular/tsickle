@@ -1,6 +1,8 @@
 class ParamProps {
   // The @export below should not show up in the output ctor.
-  constructor(public bar: string,public bar2: string) {
+  constructor(
+public bar: string,
+public bar2: string) {
 
 // Sickle: begin stub declarations.
 
