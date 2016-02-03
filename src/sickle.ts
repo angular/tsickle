@@ -131,7 +131,7 @@ class Annotator {
           for (let param of fnDecl.parameters) {
             this.writeTextFromOffset(writeOffset, param);
             writeOffset = param.getEnd();
-            let optional = param.initializer != null;
+            let optional = param.initializer != null || param.questionToken != null;
             this.maybeVisitType(param.type, null, optional);
             this.visit(param);
           }

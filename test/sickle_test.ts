@@ -11,7 +11,7 @@ let RUN_TESTS_MATCHING: RegExp = null;
 
 // If true, update all the golden .js files to be whatever sickle
 // produces from the .ts source.
-let UPDATE_GOLDENS = false;
+let UPDATE_GOLDENS = true;
 
 describe('golden tests', () => {
 
