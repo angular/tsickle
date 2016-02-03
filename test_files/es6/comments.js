@@ -1,4 +1,5 @@
 class A {
+    // Sickle: begin synthetic ctor.
     constructor() {
         // Sickle: begin stub declarations.
         /**  @export @type { string} */

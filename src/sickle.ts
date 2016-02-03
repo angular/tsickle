@@ -20,6 +20,22 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
+/**
+ * Returns true if a class declaration has a superclass (as declared
+ * with the "extends" keyword), which indicates it must call super()
+ * in its constructor.
+ */
+function classHasSuperClass(classNode: ts.ClassDeclaration): boolean {
+  if (classNode.heritageClauses) {
+    for (let heritage of classNode.heritageClauses) {
+      if (heritage.token == ts.SyntaxKind.ExtendsKeyword) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -67,12 +83,8 @@ class Annotator {
           this.writeNode(classNode);
           break;
         }
-        // Emit a synthetic ctor.
-        // TODO(martinprobst): Handle inherited parent ctors.
         this.writeTextBetween(classNode, classNode.getLastToken());
-        this.emit('constructor() {\n');
-        this.emitStubDeclarations(classNode, []);
-        this.emit('}\n');
+        this.emitSyntheticConstructor(classNode);
         this.writeNode(classNode.getLastToken());
         break;
       }
@@ -142,6 +154,30 @@ class Annotator {
         break;
     }
     this.indent--;
+  }
+
+  // emitSyntheticConstructor produces a constructor() {...} where
+  // none existed in the original source.  It's necessary in the case
+  // where TypeScript syntax specifies there are additional properties
+  // on the class, because to declare these in Closure you must put
+  // those in the constructor.
+  private emitSyntheticConstructor(classNode: ts.ClassDeclaration) {
+    // Be careful to emit minimal code here, as fully implementing a
+    // constructor is hard.  See test_files/super.ts for some test cases.
+    if (classNode.members.length == 0) {
+      // There are no members so we can rely on the default TypeScript
+      // constructor.
+      return;
+    }
+    this.emit('\n// Sickle: begin synthetic ctor.\n');
+    this.emit('constructor() {\n');
+    if (classHasSuperClass(classNode)) {
+      // We must call super(), but we don't know the necessary arguments.
+      // For now, just assume there are none, as that covers many cases.
+      this.emit('super();\n');
+    }
+    this.emitStubDeclarations(classNode, []);
+    this.emit('}\n');
   }
 
   private emitStubDeclarations(

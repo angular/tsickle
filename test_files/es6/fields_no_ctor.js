@@ -1,4 +1,5 @@
 class NoCtor {
+    // Sickle: begin synthetic ctor.
     constructor() {
         // Sickle: begin stub declarations.
         /** @type { number} */

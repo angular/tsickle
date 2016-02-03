@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 function decorator(/** Object */ a, /** string */ b) { }
 class DecoratorTest {
+    // Sickle: begin synthetic ctor.
     constructor() {
         // Sickle: begin stub declarations.
         /** @type { number} */

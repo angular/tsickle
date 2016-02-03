@@ -4,7 +4,9 @@ class A {
   /* non js-doc comment */
   bar: number;
   // non js-doc comment
-  buz: number;constructor() {
+  buz: number;
+// Sickle: begin synthetic ctor.
+constructor() {
 
 
 // Sickle: begin stub declarations.

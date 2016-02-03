@@ -1,4 +1,5 @@
 class Static {
+    // Sickle: begin synthetic ctor.
     constructor() {
         // Sickle: begin stub declarations.
         // Sickle: end stub declarations.
