@@ -131,7 +131,8 @@ class Annotator {
           for (let param of fnDecl.parameters) {
             this.writeTextFromOffset(writeOffset, param);
             writeOffset = param.getEnd();
-            this.maybeVisitType(param.type);
+            let optional = param.initializer != null;
+            this.maybeVisitType(param.type, null, optional);
             this.visit(param);
           }
         }
@@ -225,7 +226,7 @@ class Annotator {
     return '';
   }
 
-  private maybeVisitType(type: ts.TypeNode, jsDocTag?: string) {
+  private maybeVisitType(type: ts.TypeNode, jsDocTag?: string, optional?: boolean) {
     if (!type && !this.options.untyped) return;
     this.emit(' /**');
     if (jsDocTag) {
@@ -237,6 +238,9 @@ class Annotator {
       this.emit(' ?');
     } else {
       this.visit(type);
+    }
+    if (optional) {
+      this.emit('=');
     }
     if (jsDocTag) {
       this.emit('}');
