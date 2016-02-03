@@ -196,7 +196,11 @@ class Annotator {
   }
 
   private visitProperty(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    this.maybeVisitType(p.type, this.existingClosureAnnotation(p) + '@type');
+    let existingAnnotation = this.existingClosureAnnotation(p).trim();
+    if (existingAnnotation) {
+      existingAnnotation += '\n';
+    }
+    this.maybeVisitType(p.type, existingAnnotation + '@type');
     this.emit('\nthis.');
     this.emit(p.name.getText());
     this.emit(';');

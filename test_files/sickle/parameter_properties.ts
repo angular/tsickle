@@ -6,7 +6,8 @@ public bar2: string) {
 
 // Sickle: begin stub declarations.
 
- /**  @export @type { string} */
+ /** @export
+@type { string} */
 this.bar;
  /** @type { string} */
 this.bar2;
