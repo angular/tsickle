@@ -1,0 +1,1 @@
+enum FooEnum {XYZ, PI = 3.14159}

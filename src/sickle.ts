@@ -150,6 +150,9 @@ class Annotator {
         this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
         this.writeNode(node);
         break;
+      case ts.SyntaxKind.EnumDeclaration:
+        this.visitEnum(<ts.EnumDeclaration>node);
+        break;
       default:
         this.writeNode(node);
         break;
@@ -261,6 +264,24 @@ class Annotator {
     this.emit('var ');
     this.emit(node.name.getText());
     this.emit(': void;\n');
+  }
+
+  private visitEnum(node: ts.EnumDeclaration) {
+    this.emit('/** @typedef {number} */\n');
+    this.writeNode(node);
+    this.emit('\n');
+    let i = 0;
+    for (let member of node.members) {
+      this.emit(`/** @type {${node.name.getText()}} */\n`);
+      this.emit(`(<any>${node.name.getText()}).${member.name.getText()} = `);
+      if (member.initializer) {
+        this.visit(member.initializer);
+      } else {
+        this.emit(String(i));
+        i++;
+      }
+      this.emit(';\n');
+    }
   }
 
   private writeNode(node: ts.Node, skipComments: boolean = false) {
