@@ -1,2 +1,7 @@
-function optionalArgument(/** number */ x, /** string= */ y) {
+/**
+ * @param { number} x
+ * @param { string=}  y
+ */
+function optionalArgument(x, y) {
 }
+optionalArgument(1);

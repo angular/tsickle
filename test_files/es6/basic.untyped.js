@@ -1,6 +1,10 @@
-/** @return { ?} */ // This test is just a random collection of typed code, to
+// This test is just a random collection of typed code, to
 // ensure the output is all with {?} annotations.
-function func(/** ? */ arg1) {
+/**
+ * @param { ?} arg1
+ * @return { ?}
+ */
+function func(arg1) {
     return [3];
 }
 class Foo {

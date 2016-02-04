@@ -1,4 +1,9 @@
-function decorator( /** Object */a: Object, /** string */ b: string) {}
+
+/**
+ * @param { Object} a
+ * @param { string}  b
+ */
+function decorator(a: Object, b: string) {}
 
 class DecoratorTest {
   @decorator

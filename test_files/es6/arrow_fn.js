@@ -1,1 +1,10 @@
-var fn3 = (/** number */ a) => 12;
+var fn3 = 
+/**
+ * @param { number} a
+ * @return { number}
+ */
+/**
+ * @param { number} a
+ * @return { number}
+ */
+    (a) => 12;

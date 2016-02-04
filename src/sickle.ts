@@ -73,7 +73,7 @@ class Annotator {
     this.indent++;
     switch (node.kind) {
       case ts.SyntaxKind.VariableDeclaration:
-        this.maybeVisitType((<ts.VariableDeclaration>node).type);
+        this.maybeEmitJSDocType((<ts.VariableDeclaration>node).type);
         this.writeNode(node);
         break;
       case ts.SyntaxKind.ClassDeclaration: {
@@ -124,25 +124,33 @@ class Annotator {
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.ArrowFunction:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
-        this.maybeVisitType(fnDecl.type, '@return');
         let writeOffset = fnDecl.getFullStart();
+        writeOffset = this.writeRange(writeOffset, fnDecl.getStart());
+        // The first \n makes the output sometimes uglier than necessary,
+        // but it's needed to work around
+        // https://github.com/Microsoft/TypeScript/issues/6982
+        this.emit('\n/**\n');
         // Parameters.
         if (fnDecl.parameters.length) {
           for (let param of fnDecl.parameters) {
-            this.writeTextFromOffset(writeOffset, param);
-            writeOffset = param.getEnd();
-            let optional = param.initializer != null || param.questionToken != null;
-            this.maybeVisitType(param.type, null, optional);
-            this.visit(param);
+            if (param.type) {
+              let optional = param.initializer != null || param.questionToken != null;
+              this.emit(' * @param {');
+              this.emitType(param.type, optional);
+              this.emit('} ');
+              this.writeNode(param.name);
+              this.emit('\n');
+            }
           }
         }
         // Return type.
         if (fnDecl.type) {
-          this.writeTextFromOffset(writeOffset, fnDecl.type);
-          this.visit(fnDecl.type);
-          writeOffset = fnDecl.type.getEnd();
+          this.emit(' * @return {');
+          this.emitType(fnDecl.type);
+          this.emit('}\n');
         }
-        // Body.
+        this.emit(' */\n');
+
         this.writeTextFromOffset(writeOffset, fnDecl.body);
         this.visit(fnDecl.body);
         break;
@@ -203,7 +211,7 @@ class Annotator {
     if (existingAnnotation) {
       existingAnnotation += '\n';
     }
-    this.maybeVisitType(p.type, existingAnnotation + '@type');
+    this.maybeEmitJSDocType(p.type, existingAnnotation + '@type');
     this.emit('\nthis.');
     this.emit(p.name.getText());
     this.emit(';');
@@ -233,7 +241,7 @@ class Annotator {
     return '';
   }
 
-  private maybeVisitType(type: ts.TypeNode, jsDocTag?: string, optional?: boolean) {
+  private maybeEmitJSDocType(type: ts.TypeNode, jsDocTag?: string) {
     if (!type && !this.options.untyped) return;
     this.emit(' /**');
     if (jsDocTag) {
@@ -241,6 +249,14 @@ class Annotator {
       this.emit(jsDocTag);
       this.emit(' {');
     }
+    this.emitType(type);
+    if (jsDocTag) {
+      this.emit('}');
+    }
+    this.emit(' */');
+  }
+
+  private emitType(type: ts.TypeNode, optional?: boolean) {
     if (this.options.untyped) {
       this.emit(' ?');
     } else {
@@ -249,10 +265,6 @@ class Annotator {
     if (optional) {
       this.emit('=');
     }
-    if (jsDocTag) {
-      this.emit('}');
-    }
-    this.emit(' */');
   }
 
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {

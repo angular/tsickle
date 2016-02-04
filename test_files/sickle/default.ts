@@ -1,2 +1,7 @@
-function DefaultArgument( /** number */x: number, /** string= */ y: string = 'hi') {
+
+/**
+ * @param { number} x
+ * @param { string=}  y
+ */
+function DefaultArgument(x: number, y: string = 'hi') {
 }

@@ -1,4 +1,12 @@
-/** @return { string} */ function fn1(/** number */ a) {
+/**
+ * @param { number} a
+ * @return { string}
+ */
+function fn1(a) {
     return "a";
 }
-function fn2(/** number */ a, /** number */ b) { }
+/**
+ * @param { number} a
+ * @param { number}  b
+ */
+function fn2(a, b) { }
