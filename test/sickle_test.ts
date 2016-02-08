@@ -7,7 +7,7 @@ import {SickleOptions} from '../src/sickle';
 import {annotateSource, transformSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
-// RUN_TESTS_MATCHING = /fields/;
+RUN_TESTS_MATCHING = /declare/;
 
 // If true, update all the golden .js files to be whatever sickle
 // produces from the .ts source.
