@@ -7,7 +7,7 @@
   "files": [
     "src/sickle.ts",
     "test/sickle_test.ts",
-    "test/closure-compiler.d.ts",
+    "test/google-closure-compiler.d.ts",
     "typings/tsd.d.ts"
   ]
 }
