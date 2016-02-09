@@ -67,7 +67,7 @@ class Annotator {
     console.log(prefix + message);
   }
 
-  private visit(node: ts.Node) {
+  private visit(node: ts.Node, skipComments: boolean = false) {
     this.currentNode = node;
     // this.logWithIndent('node: ' + (<any>ts).SyntaxKind[node.kind]);
     this.indent++;
@@ -154,7 +154,7 @@ class Annotator {
         this.visitEnum(<ts.EnumDeclaration>node);
         break;
       default:
-        this.writeNode(node);
+        this.writeNode(node, skipComments);
         break;
     }
     this.indent--;
@@ -268,7 +268,7 @@ class Annotator {
 
   private visitEnum(node: ts.EnumDeclaration) {
     this.emit('/** @typedef {number} */\n');
-    this.writeNode(node);
+    this.writeNode(node, /* skipComments */ true);
     this.emit('\n');
     let i = 0;
     for (let member of node.members) {
@@ -290,11 +290,16 @@ class Annotator {
       if (skipComments) {
         // To skip comments, we skip all whitespace/comments preceding
         // the node.  But if there was anything skipped we should emit
-        // a newline in its place so that the node remains separated
+        // some whitespace in its place so that the node remains separated
         // from the previous node.  TODO: don't skip anything here if
         // there wasn't any comment.
         if (node.getFullStart() < node.getStart()) {
-          this.emit('\n');
+          let skippedText = this.file.text.slice(node.getFullStart(), node.getStart());
+          if (skippedText.indexOf('\n') != -1) {
+            this.emit('\n');
+          } else {
+            this.emit(' ');
+          }
         }
         this.emit(node.getText());
       } else {
@@ -302,13 +307,13 @@ class Annotator {
       }
       return;
     }
-    if (skipComments) {
-      this.fail('skipComments unimplemented for complex Nodes');
-    }
     let lastEnd = node.getFullStart();
+    if (skipComments) lastEnd = node.getStart();
     for (let child of node.getChildren()) {
-      this.writeTextFromOffset(lastEnd, child);
-      this.visit(child);
+      if (child.getFullStart() > lastEnd) {
+        this.writeTextFromOffset(lastEnd, child);
+      }
+      this.visit(child, skipComments);
       lastEnd = child.getEnd();
     }
     // Write any trailing text.
