@@ -124,12 +124,14 @@ class Annotator {
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.ArrowFunction:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
-        let writeOffset = fnDecl.getFullStart();
-        writeOffset = this.writeRange(writeOffset, fnDecl.getStart());
         // The first \n makes the output sometimes uglier than necessary,
         // but it's needed to work around
         // https://github.com/Microsoft/TypeScript/issues/6982
         this.emit('\n/**\n');
+        let existingAnnotation = this.existingClosureAnnotation(node);
+        if (existingAnnotation) {
+          this.emit(' * ' + existingAnnotation + '\n');
+        }
         // Parameters.
         if (fnDecl.parameters.length) {
           for (let param of fnDecl.parameters) {
@@ -151,7 +153,7 @@ class Annotator {
         }
         this.emit(' */\n');
 
-        this.writeTextFromOffset(writeOffset, fnDecl.body);
+        this.writeTextFromOffset(fnDecl.getStart(), fnDecl.body);
         this.visit(fnDecl.body);
         break;
       case ts.SyntaxKind.TypeAliasDeclaration:
@@ -207,7 +209,7 @@ class Annotator {
   }
 
   private visitProperty(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    let existingAnnotation = this.existingClosureAnnotation(p).trim();
+    let existingAnnotation = this.existingClosureAnnotation(p);
     if (existingAnnotation) {
       existingAnnotation += '\n';
     }
@@ -221,8 +223,8 @@ class Annotator {
   /**
    * Returns empty string if there is no existing annotation.
    */
-  private existingClosureAnnotation(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    let text = p.getFullText();
+  private existingClosureAnnotation(node: ts.Node) {
+    let text = node.getFullText();
     let comments = ts.getLeadingCommentRanges(text, 0);
 
     if (!comments || comments.length == 0) return '';
@@ -230,7 +232,7 @@ class Annotator {
     // JS compiler only considers the last comment significant.
     let {pos, end} = comments[comments.length - 1];
     let comment = text.substring(pos, end);
-    return Annotator.getJsDocAnnotation(comment);
+    return Annotator.getJsDocAnnotation(comment).trim();
   }
 
   // return empty string if comment is not JsDoc.

@@ -1,4 +1,4 @@
-var fn3 = 
+var fn3 =
 /**
  * @param { number} a
  * @return { number}

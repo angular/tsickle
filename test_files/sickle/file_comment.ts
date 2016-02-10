@@ -1,4 +1,3 @@
-// This test verifies that initial comments don't confuse offsets.
 
 /**
  * @return { string}

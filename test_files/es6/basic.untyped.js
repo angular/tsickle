@@ -1,5 +1,3 @@
-// This test is just a random collection of typed code, to
-// ensure the output is all with {?} annotations.
 /**
  * @param { ?} arg1
  * @return { ?}

@@ -3,12 +3,17 @@
  * @param { number} a
  * @return { string}
  */
-function fn1(a: number): string {
+function FunctionsTest1(a: number): string {
   return "a";
 }
-
 /**
  * @param { number} a
  * @param { number}  b
  */
-function fn2(a: number, b: number) {}
+function FunctionsTest2(a: number, b: number) {}
+/**
+ * @ngInject
+ * @param { number} a
+ * @param { number}  b
+ */
+function FunctionsTest3(a: number, b: number) {}
