@@ -281,12 +281,12 @@ class Annotator {
   }
 
   private visitEnum(node: ts.EnumDeclaration) {
-    this.emit('/** @typedef {number} */\n');
+    if (!this.options.untyped) this.emit('/** @typedef {number} */\n');
     this.writeNode(node);
     this.emit('\n');
     let i = 0;
     for (let member of node.members) {
-      this.emit(`/** @type {${node.name.getText()}} */\n`);
+      if (!this.options.untyped) this.emit(`/** @type {${node.name.getText()}} */\n`);
       this.emit(`(<any>${node.name.getText()}).${member.name.getText()} = `);
       if (member.initializer) {
         this.visit(member.initializer);
