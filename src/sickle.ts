@@ -72,6 +72,17 @@ class Annotator {
     // this.logWithIndent('node: ' + (<any>ts).SyntaxKind[node.kind]);
     this.indent++;
     switch (node.kind) {
+      case ts.SyntaxKind.ModuleDeclaration:
+        if (node.flags & ts.NodeFlags.Ambient) {
+          // An ambient module declaration only declares types for TypeScript's
+          // benefit, so we want to skip all Closure processing of it.
+          this.writeRange(node.getFullStart(), node.getEnd());
+          break;
+        } else {
+          // Process this node like any other.
+          this.writeNode(node);
+        }
+        break;
       case ts.SyntaxKind.VariableDeclaration:
         this.maybeEmitJSDocType((<ts.VariableDeclaration>node).type);
         this.writeNode(node);
