@@ -121,8 +121,15 @@ class Annotator {
         this.writeRange(offset, ctor.body.getEnd());
         break;
       }
-      case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.ArrowFunction:
+        if (this.options.untyped) {
+          // In untyped mode, don't emit any type before the arrow function.
+          // Works around issue #57.
+          this.writeNode(node);
+          break;
+        }
+      // Otherwise, fall through to the shared processing for function.
+      case ts.SyntaxKind.FunctionDeclaration:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
         // The first \n makes the output sometimes uglier than necessary,
         // but it's needed to work around
