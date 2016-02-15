@@ -6,12 +6,13 @@ import {expect} from 'chai';
 import {SickleOptions} from '../src/sickle';
 import {annotateSource, transformSource, goldenTests} from './test_support';
 
-let RUN_TESTS_MATCHING: RegExp = null;
+const RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
 
 // If true, update all the golden .js files to be whatever sickle
-// produces from the .ts source.
-let UPDATE_GOLDENS = true;
+// produces from the .ts source. Do not change this code but run as:
+//     UPDATE_GOLDENS=y gulp test
+const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
 
 describe('golden tests', () => {
 
