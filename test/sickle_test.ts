@@ -15,14 +15,13 @@ const RUN_TESTS_MATCHING: RegExp = null;
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
 
 describe('golden tests', () => {
-
   goldenTests().forEach((test) => {
     if (RUN_TESTS_MATCHING && !RUN_TESTS_MATCHING.exec(test.name)) {
       it.skip(test.name);
       return;
     }
     let options: SickleOptions = {};
-    if (/\.untyped\./.test(test.name)) {
+    if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
     }
     it(test.name, () => {

@@ -1,6 +1,7 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
 import * as fs from 'fs';
+import * as glob from 'glob';
 import * as path from 'path';
 
 import {SickleOptions} from '../src/sickle';
@@ -85,15 +86,15 @@ export interface GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  var tsExtRe = /\.ts$/;
-  var testFolder = path.join(__dirname, '..', '..', 'test_files');
-  var files = fs.readdirSync(testFolder).filter((fn) => !!fn.match(tsExtRe));
-  return files.map((fn) => {
+  var testInputGlob = path.join(__dirname, '..', '..', 'test_files', '**', '*.in.ts');
+  var testInputs = glob.sync(testInputGlob);
+  return testInputs.map((testPath) => {
+    let testName = testPath.match(/\/test_files\/(.*)\.in\.ts$/)[1];
     return {
-      name: fn,
-      tsPath: path.join(testFolder, fn),
-      sicklePath: path.join(testFolder, 'sickle', fn),
-      es6Path: path.join(testFolder, 'es6', fn.replace(tsExtRe, '.js')),
+      name: testName,
+      tsPath: testPath,
+      sicklePath: testPath.replace(/\.in\.ts$/, '.sickle.ts'),
+      es6Path: testPath.replace(/\.in\.ts$/, '.tr.js'),
     };
   });
 }
