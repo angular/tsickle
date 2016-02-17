@@ -170,6 +170,13 @@ class Annotator {
       case ts.SyntaxKind.EnumDeclaration:
         this.visitEnum(<ts.EnumDeclaration>node);
         break;
+      case ts.SyntaxKind.TypeAssertionExpression:
+        let typeAssertion = <ts.TypeAssertion>node;
+        this.maybeEmitJSDocType(typeAssertion.type);
+        this.emit('(');
+        this.visit(typeAssertion.expression);
+        this.emit(')');
+        break;
       default:
         this.writeNode(node);
         break;
