@@ -1,3 +1,4 @@
+function FunctionsTest1(a: any): string;
 function FunctionsTest1(a: number): string {
   return "a";
 }

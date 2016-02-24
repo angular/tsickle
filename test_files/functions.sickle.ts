@@ -1,4 +1,4 @@
-
+function FunctionsTest1(a: any): string;
 /**
  * @param { number} a
  * @return { string}

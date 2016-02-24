@@ -131,6 +131,15 @@ class Annotator {
       // Otherwise, fall through to the shared processing for function.
       case ts.SyntaxKind.FunctionDeclaration:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
+
+        if (!fnDecl.body) {
+          // Functions are allowed to not have bodies in the presence
+          // of overloads.  It's not clear how to translate these overloads
+          // into Closure types, so skip them for now.
+          this.writeNode(node);
+          break;
+        }
+
         // The first \n makes the output sometimes uglier than necessary,
         // but it's needed to work around
         // https://github.com/Microsoft/TypeScript/issues/6982
