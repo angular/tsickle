@@ -59,3 +59,6 @@ class SuperTestDerivedInterface {
         // Sickle: end stub declarations.
     }
 }
+class SuperTestStaticProp extends SuperTestBaseOneArg {
+}
+SuperTestStaticProp.foo = 3;

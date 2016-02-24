@@ -47,3 +47,7 @@ interface SuperTestInterface {
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
 }
+
+class SuperTestStaticProp extends SuperTestBaseOneArg {
+  static foo = 3;
+}

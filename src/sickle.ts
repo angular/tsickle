@@ -36,6 +36,19 @@ function classHasSuperClass(classNode: ts.ClassDeclaration): boolean {
   return false;
 }
 
+/**
+ * Gathers all non-static properties on a class declaration.  These are
+ * the properties that should be mentioned in the synthetic constructor
+ * for Closure's benefit.
+ */
+function getNonStaticProperties(classDecl: ts.ClassLikeDeclaration): ts.PropertyDeclaration[] {
+  return <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
+    let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
+    let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
+    return !isStatic && isProperty;
+  }));
+}
+
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -115,8 +128,9 @@ class Annotator {
         // Write all of the body up to the closing }.
         offset = this.writeTextFromOffset(offset, ctor.body.getLastToken());
 
+        let nonStaticProps = getNonStaticProperties(<ts.ClassLikeDeclaration>ctor.parent);
         let paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
-        this.emitStubDeclarations(<ts.ClassLikeDeclaration>ctor.parent, paramProps);
+        this.emitStubDeclarations(<ts.ClassLikeDeclaration>ctor.parent, nonStaticProps, paramProps);
 
         this.writeRange(offset, ctor.body.getEnd());
         break;
@@ -201,7 +215,8 @@ class Annotator {
   private emitSyntheticConstructor(classNode: ts.ClassDeclaration) {
     // Be careful to emit minimal code here, as fully implementing a
     // constructor is hard.  See test_files/super.ts for some test cases.
-    if (classNode.members.length == 0) {
+    let nonStaticProps = getNonStaticProperties(classNode);
+    if (nonStaticProps.length == 0) {
       // There are no members so we can rely on the default TypeScript
       // constructor.
       return;
@@ -213,19 +228,15 @@ class Annotator {
       // For now, just assume there are none, as that covers many cases.
       this.emit('super();\n');
     }
-    this.emitStubDeclarations(classNode, []);
+    this.emitStubDeclarations(classNode, nonStaticProps, []);
     this.emit('}\n');
   }
 
   private emitStubDeclarations(
-      classDecl: ts.ClassLikeDeclaration, paramProps: ts.ParameterDeclaration[]) {
+      classDecl: ts.ClassLikeDeclaration, nonStaticProps: ts.PropertyDeclaration[],
+      paramProps: ts.ParameterDeclaration[]) {
     this.emit('\n\n// Sickle: begin stub declarations.\n');
     this.emit('\n');
-    let nonStaticProps = <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
-      let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
-      let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
-      return !isStatic && isProperty;
-    }));
     nonStaticProps.forEach((p) => this.visitProperty(p));
     paramProps.forEach((p) => this.visitProperty(p));
     this.emit('// Sickle: end stub declarations.\n');

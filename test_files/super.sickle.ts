@@ -89,3 +89,7 @@ this.foo;
 }
 
 }
+
+class SuperTestStaticProp extends SuperTestBaseOneArg {
+  static foo = 3;
+}
