@@ -1,7 +1,5 @@
 class Comments {
-    // Sickle: begin synthetic ctor.
-    constructor() {
-        // Sickle: begin stub declarations.
+    _sickle_typeAnnotationsHelper() {
         /** @export
        @type { string} */
         this.export1;
@@ -20,6 +18,5 @@ class Comments {
           * type annotation.
        @type { number} */
         this.jsdoc2;
-        // Sickle: end stub declarations.
     }
 }

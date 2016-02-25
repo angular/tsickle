@@ -1,35 +1,26 @@
 class SuperTestBaseNoArg {
-  constructor() {
-
-// Sickle: begin stub declarations.
-
-// Sickle: end stub declarations.
-}
+  constructor() {}
 }
 
 class SuperTestBaseOneArg {
-  constructor(public x: number) {
-
-// Sickle: begin stub declarations.
-
+  constructor(public x: number) {}
+_sickle_typeAnnotationsHelper() {
  /** @type { number} */
 this.x;
-// Sickle: end stub declarations.
 }
+
 }
 
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
   constructor(public y: string) {
     super(3);
-
-// Sickle: begin stub declarations.
-
+  }
+_sickle_typeAnnotationsHelper() {
  /** @type { string} */
 this.y;
-// Sickle: end stub declarations.
+}
 
-  }
 }
 
 // A ctor with an initialized property.
@@ -37,25 +28,18 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
   y: string = 'foo';
   constructor() {
     super(3);
-
-// Sickle: begin stub declarations.
-
+  }
+_sickle_typeAnnotationsHelper() {
  /** @type { string} */
 this.y;
-// Sickle: end stub declarations.
+}
 
-  }
 }
 
 // A ctor with a super() but none of the above two details.
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
   constructor() {
     super(3);
-
-// Sickle: begin stub declarations.
-
-// Sickle: end stub declarations.
-
   }
 }
 
@@ -77,15 +61,9 @@ interface SuperTestInterface {
 // A class implementing an interface.
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
-// Sickle: begin synthetic ctor.
-constructor() {
-
-
-// Sickle: begin stub declarations.
-
+_sickle_typeAnnotationsHelper() {
  /** @type { number} */
 this.foo;
-// Sickle: end stub declarations.
 }
 
 }

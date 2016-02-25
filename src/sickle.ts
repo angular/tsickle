@@ -20,35 +20,6 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
-/**
- * Returns true if a class declaration has a superclass (as declared
- * with the "extends" keyword), which indicates it must call super()
- * in its constructor.
- */
-function classHasSuperClass(classNode: ts.ClassDeclaration): boolean {
-  if (classNode.heritageClauses) {
-    for (let heritage of classNode.heritageClauses) {
-      if (heritage.token == ts.SyntaxKind.ExtendsKeyword) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Gathers all non-static properties on a class declaration.  These are
- * the properties that should be mentioned in the synthetic constructor
- * for Closure's benefit.
- */
-function getNonStaticProperties(classDecl: ts.ClassLikeDeclaration): ts.PropertyDeclaration[] {
-  return <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
-    let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
-    let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
-    return !isStatic && isProperty;
-  }));
-}
-
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -99,18 +70,21 @@ class Annotator {
         this.maybeEmitJSDocType((<ts.VariableDeclaration>node).type);
         this.writeNode(node);
         break;
-      case ts.SyntaxKind.ClassDeclaration: {
+      case ts.SyntaxKind.ClassDeclaration:
         let classNode = <ts.ClassDeclaration>node;
-        let hasCtor = classNode.members.some((e) => e.kind === ts.SyntaxKind.Constructor);
-        if (hasCtor) {
-          this.writeNode(classNode);
-          break;
+        if (classNode.members.length > 0) {
+          // We must visit all members individually, to strip out any
+          // /** @export */ annotations that show up in the constructor.
+          this.writeTextBetween(classNode, classNode.members[0]);
+          for (let member of classNode.members) {
+            this.visit(member);
+          }
+        } else {
+          this.writeTextBetween(classNode, classNode.getLastToken());
         }
-        this.writeTextBetween(classNode, classNode.getLastToken());
-        this.emitSyntheticConstructor(classNode);
+        this.emitTypeAnnotationsHelper(classNode);
         this.writeNode(classNode.getLastToken());
         break;
-      }
       case ts.SyntaxKind.PublicKeyword:
       case ts.SyntaxKind.PrivateKeyword:
         // The "public"/"private" keywords are encountered in two places:
@@ -123,7 +97,7 @@ class Annotator {
         // See test_files/parameter_properties.ts.
         this.writeNode(node, /* skipComments */ true);
         break;
-      case ts.SyntaxKind.Constructor: {
+      case ts.SyntaxKind.Constructor:
         let ctor = <ts.ConstructorDeclaration>node;
         // Write the "constructor(...) {" bit, but iterate through any
         // parameters if given so that we can examine them more closely.
@@ -135,16 +109,8 @@ class Annotator {
             offset = param.getEnd();
           }
         }
-        // Write all of the body up to the closing }.
-        offset = this.writeTextFromOffset(offset, ctor.body.getLastToken());
-
-        let nonStaticProps = getNonStaticProperties(<ts.ClassLikeDeclaration>ctor.parent);
-        let paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
-        this.emitStubDeclarations(<ts.ClassLikeDeclaration>ctor.parent, nonStaticProps, paramProps);
-
-        this.writeRange(offset, ctor.body.getEnd());
+        this.writeRange(offset, node.getEnd());
         break;
-      }
       case ts.SyntaxKind.ArrowFunction:
         if (this.options.untyped) {
           // In untyped mode, don't emit any type before the arrow function.
@@ -217,39 +183,38 @@ class Annotator {
     this.indent--;
   }
 
-  // emitSyntheticConstructor produces a constructor() {...} where
-  // none existed in the original source.  It's necessary in the case
-  // where TypeScript syntax specifies there are additional properties
-  // on the class, because to declare these in Closure you must put
-  // those in the constructor.
-  private emitSyntheticConstructor(classNode: ts.ClassDeclaration) {
-    // Be careful to emit minimal code here, as fully implementing a
-    // constructor is hard.  See test_files/super.ts for some test cases.
-    let nonStaticProps = getNonStaticProperties(classNode);
-    if (nonStaticProps.length == 0) {
-      // There are no members so we can rely on the default TypeScript
-      // constructor.
+  // emitTypeAnnotationsHelper produces a
+  // _sickle_typeAnnotationsHelper() where none existed in the
+  // original source.  It's necessary in the case where TypeScript
+  // syntax specifies there are additional properties on the class,
+  // because to declare these in Closure you must declare these in a
+  // method somewhere.
+  private emitTypeAnnotationsHelper(classDecl: ts.ClassDeclaration) {
+    // Gather parameter properties from the constructor, if it exists.
+    let paramProps: ts.ParameterDeclaration[] = [];
+    let ctors = classDecl.members.filter((e) => e.kind === ts.SyntaxKind.Constructor);
+    if (ctors && ctors.length > 0) {
+      let ctor = <ts.ConstructorDeclaration>ctors[0];
+      paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
+    }
+
+    // Gather other non-static properties on the class.
+    let nonStaticProps = <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
+      let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
+      let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
+      return !isStatic && isProperty;
+    }));
+
+    if (nonStaticProps.length == 0 && paramProps.length == 0) {
+      // There are no members so we don't need to emit any type
+      // annotations helper.
       return;
     }
-    this.emit('\n// Sickle: begin synthetic ctor.\n');
-    this.emit('constructor() {\n');
-    if (classHasSuperClass(classNode)) {
-      // We must call super(), but we don't know the necessary arguments.
-      // For now, just assume there are none, as that covers many cases.
-      this.emit('super();\n');
-    }
-    this.emitStubDeclarations(classNode, nonStaticProps, []);
-    this.emit('}\n');
-  }
 
-  private emitStubDeclarations(
-      classDecl: ts.ClassLikeDeclaration, nonStaticProps: ts.PropertyDeclaration[],
-      paramProps: ts.ParameterDeclaration[]) {
-    this.emit('\n\n// Sickle: begin stub declarations.\n');
-    this.emit('\n');
+    this.emit('\n_sickle_typeAnnotationsHelper() {\n');
     nonStaticProps.forEach((p) => this.visitProperty(p));
     paramProps.forEach((p) => this.visitProperty(p));
-    this.emit('// Sickle: end stub declarations.\n');
+    this.emit('}\n');
   }
 
   private visitProperty(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {

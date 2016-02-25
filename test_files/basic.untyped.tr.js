@@ -9,11 +9,11 @@ class Foo {
     constructor(ctorArg) {
         this.ctorArg = ctorArg;
         this.field = 'hello';
-        // Sickle: begin stub declarations.
+    }
+    _sickle_typeAnnotationsHelper() {
         /** @type { ?} */
         this.field;
         /** @type { ?} */
         this.ctorArg;
-        // Sickle: end stub declarations.
     }
 }

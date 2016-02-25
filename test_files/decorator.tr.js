@@ -13,12 +13,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
  */
 function decorator(a, b) { }
 class DecoratorTest {
-    // Sickle: begin synthetic ctor.
-    constructor() {
-        // Sickle: begin stub declarations.
+    _sickle_typeAnnotationsHelper() {
         /** @type { number} */
         this.x;
-        // Sickle: end stub declarations.
     }
 }
 __decorate([
