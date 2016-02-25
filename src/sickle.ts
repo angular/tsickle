@@ -197,7 +197,7 @@ class Annotator {
         let typeAssertion = <ts.TypeAssertion>node;
         this.maybeEmitJSDocType(typeAssertion.type);
         this.emit('(');
-        this.visit(typeAssertion.expression);
+        this.writeNode(node);
         this.emit(')');
         break;
       default:

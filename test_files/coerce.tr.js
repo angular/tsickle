@@ -1,1 +1,1 @@
-let x = 'hello, ' + (JSON.parse('"world"'));
+let x = 'hello, ' + JSON.parse('"world"');
