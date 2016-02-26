@@ -211,22 +211,19 @@ class Annotator {
       return;
     }
 
-    this.emit('\n_sickle_typeAnnotationsHelper() {\n');
-    nonStaticProps.forEach((p) => this.visitProperty(p));
-    paramProps.forEach((p) => this.visitProperty(p));
-    this.emit('}\n');
+    this.emit('\n\n  static _sickle_typeAnnotationsHelper() {\n');
+    nonStaticProps.forEach((p) => this.visitProperty(classDecl.name.text, p));
+    paramProps.forEach((p) => this.visitProperty(classDecl.name.text, p));
+    this.emit('  }\n');
   }
 
-  private visitProperty(p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
+  private visitProperty(className: string, p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
     let existingAnnotation = this.existingClosureAnnotation(p);
     if (existingAnnotation) {
       existingAnnotation += '\n';
     }
     this.maybeEmitJSDocType(p.type, existingAnnotation + '@type');
-    this.emit('\nthis.');
-    this.emit(p.name.getText());
-    this.emit(';');
-    this.emit('\n');
+    this.emit(`\n    ${className}.prototype.${p.name.getText()};\n`);
   }
 
   /**

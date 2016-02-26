@@ -13,9 +13,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
  */
 function decorator(a, b) { }
 class DecoratorTest {
-    _sickle_typeAnnotationsHelper() {
+    static _sickle_typeAnnotationsHelper() {
         /** @type { number} */
-        this.x;
+        DecoratorTest.prototype.x;
     }
 }
 __decorate([

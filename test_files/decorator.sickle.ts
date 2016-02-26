@@ -8,9 +8,10 @@ function decorator(a: Object, b: string) {}
 class DecoratorTest {
   @decorator
 private x: number;
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { number} */
-this.x;
-}
+    DecoratorTest.prototype.x;
+  }
 
 }

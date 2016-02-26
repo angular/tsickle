@@ -1,22 +1,22 @@
 class Comments {
-    _sickle_typeAnnotationsHelper() {
+    static _sickle_typeAnnotationsHelper() {
         /** @export
        @type { string} */
-        this.export1;
+        Comments.prototype.export1;
         /** @type { string} */
-        this.export2;
+        Comments.prototype.export2;
         /** @type { number} */
-        this.nodoc1;
+        Comments.prototype.nodoc1;
         /** @type { number} */
-        this.nodoc2;
+        Comments.prototype.nodoc2;
         /** @type { number} */
-        this.nodoc3;
+        Comments.prototype.nodoc3;
         /** inline jsdoc comment without type annotation
        @type { number} */
-        this.jsdoc1;
+        Comments.prototype.jsdoc1;
         /** * multi-line jsdoc comment without
           * type annotation.
        @type { number} */
-        this.jsdoc2;
+        Comments.prototype.jsdoc2;
     }
 }

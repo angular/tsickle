@@ -4,11 +4,11 @@ class ParamProps {
         this.bar = bar;
         this.bar2 = bar2;
     }
-    _sickle_typeAnnotationsHelper() {
+    static _sickle_typeAnnotationsHelper() {
         /** @export
        @type { string} */
-        this.bar;
+        ParamProps.prototype.bar;
         /** @type { string} */
-        this.bar2;
+        ParamProps.prototype.bar2;
     }
 }

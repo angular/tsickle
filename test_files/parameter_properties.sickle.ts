@@ -3,12 +3,13 @@ class ParamProps {
   constructor(
 public bar: string,
 public bar2: string) {}
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @export
 @type { string} */
-this.bar;
+    ParamProps.prototype.bar;
  /** @type { string} */
-this.bar2;
-}
+    ParamProps.prototype.bar2;
+  }
 
 }

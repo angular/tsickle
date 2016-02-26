@@ -10,14 +10,15 @@ class FieldsTest {
     // This access prints a warning without a generated field stub declaration.
     return this.field1;
   }
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { string} */
-this.field1;
+    FieldsTest.prototype.field1;
  /** @type { number} */
-this.field2;
+    FieldsTest.prototype.field2;
  /** @type { number} */
-this.field3;
-}
+    FieldsTest.prototype.field3;
+  }
 
 }
 

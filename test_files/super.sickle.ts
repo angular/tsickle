@@ -4,10 +4,11 @@ class SuperTestBaseNoArg {
 
 class SuperTestBaseOneArg {
   constructor(public x: number) {}
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { number} */
-this.x;
-}
+    SuperTestBaseOneArg.prototype.x;
+  }
 
 }
 
@@ -16,10 +17,11 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
   constructor(public y: string) {
     super(3);
   }
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { string} */
-this.y;
-}
+    SuperTestDerivedParamProps.prototype.y;
+  }
 
 }
 
@@ -29,10 +31,11 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
   constructor() {
     super(3);
   }
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { string} */
-this.y;
-}
+    SuperTestDerivedInitializedProps.prototype.y;
+  }
 
 }
 
@@ -61,10 +64,11 @@ interface SuperTestInterface {
 // A class implementing an interface.
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { number} */
-this.foo;
-}
+    SuperTestDerivedInterface.prototype.foo;
+  }
 
 }
 

@@ -10,10 +10,10 @@ class Foo {
         this.ctorArg = ctorArg;
         this.field = 'hello';
     }
-    _sickle_typeAnnotationsHelper() {
+    static _sickle_typeAnnotationsHelper() {
         /** @type { ?} */
-        this.field;
+        Foo.prototype.field;
         /** @type { ?} */
-        this.ctorArg;
+        Foo.prototype.ctorArg;
     }
 }

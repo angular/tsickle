@@ -1,8 +1,9 @@
 class NoCtor {
   field1: number;
-_sickle_typeAnnotationsHelper() {
+
+  static _sickle_typeAnnotationsHelper() {
  /** @type { number} */
-this.field1;
-}
+    NoCtor.prototype.field1;
+  }
 
 }
