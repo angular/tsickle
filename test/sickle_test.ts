@@ -28,7 +28,7 @@ describe('golden tests', () => {
       var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
 
       // Run TypeScript through sickle and compare against goldens.
-      let sickleSource = annotateSource(tsSource, options);
+      let sickleSource = annotateSource(test.tsPath, tsSource, options);
       let sickleGolden = fs.readFileSync(test.sicklePath, 'utf-8');
       if (UPDATE_GOLDENS && sickleSource != sickleGolden) {
         console.log('Updating golden file for', test.sicklePath);
@@ -39,7 +39,7 @@ describe('golden tests', () => {
 
       // Run sickled TypeScript through TypeScript compiler
       // and compare against goldens.
-      let es6Source = transformSource(sickleSource);
+      let es6Source = transformSource(test.sicklePath, sickleSource);
       let es6Golden = fs.readFileSync(test.es6Path, 'utf-8');
       if (UPDATE_GOLDENS && es6Source != es6Golden) {
         console.log('Updating golden file for', test.es6Path);

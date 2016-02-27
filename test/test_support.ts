@@ -24,45 +24,47 @@ const {cachedLibPath, cachedLib} = (function() {
   return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
-export function annotateSource(src: string, options: SickleOptions = {}): string {
+export function annotateSource(
+    inputFileName: string, sourceText: string, options: SickleOptions = {}): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
-    if (fileName === 'main.ts') {
-      return ts.createSourceFile(fileName, src, ts.ScriptTarget.Latest, true);
+    if (fileName === inputFileName) {
+      return ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true);
     }
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram(['main.ts'], OPTIONS, host);
-  if (program.getSyntacticDiagnostics().length) {
-    throw new Error(formatDiagnostics(ts.getPreEmitDiagnostics(program)));
+  var program = ts.createProgram([inputFileName], OPTIONS, host);
+  let diagnostics = ts.getPreEmitDiagnostics(program);
+  if (diagnostics.length) {
+    throw new Error(formatDiagnostics(diagnostics));
   }
 
-  return annotate(program.getSourceFile('main.ts'), options);
+  return annotate(program.getSourceFile(inputFileName), options);
 }
 
-export function transformSource(src: string): string {
+export function transformSource(inputFileName: string, sourceText: string): string {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
-  var mainSrc = ts.createSourceFile('main.ts', src, ts.ScriptTarget.Latest, true);
+  var mainSrc = ts.createSourceFile(inputFileName, sourceText, ts.ScriptTarget.Latest, true);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
-    if (fileName === 'main.ts') {
+    if (fileName === inputFileName) {
       return mainSrc;
     }
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram(['main.ts'], OPTIONS, host);
+  var program = ts.createProgram([inputFileName], OPTIONS, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
-    throw new Error('Failed to parse ' + src + '\n' + formatDiagnostics(diagnostics));
+    throw new Error('Failed to parse ' + sourceText + '\n' + formatDiagnostics(diagnostics));
   }
 
   var transformed: {[fileName: string]: string} = {};
@@ -71,8 +73,9 @@ export function transformSource(src: string): string {
   if (emitRes.diagnostics.length) {
     throw new Error(formatDiagnostics(emitRes.diagnostics));
   }
-  expect(Object.keys(transformed)).to.deep.equal(['main.js']);
-  return transformed['main.js'];
+  let outputFileName = inputFileName.replace('.ts', '.js');
+  expect(Object.keys(transformed)).to.deep.equal([outputFileName]);
+  return transformed[outputFileName];
 }
 
 export interface GoldenFileTest {
