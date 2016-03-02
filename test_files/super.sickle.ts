@@ -1,9 +1,14 @@
 class SuperTestBaseNoArg {
-  constructor() {}
+/**
+ */
+constructor() {}
 }
 
 class SuperTestBaseOneArg {
-  constructor(public x: number) {}
+/**
+ * @param { number}  x
+ */
+constructor(public x: number) {}
 
   static _sickle_typeAnnotationsHelper() {
  /** @type { number} */
@@ -14,7 +19,10 @@ class SuperTestBaseOneArg {
 
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
-  constructor(public y: string) {
+/**
+ * @param { string}  y
+ */
+constructor(public y: string) {
     super(3);
   }
 
@@ -28,7 +36,9 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
 // A ctor with an initialized property.
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
   y: string = 'foo';
-  constructor() {
+/**
+ */
+constructor() {
     super(3);
   }
 
@@ -41,7 +51,9 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
 
 // A ctor with a super() but none of the above two details.
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
-  constructor() {
+/**
+ */
+constructor() {
     super(3);
   }
 }

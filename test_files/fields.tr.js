@@ -1,8 +1,13 @@
 class FieldsTest {
+    /**
+     * @param { number}  field3
+     */
     constructor(field3) {
         this.field3 = field3;
         this.field3 = 2 + 1;
     }
+    /**
+     */
     getF1() {
         // This access prints a warning without a generated field stub declaration.
         return this.field1;

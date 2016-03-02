@@ -1,6 +1,9 @@
 class ParamProps {
-  // The @export below should not show up in the output ctor.
-  constructor(
+/**
+ * @param { string}  bar
+ * @param { string}  bar2
+ */
+constructor(
 public bar: string,
 public bar2: string) {}
 

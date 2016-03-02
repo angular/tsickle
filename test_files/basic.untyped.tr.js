@@ -6,6 +6,9 @@ function func(arg1) {
     return [3];
 }
 class Foo {
+    /**
+     * @param { ?}  ctorArg
+     */
     constructor(ctorArg) {
         this.ctorArg = ctorArg;
         this.field = 'hello';

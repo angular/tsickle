@@ -74,7 +74,8 @@ class Annotator {
         let classNode = <ts.ClassDeclaration>node;
         if (classNode.members.length > 0) {
           // We must visit all members individually, to strip out any
-          // /** @export */ annotations that show up in the constructor.
+          // /** @export */ annotations that show up in the constructor
+          // and to annotate methods.
           this.writeTextBetween(classNode, classNode.members[0]);
           for (let member of classNode.members) {
             this.visit(member);
@@ -99,9 +100,10 @@ class Annotator {
         break;
       case ts.SyntaxKind.Constructor:
         let ctor = <ts.ConstructorDeclaration>node;
+        this.emitFunctionType(ctor);
         // Write the "constructor(...) {" bit, but iterate through any
         // parameters if given so that we can examine them more closely.
-        let offset = ctor.getFullStart();
+        let offset = ctor.getStart();
         if (ctor.parameters.length) {
           for (let param of ctor.parameters) {
             this.writeTextFromOffset(offset, param);
@@ -120,6 +122,7 @@ class Annotator {
         }
       // Otherwise, fall through to the shared processing for function.
       case ts.SyntaxKind.FunctionDeclaration:
+      case ts.SyntaxKind.MethodDeclaration:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
 
         if (!fnDecl.body) {
@@ -130,35 +133,7 @@ class Annotator {
           break;
         }
 
-        // The first \n makes the output sometimes uglier than necessary,
-        // but it's needed to work around
-        // https://github.com/Microsoft/TypeScript/issues/6982
-        this.emit('\n/**\n');
-        let existingAnnotation = this.existingClosureAnnotation(node);
-        if (existingAnnotation) {
-          this.emit(' * ' + existingAnnotation + '\n');
-        }
-        // Parameters.
-        if (fnDecl.parameters.length) {
-          for (let param of fnDecl.parameters) {
-            if (param.type) {
-              let optional = param.initializer != null || param.questionToken != null;
-              this.emit(' * @param {');
-              this.emitType(param.type, optional);
-              this.emit('} ');
-              this.writeNode(param.name);
-              this.emit('\n');
-            }
-          }
-        }
-        // Return type.
-        if (fnDecl.type) {
-          this.emit(' * @return {');
-          this.emitType(fnDecl.type);
-          this.emit('}\n');
-        }
-        this.emit(' */\n');
-
+        this.emitFunctionType(fnDecl);
         this.writeTextFromOffset(fnDecl.getStart(), fnDecl.body);
         this.visit(fnDecl.body);
         break;
@@ -181,6 +156,37 @@ class Annotator {
         break;
     }
     this.indent--;
+  }
+
+  private emitFunctionType(fnDecl: ts.FunctionLikeDeclaration) {
+    // The first \n makes the output sometimes uglier than necessary,
+    // but it's needed to work around
+    // https://github.com/Microsoft/TypeScript/issues/6982
+    this.emit('\n/**\n');
+    let existingAnnotation = this.existingClosureAnnotation(fnDecl);
+    if (existingAnnotation) {
+      this.emit(' * ' + existingAnnotation + '\n');
+    }
+    // Parameters.
+    if (fnDecl.parameters.length) {
+      for (let param of fnDecl.parameters) {
+        if (param.type) {
+          let optional = param.initializer != null || param.questionToken != null;
+          this.emit(' * @param {');
+          this.emitType(param.type, optional);
+          this.emit('} ');
+          this.writeNode(param.name);
+          this.emit('\n');
+        }
+      }
+    }
+    // Return type.
+    if (fnDecl.type) {
+      this.emit(' * @return {');
+      this.emitType(fnDecl.type);
+      this.emit('}\n');
+    }
+    this.emit(' */\n');
   }
 
   // emitTypeAnnotationsHelper produces a

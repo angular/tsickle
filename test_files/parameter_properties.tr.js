@@ -1,5 +1,8 @@
 class ParamProps {
-    // The @export below should not show up in the output ctor.
+    /**
+     * @param { string}  bar
+     * @param { string}  bar2
+     */
     constructor(bar, bar2) {
         this.bar = bar;
         this.bar2 = bar2;
