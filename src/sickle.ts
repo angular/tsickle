@@ -22,6 +22,17 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
 
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
+// TypedProperty represents a property on a class we'd like Closure to
+// know about.  We gather these up from multiple sources (field
+// declarations, constructor parameters) and emit them all with type
+// annotations in a function on the side (see emitPropertyDeclarations).
+interface TypedProperty {
+  name: string;
+  type: ts.TypeNode;
+  // extraTags holds extra Closure tags, such as @export.
+  extraTags: string;
+}
+
 /**
  * A source processor that takes TypeScript code and annotates the output with Closure-style JSDoc
  * comments.
@@ -64,6 +75,40 @@ class Annotator {
           break;
         } else {
           this.writeNode(node);
+        }
+        break;
+      case ts.SyntaxKind.InterfaceDeclaration:
+        this.writeRange(node.getFullStart(), node.getEnd());
+        if (node.flags & ts.NodeFlags.Ambient) {
+          // It's a "declare interface ..."; write a Closure interface
+          // declaration so we can @export all properties.
+          let decl = <ts.InterfaceDeclaration>node;
+          let className = decl.name.getText();
+          let props: TypedProperty[] = [];
+          for (let member of decl.members) {
+            // Members can include things like index signatures, for e.g.
+            //   interface Foo { [key: string]: number; }
+            // For now, just die unless all the members are regular old
+            // properties.
+            if (member.kind != ts.SyntaxKind.PropertySignature) {
+              this.fail(`unhandled member of kind ${ts.SyntaxKind[member.kind]}`);
+            }
+            let prop = <ts.PropertySignature>member;
+            props.push({
+              name: prop.name.getText(),
+              type: prop.type,
+              extraTags: '@export',
+            });
+          }
+          // Note: be careful with this code!  It's easy to make something
+          // that Closure will accept but then also have it silently rename
+          // fields you intended to @export.
+          // @record tells Closure that this type is structural (not sure
+          // how well that works), while @struct makes it complain if you
+          // accidentally add a field that isn't declared.
+          this.emit('\n/** @record @struct */\n');
+          this.emit(`function ${className}() {}\n`);
+          this.emitPropertyDeclarations(className, props);
         }
         break;
       case ts.SyntaxKind.VariableDeclaration:
@@ -197,39 +242,57 @@ class Annotator {
   // method somewhere.
   private emitTypeAnnotationsHelper(classDecl: ts.ClassDeclaration) {
     // Gather parameter properties from the constructor, if it exists.
-    let paramProps: ts.ParameterDeclaration[] = [];
-    let ctors = classDecl.members.filter((e) => e.kind === ts.SyntaxKind.Constructor);
-    if (ctors && ctors.length > 0) {
-      let ctor = <ts.ConstructorDeclaration>ctors[0];
-      paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
+    let props: TypedProperty[] = [];
+    for (let member of classDecl.members) {
+      switch (member.kind) {
+        case ts.SyntaxKind.Constructor:
+          let ctor = <ts.ConstructorDeclaration>member;
+          for (let param of ctor.parameters) {
+            if (param.flags & VISIBILITY_FLAGS) {
+              props.push({
+                name: param.name.getText(),
+                type: param.type,
+                extraTags: this.existingClosureAnnotation(param),
+              });
+            }
+          }
+          break;
+        case ts.SyntaxKind.PropertyDeclaration:
+          let prop = <ts.PropertyDeclaration>member;
+          if (!(member.flags & ts.NodeFlags.Static)) {
+            props.push({
+              name: prop.name.getText(),
+              type: prop.type,
+              extraTags: this.existingClosureAnnotation(prop),
+            });
+          }
+          break;
+        default:
+          break;
+      }
     }
 
-    // Gather other non-static properties on the class.
-    let nonStaticProps = <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
-      let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
-      let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
-      return !isStatic && isProperty;
-    }));
-
-    if (nonStaticProps.length == 0 && paramProps.length == 0) {
+    if (props.length == 0) {
       // There are no members so we don't need to emit any type
       // annotations helper.
       return;
     }
 
-    this.emit('\n\n  static _sickle_typeAnnotationsHelper() {\n');
-    nonStaticProps.forEach((p) => this.visitProperty(classDecl.name.text, p));
-    paramProps.forEach((p) => this.visitProperty(classDecl.name.text, p));
+    this.emit('\n\n');
+    this.emit('  static _sickle_typeAnnotationsHelper() {\n');
+    this.emitPropertyDeclarations(classDecl.name.text, props);
     this.emit('  }\n');
   }
 
-  private visitProperty(className: string, p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    let existingAnnotation = this.existingClosureAnnotation(p);
-    if (existingAnnotation) {
-      existingAnnotation += '\n';
+  private emitPropertyDeclarations(className: string, props: TypedProperty[]) {
+    for (let prop of props) {
+      let extraTags = prop.extraTags || '';
+      if (extraTags) {
+        extraTags += '\n';
+      }
+      this.maybeEmitJSDocType(prop.type, extraTags + '@type');
+      this.emit(`\n${className}.prototype.${prop.name};\n`);
     }
-    this.maybeEmitJSDocType(p.type, existingAnnotation + '@type');
-    this.emit(`\n    ${className}.prototype.${p.name.getText()};\n`);
   }
 
   /**

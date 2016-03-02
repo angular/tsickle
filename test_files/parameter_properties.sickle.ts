@@ -10,9 +10,9 @@ public bar2: string) {}
   static _sickle_typeAnnotationsHelper() {
  /** @export
 @type { string} */
-    ParamProps.prototype.bar;
+ParamProps.prototype.bar;
  /** @type { string} */
-    ParamProps.prototype.bar2;
+ParamProps.prototype.bar2;
   }
 
 }

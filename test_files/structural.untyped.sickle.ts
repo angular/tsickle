@@ -9,7 +9,7 @@ method(): string { return this.field1; }
 
   static _sickle_typeAnnotationsHelper() {
  /** @type { ?} */
-    StructuralTest.prototype.field1;
+StructuralTest.prototype.field1;
   }
 
 }
