@@ -16,11 +16,11 @@ getF1() {
 
   static _sickle_typeAnnotationsHelper() {
  /** @type { string} */
-    FieldsTest.prototype.field1;
+FieldsTest.prototype.field1;
  /** @type { number} */
-    FieldsTest.prototype.field2;
+FieldsTest.prototype.field2;
  /** @type { number} */
-    FieldsTest.prototype.field3;
+FieldsTest.prototype.field3;
   }
 
 }
