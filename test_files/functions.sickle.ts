@@ -8,12 +8,12 @@ function FunctionsTest1(a: number): string {
 }
 /**
  * @param { number} a
- * @param { number}  b
+ * @param { number} b
  */
 function FunctionsTest2(a: number, b: number) {}
 /**
  * @ngInject
  * @param { number} a
- * @param { number}  b
+ * @param { number} b
  */
 function FunctionsTest3(a: number, b: number) {}

@@ -1,7 +1,7 @@
 class ParamProps {
     /**
-     * @param { string}  bar
-     * @param { string}  bar2
+     * @param { string} bar
+     * @param { string} bar2
      */
     constructor(bar, bar2) {
         this.bar = bar;

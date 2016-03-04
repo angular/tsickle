@@ -10,7 +10,7 @@ function func(arg1: string): number[] {
 class Foo {
   field: string;
 /**
- * @param { ?}  ctorArg
+ * @param { ?} ctorArg
  */
 constructor(private ctorArg: string) {
     this.field = 'hello';

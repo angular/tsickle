@@ -6,7 +6,7 @@ class SuperTestBaseNoArg {
 }
 class SuperTestBaseOneArg {
     /**
-     * @param { number}  x
+     * @param { number} x
      */
     constructor(x) {
         this.x = x;
@@ -19,7 +19,7 @@ class SuperTestBaseOneArg {
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
-     * @param { string}  y
+     * @param { string} y
      */
     constructor(y) {
         super(3);

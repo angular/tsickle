@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 /**
  * @param { Object} a
- * @param { string}  b
+ * @param { string} b
  */
 function decorator(a, b) { }
 class DecoratorTest {

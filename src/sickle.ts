@@ -20,6 +20,75 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
+/**
+ * TypeScript has an API for JSDoc already, but it's not exposed.
+ * https://github.com/Microsoft/TypeScript/issues/7393
+ * For now we create types that are similar to theirs so that migrating
+ * to their API will be easier.  See e.g. ts.JSDocTag and ts.JSDocComment.
+ */
+export interface JSDocTag {
+  // tagName is e.g. "param" in an @param declaration.  It's absent
+  // for the plain text documentation that occurs before any @foo lines.
+  tagName?: string;
+  // parameterName is the the name of the function parameter, e.g. "foo"
+  // in
+  //   @param foo The foo param.
+  parameterName?: string;
+  type?: ts.TypeNode;
+  // optional is true for optional function parameters.
+  optional?: boolean;
+  text?: string;
+}
+
+export interface JSDocComment { tags: JSDocTag[]; }
+
+/**
+ * getJSDocAnnotation parses JSDoc out of a comment string.
+ * Returns null if comment is not JSDoc.
+ */
+export function getJSDocAnnotation(comment: string): JSDocComment {
+  // TODO(evanm): this is a pile of hacky regexes for now, because we
+  // would rather use the better TypeScript implementation of JSDoc
+  // parsing.  https://github.com/Microsoft/TypeScript/issues/7393
+  let match = comment.match(/^\/\*\*([\s\S]*?)\*\/$/);
+  if (!match) return null;
+  comment = match[1].trim();
+  // Strip all the " * " bits from the front of each line.
+  comment = comment.replace(/^\s*\* /gm, '');
+  let lines = comment.split('\n');
+  let tags: JSDocTag[] = [];
+  for (let line of lines) {
+    let match = line.match(/^@(\S+) *(.*)/);
+    if (match) {
+      let [_, tagName, text] = match;
+      if (text[0] == '{') {
+        throw new Error('type annotations (using {...}) are not allowed');
+      }
+
+      // Grab the parameter name from @param tags.
+      let parameterName: string;
+      if (tagName === 'param') {
+        let match = text.match(/^(\S+) ?(.*)/);
+        if (match) [_, parameterName, text] = match;
+      }
+
+      let tag: JSDocTag = {tagName};
+      if (parameterName) tag.parameterName = parameterName;
+      if (text) tag.text = text;
+      tags.push(tag);
+    } else {
+      // Text without a preceding @tag on it is either the plain text
+      // documentation or a continuation of a previous tag.
+      if (tags.length === 0) {
+        tags.push({text: line.trim()});
+      } else {
+        tags[tags.length - 1].text += ' ' + line.trim();
+      }
+    }
+  }
+  return {tags};
+}
+
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -53,7 +122,7 @@ class Annotator {
 
   private visit(node: ts.Node) {
     this.currentNode = node;
-    // this.logWithIndent('node: ' + (<any>ts).SyntaxKind[node.kind]);
+    // this.logWithIndent('node: ' + ts.SyntaxKind[node.kind]);
     this.indent++;
     switch (node.kind) {
       case ts.SyntaxKind.ModuleDeclaration:
@@ -159,32 +228,78 @@ class Annotator {
   }
 
   private emitFunctionType(fnDecl: ts.FunctionLikeDeclaration) {
+    // Construct the JSDoc comment by reading the existing JSDoc, if
+    // any, and merging it with the known types of the function
+    // parameters and return type.
+    let jsDoc = this.getJSDoc(fnDecl) || {tags: []};
+    let newDoc: JSDocComment = {tags: []};
+
+    // Copy all the tags other than @param/@return into the new
+    // comment without any change; @param/@return are handled later.
+    for (let tag of jsDoc.tags) {
+      if (tag.tagName === 'param' || tag.tagName === 'return') continue;
+      newDoc.tags.push(tag);
+    }
+
+    // Parameters.
+    if (fnDecl.parameters.length) {
+      for (let param of fnDecl.parameters) {
+        let name = param.name.getText();
+        let paramDoc: string;
+        // Search for this parameter in the JSDoc @params.
+        for (let { tagName, parameterName, text } of jsDoc.tags) {
+          if (tagName === 'param' && parameterName === name) {
+            paramDoc = text;
+            break;
+          }
+        }
+        newDoc.tags.push({
+          tagName: 'param',
+          parameterName: name,
+          type: param.type,
+          optional: param.initializer != null || param.questionToken != null,
+          text: paramDoc,
+        });
+      }
+    }
+
+    // Return type.
+    if (fnDecl.type) {
+      let returnDoc: string;
+      for (let { tagName, text } of jsDoc.tags) {
+        if (tagName === 'return') {
+          returnDoc = text;
+          break;
+        }
+      }
+      newDoc.tags.push({
+        tagName: 'return',
+        type: fnDecl.type,
+        text: returnDoc,
+      });
+    }
+
     // The first \n makes the output sometimes uglier than necessary,
     // but it's needed to work around
     // https://github.com/Microsoft/TypeScript/issues/6982
     this.emit('\n/**\n');
-    let existingAnnotation = this.existingClosureAnnotation(fnDecl);
-    if (existingAnnotation) {
-      this.emit(' * ' + existingAnnotation + '\n');
-    }
-    // Parameters.
-    if (fnDecl.parameters.length) {
-      for (let param of fnDecl.parameters) {
-        if (param.type) {
-          let optional = param.initializer != null || param.questionToken != null;
-          this.emit(' * @param {');
-          this.emitType(param.type, optional);
-          this.emit('} ');
-          this.writeNode(param.name);
-          this.emit('\n');
-        }
+    for (let tag of newDoc.tags) {
+      this.emit(' * ');
+      if (tag.tagName) {
+        this.emit(`@${tag.tagName}`);
       }
-    }
-    // Return type.
-    if (fnDecl.type) {
-      this.emit(' * @return {');
-      this.emitType(fnDecl.type);
-      this.emit('}\n');
+      if (tag.type) {
+        this.emit(' {');
+        this.emitType(tag.type, tag.optional);
+        this.emit('}');
+      }
+      if (tag.parameterName) {
+        this.emit(' ' + tag.parameterName);
+      }
+      if (tag.text) {
+        this.emit(' ' + tag.text);
+      }
+      this.emit('\n');
     }
     this.emit(' */\n');
   }
@@ -224,35 +339,40 @@ class Annotator {
   }
 
   private visitProperty(className: string, p: ts.PropertyDeclaration | ts.ParameterDeclaration) {
-    let existingAnnotation = this.existingClosureAnnotation(p);
-    if (existingAnnotation) {
-      existingAnnotation += '\n';
+    let jsDoc = this.getJSDoc(p) || {tags: []};
+    let existingAnnotation = '';
+    for (let { tagName, text } of jsDoc.tags) {
+      if (tagName === 'type') {
+        this.fail('@type not allowed in property declarations');
+      }
+      if (tagName) {
+        existingAnnotation += `@${tagName}\n`;
+      } else {
+        existingAnnotation += `${text}\n`;
+      }
     }
     this.maybeEmitJSDocType(p.type, existingAnnotation + '@type');
     this.emit(`\n    ${className}.prototype.${p.name.getText()};\n`);
   }
 
   /**
-   * Returns empty string if there is no existing annotation.
+   * Returns null if there is no existing comment.
    */
-  private existingClosureAnnotation(node: ts.Node) {
+  private getJSDoc(node: ts.Node): JSDocComment {
     let text = node.getFullText();
     let comments = ts.getLeadingCommentRanges(text, 0);
 
-    if (!comments || comments.length == 0) return '';
+    if (!comments || comments.length == 0) return null;
 
     // JS compiler only considers the last comment significant.
     let {pos, end} = comments[comments.length - 1];
     let comment = text.substring(pos, end);
-    return Annotator.getJsDocAnnotation(comment).trim();
-  }
-
-  // return empty string if comment is not JsDoc.
-  static getJsDocAnnotation(comment: string): string {
-    if (/^\/\*\*/.test(comment) && /\*\/$/.test(comment)) {
-      return comment.slice(3, comment.length - 2);
+    try {
+      return getJSDocAnnotation(comment);
+    } catch (e) {
+      this.fail(e.toString());
+      return null;
     }
-    return '';
   }
 
   private maybeEmitJSDocType(type: ts.TypeNode, jsDocTag?: string) {

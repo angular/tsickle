@@ -7,7 +7,7 @@ function func(arg1) {
 }
 class Foo {
     /**
-     * @param { ?}  ctorArg
+     * @param { ?} ctorArg
      */
     constructor(ctorArg) {
         this.ctorArg = ctorArg;

@@ -1,6 +1,6 @@
 /**
  * @param { number} x
- * @param { string=}  y
+ * @param { string=} y
  */
 function optionalArgument(x, y) {
 }
@@ -8,7 +8,7 @@ optionalArgument(1);
 class OptionalTest {
     /**
      * @param { string} a
-     * @param { string=}  b
+     * @param { string=} b
      */
     constructor(a, b) {
     }

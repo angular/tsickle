@@ -1,6 +1,6 @@
 class FieldsTest {
     /**
-     * @param { number}  field3
+     * @param { number} field3
      */
     constructor(field3) {
         this.field3 = field3;

@@ -3,10 +3,10 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import {expect} from 'chai';
 
-import {SickleOptions} from '../src/sickle';
+import {SickleOptions, getJSDocAnnotation} from '../src/sickle';
 import {annotateSource, transformSource, goldenTests} from './test_support';
 
-const RUN_TESTS_MATCHING: RegExp = null;
+let RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
 
 // If true, update all the golden .js files to be whatever sickle
@@ -48,5 +48,43 @@ describe('golden tests', () => {
       }
       expect(es6Source).to.equal(es6Golden);
     });
+  });
+});
+
+describe('getJSDocAnnotation', () => {
+  it('does not get non-jsdoc values', () => {
+    let source = '/* ordinary comment */';
+    expect(getJSDocAnnotation(source)).to.equal(null);
+  });
+  it('grabs plain text from jsdoc', () => {
+    let source = '/** jsdoc comment */';
+    expect(getJSDocAnnotation(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
+  });
+  it('gathers @tags from jsdoc', () => {
+    let source = `/**
+  * @param foo
+  * @param bar multiple
+  *    line comment
+  * @return foobar
+  * @nosideeffects
+  */`;
+    expect(getJSDocAnnotation(source)).to.deep.equal({
+      tags: [
+        {tagName: 'param', parameterName: 'foo'},
+        {tagName: 'param', parameterName: 'bar', text: 'multiple line comment'},
+        {tagName: 'return', text: 'foobar'},
+        {tagName: 'nosideeffects'},
+      ]
+    });
+  });
+  it('rejects type annotations in parameters', () => {
+    let source = `/**
+  * @param {string} foo
+*/`;
+    expect(() => getJSDocAnnotation(source)).to.throw(Error);
+  });
+  it('rejects @type annotations', () => {
+    let source = `/** @type {string} foo */`;
+    expect(() => getJSDocAnnotation(source)).to.throw(Error);
   });
 });

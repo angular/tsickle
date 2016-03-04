@@ -1,7 +1,7 @@
 
 /**
  * @param { Object} a
- * @param { string}  b
+ * @param { string} b
  */
 function decorator(a: Object, b: string) {}
 
