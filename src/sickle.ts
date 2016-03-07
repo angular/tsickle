@@ -6,6 +6,13 @@ export interface SickleOptions {
   untyped?: boolean;
 }
 
+export interface SickleOutput {
+  // The TypeScript source with Closure annotations inserted.
+  output: string;
+  // Generated externs declarations, if any.
+  externs: string;
+}
+
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
@@ -105,12 +112,15 @@ class Annotator {
 
   constructor(private options: SickleOptions) { this.indent = 0; }
 
-  annotate(file: ts.SourceFile): string {
+  annotate(file: ts.SourceFile): SickleOutput {
     this.output = [];
     this.file = file;
     this.visit(file);
     this.assert(this.indent == 0, 'visit() failed to track nesting');
-    return this.output.join('');
+    return {
+      output: this.output.join(''),
+      externs: null,
+    };
   }
 
   private emit(str: string) { this.output.push(str); }
@@ -500,7 +510,7 @@ function last<T>(elems: T[]): T {
   return elems.length ? elems[elems.length - 1] : null;
 }
 
-export function annotate(file: ts.SourceFile, options: SickleOptions = {}): string {
+export function annotate(file: ts.SourceFile, options: SickleOptions = {}): SickleOutput {
   let fullOptions: SickleOptions = {
     untyped: options.untyped || false,
   };

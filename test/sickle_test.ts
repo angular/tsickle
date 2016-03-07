@@ -14,6 +14,46 @@ let RUN_TESTS_MATCHING: RegExp = null;
 //     UPDATE_GOLDENS=y gulp test
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
 
+/**
+ * compareAgainstGoldens compares a test output against the content in a golden
+ * path, updating the content of the golden when UPDATE_GOLDENS is true.
+ *
+ * @param output The expected output, where the empty string indicates
+ *    the file is expected to exist and be empty, while null indicates
+ *    the file is expected to not exist.  (This subtlety is used for
+ *    externs files, where the majority of tests are not expected to
+ *    produce one.)
+ */
+function compareAgainstGolden(output: string, path: string) {
+  let golden: string = null;
+  try {
+    golden = fs.readFileSync(path, 'utf-8');
+  } catch (e) {
+    if (e.code == 'ENOENT' && (UPDATE_GOLDENS || output === null)) {
+      // A missing file is acceptable if we're updating goldens or
+      // if we're expected to produce no output.
+    } else {
+      throw e;
+    }
+  }
+
+  if (UPDATE_GOLDENS && output !== golden) {
+    console.log('Updating golden file for', path);
+    if (output !== null) {
+      fs.writeFileSync(path, output, 'utf-8');
+    } else {
+      // The desired golden state is for there to be no output file.
+      // Ensure no file exists.
+      try {
+        fs.unlinkSync(path);
+      } catch (e) {
+      }
+    }
+  } else {
+    expect(output).to.equal(golden);
+  }
+}
+
 describe('golden tests', () => {
   goldenTests().forEach((test) => {
     if (RUN_TESTS_MATCHING && !RUN_TESTS_MATCHING.exec(test.name)) {
@@ -28,25 +68,14 @@ describe('golden tests', () => {
       var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
 
       // Run TypeScript through sickle and compare against goldens.
-      let sickleSource = annotateSource(test.tsPath, tsSource, options);
-      let sickleGolden = fs.readFileSync(test.sicklePath, 'utf-8');
-      if (UPDATE_GOLDENS && sickleSource != sickleGolden) {
-        console.log('Updating golden file for', test.sicklePath);
-        fs.writeFileSync(test.sicklePath, sickleSource, 'utf-8');
-        sickleGolden = sickleSource;
-      }
-      expect(sickleSource).to.equal(sickleGolden);
+      let {output, externs} = annotateSource(test.tsPath, tsSource, options);
+      compareAgainstGolden(output, test.sicklePath);
+      compareAgainstGolden(externs, test.externsPath);
 
       // Run sickled TypeScript through TypeScript compiler
       // and compare against goldens.
-      let es6Source = transformSource(test.sicklePath, sickleSource);
-      let es6Golden = fs.readFileSync(test.es6Path, 'utf-8');
-      if (UPDATE_GOLDENS && es6Source != es6Golden) {
-        console.log('Updating golden file for', test.es6Path);
-        fs.writeFileSync(test.es6Path, es6Source, 'utf-8');
-        es6Golden = es6Source;
-      }
-      expect(es6Source).to.equal(es6Golden);
+      let es6Source = transformSource(test.sicklePath, output);
+      compareAgainstGolden(es6Source, test.es6Path);
     });
   });
 });

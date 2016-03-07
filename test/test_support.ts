@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
 
-import {SickleOptions} from '../src/sickle';
+import {SickleOptions, SickleOutput} from '../src/sickle';
 import {annotate, formatDiagnostics} from '../src/sickle';
 
 const OPTIONS: ts.CompilerOptions = {
@@ -25,7 +25,7 @@ const {cachedLibPath, cachedLib} = (function() {
 })();
 
 export function annotateSource(
-    inputFileName: string, sourceText: string, options: SickleOptions = {}): string {
+    inputFileName: string, sourceText: string, options: SickleOptions = {}): SickleOutput {
   var host = ts.createCompilerHost(OPTIONS);
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
@@ -84,6 +84,8 @@ export interface GoldenFileTest {
   tsPath: string;
   // Path to golden of post-sickle processing.
   sicklePath: string;
+  // Path to golden of post-sickle externs, if any.
+  externsPath: string;
   // Path to golden of post-sickle, post TypeScript->ES6 processing.
   es6Path: string;
 }
@@ -97,6 +99,7 @@ export function goldenTests(): GoldenFileTest[] {
       name: testName,
       tsPath: testPath,
       sicklePath: testPath.replace(/\.in\.ts$/, '.sickle.ts'),
+      externsPath: testPath.replace(/\.in\.ts$/, '.sickle_externs.js'),
       es6Path: testPath.replace(/\.in\.ts$/, '.tr.js'),
     };
   });
