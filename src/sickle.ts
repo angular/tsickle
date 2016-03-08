@@ -68,7 +68,7 @@ export function getJSDocAnnotation(comment: string): JSDocComment {
     let match = line.match(/^@(\S+) *(.*)/);
     if (match) {
       let [_, tagName, text] = match;
-      if (text[0] == '{') {
+      if (['param', 'return', 'type'].indexOf(tagName) != -1 && text[0] == '{') {
         throw new Error('type annotations (using {...}) are not allowed');
       }
 

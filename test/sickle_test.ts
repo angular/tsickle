@@ -116,4 +116,9 @@ describe('getJSDocAnnotation', () => {
     let source = `/** @type {string} foo */`;
     expect(() => getJSDocAnnotation(source)).to.throw(Error);
   });
+  it('allows @suppress annotations', () => {
+    let source = `/** @suppress {checkTypes} I hate types */`;
+    expect(getJSDocAnnotation(source))
+        .to.deep.equal({tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]})
+  });
 });
