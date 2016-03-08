@@ -108,21 +108,23 @@ const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.Node
  * comments.
  */
 class Annotator {
-  private output: string[];
-  private indent: number;
-  private file: ts.SourceFile;
-  // The node currently being visited by visit().
-  // This is only used in error messages.
+  /** The primary annotated TypeScript output, as an array of strings. */
+  private output: string[] = [];
+  /** Warnings/errors found while examining the code. */
+  private diagnostics: ts.Diagnostic[] = [];
+
+  /**
+   * The current level of recursion through TypeScript Nodes.  Used in formatting internal debug
+   * print statements.
+   */
+  private indent: number = 0;
+  /** The node currently being visited by visit(). This is only used in error messages. */
   private currentNode: ts.Node;
-  private diagnostics: ts.Diagnostic[];
 
-  constructor(private options: SickleOptions) { this.indent = 0; }
+  constructor(private options: SickleOptions, private file: ts.SourceFile) {}
 
-  annotate(file: ts.SourceFile): SickleOutput {
-    this.output = [];
-    this.diagnostics = [];
-    this.file = file;
-    this.visit(file);
+  annotate(): SickleOutput {
+    this.visit(this.file);
     this.assert(this.indent == 0, 'visit() failed to track nesting');
     return {
       output: this.output.join(''),
@@ -528,10 +530,7 @@ function last<T>(elems: T[]): T {
 }
 
 export function annotate(file: ts.SourceFile, options: SickleOptions = {}): SickleOutput {
-  let fullOptions: SickleOptions = {
-    untyped: options.untyped || false,
-  };
-  return new Annotator(fullOptions).annotate(file);
+  return new Annotator(options, file).annotate();
 }
 
 // CLI entry point
