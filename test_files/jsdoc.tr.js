@@ -6,12 +6,18 @@
 function jsDocTestFunction(foo, baz) {
     return foo;
 }
+/**
+ * @param { string} foo
+ */
+function jsDocTestBadDoc(foo) { }
 class JSDocTest {
     static _sickle_typeAnnotationsHelper() {
         /** @export
        @type { string} */
         JSDocTest.prototype.exported;
         /** @type { string} */
-        JSDocTest.prototype.ordinaryString;
+        JSDocTest.prototype.stringWithoutJSDoc;
+        /** @type { number} */
+        JSDocTest.prototype.typedThing;
     }
 }

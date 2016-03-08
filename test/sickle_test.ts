@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import {expect} from 'chai';
 
-import {SickleOptions, getJSDocAnnotation} from '../src/sickle';
+import {SickleOptions, getJSDocAnnotation, formatDiagnostics} from '../src/sickle';
 import {annotateSource, transformSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
@@ -68,8 +68,21 @@ describe('golden tests', () => {
       var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
 
       // Run TypeScript through sickle and compare against goldens.
-      let {output, externs} = annotateSource(test.tsPath, tsSource, options);
-      compareAgainstGolden(output, test.sicklePath);
+      let {output, externs, diagnostics} = annotateSource(test.tsPath, tsSource, options);
+
+      // If there were any diagnostics, convert them into strings for
+      // the golden output.
+      let fileOutput = output;
+      if (diagnostics.length > 0) {
+        // Munge the filenames in the diagnostics so that they don't include
+        // the sickle checkout path.
+        for (let diag of diagnostics) {
+          let fileName = diag.file.fileName;
+          diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
+        }
+        fileOutput = formatDiagnostics(diagnostics) + '\n====\n' + output;
+      }
+      compareAgainstGolden(fileOutput, test.sicklePath);
       compareAgainstGolden(externs, test.externsPath);
 
       // Run sickled TypeScript through TypeScript compiler

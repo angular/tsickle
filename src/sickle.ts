@@ -11,6 +11,8 @@ export interface SickleOutput {
   output: string;
   // Generated externs declarations, if any.
   externs: string;
+  // Error messages, if any.
+  diagnostics: ts.Diagnostic[];
 }
 
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
@@ -19,7 +21,7 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
                 if (d.file) res += ' at ' + d.file.fileName + ':';
                 if (d.start) {
                   let {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
-                  res += line + ':' + character + ':';
+                  res += (line + 1) + ':' + (character + 1) + ':';
                 }
                 res += ' ' + d.messageText;
                 return res;
@@ -68,7 +70,10 @@ export function getJSDocAnnotation(comment: string): JSDocComment {
     let match = line.match(/^@(\S+) *(.*)/);
     if (match) {
       let [_, tagName, text] = match;
-      if (['param', 'return', 'type'].indexOf(tagName) != -1 && text[0] == '{') {
+      if (tagName == 'type') {
+        throw new Error('@type annotations are not allowed');
+      }
+      if ((tagName == 'param' || tagName == 'return') && text[0] == '{') {
         throw new Error('type annotations (using {...}) are not allowed');
       }
 
@@ -109,17 +114,20 @@ class Annotator {
   // The node currently being visited by visit().
   // This is only used in error messages.
   private currentNode: ts.Node;
+  private diagnostics: ts.Diagnostic[];
 
   constructor(private options: SickleOptions) { this.indent = 0; }
 
   annotate(file: ts.SourceFile): SickleOutput {
     this.output = [];
+    this.diagnostics = [];
     this.file = file;
     this.visit(file);
     this.assert(this.indent == 0, 'visit() failed to track nesting');
     return {
       output: this.output.join(''),
       externs: null,
+      diagnostics: this.diagnostics,
     };
   }
 
@@ -352,9 +360,6 @@ class Annotator {
     let jsDoc = this.getJSDoc(p) || {tags: []};
     let existingAnnotation = '';
     for (let { tagName, text } of jsDoc.tags) {
-      if (tagName === 'type') {
-        this.fail('@type not allowed in property declarations');
-      }
       if (tagName) {
         existingAnnotation += `@${tagName}\n`;
       } else {
@@ -380,7 +385,14 @@ class Annotator {
     try {
       return getJSDocAnnotation(comment);
     } catch (e) {
-      this.fail(e.toString());
+      this.diagnostics.push({
+        file: this.file,
+        start: node.getFullStart() + pos,
+        length: end - pos,
+        messageText: e.message,
+        category: ts.DiagnosticCategory.Error,
+        code: undefined,
+      });
       return null;
     }
   }
@@ -495,6 +507,11 @@ class Annotator {
     return this.writeRange(from, to);
   }
 
+  /**
+   * fail causes the current compilation to abort with an error message.
+   * It should only be used for internal compiler errors; otherwise, add to
+   * this.diagnostics.
+   */
   private fail(msg: string) {
     let offset = this.currentNode.getFullStart();
     let {line, character} = this.file.getLineAndCharacterOfPosition(offset);
