@@ -18,8 +18,8 @@ export interface SickleOutput {
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
-                if (d.file) res += ' at ' + d.file.fileName + ':';
-                if (d.start) {
+                if (d.file) {
+                  res += ' at ' + d.file.fileName + ':';
                   let {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
                   res += (line + 1) + ':' + (character + 1) + ':';
                 }
@@ -109,7 +109,11 @@ const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.Node
  */
 class Annotator {
   /** The primary annotated TypeScript output, as an array of strings. */
-  private output: string[] = [];
+  private tsOutput: string[] = [];
+  /** Output for the externs.js file. */
+  private externsOutput: string[] = [];
+  /** The current output, either tsOutput or externsOutput. */
+  private currentOutput: string[] = this.tsOutput;
   /** Warnings/errors found while examining the code. */
   private diagnostics: ts.Diagnostic[] = [];
 
@@ -127,13 +131,13 @@ class Annotator {
     this.visit(this.file);
     this.assert(this.indent == 0, 'visit() failed to track nesting');
     return {
-      output: this.output.join(''),
-      externs: null,
+      output: this.tsOutput.join(''),
+      externs: this.externsOutput.length > 0 ? this.externsOutput.join('') : null,
       diagnostics: this.diagnostics,
     };
   }
 
-  private emit(str: string) { this.output.push(str); }
+  private emit(str: string) { this.currentOutput.push(str); }
 
   private logWithIndent(message: string) {
     let prefix = new Array(this.indent + 1).join('| ');
@@ -144,106 +148,109 @@ class Annotator {
     this.currentNode = node;
     // this.logWithIndent('node: ' + ts.SyntaxKind[node.kind]);
     this.indent++;
-    switch (node.kind) {
-      case ts.SyntaxKind.ModuleDeclaration:
-        if (node.flags & ts.NodeFlags.Ambient) {
-          // An ambient module declaration only declares types for TypeScript's
-          // benefit, so we want to skip all Sickle processing of it.
+
+    if (node.flags & ts.NodeFlags.Ambient) {
+      this.visitExterns(node);
+      // An ambient declaration declares types for TypeScript's benefit, so we want to skip Sickle
+      // conversion of its contents.
+      this.writeRange(node.getFullStart(), node.getEnd());
+    } else {
+      switch (node.kind) {
+        case ts.SyntaxKind.InterfaceDeclaration:
+          let decl = <ts.InterfaceDeclaration>node;
           this.writeRange(node.getFullStart(), node.getEnd());
           break;
-        } else {
-          this.writeNode(node);
-        }
-        break;
-      case ts.SyntaxKind.VariableDeclaration:
-        this.maybeEmitJSDocType((<ts.VariableDeclaration>node).type);
-        this.writeNode(node);
-        break;
-      case ts.SyntaxKind.ClassDeclaration:
-        let classNode = <ts.ClassDeclaration>node;
-        if (classNode.members.length > 0) {
-          // We must visit all members individually, to strip out any
-          // /** @export */ annotations that show up in the constructor
-          // and to annotate methods.
-          this.writeTextBetween(classNode, classNode.members[0]);
-          for (let member of classNode.members) {
-            this.visit(member);
-          }
-        } else {
-          this.writeTextBetween(classNode, classNode.getLastToken());
-        }
-        this.emitTypeAnnotationsHelper(classNode);
-        this.writeNode(classNode.getLastToken());
-        break;
-      case ts.SyntaxKind.PublicKeyword:
-      case ts.SyntaxKind.PrivateKeyword:
-        // The "public"/"private" keywords are encountered in two places:
-        // 1) In class fields (which don't appear in the transformed output).
-        // 2) In "parameter properties", e.g.
-        //      constructor(/** @export */ public foo: string).
-        // In case 2 it's important to not emit that JSDoc in the generated
-        // constructor, as this is illegal for Closure.  It's safe to just
-        // always skip comments preceding the 'public' keyword.
-        // See test_files/parameter_properties.ts.
-        this.writeNode(node, /* skipComments */ true);
-        break;
-      case ts.SyntaxKind.Constructor:
-        let ctor = <ts.ConstructorDeclaration>node;
-        this.emitFunctionType(ctor);
-        // Write the "constructor(...) {" bit, but iterate through any
-        // parameters if given so that we can examine them more closely.
-        let offset = ctor.getStart();
-        if (ctor.parameters.length) {
-          for (let param of ctor.parameters) {
-            this.writeTextFromOffset(offset, param);
-            this.visit(param);
-            offset = param.getEnd();
-          }
-        }
-        this.writeRange(offset, node.getEnd());
-        break;
-      case ts.SyntaxKind.ArrowFunction:
-        if (this.options.untyped) {
-          // In untyped mode, don't emit any type before the arrow function.
-          // Works around issue #57.
+        case ts.SyntaxKind.VariableDeclaration:
+          this.maybeEmitJSDocType((<ts.VariableDeclaration>node).type);
           this.writeNode(node);
           break;
-        }
-      // Otherwise, fall through to the shared processing for function.
-      case ts.SyntaxKind.FunctionDeclaration:
-      case ts.SyntaxKind.MethodDeclaration:
-        let fnDecl = <ts.FunctionLikeDeclaration>node;
+        case ts.SyntaxKind.ClassDeclaration:
+          let classNode = <ts.ClassDeclaration>node;
+          if (classNode.members.length > 0) {
+            // We must visit all members individually, to strip out any
+            // /** @export */ annotations that show up in the constructor
+            // and to annotate methods.
+            this.writeTextBetween(classNode, classNode.members[0]);
+            for (let member of classNode.members) {
+              this.visit(member);
+            }
+          } else {
+            this.writeTextBetween(classNode, classNode.getLastToken());
+          }
+          this.emitTypeAnnotationsHelper(classNode);
+          this.writeNode(classNode.getLastToken());
+          break;
+        case ts.SyntaxKind.PublicKeyword:
+        case ts.SyntaxKind.PrivateKeyword:
+          // The "public"/"private" keywords are encountered in two places:
+          // 1) In class fields (which don't appear in the transformed output).
+          // 2) In "parameter properties", e.g.
+          //      constructor(/** @export */ public foo: string).
+          // In case 2 it's important to not emit that JSDoc in the generated
+          // constructor, as this is illegal for Closure.  It's safe to just
+          // always skip comments preceding the 'public' keyword.
+          // See test_files/parameter_properties.ts.
+          this.writeNode(node, /* skipComments */ true);
+          break;
+        case ts.SyntaxKind.Constructor:
+          let ctor = <ts.ConstructorDeclaration>node;
+          this.emitFunctionType(ctor);
+          // Write the "constructor(...) {" bit, but iterate through any
+          // parameters if given so that we can examine them more closely.
+          let offset = ctor.getStart();
+          if (ctor.parameters.length) {
+            for (let param of ctor.parameters) {
+              this.writeTextFromOffset(offset, param);
+              this.visit(param);
+              offset = param.getEnd();
+            }
+          }
+          this.writeRange(offset, node.getEnd());
+          break;
+        case ts.SyntaxKind.ArrowFunction:
+          if (this.options.untyped) {
+            // In untyped mode, don't emit any type before the arrow function.
+            // Works around issue #57.
+            this.writeNode(node);
+            break;
+          }
+        // Otherwise, fall through to the shared processing for function.
+        case ts.SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.MethodDeclaration:
+          let fnDecl = <ts.FunctionLikeDeclaration>node;
 
-        if (!fnDecl.body) {
-          // Functions are allowed to not have bodies in the presence
-          // of overloads.  It's not clear how to translate these overloads
-          // into Closure types, so skip them for now.
+          if (!fnDecl.body) {
+            // Functions are allowed to not have bodies in the presence
+            // of overloads.  It's not clear how to translate these overloads
+            // into Closure types, so skip them for now.
+            this.writeNode(node);
+            break;
+          }
+
+          this.emitFunctionType(fnDecl);
+          this.writeTextFromOffset(fnDecl.getStart(), fnDecl.body);
+          this.visit(fnDecl.body);
+          break;
+        case ts.SyntaxKind.TypeAliasDeclaration:
+          this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
           this.writeNode(node);
           break;
-        }
-
-        this.emitFunctionType(fnDecl);
-        this.writeTextFromOffset(fnDecl.getStart(), fnDecl.body);
-        this.visit(fnDecl.body);
-        break;
-      case ts.SyntaxKind.TypeAliasDeclaration:
-        this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
-        this.writeNode(node);
-        break;
-      case ts.SyntaxKind.EnumDeclaration:
-        this.visitEnum(<ts.EnumDeclaration>node);
-        break;
-      case ts.SyntaxKind.TypeAssertionExpression:
-        let typeAssertion = <ts.TypeAssertion>node;
-        this.maybeEmitJSDocType(typeAssertion.type);
-        this.emit('(');
-        this.writeNode(node);
-        this.emit(')');
-        break;
-      default:
-        this.writeNode(node);
-        break;
+        case ts.SyntaxKind.EnumDeclaration:
+          this.visitEnum(<ts.EnumDeclaration>node);
+          break;
+        case ts.SyntaxKind.TypeAssertionExpression:
+          let typeAssertion = <ts.TypeAssertion>node;
+          this.maybeEmitJSDocType(typeAssertion.type);
+          this.emit('(');
+          this.writeNode(node);
+          this.emit(')');
+          break;
+        default:
+          this.writeNode(node);
+          break;
+      }
     }
+
     this.indent--;
   }
 
@@ -399,6 +406,75 @@ class Annotator {
     }
   }
 
+  private visitExterns(node: ts.Node, namespace: string[] = []) {
+    this.currentOutput = this.externsOutput;
+    switch (node.kind) {
+      case ts.SyntaxKind.ModuleDeclaration:
+        let decl = <ts.ModuleDeclaration>node;
+        namespace = namespace.concat([decl.name.text]);
+        this.visitExterns(decl.body, namespace);
+        break;
+      case ts.SyntaxKind.ModuleBlock:
+        let block = <ts.ModuleBlock>node;
+        for (let stmt of block.statements) {
+          this.visitExterns(stmt, namespace);
+        }
+        break;
+      case ts.SyntaxKind.InterfaceDeclaration:
+        this.writeExternsInterface(<ts.InterfaceDeclaration>node, namespace);
+        break;
+      case ts.SyntaxKind.VariableStatement:
+        for (let decl of(<ts.VariableStatement>node).declarationList.declarations) {
+          this.writeExternsVariable(decl, namespace);
+        }
+        break;
+      default:
+        this.errorUnimplementedKind(node, 'externs generation');
+        break;
+    }
+    this.currentOutput = this.tsOutput;
+  }
+
+  private writeExternsInterface(decl: ts.InterfaceDeclaration, namespace: string[]) {
+    this.emit('/** @record @struct */\n');
+    let className = namespace.concat([decl.name.getText()]).join('.');
+    if (namespace.length > 0) {
+      this.emit(`${className} = function() {};\n`);
+    } else {
+      this.emit(`function ${className}() {}\n`);
+    }
+    for (let member of decl.members) {
+      switch (member.kind) {
+        case ts.SyntaxKind.PropertySignature:
+          let prop = <ts.PropertySignature>member;
+          this.maybeEmitJSDocType(prop.type, '@type');
+          this.emit(`\n${className}.prototype.${prop.name.getText()};\n`);
+          break;
+        default:
+          // Members can include things like index signatures, for e.g.
+          //   interface Foo { [key: string]: number; }
+          // For now, just die unless all the members are regular old
+          // properties.
+          this.errorUnimplementedKind(member, 'externs for interface');
+      }
+    }
+  }
+
+  private writeExternsVariable(decl: ts.VariableDeclaration, namespace: string[]) {
+    if (decl.name.kind === ts.SyntaxKind.Identifier) {
+      let identifier = <ts.Identifier>decl.name;
+      this.maybeEmitJSDocType(decl.type, '@type');
+      if (namespace.length > 0) {
+        let qualfiedName = namespace.concat([identifier.text]).join('.');
+        this.emit(`\n${qualfiedName};\n`);
+      } else {
+        this.emit(`\nvar ${identifier.text};\n`);
+      }
+    } else {
+      this.errorUnimplementedKind(decl.name, 'externs for variable');
+    }
+  }
+
   private maybeEmitJSDocType(type: ts.TypeNode, jsDocTag?: string) {
     if (!type && !this.options.untyped) return;
     this.emit(' /**');
@@ -510,9 +586,31 @@ class Annotator {
   }
 
   /**
+   * Produces a compiler error that references the Node's kind.  This is useful for the "else"
+   * branch of code that is attempting to handle all possible input Node types, to ensure all cases
+   * covered.
+   */
+  private errorUnimplementedKind(node: ts.Node, where: string) {
+    this.error(node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
+  }
+
+  private error(node: ts.Node, messageText: string, start?: number, length?: number) {
+    start = start || node.getStart();
+    length = length || (node.getEnd() - node.getFullStart());
+    this.diagnostics.push({
+      file: this.file,
+      start,
+      length,
+      messageText,
+      category: ts.DiagnosticCategory.Error,
+      code: undefined,
+    });
+  }
+
+  /**
    * fail causes the current compilation to abort with an error message.
-   * It should only be used for internal compiler errors; otherwise, add to
-   * this.diagnostics.
+   * It should only be used for internal compiler errors; otherwise,
+   * use this.error().
    */
   private fail(msg: string) {
     let offset = this.currentNode.getFullStart();
