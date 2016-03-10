@@ -5,28 +5,18 @@ import * as glob from 'glob';
 import * as path from 'path';
 
 import {SickleOptions, SickleOutput} from '../src/sickle';
-import {annotate, formatDiagnostics} from '../src/sickle';
-
-const OPTIONS: ts.CompilerOptions = {
-  target: ts.ScriptTarget.ES6,
-  noImplicitAny: true,
-  noResolve: true,
-  skipDefaultLibCheck: true,
-  noEmitOnError: true,
-  experimentalDecorators: true,
-  emitDecoratorMetadata: true,
-};
+import {annotate, formatDiagnostics, compilerOptions} from '../src/sickle';
 
 const {cachedLibPath, cachedLib} = (function() {
-  let host = ts.createCompilerHost(OPTIONS);
-  let fn = host.getDefaultLibFileName(OPTIONS);
-  let p = ts.getDefaultLibFilePath(OPTIONS);
+  let host = ts.createCompilerHost(compilerOptions);
+  let fn = host.getDefaultLibFileName(compilerOptions);
+  let p = ts.getDefaultLibFilePath(compilerOptions);
   return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
 export function annotateSource(
     inputFileName: string, sourceText: string, options: SickleOptions = {}): SickleOutput {
-  var host = ts.createCompilerHost(OPTIONS);
+  var host = ts.createCompilerHost(compilerOptions);
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
@@ -38,17 +28,17 @@ export function annotateSource(
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram([inputFileName], OPTIONS, host);
+  var program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
     throw new Error(formatDiagnostics(diagnostics));
   }
 
-  return annotate(program.getSourceFile(inputFileName), options);
+  return annotate(program, program.getSourceFile(inputFileName), options);
 }
 
 export function transformSource(inputFileName: string, sourceText: string): string {
-  var host = ts.createCompilerHost(OPTIONS);
+  var host = ts.createCompilerHost(compilerOptions);
   var original = host.getSourceFile.bind(host);
   var mainSrc = ts.createSourceFile(inputFileName, sourceText, ts.ScriptTarget.Latest, true);
   host.getSourceFile = function(
@@ -61,7 +51,7 @@ export function transformSource(inputFileName: string, sourceText: string): stri
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram([inputFileName], OPTIONS, host);
+  var program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
     throw new Error('Failed to parse ' + sourceText + '\n' + formatDiagnostics(diagnostics));
@@ -91,9 +81,10 @@ export interface GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  var testInputGlob = path.join(__dirname, '..', '..', 'test_files', '**', '*.in.ts');
-  var testInputs = glob.sync(testInputGlob);
-  return testInputs.map((testPath) => {
+  let basePath = path.join(__dirname, '..', '..', 'test_files');
+  var testInputs = glob.sync(path.join(basePath, '*.in.ts'));
+
+  let tests = testInputs.map((testPath) => {
     let testName = testPath.match(/\/test_files\/(.*)\.in\.ts$/)[1];
     return {
       name: testName,
@@ -103,4 +94,22 @@ export function goldenTests(): GoldenFileTest[] {
       es6Path: testPath.replace(/\.in\.ts$/, '.tr.js'),
     };
   });
+
+  // export_helper*.ts is special, because it is imported by another
+  // test.  It it must be importable as plain './export_helper' so its
+  // files can't have extensions a ".in.ts" or ".tr.js".
+  var helperInputs = glob.sync(path.join(basePath, 'export_helper{,_2}.ts'));
+  for (let testPath of helperInputs) {
+    let testName = testPath.match(/\/test_files\/(export_helper[^.]*)\.ts$/)[1];
+    let exportHelperTestCase: GoldenFileTest = {
+      name: testName,
+      tsPath: testPath,
+      sicklePath: testPath.replace(/\.ts$/, '.sickle.ts'),
+      externsPath: testPath.replace(/\.ts$/, '.sickle_externs.js'),
+      es6Path: testPath.replace(/\.ts$/, '.js'),
+    };
+    tests.push(exportHelperTestCase);
+  }
+
+  return tests;
 }

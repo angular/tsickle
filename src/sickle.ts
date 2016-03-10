@@ -15,6 +15,16 @@ export interface SickleOutput {
   diagnostics: ts.Diagnostic[];
 }
 
+/** The compiler options used by the test suite and sickle command line. */
+export const compilerOptions: ts.CompilerOptions = {
+  target: ts.ScriptTarget.ES6,
+  noImplicitAny: true,
+  skipDefaultLibCheck: true,
+  noEmitOnError: true,
+  experimentalDecorators: true,
+  emitDecoratorMetadata: true,
+};
+
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
@@ -125,7 +135,8 @@ class Annotator {
   /** The node currently being visited by visit(). This is only used in error messages. */
   private currentNode: ts.Node;
 
-  constructor(private options: SickleOptions, private file: ts.SourceFile) {}
+  constructor(
+      private program: ts.Program, private file: ts.SourceFile, private options: SickleOptions) {}
 
   annotate(): SickleOutput {
     this.visit(this.file);
@@ -156,6 +167,22 @@ class Annotator {
       this.writeRange(node.getFullStart(), node.getEnd());
     } else {
       switch (node.kind) {
+        case ts.SyntaxKind.ExportDeclaration:
+          let exportDecl = <ts.ExportDeclaration>node;
+          if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
+            // It's an "export * from ..." statement.
+            // Rewrite it to re-export each exported symbol directly.
+            this.emit('export {');
+            let typeChecker = this.program.getTypeChecker();
+            let exports = typeChecker.getExportsOfModule(
+                typeChecker.getSymbolAtLocation(exportDecl.moduleSpecifier));
+            this.emit(exports.map(e => e.name).join(','));
+            this.emit('} from');
+            this.writeRange(exportDecl.moduleSpecifier.getFullStart(), node.getEnd());
+          } else {
+            this.writeNode(node);
+          }
+          break;
         case ts.SyntaxKind.InterfaceDeclaration:
           let decl = <ts.InterfaceDeclaration>node;
           this.writeRange(node.getFullStart(), node.getEnd());
@@ -627,16 +654,21 @@ function last<T>(elems: T[]): T {
   return elems.length ? elems[elems.length - 1] : null;
 }
 
-export function annotate(file: ts.SourceFile, options: SickleOptions = {}): SickleOutput {
-  return new Annotator(options, file).annotate();
+export function annotate(
+    program: ts.Program, file: ts.SourceFile, options: SickleOptions = {}): SickleOutput {
+  return new Annotator(program, file, options).annotate();
 }
 
 // CLI entry point
 if (require.main === module) {
-  for (let path of process.argv.splice(2)) {
-    let sourceText = ts.sys.readFile(path, 'utf-8');
-    let sf = ts.createSourceFile(path, sourceText, ts.ScriptTarget.ES6, true);
-    console.log(path + ':');
-    console.log(annotate(sf));
+  let paths = process.argv.splice(2);
+  let program = ts.createProgram(paths, compilerOptions);
+  let diags = ts.getPreEmitDiagnostics(program);
+  if (diags.length > 0) {
+    console.log(formatDiagnostics(diags));
+    process.exit(1);
+  }
+  for (let path of paths) {
+    console.log(annotate(program, program.getSourceFile(path)));
   }
 }
