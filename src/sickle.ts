@@ -172,10 +172,19 @@ class Annotator {
           if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
             // It's an "export * from ..." statement.
             // Rewrite it to re-export each exported symbol directly.
-            this.emit('export {');
             let typeChecker = this.program.getTypeChecker();
             let exports = typeChecker.getExportsOfModule(
                 typeChecker.getSymbolAtLocation(exportDecl.moduleSpecifier));
+
+            // Avoid reexporting any names that are already locally exported.
+            let locals = typeChecker.getSymbolsInScope(this.file, ts.SymbolFlags.Export);
+            let localSet: {[name: string]: boolean} = {};
+            for (let local of locals) {
+              localSet[local.name] = true;
+            }
+            exports = exports.filter(e => !localSet.hasOwnProperty(e.name));
+
+            this.emit('export {');
             this.emit(exports.map(e => e.name).join(','));
             this.emit('} from');
             this.writeRange(exportDecl.moduleSpecifier.getFullStart(), node.getEnd());
