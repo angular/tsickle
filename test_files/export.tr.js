@@ -1,5 +1,11 @@
-export { bar, baz } from './export_helper';
-// This "foo" conflicts with a "foo" discovered via the above export,
-// so the above export's "foo" should not show up.
-export var /** string */ foo = 'wins';
-export var localExport = 3;
+export { export2, export4 } from './export_helper';
+// These conflict with an export discovered via the above exports,
+// so the above export's versions should not show up.
+export var /** string */ export1 = 'wins';
+export { export4 as export3 } from './export_helper';
+// This local should be fine to export.
+export var exportLocal = 3;
+// The existence of a local should not prevent "export2" from making
+// it to the exports list.  export2 should only show up once in the
+// above two "export *" lines, though.
+let export2 = 3;
