@@ -8,3 +8,5 @@ export let export2 = 3;
 // due to sickle not yet transforming interfaces.
 // export interface Bar { barField: number; }
 // export var export3: Bar = null;
+
+export let export5 = 3;

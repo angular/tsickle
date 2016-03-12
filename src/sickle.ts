@@ -285,10 +285,18 @@ class Annotator {
 
     // Gather the names of local exports, to avoid reexporting any
     // names that are already locally exported.
+    // To find symbols declared like
+    //   export {foo} from ...
+    // we must also query for "Alias", but that unfortunately also brings in
+    //   import {foo} from ...
+    // so the latter is filtered below.
     let locals =
         typeChecker.getSymbolsInScope(this.file, ts.SymbolFlags.Export | ts.SymbolFlags.Alias);
     let localSet: {[name: string]: boolean} = {};
     for (let local of locals) {
+      if (local.declarations.some(d => d.kind === ts.SyntaxKind.ImportSpecifier)) {
+        continue;
+      }
       localSet[local.name] = true;
     }
 

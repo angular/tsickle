@@ -1,4 +1,4 @@
-export {export2,export4} from './export_helper';
+export {export2,export5,export4} from './export_helper';
 export {} from './export_helper_2';
 
 // These conflict with an export discovered via the above exports,
@@ -13,3 +13,6 @@ export var exportLocal = 3;
 // it to the exports list.  export2 should only show up once in the
 // above two "export *" lines, though.
 let export2 = 3;
+
+// This is just an import, so export5 should still be included.
+import {export5} from './export_helper';

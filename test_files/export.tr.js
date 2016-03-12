@@ -1,4 +1,4 @@
-export { export2, export4 } from './export_helper';
+export { export2, export5, export4 } from './export_helper';
 // These conflict with an export discovered via the above exports,
 // so the above export's versions should not show up.
 export var /** string */ export1 = 'wins';
