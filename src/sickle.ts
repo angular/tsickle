@@ -592,6 +592,10 @@ class Annotator {
       this.emit(`(<any>${node.name.getText()}).${member.name.getText()} = `);
       if (member.initializer) {
         this.visit(member.initializer);
+        let enumConstValue: number;
+        if (enumConstValue = this.program.getTypeChecker().getConstantValue(member)) {
+          i = enumConstValue + 1;
+        }
       } else {
         this.emit(String(i));
         i++;

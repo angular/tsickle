@@ -19,3 +19,17 @@ export var EnumTest2;
 EnumTest2.XYZ = 0;
 /** @type {EnumTest2} */
 EnumTest2.PI = 3.14159;
+/** @typedef {number} */
+// Repro for #97
+var ComponentIndex;
+(function (ComponentIndex) {
+    ComponentIndex[ComponentIndex["Scheme"] = 1] = "Scheme";
+    ComponentIndex[ComponentIndex["UserInfo"] = 2] = "UserInfo";
+    ComponentIndex[ComponentIndex["Domain"] = 3] = "Domain";
+})(ComponentIndex || (ComponentIndex = {}));
+/** @type {ComponentIndex} */
+ComponentIndex.Scheme = 1;
+/** @type {ComponentIndex} */
+ComponentIndex.UserInfo = 2;
+/** @type {ComponentIndex} */
+ComponentIndex.Domain = 3;
