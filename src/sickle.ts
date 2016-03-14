@@ -271,6 +271,12 @@ class Annotator {
           this.writeNode(node);
           this.emit(')');
           break;
+        case ts.SyntaxKind.ArrayType:
+          let arrayType = <ts.ArrayTypeNode>node;
+          this.emit('Array<');
+          this.visit(arrayType.elementType);
+          this.emit('>');
+          break;
         default:
           this.writeNode(node);
           break;
