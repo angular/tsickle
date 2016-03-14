@@ -16,3 +16,7 @@ function FunctionsTest2(a, b) { }
  * @param { number} b
  */
 function FunctionsTest3(a, b) { }
+/**
+ * @param { {a: number, b: number}} param0
+ */
+function Destructuring({ a, b }) { }

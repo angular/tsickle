@@ -380,6 +380,15 @@ class Annotator {
     // but it's needed to work around
     // https://github.com/Microsoft/TypeScript/issues/6982
     this.emit('\n/**\n');
+    // Produce unique names for synthetic parameter names
+    let paramIdx = 0;
+    const escapeParameterName = (name: string) => {
+      if (name.indexOf('{') >= 0 || name.indexOf('[') >= 0) {
+        return `param${paramIdx++}`;
+      }
+      return name;
+    };
+
     for (let tag of newDoc.tags) {
       this.emit(' * ');
       if (tag.tagName) {
@@ -391,7 +400,7 @@ class Annotator {
         this.emit('}');
       }
       if (tag.parameterName) {
-        this.emit(' ' + tag.parameterName);
+        this.emit(' ' + escapeParameterName(tag.parameterName));
       }
       if (tag.text) {
         this.emit(' ' + tag.text);
