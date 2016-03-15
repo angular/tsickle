@@ -25,6 +25,16 @@ export const compilerOptions: ts.CompilerOptions = {
   emitDecoratorMetadata: true,
 };
 
+/**
+ * Symbols that are already declared as externs in Closure, that should
+ * be avoided by sickle's "declare ..." => externs.js conversion.
+ */
+export let closureExternsBlacklist: string[] = [
+  'exports',
+  'global',
+  'module',
+];
+
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
   return diags.map((d) => {
                 let res = ts.DiagnosticCategory[d.category];
@@ -515,8 +525,9 @@ class Annotator {
   }
 
   private writeExternsInterface(decl: ts.InterfaceDeclaration, namespace: string[]) {
-    this.emit('/** @record @struct */\n');
     let className = namespace.concat([decl.name.getText()]).join('.');
+    if (closureExternsBlacklist.indexOf(className) >= 0) return;
+    this.emit('/** @record @struct */\n');
     if (namespace.length > 0) {
       this.emit(`${className} = function() {};\n`);
     } else {
@@ -542,12 +553,13 @@ class Annotator {
   private writeExternsVariable(decl: ts.VariableDeclaration, namespace: string[]) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
       let identifier = <ts.Identifier>decl.name;
+      let varName = namespace.concat([identifier.text]).join('.');
+      if (closureExternsBlacklist.indexOf(varName) >= 0) return;
       this.maybeEmitJSDocType(decl.type, '@type');
       if (namespace.length > 0) {
-        let qualfiedName = namespace.concat([identifier.text]).join('.');
-        this.emit(`\n${qualfiedName};\n`);
+        this.emit(`\n${varName};\n`);
       } else {
-        this.emit(`\nvar ${identifier.text};\n`);
+        this.emit(`\nvar ${varName};\n`);
       }
     } else {
       this.errorUnimplementedKind(decl.name, 'externs for variable');
