@@ -19,3 +19,7 @@ declare var someGlobal: number;
 declare interface DeclareTestInterface {
   foo: string;
 }
+
+// Should be omitted from externs -- conflicts with Closure.
+declare var global: any;
+declare interface exports {}
