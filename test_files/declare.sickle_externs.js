@@ -1,3 +1,7 @@
+/** @const */
+var DeclareTestModule = {};
+/** @const */
+DeclareTestModule.inner = {};
  /** @type { boolean} */
 DeclareTestModule.inner.someBool;
 /** @record @struct */

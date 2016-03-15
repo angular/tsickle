@@ -6,7 +6,8 @@ import * as closure from 'google-closure-compiler';
 
 import {goldenTests} from './test_support';
 
-export function checkClosureCompile(jsFiles: string[], done: (err: Error) => void) {
+export function checkClosureCompile(
+    jsFiles: string[], externsFiles: string[], done: (err: Error) => void) {
   var startTime = Date.now();
   var total = jsFiles.length;
   if (!total) throw new Error('No JS files in ' + JSON.stringify(jsFiles));
@@ -15,6 +16,7 @@ export function checkClosureCompile(jsFiles: string[], done: (err: Error) => voi
     'checks-only': true,
     'jscomp_error': 'checkTypes',
     'js': jsFiles,
+    'externs': externsFiles,
     'language_in': 'ECMASCRIPT6_STRICT',
   };
 
@@ -31,7 +33,9 @@ export function checkClosureCompile(jsFiles: string[], done: (err: Error) => voi
 
 describe('golden file tests', () => {
   it('generates correct Closure code', (done: (err: Error) => void) => {
-    var goldenJs = goldenTests().map((t) => t.es6Path);
-    checkClosureCompile(goldenJs, done);
+    let tests = goldenTests();
+    let goldenJs = tests.map(t => t.es6Path);
+    let externs = tests.map(t => t.externsPath).filter(path => fs.existsSync(path));
+    checkClosureCompile(goldenJs, externs, done);
   });
 });

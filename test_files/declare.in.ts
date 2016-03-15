@@ -1,4 +1,4 @@
-declare module DeclareTestModule {
+declare namespace DeclareTestModule {
   namespace inner {
     var someBool: boolean;
   }
@@ -10,6 +10,11 @@ declare module DeclareTestModule {
   interface NotYetHandled {
     [key: string]: string;
   }
+}
+
+// This module is quoted, so it shouldn't show up in externs.js.
+declare module "DeclareTestQuotedModule" {
+  var foo: string;
 }
 
 declare var someGlobal: number;

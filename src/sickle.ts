@@ -500,8 +500,24 @@ class Annotator {
     switch (node.kind) {
       case ts.SyntaxKind.ModuleDeclaration:
         let decl = <ts.ModuleDeclaration>node;
-        namespace = namespace.concat([decl.name.text]);
-        this.visitExterns(decl.body, namespace);
+        switch (decl.name.kind) {
+          case ts.SyntaxKind.Identifier:
+            // E.g. "declare namespace foo {"
+            namespace = namespace.concat(decl.name.text);
+            this.emit('/** @const */\n');
+            if (namespace.length > 1) {
+              this.emit(`${namespace.join('.')} = {};\n`);
+            } else {
+              this.emit(`var ${namespace} = {};\n`);
+            }
+            this.visitExterns(decl.body, namespace);
+          case ts.SyntaxKind.StringLiteral:
+            // E.g. "declare module 'foo' {" (note the quotes).
+            // Skip it.
+            break;
+          default:
+            this.errorUnimplementedKind(decl.name, 'externs generation of namespace');
+        }
         break;
       case ts.SyntaxKind.ModuleBlock:
         let block = <ts.ModuleBlock>node;
