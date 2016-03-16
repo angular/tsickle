@@ -33,6 +33,8 @@ export let closureExternsBlacklist: string[] = [
   'exports',
   'global',
   'module',
+  'WorkerGlobalScope',
+  'Symbol',
 ];
 
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
