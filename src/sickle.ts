@@ -66,6 +66,8 @@ export interface JSDocTag {
   type?: ts.TypeNode;
   // optional is true for optional function parameters.
   optional?: boolean;
+  // restParam is true for "...x: foo[]" function parameters.
+  restParam?: boolean;
   text?: string;
 }
 
@@ -351,22 +353,33 @@ class Annotator {
     // Parameters.
     if (fnDecl.parameters.length) {
       for (let param of fnDecl.parameters) {
-        let name = param.name.getText();
-        let paramDoc: string;
+        let newTag: JSDocTag = {
+          tagName: 'param',
+          parameterName: param.name.getText(),
+          type: param.type,
+          optional: param.initializer != null || param.questionToken != null,
+        };
+
         // Search for this parameter in the JSDoc @params.
         for (let { tagName, parameterName, text } of jsDoc.tags) {
-          if (tagName === 'param' && parameterName === name) {
-            paramDoc = text;
+          if (tagName === 'param' && parameterName === newTag.parameterName) {
+            newTag.text = text;
             break;
           }
         }
-        newDoc.tags.push({
-          tagName: 'param',
-          parameterName: name,
-          type: param.type,
-          optional: param.initializer != null || param.questionToken != null,
-          text: paramDoc,
-        });
+
+        if (param.dotDotDotToken != null) {
+          newTag.restParam = true;
+          // In TypeScript you write "...x: number[]", but in Closure
+          // you don't write the array: "@param {...number} x".  Unwrap
+          // the array wrapper.
+          this.assert(
+              newTag.type.kind === ts.SyntaxKind.ArrayType,
+              'compiler should have enforced array type for rest param');
+          let arrayType = <ts.ArrayTypeNode>newTag.type;
+          newTag.type = arrayType.elementType;
+        }
+        newDoc.tags.push(newTag);
       }
     }
 
@@ -406,7 +419,13 @@ class Annotator {
       }
       if (tag.type) {
         this.emit(' {');
-        this.emitType(tag.type, tag.optional);
+        if (tag.restParam) {
+          this.emit('...');
+        }
+        this.emitType(tag.type);
+        if (tag.optional) {
+          this.emit('=');
+        }
         this.emit('}');
       }
       if (tag.parameterName) {
@@ -597,14 +616,11 @@ class Annotator {
     this.emit(' */');
   }
 
-  private emitType(type: ts.TypeNode, optional?: boolean) {
+  private emitType(type: ts.TypeNode) {
     if (this.options.untyped) {
       this.emit(' ?');
     } else {
       this.visit(type);
-    }
-    if (optional) {
-      this.emit('=');
     }
   }
 

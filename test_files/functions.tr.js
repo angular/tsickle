@@ -20,3 +20,8 @@ function FunctionsTest3(a, b) { }
  * @param { {a: number, b: number}} param0
  */
 function Destructuring({ a, b }) { }
+/**
+ * @param {... number} a
+ */
+function FunctionsTestsSplat(...a) { }
+FunctionsTestsSplat(1, 2);
