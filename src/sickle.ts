@@ -339,12 +339,12 @@ class Annotator {
     return Object.keys(reexports);
   }
 
-  private emitFunctionType(fnDecl: ts.FunctionLikeDeclaration) {
+  private emitFunctionType(fnDecl: ts.FunctionLikeDeclaration, extraTags: JSDocTag[] = []) {
     // Construct the JSDoc comment by reading the existing JSDoc, if
     // any, and merging it with the known types of the function
     // parameters and return type.
     let jsDoc = this.getJSDoc(fnDecl) || {tags: []};
-    let newDoc: JSDocComment = {tags: []};
+    let newDoc: JSDocComment = {tags: extraTags};
 
     // Copy all the tags other than @param/@return into the new
     // comment without any change; @param/@return are handled later.
@@ -547,8 +547,9 @@ class Annotator {
           this.visitExterns(stmt, namespace);
         }
         break;
+      case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
-        this.writeExternsInterface(<ts.InterfaceDeclaration>node, namespace);
+        this.writeExternsType(<ts.InterfaceDeclaration|ts.ClassDeclaration>node, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
         for (let decl of(<ts.VariableStatement>node).declarationList.declarations) {
@@ -562,22 +563,45 @@ class Annotator {
     this.currentOutput = this.tsOutput;
   }
 
-  private writeExternsInterface(decl: ts.InterfaceDeclaration, namespace: string[]) {
+  private writeExternsType(
+      decl: ts.InterfaceDeclaration | ts.ClassDeclaration, namespace: string[]) {
     let className = namespace.concat([decl.name.getText()]).join('.');
     if (closureExternsBlacklist.indexOf(className) >= 0) return;
-    this.emit('/** @record @struct */\n');
-    if (namespace.length > 0) {
-      this.emit(`${className} = function() {};\n`);
+
+    let paramNames = '';
+    if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
+      let ctors =
+          (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
+      if (ctors.length) {
+        if (ctors.length > 1) {
+          this.error(ctors[1], 'multiple constructor signatures in declarations');
+        }
+        let ctor = <ts.ConstructorDeclaration>ctors[0];
+        this.emitFunctionType(ctor, [{tagName: 'constructor'}, {tagName: 'struct'}]);
+        paramNames = ctor.parameters.map((p) => p.name.getText()).join(', ');
+      } else {
+        this.emit('/** @constructor @struct */\n');
+      }
     } else {
-      this.emit(`function ${className}() {}\n`);
+      this.emit('/** @record @struct */\n');
     }
+
+    if (namespace.length > 0) {
+      this.emit(`${className} = function(${paramNames}) {};\n`);
+    } else {
+      this.emit(`function ${className}(${paramNames}) {}\n`);
+    }
+
     for (let member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
+        case ts.SyntaxKind.PropertyDeclaration:
           let prop = <ts.PropertySignature>member;
           this.maybeEmitJSDocType(prop.type, '@type');
           this.emit(`\n${className}.prototype.${prop.name.getText()};\n`);
           break;
+        case ts.SyntaxKind.Constructor:
+          break;  // Handled above.
         default:
           // Members can include things like index signatures, for e.g.
           //   interface Foo { [key: string]: number; }

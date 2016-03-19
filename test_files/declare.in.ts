@@ -7,6 +7,11 @@ declare namespace DeclareTestModule {
     field: string;
   }
 
+  class Clazz {
+    constructor(a: number);
+    field: number;
+  }
+
   interface NotYetHandled {
     [key: string]: string;
   }
