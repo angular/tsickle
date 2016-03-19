@@ -9,7 +9,8 @@ declare namespace DeclareTestModule {
 
   class Clazz {
     constructor(a: number);
-    field: number;
+    /** Comment */
+    method(a: string): number;
   }
 
   interface NotYetHandled {

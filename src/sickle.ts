@@ -555,7 +555,7 @@ class Annotator {
         break;
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
-        this.writeExternsType(<ts.InterfaceDeclaration|ts.ClassDeclaration>node, namespace);
+        this.writeExternsType(<ts.InterfaceDeclaration | ts.ClassDeclaration>node, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
         for (let decl of(<ts.VariableStatement>node).declarationList.declarations) {
@@ -607,6 +607,13 @@ class Annotator {
           let prop = <ts.PropertySignature>member;
           this.maybeEmitJSDocType(prop.type, '@type');
           this.emit(`\n${className}.prototype.${prop.name.getText()};\n`);
+          break;
+        case ts.SyntaxKind.MethodDeclaration:
+          let m = <ts.MethodDeclaration>member;
+          this.emitFunctionType(m);
+          this.emit(
+              `${className}.prototype.${m.name.getText()} = ` +
+              `function(${m.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
           break;
         case ts.SyntaxKind.Constructor:
           break;  // Handled above.

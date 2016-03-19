@@ -16,8 +16,13 @@ DeclareTestModule.Foo.prototype.field;
  * @param { number} a
  */
 DeclareTestModule.Clazz = function(a) {};
- /** @type { number} */
-DeclareTestModule.Clazz.prototype.field;
+
+/**
+ *  Comment
+ * @param { string} a
+ * @return { number}
+ */
+DeclareTestModule.Clazz.prototype.method = function(a) {};
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};
  /** @type { number} */
