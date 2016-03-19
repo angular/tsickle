@@ -159,7 +159,8 @@ class Annotator {
     this.assert(this.indent == 0, 'visit() failed to track nesting');
     return {
       output: this.tsOutput.join(''),
-      externs: this.externsOutput.length > 0 ? this.externsOutput.join('') : null,
+      externs: this.externsOutput.length > 0 ? '/** @externs */\n' + this.externsOutput.join('') :
+                                               null,
       diagnostics: this.diagnostics,
     };
   }

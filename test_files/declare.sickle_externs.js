@@ -1,3 +1,4 @@
+/** @externs */
 /** @const */
 var DeclareTestModule = {};
 /** @const */
