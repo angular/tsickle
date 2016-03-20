@@ -571,10 +571,10 @@ class Annotator {
 
   private writeExternsType(
       decl: ts.InterfaceDeclaration | ts.ClassDeclaration, namespace: string[]) {
-    let className = namespace.concat([decl.name.getText()]).join('.');
-    this.emittedNamespaces[className] = true;
-    if (closureExternsBlacklist.indexOf(className) >= 0) return;
-    this.emittedNamespaces[className] = true;
+    let typeName = namespace.concat([decl.name.getText()]).join('.');
+    this.emittedNamespaces[typeName] = true;
+    if (closureExternsBlacklist.indexOf(typeName) >= 0) return;
+    this.emittedNamespaces[typeName] = true;
 
     let paramNames = '';
     if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
@@ -595,9 +595,9 @@ class Annotator {
     }
 
     if (namespace.length > 0) {
-      this.emit(`${className} = function(${paramNames}) {};\n`);
+      this.emit(`${typeName} = function(${paramNames}) {};\n`);
     } else {
-      this.emit(`function ${className}(${paramNames}) {}\n`);
+      this.emit(`function ${typeName}(${paramNames}) {}\n`);
     }
 
     for (let member of decl.members) {
@@ -606,13 +606,13 @@ class Annotator {
         case ts.SyntaxKind.PropertyDeclaration:
           let prop = <ts.PropertySignature>member;
           this.maybeEmitJSDocType(prop.type, '@type');
-          this.emit(`\n${className}.prototype.${prop.name.getText()};\n`);
+          this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
           break;
         case ts.SyntaxKind.MethodDeclaration:
           let m = <ts.MethodDeclaration>member;
           this.emitFunctionType(m);
           this.emit(
-              `${className}.prototype.${m.name.getText()} = ` +
+              `${typeName}.prototype.${m.name.getText()} = ` +
               `function(${m.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
           break;
         case ts.SyntaxKind.Constructor:

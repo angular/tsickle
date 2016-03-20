@@ -1,5 +1,7 @@
 /** @externs */
 /** @constructor @struct */
-function Foo() {}
+function ClassAndNamespace() {}
  /** @type { number} */
-Foo.bar;
+ClassAndNamespace.bar;
+ /** @type { number} */
+ClassAndNamespace.baz;
