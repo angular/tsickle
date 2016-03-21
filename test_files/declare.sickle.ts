@@ -25,7 +25,8 @@ declare module "DeclareTestQuotedModule" {
   var foo: string;
 }
 
-declare var someGlobal: number;
+declare var declareGlobalVar: number;
+declare function declareGlobalFunction(x: string): number;
 
 declare interface DeclareTestInterface {
   foo: string;

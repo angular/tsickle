@@ -570,9 +570,8 @@ class Annotator {
       case ts.SyntaxKind.FunctionDeclaration:
         let f = <ts.FunctionDeclaration>node;
         this.emitFunctionType(f);
-        this.emit(
-            `${namespace.join('.')}.${f.name.getText()} = ` +
-            `function(${f.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+        let params = f.parameters.map((p) => p.name.getText());
+        this.writeExternsFunction(f.name.getText(), params.join(', '), namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
         for (let decl of(<ts.VariableStatement>node).declarationList.declarations) {
@@ -611,11 +610,7 @@ class Annotator {
       this.emit('/** @record @struct */\n');
     }
 
-    if (namespace.length > 0) {
-      this.emit(`${typeName} = function(${paramNames}) {};\n`);
-    } else {
-      this.emit(`function ${typeName}(${paramNames}) {}\n`);
-    }
+    this.writeExternsFunction(decl.name.getText(), paramNames, namespace);
 
     for (let member of decl.members) {
       switch (member.kind) {
@@ -657,6 +652,15 @@ class Annotator {
       }
     } else {
       this.errorUnimplementedKind(decl.name, 'externs for variable');
+    }
+  }
+
+  private writeExternsFunction(name: string, params: string, namespace: string[]) {
+    if (namespace.length > 0) {
+      name = namespace.concat([name]).join('.');
+      this.emit(`${name} = function(${params}) {};\n`);
+    } else {
+      this.emit(`function ${name}(${params}) {}\n`);
     }
   }
 

@@ -26,7 +26,13 @@ DeclareTestModule.Clazz.prototype.method = function(a) {};
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};
  /** @type { number} */
-var someGlobal;
+var declareGlobalVar;
+
+/**
+ * @param { string} x
+ * @return { number}
+ */
+function declareGlobalFunction(x) {}
 /** @record @struct */
 function DeclareTestInterface() {}
  /** @type { string} */
