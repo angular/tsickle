@@ -557,6 +557,13 @@ class Annotator {
       case ts.SyntaxKind.InterfaceDeclaration:
         this.writeExternsType(<ts.InterfaceDeclaration | ts.ClassDeclaration>node, namespace);
         break;
+      case ts.SyntaxKind.FunctionDeclaration:
+        let f = <ts.FunctionDeclaration>node;
+        this.emitFunctionType(f);
+        this.emit(
+            `${namespace.join('.')}.${f.name.getText()} = ` +
+            `function(${f.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+        break;
       case ts.SyntaxKind.VariableStatement:
         for (let decl of(<ts.VariableStatement>node).declarationList.declarations) {
           this.writeExternsVariable(decl, namespace);
