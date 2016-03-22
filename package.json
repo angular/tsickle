@@ -2,7 +2,8 @@
   "name": "sickle",
   "version": "0.1.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
-  "main": "build/lib/main.js",
+  "main": "build/src/sickle.js",
+  "bin": "build/src/main.js",
   "directories": {
     "test": "test"
   },
