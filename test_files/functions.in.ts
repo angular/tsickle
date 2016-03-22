@@ -8,4 +8,5 @@ function FunctionsTest3(a: number, b: number) {}
 function Destructuring({a, b}: {a: number, b: number}) {}
 
 function FunctionsTestsSplat(...a: number[]) {}
+function FunctionsTestsSplat2(...a: Array<number>) {}
 FunctionsTestsSplat(1, 2);

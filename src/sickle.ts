@@ -378,11 +378,21 @@ class Annotator {
           // In TypeScript you write "...x: number[]", but in Closure
           // you don't write the array: "@param {...number} x".  Unwrap
           // the array wrapper.
-          this.assert(
-              newTag.type.kind === ts.SyntaxKind.ArrayType,
-              'compiler should have enforced array type for rest param');
-          let arrayType = <ts.ArrayTypeNode>newTag.type;
-          newTag.type = arrayType.elementType;
+          // TODO(evanm): we should use the TypeScript
+          // TypeChecker-computed Type, not the syntactical type,
+          // so that we don't need to worry about T[] vs Array<T> here
+          // or whether we got the correct 'Array' below.
+          if (param.type.kind === ts.SyntaxKind.ArrayType) {
+            let arrayType = <ts.ArrayTypeNode>param.type;
+            newTag.type = arrayType.elementType;
+          } else if (param.type.kind === ts.SyntaxKind.TypeReference) {
+            let refType = <ts.TypeReferenceNode>param.type;
+            this.assert(
+                refType.typeName.getText() == 'Array', 'expected array type for rest param');
+            newTag.type = refType.typeArguments[0];
+          } else {
+            this.error(param, 'expected array type for rest param');
+          }
         }
         newDoc.tags.push(newTag);
       }

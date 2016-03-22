@@ -24,4 +24,8 @@ function Destructuring({ a, b }) { }
  * @param {... number} a
  */
 function FunctionsTestsSplat(...a) { }
+/**
+ * @param {...number} a
+ */
+function FunctionsTestsSplat2(...a) { }
 FunctionsTestsSplat(1, 2);

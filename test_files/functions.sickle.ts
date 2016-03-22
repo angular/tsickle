@@ -25,4 +25,8 @@ function Destructuring({a, b}: {a: number, b: number}) {}
  * @param {... number} a
  */
 function FunctionsTestsSplat(...a: number[]) {}
+/**
+ * @param {...number} a
+ */
+function FunctionsTestsSplat2(...a: Array<number>) {}
 FunctionsTestsSplat(1, 2);
