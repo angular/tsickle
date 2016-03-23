@@ -18,7 +18,6 @@ export interface SickleOutput {
 /** The compiler options used by the test suite and sickle command line. */
 export const compilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES6,
-  noImplicitAny: true,
   skipDefaultLibCheck: true,
   noEmitOnError: true,
   experimentalDecorators: true,
@@ -382,16 +381,18 @@ class Annotator {
           // TypeChecker-computed Type, not the syntactical type,
           // so that we don't need to worry about T[] vs Array<T> here
           // or whether we got the correct 'Array' below.
-          if (param.type.kind === ts.SyntaxKind.ArrayType) {
-            let arrayType = <ts.ArrayTypeNode>param.type;
-            newTag.type = arrayType.elementType;
-          } else if (param.type.kind === ts.SyntaxKind.TypeReference) {
-            let refType = <ts.TypeReferenceNode>param.type;
-            this.assert(
-                refType.typeName.getText() == 'Array', 'expected array type for rest param');
-            newTag.type = refType.typeArguments[0];
-          } else {
-            this.error(param, 'expected array type for rest param');
+          if (param.type) {
+            if (param.type.kind === ts.SyntaxKind.ArrayType) {
+              let arrayType = <ts.ArrayTypeNode>param.type;
+              newTag.type = arrayType.elementType;
+            } else if (param.type.kind === ts.SyntaxKind.TypeReference) {
+              let refType = <ts.TypeReferenceNode>param.type;
+              this.assert(
+                  refType.typeName.getText() == 'Array', 'expected array type for rest param');
+              newTag.type = refType.typeArguments[0];
+            } else {
+              this.error(param, 'expected array type for rest param');
+            }
           }
         }
         newDoc.tags.push(newTag);

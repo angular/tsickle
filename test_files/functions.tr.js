@@ -28,4 +28,10 @@ function FunctionsTestsSplat(...a) { }
  * @param {...number} a
  */
 function FunctionsTestsSplat2(...a) { }
+/**
+ * @param a
+ */
+function FunctionsTestsSplat3(...a) { }
 FunctionsTestsSplat(1, 2);
+FunctionsTestsSplat2(1, 2);
+FunctionsTestsSplat3(1, 2);
