@@ -3,17 +3,17 @@
 function ClassAndNamespace() {}
 
 /**
- * @param { string} x
- * @return { void}
+ * @param {string} x
+ * @return {void}
  */
 ClassAndNamespace.prototype.classFunction = function(x) {};
- /** @type { number} */
+ /** @type {number} */
 ClassAndNamespace.bar;
- /** @type { number} */
+ /** @type {number} */
 ClassAndNamespace.baz;
 
 /**
- * @param { number} x
- * @return { string}
+ * @param {number} x
+ * @return {string}
  */
 ClassAndNamespace.namespaceFunction = function(x) {};

@@ -2,7 +2,7 @@ class FieldsTest {
   field1: string;
   field2: number;
 /**
- * @param { number} field3
+ * @param {number} field3
  */
 constructor(private field3: number) {
     this.field3 = 2 + 1;
@@ -15,11 +15,11 @@ getF1() {
   }
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { string} */
+ /** @type {string} */
     FieldsTest.prototype.field1;
- /** @type { number} */
+ /** @type {number} */
     FieldsTest.prototype.field2;
- /** @type { number} */
+ /** @type {number} */
     FieldsTest.prototype.field3;
   }
 

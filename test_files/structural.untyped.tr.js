@@ -2,16 +2,16 @@
 // with the same fields.
 class StructuralTest {
     /**
-     * @return { ?}
+     * @return {?}
      */
     method() { return this.field1; }
     static _sickle_typeAnnotationsHelper() {
-        /** @type { ?} */
+        /** @type {?} */
         StructuralTest.prototype.field1;
     }
 }
 /**
- * @param { ?} st
+ * @param {?} st
  */
 function expectsAStructuralTest(st) { }
 expectsAStructuralTest({ field1: 'hi', method: () => 'hi' });

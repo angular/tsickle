@@ -1,7 +1,7 @@
 
 /**
- * @param { Object} a
- * @param { string} b
+ * @param {Object} a
+ * @param {string} b
  */
 function decorator(a: Object, b: string) {}
 
@@ -10,7 +10,7 @@ class DecoratorTest {
 private x: number;
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { number} */
+ /** @type {number} */
     DecoratorTest.prototype.x;
   }
 

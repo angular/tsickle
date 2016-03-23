@@ -3,18 +3,18 @@
 class StructuralTest {
   field1: string;
 /**
- * @return { ?}
+ * @return {?}
  */
 method(): string { return this.field1; }
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { ?} */
+ /** @type {?} */
     StructuralTest.prototype.field1;
   }
 
 }
 /**
- * @param { ?} st
+ * @param {?} st
  */
 function expectsAStructuralTest(st: StructuralTest) {}
 expectsAStructuralTest({field1: 'hi', method: () => 'hi'});

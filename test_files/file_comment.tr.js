@@ -1,5 +1,5 @@
 /**
- * @return { string}
+ * @return {string}
  */
 function foo() {
     return 'foo';

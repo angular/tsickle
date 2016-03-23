@@ -438,7 +438,7 @@ class Annotator {
         if (tag.restParam) {
           this.emit('...');
         }
-        this.emitType(tag.type);
+        this.emitClosureType(tag.type);
         if (tag.optional) {
           this.emit('=');
         }
@@ -667,24 +667,90 @@ class Annotator {
 
   private maybeEmitJSDocType(type: ts.TypeNode, jsDocTag?: string) {
     if (!type && !this.options.untyped) return;
-    this.emit(' /**');
+    this.emit(' /** ');
     if (jsDocTag) {
-      this.emit(' ');
       this.emit(jsDocTag);
       this.emit(' {');
     }
-    this.emitType(type);
+    this.emitClosureType(type);
     if (jsDocTag) {
       this.emit('}');
     }
     this.emit(' */');
   }
 
-  private emitType(type: ts.TypeNode) {
-    if (this.options.untyped) {
-      this.emit(' ?');
-    } else {
-      this.visit(type);
+  /**
+   * Convert a TypeScript TypeNode into the equivalent Closure type.
+   * Important conversions include:
+   * - any => ?
+   * - foo[] => Array<foo>
+   */
+  private emitClosureType(node: ts.TypeNode): void {
+    if (this.options.untyped || !node) {
+      this.emit('?');
+      return;
+    }
+
+    switch (node.kind) {
+      case ts.SyntaxKind.AnyKeyword:
+        this.emit('?');
+        return;
+      case ts.SyntaxKind.BooleanKeyword:
+      case ts.SyntaxKind.VoidKeyword:
+      case ts.SyntaxKind.NumberKeyword:
+      case ts.SyntaxKind.StringKeyword:
+        this.emit(node.getText());
+        return;
+      case ts.SyntaxKind.TypeReference:
+        // This is e.g. "Object" or "Array<foo>".
+        let typeRef = <ts.TypeReferenceNode>node;
+        this.emit(typeRef.typeName.getText());
+        if (typeRef.typeArguments) {
+          this.emit('<');
+          let first = true;
+          for (let arg of typeRef.typeArguments) {
+            if (first) {
+              first = false;
+            } else {
+              this.emit(', ');
+            }
+            this.emitClosureType(arg);
+          }
+          this.emit('>');
+        }
+        return;
+      case ts.SyntaxKind.TypeLiteral:
+        // Anonymous symbol, e.g. {a:number, b:string}.
+        let typeLiteral = <ts.TypeLiteralNode>node;
+        this.emit('{');
+        let first = true;
+        for (let member of typeLiteral.members) {
+          if (first) {
+            first = false;
+          } else {
+            this.emit(', ');
+          }
+          if (member.kind == ts.SyntaxKind.PropertySignature) {
+            let prop = <ts.PropertySignature>member;
+            this.emit(prop.name.getText());
+            this.emit(': ');
+            this.emitClosureType(prop.type);
+          } else {
+            // TODO: are there other member types?
+            this.errorUnimplementedKind(member, 'type literal member');
+          }
+        }
+        this.emit('}');
+        return;
+      case ts.SyntaxKind.ArrayType:
+        let arrayType = <ts.ArrayTypeNode>node;
+        this.emit('Array<');
+        this.emitClosureType(arrayType.elementType);
+        this.emit('>');
+        return;
+      default:
+        this.errorUnimplementedKind(node, 'converting type to closure');
+        this.emit('?');
     }
   }
 
@@ -692,7 +758,7 @@ class Annotator {
     if (this.options.untyped) return;
     // Write a Closure typedef, which involves an unused "var" declaration.
     this.emit('/** @typedef {');
-    this.visit(node.type);
+    this.emitClosureType(node.type);
     this.emit('} */\n');
     this.emit('var ');
     this.emit(node.name.getText());

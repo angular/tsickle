@@ -21,21 +21,21 @@ class Comments {
 
   static _sickle_typeAnnotationsHelper() {
  /** @export
-@type { string} */
+@type {string} */
     Comments.prototype.export1;
- /** @type { string} */
+ /** @type {string} */
     Comments.prototype.export2;
- /** @type { number} */
+ /** @type {number} */
     Comments.prototype.nodoc1;
- /** @type { number} */
+ /** @type {number} */
     Comments.prototype.nodoc2;
- /** @type { number} */
+ /** @type {number} */
     Comments.prototype.nodoc3;
  /** inline jsdoc comment without type annotation
-@type { number} */
+@type {number} */
     Comments.prototype.jsdoc1;
  /** multi-line jsdoc comment without type annotation.
-@type { number} */
+@type {number} */
     Comments.prototype.jsdoc2;
   }
 

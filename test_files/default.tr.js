@@ -1,6 +1,6 @@
 /**
- * @param { number} x
- * @param { string=} y
+ * @param {number} x
+ * @param {string=} y
  */
 function DefaultArgument(x, y = 'hi') {
 }

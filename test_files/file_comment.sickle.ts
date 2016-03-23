@@ -1,6 +1,6 @@
 
 /**
- * @return { string}
+ * @return {string}
  */
 function foo(): string {
   return 'foo';

@@ -1,22 +1,22 @@
 /**
- * @param { ?} arg1
- * @return { ?}
+ * @param {?} arg1
+ * @return {?}
  */
 function func(arg1) {
     return [3];
 }
 class Foo {
     /**
-     * @param { ?} ctorArg
+     * @param {?} ctorArg
      */
     constructor(ctorArg) {
         this.ctorArg = ctorArg;
         this.field = 'hello';
     }
     static _sickle_typeAnnotationsHelper() {
-        /** @type { ?} */
+        /** @type {?} */
         Foo.prototype.field;
-        /** @type { ?} */
+        /** @type {?} */
         Foo.prototype.ctorArg;
     }
 }

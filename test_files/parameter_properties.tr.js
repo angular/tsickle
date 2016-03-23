@@ -1,7 +1,7 @@
 class ParamProps {
     /**
-     * @param { string} bar
-     * @param { string} bar2
+     * @param {string} bar
+     * @param {string} bar2
      */
     constructor(bar, bar2) {
         this.bar = bar;
@@ -9,9 +9,9 @@ class ParamProps {
     }
     static _sickle_typeAnnotationsHelper() {
         /** @export
-       @type { string} */
+       @type {string} */
         ParamProps.prototype.bar;
-        /** @type { string} */
+        /** @type {string} */
         ParamProps.prototype.bar2;
     }
 }

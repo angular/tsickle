@@ -1,6 +1,6 @@
 class FieldsTest {
     /**
-     * @param { number} field3
+     * @param {number} field3
      */
     constructor(field3) {
         this.field3 = field3;
@@ -13,11 +13,11 @@ class FieldsTest {
         return this.field1;
     }
     static _sickle_typeAnnotationsHelper() {
-        /** @type { string} */
+        /** @type {string} */
         FieldsTest.prototype.field1;
-        /** @type { number} */
+        /** @type {number} */
         FieldsTest.prototype.field2;
-        /** @type { number} */
+        /** @type {number} */
         FieldsTest.prototype.field3;
     }
 }

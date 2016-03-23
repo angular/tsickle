@@ -6,27 +6,27 @@ class SuperTestBaseNoArg {
 }
 class SuperTestBaseOneArg {
     /**
-     * @param { number} x
+     * @param {number} x
      */
     constructor(x) {
         this.x = x;
     }
     static _sickle_typeAnnotationsHelper() {
-        /** @type { number} */
+        /** @type {number} */
         SuperTestBaseOneArg.prototype.x;
     }
 }
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
-     * @param { string} y
+     * @param {string} y
      */
     constructor(y) {
         super(3);
         this.y = y;
     }
     static _sickle_typeAnnotationsHelper() {
-        /** @type { string} */
+        /** @type {string} */
         SuperTestDerivedParamProps.prototype.y;
     }
 }
@@ -39,7 +39,7 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
         this.y = 'foo';
     }
     static _sickle_typeAnnotationsHelper() {
-        /** @type { string} */
+        /** @type {string} */
         SuperTestDerivedInitializedProps.prototype.y;
     }
 }
@@ -60,7 +60,7 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 // A class implementing an interface.
 class SuperTestDerivedInterface {
     static _sickle_typeAnnotationsHelper() {
-        /** @type { number} */
+        /** @type {number} */
         SuperTestDerivedInterface.prototype.foo;
     }
 }

@@ -3,37 +3,37 @@
 var DeclareTestModule = {};
 /** @const */
 DeclareTestModule.inner = {};
- /** @type { boolean} */
+ /** @type {boolean} */
 DeclareTestModule.inner.someBool;
 /** @record @struct */
 DeclareTestModule.Foo = function() {};
- /** @type { string} */
+ /** @type {string} */
 DeclareTestModule.Foo.prototype.field;
 
 /**
  * @constructor
  * @struct
- * @param { number} a
+ * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};
 
 /**
  *  Comment
- * @param { string} a
- * @return { number}
+ * @param {string} a
+ * @return {number}
  */
 DeclareTestModule.Clazz.prototype.method = function(a) {};
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};
- /** @type { number} */
+ /** @type {number} */
 var declareGlobalVar;
 
 /**
- * @param { string} x
- * @return { number}
+ * @param {string} x
+ * @return {number}
  */
 function declareGlobalFunction(x) {}
 /** @record @struct */
 function DeclareTestInterface() {}
- /** @type { string} */
+ /** @type {string} */
 DeclareTestInterface.prototype.foo;

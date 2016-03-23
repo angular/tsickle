@@ -8,13 +8,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 /**
- * @param { Object} a
- * @param { string} b
+ * @param {Object} a
+ * @param {string} b
  */
 function decorator(a, b) { }
 class DecoratorTest {
     static _sickle_typeAnnotationsHelper() {
-        /** @type { number} */
+        /** @type {number} */
         DecoratorTest.prototype.x;
     }
 }

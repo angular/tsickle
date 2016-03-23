@@ -1,7 +1,7 @@
 
 /**
- * @param { ?} arg1
- * @return { ?}
+ * @param {?} arg1
+ * @return {?}
  */
 function func(arg1: string): number[] {
   return [3];
@@ -10,16 +10,16 @@ function func(arg1: string): number[] {
 class Foo {
   field: string;
 /**
- * @param { ?} ctorArg
+ * @param {?} ctorArg
  */
 constructor(private ctorArg: string) {
     this.field = 'hello';
   }
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { ?} */
+ /** @type {?} */
     Foo.prototype.field;
- /** @type { ?} */
+ /** @type {?} */
     Foo.prototype.ctorArg;
   }
 

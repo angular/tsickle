@@ -6,12 +6,12 @@ constructor() {}
 
 class SuperTestBaseOneArg {
 /**
- * @param { number} x
+ * @param {number} x
  */
 constructor(public x: number) {}
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { number} */
+ /** @type {number} */
     SuperTestBaseOneArg.prototype.x;
   }
 
@@ -20,14 +20,14 @@ constructor(public x: number) {}
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
 /**
- * @param { string} y
+ * @param {string} y
  */
 constructor(public y: string) {
     super(3);
   }
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { string} */
+ /** @type {string} */
     SuperTestDerivedParamProps.prototype.y;
   }
 
@@ -43,7 +43,7 @@ constructor() {
   }
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { string} */
+ /** @type {string} */
     SuperTestDerivedInitializedProps.prototype.y;
   }
 
@@ -78,7 +78,7 @@ class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
 
   static _sickle_typeAnnotationsHelper() {
- /** @type { number} */
+ /** @type {number} */
     SuperTestDerivedInterface.prototype.foo;
   }
 
