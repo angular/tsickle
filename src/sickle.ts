@@ -15,15 +15,6 @@ export interface SickleOutput {
   diagnostics: ts.Diagnostic[];
 }
 
-/** The compiler options used by the test suite and sickle command line. */
-export const compilerOptions: ts.CompilerOptions = {
-  target: ts.ScriptTarget.ES6,
-  skipDefaultLibCheck: true,
-  noEmitOnError: true,
-  experimentalDecorators: true,
-  emitDecoratorMetadata: true,
-};
-
 /**
  * Symbols that are already declared as externs in Closure, that should
  * be avoided by sickle's "declare ..." => externs.js conversion.

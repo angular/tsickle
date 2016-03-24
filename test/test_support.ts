@@ -5,7 +5,16 @@ import * as glob from 'glob';
 import * as path from 'path';
 
 import {SickleOptions, SickleOutput} from '../src/sickle';
-import {annotate, formatDiagnostics, compilerOptions} from '../src/sickle';
+import {annotate, formatDiagnostics} from '../src/sickle';
+
+/** The TypeScript compiler options used by the test suite. */
+const compilerOptions: ts.CompilerOptions = {
+  target: ts.ScriptTarget.ES6,
+  skipDefaultLibCheck: true,
+  noEmitOnError: true,
+  experimentalDecorators: true,
+  emitDecoratorMetadata: true,
+};
 
 const {cachedLibPath, cachedLib} = (function() {
   let host = ts.createCompilerHost(compilerOptions);
