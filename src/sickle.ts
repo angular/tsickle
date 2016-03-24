@@ -60,6 +60,10 @@ export interface JSDocTag {
   optional?: boolean;
   // restParam is true for "...x: foo[]" function parameters.
   restParam?: boolean;
+  // notNull is true for binding parameters, which require require
+  // non-null arguments on the Closure side.  Can likely remove this
+  // once TypeScript nullable types are available.
+  notNull?: boolean;
   text?: string;
 }
 
@@ -347,20 +351,32 @@ class Annotator {
 
     // Parameters.
     if (fnDecl.parameters.length) {
+      let paramIdx = 0;
       for (let param of fnDecl.parameters) {
         let newTag: JSDocTag = {
           tagName: 'param',
-          parameterName: param.name.getText(),
           type: param.type,
           optional: param.initializer != null || param.questionToken != null,
         };
-
-        // Search for this parameter in the JSDoc @params.
-        for (let { tagName, parameterName, text } of jsDoc.tags) {
-          if (tagName === 'param' && parameterName === newTag.parameterName) {
-            newTag.text = text;
+        switch (param.name.kind) {
+          case ts.SyntaxKind.ArrayBindingPattern:
+          case ts.SyntaxKind.ObjectBindingPattern:
+            // Produce unique names for synthetic parameter names.
+            newTag.parameterName = `param${paramIdx++}`;
+            newTag.notNull = true;
             break;
-          }
+          case ts.SyntaxKind.Identifier:
+            newTag.parameterName = (<ts.Identifier>param.name).text;
+            // Search for this parameter in the JSDoc @params.
+            for (let { tagName, parameterName, text } of jsDoc.tags) {
+              if (tagName === 'param' && parameterName === newTag.parameterName) {
+                newTag.text = text;
+                break;
+              }
+            }
+            break;
+          default:
+            this.errorUnimplementedKind(param.name, 'parameter name');
         }
 
         if (param.dotDotDotToken != null) {
@@ -410,15 +426,6 @@ class Annotator {
     // but it's needed to work around
     // https://github.com/Microsoft/TypeScript/issues/6982
     this.emit('\n/**\n');
-    // Produce unique names for synthetic parameter names
-    let paramIdx = 0;
-    const escapeParameterName = (name: string) => {
-      if (name.indexOf('{') >= 0 || name.indexOf('[') >= 0) {
-        return `param${paramIdx++}`;
-      }
-      return name;
-    };
-
     for (let tag of newDoc.tags) {
       this.emit(' * ');
       if (tag.tagName) {
@@ -429,6 +436,9 @@ class Annotator {
         if (tag.restParam) {
           this.emit('...');
         }
+        if (tag.notNull) {
+          this.emit('!');
+        }
         this.emitClosureType(tag.type);
         if (tag.optional) {
           this.emit('=');
@@ -436,7 +446,7 @@ class Annotator {
         this.emit('}');
       }
       if (tag.parameterName) {
-        this.emit(' ' + escapeParameterName(tag.parameterName));
+        this.emit(' ' + tag.parameterName);
       }
       if (tag.text) {
         this.emit(' ' + tag.text);
