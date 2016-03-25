@@ -13,7 +13,7 @@ function jsDocTestBadDoc(foo) { }
 class JSDocTest {
     static _sickle_typeAnnotationsHelper() {
         /** @export
-       @type {string} */
+        @type {string} */
         JSDocTest.prototype.exported;
         /** @type {string} */
         JSDocTest.prototype.stringWithoutJSDoc;

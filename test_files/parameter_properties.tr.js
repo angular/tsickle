@@ -9,7 +9,7 @@ class ParamProps {
     }
     static _sickle_typeAnnotationsHelper() {
         /** @export
-       @type {string} */
+        @type {string} */
         ParamProps.prototype.bar;
         /** @type {string} */
         ParamProps.prototype.bar2;

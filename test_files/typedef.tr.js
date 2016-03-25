@@ -1,3 +1,3 @@
 /** @typedef {number} */
 var MyType;
-var /** MyType */ y = 3;
+var /** @type {MyType} */ y = 3;

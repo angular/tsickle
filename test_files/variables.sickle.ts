@@ -1,2 +1,2 @@
-var /** string */ v1: string;
-var /** string */ v2: string, /** number */ v3: number;
+var /** @type {string} */ v1: string;
+var /** @type {string} */ v2: string, /** @type {number} */ v3: number;

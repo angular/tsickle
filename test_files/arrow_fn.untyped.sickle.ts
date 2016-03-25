@@ -1,1 +1,1 @@
-var /** ? */ fn3 = (a: number): number => 12;
+var /** @type {?} */ fn3 = (a: number): number => 12;

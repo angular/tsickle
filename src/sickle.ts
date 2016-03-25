@@ -500,7 +500,7 @@ class Annotator {
         existingAnnotation += `${text}\n`;
       }
     }
-    this.maybeEmitJSDocType(p.type, existingAnnotation + '@type');
+    this.maybeEmitJSDocType(p.type, existingAnnotation);
     this.emit(`\n    ${className}.prototype.${p.name.getText()};\n`);
   }
 
@@ -619,7 +619,7 @@ class Annotator {
         case ts.SyntaxKind.PropertySignature:
         case ts.SyntaxKind.PropertyDeclaration:
           let prop = <ts.PropertySignature>member;
-          this.maybeEmitJSDocType(prop.type, '@type');
+          this.maybeEmitJSDocType(prop.type);
           this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
           break;
         case ts.SyntaxKind.MethodDeclaration:
@@ -646,7 +646,7 @@ class Annotator {
       let identifier = <ts.Identifier>decl.name;
       let qualifiedName = namespace.concat([identifier.text]).join('.');
       if (closureExternsBlacklist.indexOf(qualifiedName) >= 0) return;
-      this.maybeEmitJSDocType(decl.type, '@type');
+      this.maybeEmitJSDocType(decl.type);
       if (namespace.length > 0) {
         this.emit(`\n${qualifiedName};\n`);
       } else {
@@ -666,18 +666,15 @@ class Annotator {
     }
   }
 
-  private maybeEmitJSDocType(type: ts.TypeNode, jsDocTag?: string) {
+  private maybeEmitJSDocType(type: ts.TypeNode, additionalDocTag?: string) {
     if (!type && !this.options.untyped) return;
-    this.emit(' /** ');
-    if (jsDocTag) {
-      this.emit(jsDocTag);
-      this.emit(' {');
+    this.emit(' /**');
+    if (additionalDocTag) {
+      this.emit(' ' + additionalDocTag);
     }
+    this.emit(' @type {');
     this.emitClosureType(type);
-    if (jsDocTag) {
-      this.emit('}');
-    }
-    this.emit(' */');
+    this.emit('} */');
   }
 
   /**

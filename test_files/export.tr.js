@@ -1,7 +1,7 @@
 export { export2, export5, export4 } from './export_helper';
 // These conflict with an export discovered via the above exports,
 // so the above export's versions should not show up.
-export var /** string */ export1 = 'wins';
+export var /** @type {string} */ export1 = 'wins';
 export { export4 as export3 } from './export_helper';
 // This local should be fine to export.
 export var exportLocal = 3;
