@@ -1,12 +1,12 @@
 import * as ts from 'typescript';
 
-export interface SickleOptions {
+export interface Options {
   // If true, convert every type to the Closure {?} type, which means
   // "don't check types".
   untyped?: boolean;
 }
 
-export interface SickleOutput {
+export interface Output {
   // The TypeScript source with Closure annotations inserted.
   output: string;
   // Generated externs declarations, if any.
@@ -147,10 +147,9 @@ class Annotator {
   /** The node currently being visited by visit(). This is only used in error messages. */
   private currentNode: ts.Node;
 
-  constructor(
-      private program: ts.Program, private file: ts.SourceFile, private options: SickleOptions) {}
+  constructor(private program: ts.Program, private file: ts.SourceFile, private options: Options) {}
 
-  annotate(): SickleOutput {
+  annotate(): Output {
     this.visit(this.file);
     this.assert(this.indent == 0, 'visit() failed to track nesting');
     return {
@@ -910,7 +909,6 @@ function last<T>(elems: T[]): T {
   return elems.length ? elems[elems.length - 1] : null;
 }
 
-export function annotate(
-    program: ts.Program, file: ts.SourceFile, options: SickleOptions = {}): SickleOutput {
+export function annotate(program: ts.Program, file: ts.SourceFile, options: Options = {}): Output {
   return new Annotator(program, file, options).annotate();
 }

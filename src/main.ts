@@ -45,7 +45,7 @@ function toClosureJS(args: string[]): {jsFiles?: string[], errors: ts.Diagnostic
   // TODO(evanm): let the user configure sickle options, perhaps by
   // passing them through tsconfig.json?  Or, better, just make sickle
   // always work without needing any options.
-  const sickleOptions: sickle.SickleOptions = {
+  const sickleOptions: sickle.Options = {
     untyped: true,
   };
   let {options, fileNames, errors} = ts.parseCommandLine(args);

@@ -4,8 +4,7 @@ import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
 
-import {SickleOptions, SickleOutput} from '../src/sickle';
-import {annotate, formatDiagnostics} from '../src/sickle';
+import * as sickle from '../src/sickle';
 
 /** The TypeScript compiler options used by the test suite. */
 const compilerOptions: ts.CompilerOptions = {
@@ -24,7 +23,7 @@ const {cachedLibPath, cachedLib} = (function() {
 })();
 
 export function annotateSource(
-    inputFileName: string, sourceText: string, options: SickleOptions = {}): SickleOutput {
+    inputFileName: string, sourceText: string, options: sickle.Options = {}): sickle.Output {
   var host = ts.createCompilerHost(compilerOptions);
   var original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
@@ -40,10 +39,10 @@ export function annotateSource(
   var program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
-    throw new Error(formatDiagnostics(diagnostics));
+    throw new Error(sickle.formatDiagnostics(diagnostics));
   }
 
-  return annotate(program, program.getSourceFile(inputFileName), options);
+  return sickle.annotate(program, program.getSourceFile(inputFileName), options);
 }
 
 export function transformSource(inputFileName: string, sourceText: string): string {
@@ -63,14 +62,14 @@ export function transformSource(inputFileName: string, sourceText: string): stri
   var program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
-    throw new Error('Failed to parse ' + sourceText + '\n' + formatDiagnostics(diagnostics));
+    throw new Error('Failed to parse ' + sourceText + '\n' + sickle.formatDiagnostics(diagnostics));
   }
 
   var transformed: {[fileName: string]: string} = {};
   var emitRes =
       program.emit(mainSrc, (fileName: string, data: string) => { transformed[fileName] = data; });
   if (emitRes.diagnostics.length) {
-    throw new Error(formatDiagnostics(emitRes.diagnostics));
+    throw new Error(sickle.formatDiagnostics(emitRes.diagnostics));
   }
   let outputFileName = inputFileName.replace('.ts', '.js');
   expect(Object.keys(transformed)).to.deep.equal([outputFileName]);

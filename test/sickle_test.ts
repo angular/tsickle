@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import {expect} from 'chai';
 
-import {SickleOptions, getJSDocAnnotation, formatDiagnostics} from '../src/sickle';
+import * as sickle from '../src/sickle';
 import {annotateSource, transformSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
@@ -60,7 +60,7 @@ describe('golden tests', () => {
       it.skip(test.name);
       return;
     }
-    let options: SickleOptions = {};
+    let options: sickle.Options = {};
     if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
     }
@@ -80,7 +80,7 @@ describe('golden tests', () => {
           let fileName = diag.file.fileName;
           diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
         }
-        fileOutput = formatDiagnostics(diagnostics) + '\n====\n' + output;
+        fileOutput = sickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
       }
       compareAgainstGolden(fileOutput, test.sicklePath);
       compareAgainstGolden(externs, test.externsPath);
@@ -96,11 +96,11 @@ describe('golden tests', () => {
 describe('getJSDocAnnotation', () => {
   it('does not get non-jsdoc values', () => {
     let source = '/* ordinary comment */';
-    expect(getJSDocAnnotation(source)).to.equal(null);
+    expect(sickle.getJSDocAnnotation(source)).to.equal(null);
   });
   it('grabs plain text from jsdoc', () => {
     let source = '/** jsdoc comment */';
-    expect(getJSDocAnnotation(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
+    expect(sickle.getJSDocAnnotation(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
   });
   it('gathers @tags from jsdoc', () => {
     let source = `/**
@@ -110,7 +110,7 @@ describe('getJSDocAnnotation', () => {
   * @return foobar
   * @nosideeffects
   */`;
-    expect(getJSDocAnnotation(source)).to.deep.equal({
+    expect(sickle.getJSDocAnnotation(source)).to.deep.equal({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
         {tagName: 'param', parameterName: 'bar', text: 'multiple line comment'},
@@ -123,15 +123,15 @@ describe('getJSDocAnnotation', () => {
     let source = `/**
   * @param {string} foo
 */`;
-    expect(() => getJSDocAnnotation(source)).to.throw(Error);
+    expect(() => sickle.getJSDocAnnotation(source)).to.throw(Error);
   });
   it('rejects @type annotations', () => {
     let source = `/** @type {string} foo */`;
-    expect(() => getJSDocAnnotation(source)).to.throw(Error);
+    expect(() => sickle.getJSDocAnnotation(source)).to.throw(Error);
   });
   it('allows @suppress annotations', () => {
     let source = `/** @suppress {checkTypes} I hate types */`;
-    expect(getJSDocAnnotation(source))
+    expect(sickle.getJSDocAnnotation(source))
         .to.deep.equal({tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]})
   });
 });
