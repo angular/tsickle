@@ -1,39 +1,39 @@
 (function () {
     /**
-     * @param {number} a
-     * @return {string}
+     * @param {?} a
+     * @return {?}
      */
     function FunctionsTest1(a) {
         return "a";
     }
     /**
-     * @param {number} a
-     * @param {number} b
+     * @param {?} a
+     * @param {?} b
      */
     function FunctionsTest2(a, b) { }
     /**
      * @ngInject
-     * @param {number} a
-     * @param {number} b
+     * @param {?} a
+     * @param {?} b
      */
     function FunctionsTest3(a, b) { }
     /**
-     * @param {!{a: number, b: number}} param0
+     * @param {?} param0
      */
     function Destructuring({ a, b }) { }
     /**
-     * @param {!Array<number>} param0
-     * @param {!Array<Array<string>>} param1
+     * @param {?} param0
+     * @param {?} param1
      */
     function Destructuring2([a, b], [[c]]) { }
     Destructuring({ a: 1, b: 2 });
     Destructuring2([1, 2], [['a']]);
     /**
-     * @param {...number} a
+     * @param {...?} a
      */
     function FunctionsTestsSplat(...a) { }
     /**
-     * @param {...number} a
+     * @param {...?} a
      */
     function FunctionsTestsSplat2(...a) { }
     /**

@@ -436,7 +436,7 @@ class Annotator {
         if (tag.restParam) {
           this.emit('...');
         }
-        if (tag.notNull) {
+        if (tag.notNull && !this.options.untyped) {
           this.emit('!');
         }
         this.emitClosureType(tag.type);

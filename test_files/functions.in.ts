@@ -1,3 +1,5 @@
+(function() {
+
 function FunctionsTest1(a: any): string;
 function FunctionsTest1(a: number): string {
   return "a";
@@ -17,3 +19,5 @@ function FunctionsTestsSplat3(...a) {}
 FunctionsTestsSplat(1, 2);
 FunctionsTestsSplat2(1, 2);
 FunctionsTestsSplat3(1, 2);
+
+})();
