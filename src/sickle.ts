@@ -278,9 +278,12 @@ class Annotator {
         case ts.SyntaxKind.TypeAssertionExpression:
           let typeAssertion = <ts.TypeAssertion>node;
           this.maybeEmitJSDocType(typeAssertion.type);
-          this.emit('(');
+          // When TypeScript emits JS, it removes one layer of "redundant"
+          // parens, but we need them for the Closure type assertion.  Work
+          // around this by using two parens.  See test_files/coerce.*.
+          this.emit('((');
           this.writeNode(node);
-          this.emit(')');
+          this.emit('))');
           break;
         default:
           this.writeNode(node);
