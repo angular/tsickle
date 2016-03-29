@@ -750,6 +750,7 @@ class Annotator {
           let first = true;
           for (let member of typeLiteral.members) {
             let prop = <ts.PropertySignature>member;
+            let optional = prop.questionToken != null;
             if (first) {
               first = false;
             } else {
@@ -757,7 +758,9 @@ class Annotator {
             }
             this.emit(prop.name.getText());
             this.emit(': ');
+            if (optional) this.emit('(');
             this.emitClosureType(prop.type);
+            if (optional) this.emit('|undefined)');
           }
           this.emit('}');
           return;
@@ -772,6 +775,26 @@ class Annotator {
         this.emit('Array<');
         this.emitClosureType(arrayType.elementType);
         this.emit('>');
+        return;
+      case ts.SyntaxKind.UnionType:
+        let unionType = <ts.UnionTypeNode>node;
+        this.emit('(');
+        let first = true;
+        for (let type of unionType.types) {
+          if (first) {
+            first = false;
+          } else {
+            this.emit('|');
+          }
+          this.emitClosureType(type);
+        }
+        this.emit(')');
+        return;
+      case ts.SyntaxKind.ParenthesizedType:
+        let parenType = <ts.ParenthesizedTypeNode>node;
+        this.emit('(');
+        this.emitClosureType(parenType.type);
+        this.emit(')');
         return;
       default:
         this.errorUnimplementedKind(node, 'converting type to closure');
