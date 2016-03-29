@@ -912,3 +912,72 @@ function last<T>(elems: T[]): T {
 export function annotate(program: ts.Program, file: ts.SourceFile, options: Options = {}): Output {
   return new Annotator(program, file, options).annotate();
 }
+
+/**
+ * Converts TypeScript's JS+CommonJS output to Closure goog.module etc.
+ * For use as a postprocessing step *after* TypeScript emits JavaScript.
+ *
+ * @param fileName The source file name, without an extension.
+ * @param pathToModuleName A function that maps a filesystem .ts path to a
+ *     Closure module name, as found in a goog.require('...') statement.
+ *     The context parameter is the referencing file, used for resolving
+ *     imports with relative paths like "import * as foo from '../foo';".
+ */
+export function convertCommonJsToGoogModule(
+    fileName: string, content: string, pathToModuleName: (context: string, fileName: string) =>
+                                           string): {output: string, referencedModules: string[]} {
+  // TODO(evanm): this function is currently a cut'n'paste of the
+  // Google-internal hack while we move the code to the sickle repository.
+  // Rewrite this to use the TypeScript JS parser instead of regexes.
+
+  let referencedModules: string[] = [];
+
+  // Strip the first instance of "use strict" in the file, likely near
+  // the top.  This is OK: goog.module code is always loaded in strict mode.
+  content = content.replace(/^"use strict";$/m, '');
+  // NB: No linebreak after module call so sourcemaps are not offset.
+  const moduleName = pathToModuleName('', fileName);
+  content = `goog.module('${moduleName}');${content}`;
+
+  // Replace goog:foo.Bar style imports.
+  // The regular expressions below precisely match TypeScript's expected
+  // output
+  let defaultImportSymbols: string[] = [];
+  content = content.replace(
+      /((?:var|const)\s+([^=]+?)\s*=\s*)require\(["']goog:([^'"]+)['"]\);/g,
+      (match, beforeRequire, symbol, modName) => {
+        defaultImportSymbols.push(symbol);
+        return beforeRequire + 'goog.require(\'' + modName + '\');';
+      });
+
+  // This also needs to replace the usage sites of the form $symbol.default
+  // (e.g. goog_foo_Bar_1.default), because goog: imports are not real ES6
+  // imports, so they don't provide a "default" property.
+  // This is a hack, but symbol collision is very unlikely.
+  if (defaultImportSymbols.length) {
+    let symbolRe = new RegExp('(\\b' + defaultImportSymbols.join('|') + ')\\.default\\b', 'g');
+    // Whitespace matches the    .default part so that source maps keep
+    // working.
+    content = content.replace(symbolRe, '$1        ');
+  }
+
+  // Replace regular module imports.
+  // All require statements must be assigned.
+  // import 'z'          ==> var unused_xxx = require('z')
+  // import {x} from 'y' ==> var ... = require('y')
+  // export * from 'x'   ==> __export(require('x'))
+  let unusedIdx = 0;
+  content = content.replace(
+      /(((?:^|;)\s*)|= |__export\()require\(["']([^'";]+)['"]\)(\))?;/gm,
+      (match, prefix, leading, modName, suffix = '') => {
+        modName = pathToModuleName(fileName, modName);
+        referencedModules.push(modName);
+        if (prefix === leading) {
+          // No prefix ==> side effect style "import 'foo';".
+          prefix = prefix + 'var unused_' + unusedIdx++ + '_ = ';
+        }
+        return `${prefix}goog.require('${modName}')${suffix};`;
+      });
+
+  return {output: content, referencedModules};
+}
