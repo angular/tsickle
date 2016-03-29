@@ -988,18 +988,17 @@ export function convertCommonJsToGoogModule(
   // All require statements must be assigned.
   // import 'z'          ==> var unused_xxx = require('z')
   // import {x} from 'y' ==> var ... = require('y')
-  // export * from 'x'   ==> __export(require('x'))
   let unusedIdx = 0;
   content = content.replace(
-      /(((?:^|;)\s*)|= |__export\()require\(["']([^'";]+)['"]\)(\))?;/gm,
-      (match, prefix, leading, modName, suffix = '') => {
+      /(((?:^|;)\s*)|= )require\(["']([^'";]+)['"]\);/gm,
+      (match, prefix, leading, modName) => {
         modName = pathToModuleName(fileName, modName);
         referencedModules.push(modName);
         if (prefix === leading) {
           // No prefix ==> side effect style "import 'foo';".
           prefix = prefix + 'var unused_' + unusedIdx++ + '_ = ';
         }
-        return `${prefix}goog.require('${modName}')${suffix};`;
+        return `${prefix}goog.require('${modName}');`;
       });
 
   return {output: content, referencedModules};

@@ -189,11 +189,6 @@ require('req/mod');`)
 var unused_0_ = goog.require('req$mod');`);
   });
 
-  it('converts export * statements', () => {
-    expectCommonJs('a.js', `__export(require('req/mod'));`)
-        .to.equal(`goog.module('a');__export(goog.require('req$mod'));`);
-  });
-
   it('resolves relative module URIs', () => {
     // See below for more fine-grained unit tests.
     expectCommonJs('a/b.js', `var r = require('./req/mod');`)
