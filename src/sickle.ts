@@ -990,8 +990,7 @@ export function convertCommonJsToGoogModule(
   // import {x} from 'y' ==> var ... = require('y')
   let unusedIdx = 0;
   content = content.replace(
-      /(((?:^|;)\s*)|= )require\(["']([^'";]+)['"]\);/gm,
-      (match, prefix, leading, modName) => {
+      /(((?:^|;)\s*)|= )require\(["']([^'";]+)['"]\);/gm, (match, prefix, leading, modName) => {
         modName = pathToModuleName(fileName, modName);
         referencedModules.push(modName);
         if (prefix === leading) {
