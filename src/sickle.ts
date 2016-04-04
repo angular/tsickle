@@ -447,7 +447,7 @@ class Annotator {
         if (tag.notNull && !this.options.untyped) {
           this.emit('!');
         }
-        this.emitClosureType(tag.type);
+        this.emit(this.typeToClosure(tag.type));
         if (tag.optional) {
           this.emit('=');
         }
@@ -680,9 +680,7 @@ class Annotator {
     if (additionalDocTag) {
       this.emit(' ' + additionalDocTag);
     }
-    this.emit(' @type {');
-    this.emitClosureType(type);
-    this.emit('} */');
+    this.emit(` @type {${this.typeToClosure(type)}} */`);
   }
 
   /**
@@ -691,40 +689,28 @@ class Annotator {
    * - any => ?
    * - foo[] => Array<foo>
    */
-  private emitClosureType(node: ts.TypeNode): void {
+  private typeToClosure(node: ts.TypeNode): string {
     if (this.options.untyped || !node) {
-      this.emit('?');
-      return;
+      return '?';
     }
 
     switch (node.kind) {
       case ts.SyntaxKind.AnyKeyword:
-        this.emit('?');
-        return;
+        return '?';
       case ts.SyntaxKind.BooleanKeyword:
       case ts.SyntaxKind.VoidKeyword:
       case ts.SyntaxKind.NumberKeyword:
       case ts.SyntaxKind.StringKeyword:
-        this.emit(node.getText());
-        return;
+        return node.getText();
       case ts.SyntaxKind.TypeReference:
         // This is e.g. "Object" or "Array<foo>".
         let typeRef = <ts.TypeReferenceNode>node;
-        this.emit(typeRef.typeName.getText());
+        let type = typeRef.typeName.getText();
         if (typeRef.typeArguments) {
-          this.emit('<');
-          let first = true;
-          for (let arg of typeRef.typeArguments) {
-            if (first) {
-              first = false;
-            } else {
-              this.emit(', ');
-            }
-            this.emitClosureType(arg);
-          }
-          this.emit('>');
+          let args = typeRef.typeArguments.map(t => this.typeToClosure(t)).join(',');
+          return `${type}<${args}>`;
         }
-        return;
+        return type;
       case ts.SyntaxKind.TypeLiteral:
         // Anonymous type literal, e.g. {a:number, b:string}.
         let typeLiteral = <ts.TypeLiteralNode>node;
@@ -734,89 +720,57 @@ class Annotator {
         if (typeLiteral.members.length == 1 &&
             typeLiteral.members[0].kind === ts.SyntaxKind.IndexSignature) {
           let indexSig = <ts.IndexSignatureDeclaration>typeLiteral.members[0];
-          this.emit('Object<');
+          let keyType: string;
           if (indexSig.parameters.length != 1) {
             this.error(
                 indexSig,
                 `index signature expected 1 parameters, got ${indexSig.parameters.length}`);
-            this.emit('?');
+            keyType = '?';
           } else {
-            this.emitClosureType(indexSig.parameters[0].type);
+            keyType = this.typeToClosure(indexSig.parameters[0].type);
           }
-          this.emit(',');
-          this.emitClosureType(indexSig.type);
-          this.emit('>');
-          return;
+          let valType = this.typeToClosure(indexSig.type);
+          return `Object<${keyType},${valType}>`;
         }
 
         // Special case 2: a collection of named fields.
         // Emit {a:string, b:number}, etc.
         if (typeLiteral.members.every(m => m.kind === ts.SyntaxKind.PropertySignature)) {
-          this.emit('{');
-          let first = true;
+          let memberTypes: string[] = [];
           for (let member of typeLiteral.members) {
             let prop = <ts.PropertySignature>member;
             let optional = prop.questionToken != null;
-            if (first) {
-              first = false;
-            } else {
-              this.emit(', ');
-            }
-            this.emit(prop.name.getText());
-            this.emit(': ');
-            if (optional) this.emit('(');
-            this.emitClosureType(prop.type);
-            if (optional) this.emit('|undefined)');
+            let type = this.typeToClosure(prop.type);
+            if (optional) type = `(${type}|undefined)`;
+            memberTypes.push(`${prop.name.getText()}: ${type}`);
           }
-          this.emit('}');
-          return;
+          return `{${memberTypes.join(', ')}}`;
         }
 
         // Otherwise it's a mixture of the above or something else complicated;
         // give up.
-        this.emit('?');
-        return;
+        return '?';
       case ts.SyntaxKind.ArrayType:
         let arrayType = <ts.ArrayTypeNode>node;
-        this.emit('Array<');
-        this.emitClosureType(arrayType.elementType);
-        this.emit('>');
-        return;
+        return `Array<${this.typeToClosure(arrayType.elementType)}>`;
       case ts.SyntaxKind.UnionType:
         let unionType = <ts.UnionTypeNode>node;
-        this.emit('(');
-        let first = true;
-        for (let type of unionType.types) {
-          if (first) {
-            first = false;
-          } else {
-            this.emit('|');
-          }
-          this.emitClosureType(type);
-        }
-        this.emit(')');
-        return;
+        let types = unionType.types.map(t => this.typeToClosure(t)).join('|');
+        return `(${types})`;
       case ts.SyntaxKind.ParenthesizedType:
         let parenType = <ts.ParenthesizedTypeNode>node;
-        this.emit('(');
-        this.emitClosureType(parenType.type);
-        this.emit(')');
-        return;
+        return `(${this.typeToClosure(parenType.type)})`;
       default:
         this.errorUnimplementedKind(node, 'converting type to closure');
-        this.emit('?');
+        return '?';
     }
   }
 
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
     if (this.options.untyped) return;
     // Write a Closure typedef, which involves an unused "var" declaration.
-    this.emit('/** @typedef {');
-    this.emitClosureType(node.type);
-    this.emit('} */\n');
-    this.emit('var ');
-    this.emit(node.name.getText());
-    this.emit(': void;\n');
+    this.emit(`/** @typedef {${this.typeToClosure(node.type)}} */\n`);
+    this.emit(`var ${node.name.getText()}: void;\n`);
   }
 
   private visitEnum(node: ts.EnumDeclaration) {
