@@ -369,7 +369,7 @@ class Annotator {
         let newTag: JSDocTag = {
           tagName: 'param',
           type: param.type,
-          optional: param.initializer !== null || param.questionToken !== null,
+          optional: param.initializer !== undefined || param.questionToken !== undefined,
         };
         switch (param.name.kind) {
           case ts.SyntaxKind.ArrayBindingPattern:
@@ -392,7 +392,7 @@ class Annotator {
             this.errorUnimplementedKind(param.name, 'parameter name');
         }
 
-        if (param.dotDotDotToken !== null) {
+        if (param.dotDotDotToken !== undefined) {
           newTag.restParam = true;
           // In TypeScript you write "...x: number[]", but in Closure
           // you don't write the array: "@param {...number} x".  Unwrap
@@ -745,7 +745,7 @@ class Annotator {
           let memberTypes: string[] = [];
           for (let member of typeLiteral.members) {
             let prop = <ts.PropertySignature>member;
-            let optional = prop.questionToken !== null;
+            let optional = prop.questionToken !== undefined;
             let type = this.typeToClosure(prop.type);
             if (optional) type = `(${type}|undefined)`;
             memberTypes.push(`${prop.name.getText()}: ${type}`);
