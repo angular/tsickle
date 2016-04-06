@@ -898,6 +898,187 @@ export function annotate(program: ts.Program, file: ts.SourceFile, options: Opti
 }
 
 /**
+ * PostProcessor postprocesses TypeScript compilation output JS, to rewrite commonjs require()s into
+ * goog.require().
+ */
+class PostProcessor extends Rewriter {
+  /**
+   * defaultImportSymbols collects the names of imported goog.modules.  That is, if the code has
+   *   var foo = goog.require('bar');
+   * which comes from the TS input:
+   *   import foo from 'goog:bar';
+   * Then defaultImportSymbols['foo'] is true.
+   * This is used to rewrite "foo.default" into just "foo".
+   */
+  defaultImportSymbols: {[varName: string]: boolean} = {};
+
+  /** strippedStrict is true once we've stripped a "use strict"; from the input. */
+  strippedStrict: boolean = false;
+
+  /** unusedIndex is used to generate fresh symbols for unnamed imports. */
+  unusedIndex: number = 0;
+
+  constructor(
+      file: ts.SourceFile,
+      private pathToModuleName: (context: string, fileName: string) => string) {
+    super(file);
+  }
+
+  process(): string {
+    let pos = 0;
+    let emittedModule = false;
+    for (let stmt of this.file.statements) {
+      this.writeRange(pos, stmt.getFullStart());
+      if (!emittedModule) {
+        // TODO(evanm): only emit the goog.module *after* the first comment,
+        // so that @suppress statements work.
+        const moduleName = this.pathToModuleName('', this.file.fileName);
+        // NB: No linebreak after module call so sourcemaps are not offset.
+        this.emit(`goog.module('${moduleName}');`);
+        emittedModule = true;
+      }
+      this.visitTopLevel(stmt);
+      pos = stmt.getEnd();
+    }
+    this.writeRange(pos, this.file.getEnd());
+
+    return this.getOutput();
+  }
+
+  /**
+   * visitTopLevel processes a top-level ts.Node and emits its contents.
+   *
+   * It's separate from the normal Rewriter recursive traversal
+   * because some top-level statements are handled specially.
+   */
+  visitTopLevel(node: ts.Node) {
+    switch (node.kind) {
+      case ts.SyntaxKind.ExpressionStatement:
+        // Check for "use strict" and skip it if necessary.
+        if (!this.strippedStrict && this.isUseStrict(node)) {
+          this.writeRange(node.getFullStart(), node.getStart());
+          this.strippedStrict = true;
+          return;
+        }
+        // Check for a bare "require('foo');", i.e. a require for its side effects.
+        if (this.emitRewrittenRequires(node)) {
+          return;
+        }
+        // Otherwise fall through to default processing.
+        break;
+      case ts.SyntaxKind.VariableStatement:
+        // Check for a "var x = require('foo');".
+        if (this.emitRewrittenRequires(node)) return;
+        break;
+      default:
+        break;
+    }
+    this.visit(node);
+  }
+
+  /** isUseStrict returns true if node is a "use strict"; statement. */
+  isUseStrict(node: ts.Node): boolean {
+    if (node.kind !== ts.SyntaxKind.ExpressionStatement) return false;
+    let exprStmt = node as ts.ExpressionStatement;
+    let expr = exprStmt.expression;
+    if (expr.kind !== ts.SyntaxKind.StringLiteral) return false;
+    let literal = expr as ts.StringLiteral;
+    return literal.text === 'use strict';
+  }
+
+  /**
+   * emitRewrittenRequires rewrites require()s into goog.require() equivalents.
+   *
+   * @return True if the node was rewritten, false if needs ordinary processing.
+   */
+  emitRewrittenRequires(node: ts.Node): boolean {
+    // We're looking for requires, of one of the forms:
+    // - "var importName = require(...);".
+    // - "require(...);".
+    // Find the CallExpression contained in either of these.
+    let varName: string;          // E.g. importName in the above example.
+    let call: ts.CallExpression;  // The require(...) expression.
+    if (node.kind === ts.SyntaxKind.VariableStatement) {
+      // It's possibly of the form "var x = require(...);".
+      let varStmt = node as ts.VariableStatement;
+
+      // Verify it's a single decl (and not "var x = ..., y = ...;").
+      if (varStmt.declarationList.declarations.length !== 1) return false;
+      let decl = varStmt.declarationList.declarations[0];
+
+      // Grab the variable name (avoiding things like destructuring binds).
+      if (decl.name.kind !== ts.SyntaxKind.Identifier) return false;
+      varName = (decl.name as ts.Identifier).text;
+      if (!decl.initializer || decl.initializer.kind !== ts.SyntaxKind.CallExpression) return false;
+      call = decl.initializer as ts.CallExpression;
+    } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
+      // It's possibly of the form "require(...);".
+      let exprStmt = node as ts.ExpressionStatement;
+      let expr = exprStmt.expression;
+      if (expr.kind !== ts.SyntaxKind.CallExpression) return false;
+      call = expr as ts.CallExpression;
+    } else {
+      // It's some other type of statement.
+      return false;
+    }
+
+    // Verify that the call is a call to require()...
+    if (call.expression.kind !== ts.SyntaxKind.Identifier) return false;
+    let ident = call.expression as ts.Identifier;
+    if (ident.text !== 'require') return false;
+
+    // Verify the call takes a single string argument and grab it.
+    if (call.arguments.length !== 1) return false;
+    let arg = call.arguments[0];
+    if (arg.kind !== ts.SyntaxKind.StringLiteral) return false;
+    let require = (arg as ts.StringLiteral).text;
+
+    // Even if it's a bare require(); statement, introduce a variable for it.
+    // This avoids a Closure error.
+    if (!varName) {
+      varName = `unused_${this.unusedIndex++}_`;
+    }
+
+    if (require.match(/^goog:/)) {
+      // This is an import of the form "goog:foo.bar".
+      // Fix it to just "foo.bar", and save the module name.
+      require = require.substr(5);
+      this.defaultImportSymbols[varName] = true;
+    }
+
+    let modName = this.pathToModuleName(this.file.fileName, require);
+    this.writeRange(node.getFullStart(), node.getStart());
+    this.emit(`var ${varName} = goog.require('${modName}');`);
+    return true;
+  }
+
+  /**
+   * maybeProcess is called during the recursive traversal of the program's AST.
+   *
+   * @return True if the node was processed/emitted, false if it should be emitted as is.
+   */
+  protected maybeProcess(node: ts.Node): boolean {
+    switch (node.kind) {
+      case ts.SyntaxKind.PropertyAccessExpression:
+        let propAccess = node as ts.PropertyAccessExpression;
+        // We're looking for an expression of the form:
+        //   module_name_var.default
+        if (propAccess.name.text !== 'default') break;
+        if (propAccess.expression.kind !== ts.SyntaxKind.Identifier) break;
+        let lhsIdent = propAccess.expression as ts.Identifier;
+        if (!this.defaultImportSymbols.hasOwnProperty(lhsIdent.text)) break;
+        // Emit the same expression, with spaces to replace the ".default" part
+        // so that source maps still line up.
+        this.emit(`${lhsIdent.text}        `);
+        return true;
+      default:
+        break;
+    }
+    return false;
+  }
+}
+
+/**
  * Converts TypeScript's JS+CommonJS output to Closure goog.module etc.
  * For use as a postprocessing step *after* TypeScript emits JavaScript.
  *
@@ -910,56 +1091,9 @@ export function annotate(program: ts.Program, file: ts.SourceFile, options: Opti
 export function convertCommonJsToGoogModule(
     fileName: string, content: string, pathToModuleName: (context: string, fileName: string) =>
                                            string): {output: string, referencedModules: string[]} {
-  // TODO(evanm): this function is currently a cut'n'paste of the
-  // Google-internal hack while we move the code to the sickle repository.
-  // Rewrite this to use the TypeScript JS parser instead of regexes.
-
   let referencedModules: string[] = [];
+  let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
 
-  // Strip the first instance of "use strict" in the file, likely near
-  // the top.  This is OK: goog.module code is always loaded in strict mode.
-  content = content.replace(/^"use strict";$/m, '');
-  // NB: No linebreak after module call so sourcemaps are not offset.
-  const moduleName = pathToModuleName('', fileName);
-  content = `goog.module('${moduleName}');${content}`;
-
-  // Replace goog:foo.Bar style imports.
-  // The regular expressions below precisely match TypeScript's expected
-  // output
-  let defaultImportSymbols: string[] = [];
-  content = content.replace(
-      /((?:var|const)\s+([^=]+?)\s*=\s*)require\(["']goog:([^'"]+)['"]\);/g,
-      (match, beforeRequire, symbol, modName) => {
-        defaultImportSymbols.push(symbol);
-        return beforeRequire + 'goog.require(\'' + modName + '\');';
-      });
-
-  // This also needs to replace the usage sites of the form $symbol.default
-  // (e.g. goog_foo_Bar_1.default), because goog: imports are not real ES6
-  // imports, so they don't provide a "default" property.
-  // This is a hack, but symbol collision is very unlikely.
-  if (defaultImportSymbols.length) {
-    let symbolRe = new RegExp('(\\b' + defaultImportSymbols.join('|') + ')\\.default\\b', 'g');
-    // Whitespace matches the    .default part so that source maps keep
-    // working.
-    content = content.replace(symbolRe, '$1        ');
-  }
-
-  // Replace regular module imports.
-  // All require statements must be assigned.
-  // import 'z'          ==> var unused_xxx = require('z')
-  // import {x} from 'y' ==> var ... = require('y')
-  let unusedIdx = 0;
-  content = content.replace(
-      /(((?:^|;)\s*)|= )require\(["']([^'";]+)['"]\);/gm, (match, prefix, leading, modName) => {
-        modName = pathToModuleName(fileName, modName);
-        referencedModules.push(modName);
-        if (prefix === leading) {
-          // No prefix ==> side effect style "import 'foo';".
-          prefix = prefix + 'var unused_' + unusedIdx++ + '_ = ';
-        }
-        return `${prefix}goog.require('${modName}');`;
-      });
-
-  return {output: content, referencedModules};
+  let output = new PostProcessor(file, pathToModuleName).process();
+  return {output, referencedModules};
 }

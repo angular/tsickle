@@ -176,9 +176,11 @@ console.log('hello');`);
 
   it('converts require calls without assignments on a new line', () => {
     expectCommonJs('a.js', `
-require('req/mod');`)
+require('req/mod');
+require('other');`)
         .to.equal(`goog.module('a');
-var unused_0_ = goog.require('req$mod');`);
+var unused_0_ = goog.require('req$mod');
+var unused_1_ = goog.require('other');`);
   });
 
   it('converts require calls without assignments after comments', () => {
@@ -188,6 +190,11 @@ require('req/mod');`)
         .to.equal(`goog.module('a');
 // Comment
 var unused_0_ = goog.require('req$mod');`);
+  });
+
+  it('converts const require calls', () => {
+    expectCommonJs('a.js', `const r = require('req/mod');`)
+        .to.equal(`goog.module('a');var r = goog.require('req$mod');`);
   });
 
   it('resolves relative module URIs', () => {
@@ -210,9 +217,11 @@ console.log(goog_use_Foo_1        );`);
   it('leaves single .default accesses alone', () => {
     // This is a repro for a bug when no goog: symbols are found.
     expectCommonJs('a/b.js', `
-console.log(this.default);`)
+console.log(this.default);
+console.log(foo.bar.default);`)
         .to.equal(`goog.module('a$b');
-console.log(this.default);`);
+console.log(this.default);
+console.log(foo.bar.default);`);
   });
 
   it('inserts the module after "use strict"', () => {
