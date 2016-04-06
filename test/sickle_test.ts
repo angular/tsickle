@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as ts from 'typescript';
 import {expect} from 'chai';
 
 import * as sickle from '../src/sickle';
@@ -29,7 +28,7 @@ function compareAgainstGolden(output: string, path: string) {
   try {
     golden = fs.readFileSync(path, 'utf-8');
   } catch (e) {
-    if (e.code == 'ENOENT' && (UPDATE_GOLDENS || output === null)) {
+    if (e.code === 'ENOENT' && (UPDATE_GOLDENS || output === null)) {
       // A missing file is acceptable if we're updating goldens or
       // if we're expected to produce no output.
     } else {
@@ -47,6 +46,7 @@ function compareAgainstGolden(output: string, path: string) {
       try {
         fs.unlinkSync(path);
       } catch (e) {
+        // ignore.
       }
     }
   } else {
@@ -65,7 +65,7 @@ describe('golden tests', () => {
       options.untyped = true;
     }
     it(test.name, () => {
-      var tsSource = fs.readFileSync(test.tsPath, 'utf-8');
+      let tsSource = fs.readFileSync(test.tsPath, 'utf-8');
 
       // Run TypeScript through sickle and compare against goldens.
       let {output, externs, diagnostics} = annotateSource(test.tsPath, tsSource, options);
@@ -131,8 +131,9 @@ describe('getJSDocAnnotation', () => {
   });
   it('allows @suppress annotations', () => {
     let source = `/** @suppress {checkTypes} I hate types */`;
-    expect(sickle.getJSDocAnnotation(source))
-        .to.deep.equal({tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]})
+    expect(sickle.getJSDocAnnotation(source)).to.deep.equal({
+      tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]
+    });
   });
 });
 

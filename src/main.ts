@@ -96,7 +96,7 @@ function toClosureJS(args: string[]): {jsFiles?: string[], errors: ts.Diagnostic
     jsFiles.push(fileName);
   }
 
-  let {emitSkipped, diagnostics} = program.emit(undefined, writeFile);
+  let {diagnostics} = program.emit(undefined, writeFile);
   if (diagnostics.length > 0) {
     return {errors: diagnostics};
   }

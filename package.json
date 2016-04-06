@@ -14,18 +14,20 @@
   },
   "devDependencies": {
     "chai": "^2.1.1",
-    "clang-format": "1.0.33",
+    "clang-format": "1.0.37",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20151216.2.0",
     "gulp": "^3.8.11",
     "gulp-clang-format": "^1.0.22",
     "gulp-mocha": "^2.0.0",
     "gulp-sourcemaps": "^1.5.0",
+    "gulp-tslint": "^4.3.4",
     "gulp-typescript": "^2.7.6",
     "gulp-util": "^3.0.4",
     "merge2": "^0.3.1",
     "temp": "^0.8.1",
-    "tsd": "^0.6.0"
+    "tsd": "^0.6.0",
+    "tslint": "^3.7.1"
   },
   "scripts": {
     "prepublish": "npm install tsd@^0.6.0 && tsd reinstall --overwrite && gulp compile",

@@ -1,6 +1,5 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
-import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
 
@@ -24,8 +23,8 @@ const {cachedLibPath, cachedLib} = (function() {
 
 export function annotateSource(
     inputFileName: string, sourceText: string, options: sickle.Options = {}): sickle.Output {
-  var host = ts.createCompilerHost(compilerOptions);
-  var original = host.getSourceFile.bind(host);
+  let host = ts.createCompilerHost(compilerOptions);
+  let original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
@@ -36,7 +35,7 @@ export function annotateSource(
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram([inputFileName], compilerOptions, host);
+  let program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
     throw new Error(sickle.formatDiagnostics(diagnostics));
@@ -46,9 +45,9 @@ export function annotateSource(
 }
 
 export function transformSource(inputFileName: string, sourceText: string): string {
-  var host = ts.createCompilerHost(compilerOptions);
-  var original = host.getSourceFile.bind(host);
-  var mainSrc = ts.createSourceFile(inputFileName, sourceText, ts.ScriptTarget.Latest, true);
+  let host = ts.createCompilerHost(compilerOptions);
+  let original = host.getSourceFile.bind(host);
+  let mainSrc = ts.createSourceFile(inputFileName, sourceText, ts.ScriptTarget.Latest, true);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
@@ -59,14 +58,14 @@ export function transformSource(inputFileName: string, sourceText: string): stri
     return original(fileName, languageVersion, onError);
   };
 
-  var program = ts.createProgram([inputFileName], compilerOptions, host);
+  let program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
     throw new Error('Failed to parse ' + sourceText + '\n' + sickle.formatDiagnostics(diagnostics));
   }
 
-  var transformed: {[fileName: string]: string} = {};
-  var emitRes =
+  let transformed: {[fileName: string]: string} = {};
+  let emitRes =
       program.emit(mainSrc, (fileName: string, data: string) => { transformed[fileName] = data; });
   if (emitRes.diagnostics.length) {
     throw new Error(sickle.formatDiagnostics(emitRes.diagnostics));
@@ -90,7 +89,7 @@ export interface GoldenFileTest {
 
 export function goldenTests(): GoldenFileTest[] {
   let basePath = path.join(__dirname, '..', '..', 'test_files');
-  var testInputs = glob.sync(path.join(basePath, '*.in.ts'));
+  let testInputs = glob.sync(path.join(basePath, '*.in.ts'));
 
   let tests = testInputs.map((testPath) => {
     let testName = testPath.match(/\/test_files\/(.*)\.in\.ts$/)[1];
@@ -106,7 +105,7 @@ export function goldenTests(): GoldenFileTest[] {
   // export_helper*.ts is special, because it is imported by another
   // test.  It it must be importable as plain './export_helper' so its
   // files can't have extensions a ".in.ts" or ".tr.js".
-  var helperInputs = glob.sync(path.join(basePath, 'export_helper{,_2}.ts'));
+  let helperInputs = glob.sync(path.join(basePath, 'export_helper{,_2}.ts'));
   for (let testPath of helperInputs) {
     let testName = testPath.match(/\/test_files\/(export_helper[^.]*)\.ts$/)[1];
     let exportHelperTestCase: GoldenFileTest = {

@@ -9,10 +9,11 @@ var merge = require('merge2');
 var mocha = require('gulp-mocha');
 var sourcemaps = require('gulp-sourcemaps');
 var ts = require('gulp-typescript');
+var tslint = require('gulp-tslint');
 var typescript = require('typescript');
 
 var TSC_OPTIONS = {
-  module: "commonjs",
+  module: 'commonjs',
   // allow pulling in files from node_modules until TS 1.5 is in tsd / DefinitelyTyped (the
   // alternative is to include node_modules paths in the src arrays below for compilation)
   noExternalResolve: false,
@@ -27,6 +28,13 @@ var tsProject = ts.createProject(TSC_OPTIONS);
 gulp.task('test.check-format', function() {
   return gulp.src(['*.js', 'src/**/*.ts', 'test/**/*.ts'])
       .pipe(formatter.checkFormat('file', clangFormat, {verbose: true}))
+      .on('warning', onError);
+});
+
+gulp.task('test.check-lint', function() {
+  return gulp.src(['src/**/*.ts', 'test/**/*.ts'])
+      .pipe(tslint())
+      .pipe(tslint.report('verbose'))
       .on('warning', onError);
 });
 
@@ -84,7 +92,7 @@ gulp.task('test.e2e', ['test.compile'], function(done) {
   return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 20000}));
 });
 
-gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format']);
+gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format', 'test.check-lint']);
 
 gulp.task('watch', function() {
   failOnError = false;

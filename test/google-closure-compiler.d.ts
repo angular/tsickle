@@ -3,5 +3,5 @@ declare module 'google-closure-compiler' {
   interface Compiler {
     run(callback: (exitCode: number, stdout: string, stderr: string) => void): void;
   }
-  export var compiler: { new (opts: CompileOptions): Compiler; }
+  export var compiler: {new (opts: CompileOptions): Compiler;};
 }
