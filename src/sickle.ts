@@ -478,7 +478,6 @@ class Annotator extends Rewriter {
               if (refType.typeName.getText() !== 'Array') {
                 this.error(refType, 'expected array type for rest param');
               }
-              this.logWithIndent(`reftype ${refType.getText()}`);
               newTag.type = refType.typeArguments[0];
             } else {
               this.error(param, 'expected array type for rest param');
