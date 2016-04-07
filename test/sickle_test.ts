@@ -237,4 +237,14 @@ var foo = bar;
 var foo = bar;
 `);
   });
+
+  it('deduplicates module imports', () => {
+    expectCommonJs('a/b.js', `var foo_1 = require('goog:foo');
+var foo_2 = require('goog:foo');
+foo_1.A, foo_2.B, foo_2.default, foo_3.default;
+`).to.equal(`goog.module('a$b');var foo_1 = goog.require('foo');
+var foo_2 = foo_1;
+foo_1.A, foo_2.B, foo_2        , foo_3.default;
+`);
+  });
 });

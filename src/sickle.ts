@@ -908,14 +908,23 @@ export function annotate(program: ts.Program, file: ts.SourceFile, options: Opti
  */
 class PostProcessor extends Rewriter {
   /**
-   * defaultImportSymbols collects the names of imported goog.modules.  That is, if the code has
-   *   var foo = goog.require('bar');
-   * which comes from the TS input:
+   * defaultImportSymbols collects the names of imported goog.modules.
+   * If the original TS input is:
    *   import foo from 'goog:bar';
-   * Then defaultImportSymbols['foo'] is true.
-   * This is used to rewrite "foo.default" into just "foo".
+   * then TS produces:
+   *   var foo = require('goog:bar');
+   * and this class rewrites it to:
+   *   var foo = require('goog.bar');
+   * After this step, defaultImportSymbols['foo'] is true.
+   * (This is used to rewrite 'foo.default' into just 'foo'.)
    */
   defaultImportSymbols: {[varName: string]: boolean} = {};
+
+  /**
+   * moduleVariables maps from module names to the variables they're assigned to.
+   * Continuing the above example, moduleVariables['goog.bar'] = 'foo'.
+   */
+  moduleVariables: {[moduleName: string]: string} = {};
 
   /** strippedStrict is true once we've stripped a "use strict"; from the input. */
   strippedStrict: boolean = false;
@@ -1053,7 +1062,12 @@ class PostProcessor extends Rewriter {
 
     let modName = this.pathToModuleName(this.file.fileName, require);
     this.writeRange(node.getFullStart(), node.getStart());
-    this.emit(`var ${varName} = goog.require('${modName}');`);
+    if (this.moduleVariables.hasOwnProperty(modName)) {
+      this.emit(`var ${varName} = ${this.moduleVariables[modName]};`);
+    } else {
+      this.emit(`var ${varName} = goog.require('${modName}');`);
+      this.moduleVariables[modName] = varName;
+    }
     return true;
   }
 
@@ -1074,6 +1088,7 @@ class PostProcessor extends Rewriter {
         if (!this.defaultImportSymbols.hasOwnProperty(lhsIdent.text)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
+        this.writeRange(node.getFullStart(), node.getStart());
         this.emit(`${lhsIdent.text}        `);
         return true;
       default:
