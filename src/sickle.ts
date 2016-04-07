@@ -974,7 +974,9 @@ class PostProcessor extends Rewriter {
           this.strippedStrict = true;
           return;
         }
-        // Check for a bare "require('foo');", i.e. a require for its side effects.
+        // Check for:
+        // - "require('foo');" (a require for its side effects)
+        // - "__export(require(...));" (an "export * from ...")
         if (this.emitRewrittenRequires(node)) {
           return;
         }
@@ -1026,26 +1028,29 @@ class PostProcessor extends Rewriter {
       if (!decl.initializer || decl.initializer.kind !== ts.SyntaxKind.CallExpression) return false;
       call = decl.initializer as ts.CallExpression;
     } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
-      // It's possibly of the form "require(...);".
+      // It's possibly of the form:
+      // - require(...);
+      // - __export(require(...));
+      // Both are CallExpressions.
       let exprStmt = node as ts.ExpressionStatement;
       let expr = exprStmt.expression;
       if (expr.kind !== ts.SyntaxKind.CallExpression) return false;
       call = expr as ts.CallExpression;
+
+      let require = this.isExportRequire(call);
+      if (require) {
+        let modName = this.pathToModuleName(this.file.fileName, require);
+        this.writeRange(node.getFullStart(), node.getStart());
+        this.emit(`__export(goog.require('${modName}'));`);
+        return true;
+      }
     } else {
       // It's some other type of statement.
       return false;
     }
 
-    // Verify that the call is a call to require()...
-    if (call.expression.kind !== ts.SyntaxKind.Identifier) return false;
-    let ident = call.expression as ts.Identifier;
-    if (ident.text !== 'require') return false;
-
-    // Verify the call takes a single string argument and grab it.
-    if (call.arguments.length !== 1) return false;
-    let arg = call.arguments[0];
-    if (arg.kind !== ts.SyntaxKind.StringLiteral) return false;
-    let require = (arg as ts.StringLiteral).text;
+    let require = this.isRequire(call);
+    if (!require) return false;
 
     // Even if it's a bare require(); statement, introduce a variable for it.
     // This avoids a Closure error.
@@ -1069,6 +1074,39 @@ class PostProcessor extends Rewriter {
       this.moduleVariables[modName] = varName;
     }
     return true;
+  }
+
+  /**
+   * Returns the string argument if call is of the form
+   *   require('foo')
+   */
+  isRequire(call: ts.CallExpression): string {
+    // Verify that the call is a call to require(...).
+    if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
+    let ident = call.expression as ts.Identifier;
+    if (ident.text !== 'require') return null;
+
+    // Verify the call takes a single string argument and grab it.
+    if (call.arguments.length !== 1) return null;
+    let arg = call.arguments[0];
+    if (arg.kind !== ts.SyntaxKind.StringLiteral) return null;
+    return (arg as ts.StringLiteral).text;
+  }
+
+  /**
+   * Returns the inner string if call is of the form
+   *   __export(require('foo'))
+   */
+  isExportRequire(call: ts.CallExpression): string {
+    if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
+    let ident = call.expression as ts.Identifier;
+    if (ident.getText() !== '__export') return null;
+
+    // Verify the call takes a single string argument and grab it.
+    if (call.arguments.length !== 1) return null;
+    let arg = call.arguments[0];
+    if (arg.kind !== ts.SyntaxKind.CallExpression) return null;
+    return this.isRequire(arg as ts.CallExpression);
   }
 
   /**
