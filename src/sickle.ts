@@ -835,6 +835,11 @@ class Annotator extends Rewriter {
       case ts.SyntaxKind.ParenthesizedType:
         let parenType = <ts.ParenthesizedTypeNode>node;
         return `(${this.typeToClosure(parenType.type)})`;
+      case ts.SyntaxKind.FunctionType:
+        let funcType = <ts.FunctionTypeNode>node;
+        let params = funcType.parameters.map(p => this.typeToClosure(p.type));
+        let ret = this.typeToClosure(funcType.type);
+        return `function(${params.join(', ')}): ${ret}`;
       default:
         this.errorUnimplementedKind(node, 'converting type to closure');
         return '?';

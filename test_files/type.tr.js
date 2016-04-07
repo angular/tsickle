@@ -9,3 +9,7 @@ let /** @type {(string|boolean)} */ typeUnion = false;
 let /** @type {((string|boolean))} */ typeUnion2 = false;
 let /** @type {{optional: (boolean|undefined)}} */ typeOptionalField = {};
 let /** @type {{optional: ((string|boolean)|undefined)}} */ typeOptionalUnion = {};
+let /** @type {function(): void} */ typeFunc = function () { };
+let /** @type {function(number, ?): string} */ typeFunc2 = function (a, b) { return ''; };
+let /** @type {function(number, function(number): string): string} */ typeFunc3 = function (x, cb) { return ''; };
+// TODO: let typeFunc4: (a: number, ...args: number[]) => void;

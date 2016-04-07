@@ -10,3 +10,8 @@ let /** @type {(string|boolean)} */ typeUnion: string|boolean = false;
 let /** @type {((string|boolean))} */ typeUnion2: (string|boolean) = false;
 let /** @type {{optional: (boolean|undefined)}} */ typeOptionalField: {optional?: boolean} = {};
 let /** @type {{optional: ((string|boolean)|undefined)}} */ typeOptionalUnion: {optional?: string|boolean} = {};
+
+let /** @type {function(): void} */ typeFunc: () => void = function() {};
+let /** @type {function(number, ?): string} */ typeFunc2: (a: number, b: any) => string = function(a, b) { return ''; };
+let /** @type {function(number, function(number): string): string} */ typeFunc3: (x: number, callback: (x: number) => string) => string = function(x, cb) { return ''; }
+// TODO: let typeFunc4: (a: number, ...args: number[]) => void;
