@@ -23,7 +23,7 @@
     function Destructuring({ a, b }) { }
     /**
      * @param {!Array<number>} param0
-     * @param {!Array<Array<string>>} param1
+     * @param {!Array<!Array<string>>} param1
      */
     function Destructuring2([a, b], [[c]]) { }
     Destructuring({ a: 1, b: 2 });

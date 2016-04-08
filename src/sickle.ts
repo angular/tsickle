@@ -61,10 +61,10 @@ export interface JSDocTag {
   optional?: boolean;
   // restParam is true for "...x: foo[]" function parameters.
   restParam?: boolean;
-  // notNull is true for binding parameters, which require require
+  // destructuring is true for destructuring bind parameters, which require
   // non-null arguments on the Closure side.  Can likely remove this
   // once TypeScript nullable types are available.
-  notNull?: boolean;
+  destructuring?: boolean;
   text?: string;
 }
 
@@ -444,7 +444,7 @@ class Annotator extends Rewriter {
           case ts.SyntaxKind.ObjectBindingPattern:
             // Produce unique names for synthetic parameter names.
             newTag.parameterName = `param${paramIdx++}`;
-            newTag.notNull = true;
+            newTag.destructuring = true;
             break;
           case ts.SyntaxKind.Identifier:
             newTag.parameterName = (<ts.Identifier>param.name).text;
@@ -518,10 +518,7 @@ class Annotator extends Rewriter {
         if (tag.restParam) {
           this.emit('...');
         }
-        if (tag.notNull && !this.options.untyped) {
-          this.emit('!');
-        }
-        this.emit(this.typeToClosure(tag.type));
+        this.emit(this.typeToClosure(tag.type, tag.destructuring));
         if (tag.optional) {
           this.emit('=');
         }
@@ -763,11 +760,17 @@ class Annotator extends Rewriter {
    * Important conversions include:
    * - any => ?
    * - foo[] => Array<foo>
+   *
+   * @param destructuring If true, insert a Closure "!" (not-null
+   *     annotation) in object/array types.  This is a workaround
+   *     specifically for destructuring bind patterns.
    */
-  private typeToClosure(node: ts.TypeNode): string {
+  private typeToClosure(node: ts.TypeNode, destructuring?: boolean): string {
     if (this.options.untyped || !node) {
       return '?';
     }
+
+    let destructuringPrefix = destructuring ? '!' : '';
 
     switch (node.kind) {
       case ts.SyntaxKind.AnyKeyword:
@@ -819,7 +822,7 @@ class Annotator extends Rewriter {
             if (optional) type = `(${type}|undefined)`;
             memberTypes.push(`${prop.name.getText()}: ${type}`);
           }
-          return `{${memberTypes.join(', ')}}`;
+          return `${destructuringPrefix}{${memberTypes.join(', ')}}`;
         }
 
         // Otherwise it's a mixture of the above or something else complicated;
@@ -827,7 +830,8 @@ class Annotator extends Rewriter {
         return '?';
       case ts.SyntaxKind.ArrayType:
         let arrayType = <ts.ArrayTypeNode>node;
-        return `Array<${this.typeToClosure(arrayType.elementType)}>`;
+        let innerType = this.typeToClosure(arrayType.elementType, destructuring);
+        return `${destructuringPrefix}Array<${innerType}>`;
       case ts.SyntaxKind.UnionType:
         let unionType = <ts.UnionTypeNode>node;
         let types = unionType.types.map(t => this.typeToClosure(t)).join('|');

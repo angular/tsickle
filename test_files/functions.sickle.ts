@@ -25,7 +25,7 @@ function FunctionsTest3(a: number, b: number) {}
 function Destructuring({a, b}: {a: number, b: number}) {}
 /**
  * @param {!Array<number>} param0
- * @param {!Array<Array<string>>} param1
+ * @param {!Array<!Array<string>>} param1
  */
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
 Destructuring({a:1, b:2});
