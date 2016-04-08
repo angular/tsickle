@@ -938,7 +938,7 @@ class PostProcessor extends Rewriter {
     super(file);
   }
 
-  process(): string {
+  process(): {output: string, referencedModules: string[]} {
     // TODO(evanm): only emit the goog.module *after* the first comment,
     // so that @suppress statements work.
     const moduleName = this.pathToModuleName('', this.file.fileName);
@@ -953,7 +953,10 @@ class PostProcessor extends Rewriter {
     }
     this.writeRange(pos, this.file.getEnd());
 
-    return this.getOutput();
+    let referencedModules = Object.keys(this.moduleVariables);
+    // Note: don't sort referencedModules, as the keys are in the same order
+    // they occur in the source file.
+    return {output: this.getOutput(), referencedModules};
   }
 
   /**
@@ -1039,6 +1042,9 @@ class PostProcessor extends Rewriter {
         let modName = this.pathToModuleName(this.file.fileName, require);
         this.writeRange(node.getFullStart(), node.getStart());
         this.emit(`__export(goog.require('${modName}'));`);
+        // Mark that this module was imported; it doesn't have an associated
+        // variable so just call the variable "*".
+        this.moduleVariables[modName] = '*';
         return true;
       }
     } else {
@@ -1148,9 +1154,6 @@ class PostProcessor extends Rewriter {
 export function convertCommonJsToGoogModule(
     fileName: string, content: string, pathToModuleName: (context: string, fileName: string) =>
                                            string): {output: string, referencedModules: string[]} {
-  let referencedModules: string[] = [];
   let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-
-  let output = new PostProcessor(file, pathToModuleName).process();
-  return {output, referencedModules};
+  return new PostProcessor(file, pathToModuleName).process();
 }

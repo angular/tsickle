@@ -265,4 +265,24 @@ var foo_2 = foo_1;
 foo_1.A, foo_2.B, foo_2        , foo_3.default;
 `);
   });
+
+  it('gathers referenced modules', () => {
+    let {referencedModules} = sickle.convertCommonJsToGoogModule(
+        'a/b', `
+require('../foo/bare-require');
+var googRequire = require('goog:foo.bar');
+var es6RelativeRequire = require('./relative');
+var es6NonRelativeRequire = require('non/relative');
+__export(require('./export-star');
+`,
+        pathToModuleName);
+
+    return expect(referencedModules).to.deep.equal([
+      'foo$bare-require',
+      'foo.bar',
+      'a$relative',
+      'non$relative',
+      'a$export-star',
+    ]);
+  });
 });
