@@ -1058,14 +1058,16 @@ class PostProcessor extends Rewriter {
       varName = `unused_${this.unusedIndex++}_`;
     }
 
+    let modName: string;
     if (require.match(/^goog:/)) {
       // This is an import of the form "goog:foo.bar".
-      // Fix it to just "foo.bar", and save the module name.
-      require = require.substr(5);
+      // Fix it to just "foo.bar", and save the variable name.
+      modName = require.substr(5);
       this.defaultImportSymbols[varName] = true;
+    } else {
+      modName = this.pathToModuleName(this.file.fileName, require);
     }
 
-    let modName = this.pathToModuleName(this.file.fileName, require);
     this.writeRange(node.getFullStart(), node.getStart());
     if (this.moduleVariables.hasOwnProperty(modName)) {
       this.emit(`var ${varName} = ${this.moduleVariables[modName]};`);

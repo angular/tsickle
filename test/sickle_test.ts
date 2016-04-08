@@ -142,7 +142,8 @@ describe('convertCommonJsToGoogModule', () => {
     if (fileName[0] === '.') {
       fileName = path.join(path.dirname(context), fileName);
     }
-    return fileName.replace(/\//g, '$');
+    return fileName.replace(/\//g, '$')
+      .replace(/_/g, '__');
   }
 
   function expectCommonJs(fileName: string, content: string) {
@@ -206,6 +207,13 @@ var unused_0_ = goog.require('req$mod');`);
     // See below for more fine-grained unit tests.
     expectCommonJs('a/b.js', `var r = require('./req/mod');`)
         .to.equal(`goog.module('a$b');var r = goog.require('a$req$mod');`);
+  });
+
+  it('avoids mangling module names in goog: imports', () => {
+    expectCommonJs('a/b.js', `
+var goog_use_Foo_1 = require('goog:foo_bar.baz');`)
+        .to.equal(`goog.module('a$b');
+var goog_use_Foo_1 = goog.require('foo_bar.baz');`);
   });
 
   it('resolves default goog: module imports', () => {
