@@ -908,17 +908,17 @@ export function annotate(program: ts.Program, file: ts.SourceFile, options: Opti
  */
 class PostProcessor extends Rewriter {
   /**
-   * defaultImportSymbols collects the names of imported goog.modules.
+   * namespaceImports collects the variables for imported goog.modules.
    * If the original TS input is:
    *   import foo from 'goog:bar';
    * then TS produces:
    *   var foo = require('goog:bar');
    * and this class rewrites it to:
    *   var foo = require('goog.bar');
-   * After this step, defaultImportSymbols['foo'] is true.
+   * After this step, namespaceImports['foo'] is true.
    * (This is used to rewrite 'foo.default' into just 'foo'.)
    */
-  defaultImportSymbols: {[varName: string]: boolean} = {};
+  namespaceImports: {[varName: string]: boolean} = {};
 
   /**
    * moduleVariables maps from module names to the variables they're assigned to.
@@ -1060,10 +1060,10 @@ class PostProcessor extends Rewriter {
 
     let modName: string;
     if (require.match(/^goog:/)) {
-      // This is an import of the form "goog:foo.bar".
+      // This is a namespace import, of the form "goog:foo.bar".
       // Fix it to just "foo.bar", and save the variable name.
       modName = require.substr(5);
-      this.defaultImportSymbols[varName] = true;
+      this.namespaceImports[varName] = true;
     } else {
       modName = this.pathToModuleName(this.file.fileName, require);
     }
@@ -1125,7 +1125,7 @@ class PostProcessor extends Rewriter {
         if (propAccess.name.text !== 'default') break;
         if (propAccess.expression.kind !== ts.SyntaxKind.Identifier) break;
         let lhsIdent = propAccess.expression as ts.Identifier;
-        if (!this.defaultImportSymbols.hasOwnProperty(lhsIdent.text)) break;
+        if (!this.namespaceImports.hasOwnProperty(lhsIdent.text)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
         this.writeRange(node.getFullStart(), node.getStart());
