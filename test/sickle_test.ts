@@ -156,6 +156,12 @@ describe('convertCommonJsToGoogModule', () => {
         .to.equal(`goog.module('a');console.log('hello');`);
   });
 
+  it('adds a goog.module call to empty files',
+     () => { expectCommonJs('a.js', ``).to.equal(`goog.module('a');`); });
+
+  it('adds a goog.module call to empty-looking files',
+     () => { expectCommonJs('a.js', `// empty`).to.equal(`goog.module('a');// empty`); });
+
   it('strips use strict directives', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `"use strict";

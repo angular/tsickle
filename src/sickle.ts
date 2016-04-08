@@ -939,18 +939,15 @@ class PostProcessor extends Rewriter {
   }
 
   process(): string {
+    // TODO(evanm): only emit the goog.module *after* the first comment,
+    // so that @suppress statements work.
+    const moduleName = this.pathToModuleName('', this.file.fileName);
+    // NB: No linebreak after module call so sourcemaps are not offset.
+    this.emit(`goog.module('${moduleName}');`);
+
     let pos = 0;
-    let emittedModule = false;
     for (let stmt of this.file.statements) {
       this.writeRange(pos, stmt.getFullStart());
-      if (!emittedModule) {
-        // TODO(evanm): only emit the goog.module *after* the first comment,
-        // so that @suppress statements work.
-        const moduleName = this.pathToModuleName('', this.file.fileName);
-        // NB: No linebreak after module call so sourcemaps are not offset.
-        this.emit(`goog.module('${moduleName}');`);
-        emittedModule = true;
-      }
       this.visitTopLevel(stmt);
       pos = stmt.getEnd();
     }
