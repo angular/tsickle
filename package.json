@@ -16,7 +16,7 @@
     "chai": "^2.1.1",
     "clang-format": "1.0.33",
     "glob": "^7.0.0",
-    "google-closure-compiler": "^20151216.2.0",
+    "google-closure-compiler": "^20160315.2.0",
     "gulp": "^3.8.11",
     "gulp-clang-format": "^1.0.22",
     "gulp-mocha": "^2.0.0",
