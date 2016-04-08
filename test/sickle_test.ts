@@ -142,8 +142,7 @@ describe('convertCommonJsToGoogModule', () => {
     if (fileName[0] === '.') {
       fileName = path.join(path.dirname(context), fileName);
     }
-    return fileName.replace(/\//g, '$')
-      .replace(/_/g, '__');
+    return fileName.replace(/\//g, '$').replace(/_/g, '__');
   }
 
   function expectCommonJs(fileName: string, content: string) {
