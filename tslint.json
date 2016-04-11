@@ -18,7 +18,6 @@
     "no-inferrable-types": true,
     "no-internal-module": true,
     "no-shadowed-variable": true,
-    "no-string-literal": true,
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
     "no-unreachable": true,
