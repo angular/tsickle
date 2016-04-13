@@ -25,6 +25,9 @@
     },
     "minimatch/minimatch.d.ts": {
       "commit": "bda9391b4987bbf91a713ccaf586c108106ced1f"
+    },
+    "minimist/minimist.d.ts": {
+      "commit": "d99f6bb17b9b8a30551da3a387b0ca4c28f5cb06"
     }
   }
 }

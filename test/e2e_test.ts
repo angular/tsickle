@@ -10,7 +10,7 @@ export function checkClosureCompile(
   if (!total) throw new Error('No JS files in ' + JSON.stringify(jsFiles));
 
   let CLOSURE_COMPILER_OPTS: closure.CompileOptions = {
-    'checks-only': true,
+    'checks_only': true,
     'jscomp_error': 'checkTypes',
     'js': jsFiles,
     'externs': externsFiles,

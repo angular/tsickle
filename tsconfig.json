@@ -5,10 +5,10 @@
     "noEmit": true
   },
   "files": [
+    "src/google-closure-compiler.d.ts",
     "src/main.ts",
     "src/sickle.ts",
     "test/sickle_test.ts",
-    "test/google-closure-compiler.d.ts",
     "typings/tsd.d.ts"
   ]
 }
