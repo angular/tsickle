@@ -6,6 +6,9 @@ class FieldsTest {
     this.field3 = 2 + 1;
   }
 
+  // A field without an explicit type declaration.
+  field4 = 'string';
+
   getF1() {
     // This access prints a warning without a generated field stub declaration.
     return this.field1;

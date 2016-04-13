@@ -579,7 +579,10 @@ class Annotator extends Rewriter {
         existingAnnotation += `${text}\n`;
       }
     }
-    this.maybeEmitJSDocType(p.type, existingAnnotation);
+    // Unconditionally emit a JSDoc annotation, even if the type is unknown,
+    // because otherwise the Closure compiler objects to the below declaration
+    // having no effect.
+    this.emitJSDocType(p.type, existingAnnotation);
     this.emit(`\n    ${className}.prototype.${p.name.getText()};\n`);
   }
 
@@ -746,8 +749,14 @@ class Annotator extends Rewriter {
     }
   }
 
+  /** Emits a type annotation in JSDoc if the type is available. */
   private maybeEmitJSDocType(type: ts.TypeNode, additionalDocTag?: string) {
     if (!type && !this.options.untyped) return;
+    this.emitJSDocType(type, additionalDocTag);
+  }
+
+  /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
+  private emitJSDocType(type: ts.TypeNode, additionalDocTag?: string) {
     this.emit(' /**');
     if (additionalDocTag) {
       this.emit(' ' + additionalDocTag);

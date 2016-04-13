@@ -4,6 +4,8 @@ class FieldsTest {
      */
     constructor(field3) {
         this.field3 = field3;
+        // A field without an explicit type declaration.
+        this.field4 = 'string';
         this.field3 = 2 + 1;
     }
     /**
@@ -17,6 +19,8 @@ class FieldsTest {
         FieldsTest.prototype.field1;
         /** @type {number} */
         FieldsTest.prototype.field2;
+        /** @type {?} */
+        FieldsTest.prototype.field4;
         /** @type {number} */
         FieldsTest.prototype.field3;
     }
