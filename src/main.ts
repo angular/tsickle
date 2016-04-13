@@ -46,23 +46,24 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
   let parsedArgs = minimist(args);
   for (let flag of Object.keys(parsedArgs)) {
     switch (flag) {
-    case 'h': case 'help':
-      usage();
-      process.exit(0);
-      break;
-    case 'saveTemporaries':
-      settings.saveTemporaries = true;
-      break;
-    case 'output':
-      settings.outputPath = parsedArgs[flag];
-      break;
-    case '_':
-      // This is part of the minimist API, and holds args after the '--'.
-      break;
-    default:
-      console.error(`unknown flag '--${flag}'`);
-      usage();
-      process.exit(1);
+      case 'h':
+      case 'help':
+        usage();
+        process.exit(0);
+        break;
+      case 'saveTemporaries':
+        settings.saveTemporaries = true;
+        break;
+      case 'output':
+        settings.outputPath = parsedArgs[flag];
+        break;
+      case '_':
+        // This is part of the minimist API, and holds args after the '--'.
+        break;
+      default:
+        console.error(`unknown flag '--${flag}'`);
+        usage();
+        process.exit(1);
     }
   }
   if (!settings.outputPath) {
