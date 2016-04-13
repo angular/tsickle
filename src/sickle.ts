@@ -280,7 +280,13 @@ class Annotator extends Rewriter {
         this.writeRange(node.getFullStart(), node.getEnd());
         return true;
       case ts.SyntaxKind.VariableDeclaration:
-        this.maybeEmitJSDocType((<ts.VariableDeclaration>node).type);
+        let varDecl = node as ts.VariableDeclaration;
+        // Only emit a type annotation when it's a plain variable and
+        // not a binding pattern, as Closure doesn't(?) have a syntax
+        // for annotating binding patterns.  See issue #128.
+        if (varDecl.name.kind === ts.SyntaxKind.Identifier) {
+          this.maybeEmitJSDocType(varDecl.type);
+        }
         return false;
       case ts.SyntaxKind.ClassDeclaration:
         let classNode = <ts.ClassDeclaration>node;

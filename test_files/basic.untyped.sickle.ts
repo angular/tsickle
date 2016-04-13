@@ -24,3 +24,14 @@ constructor(private ctorArg: string) {
   }
 
 }
+
+// These two declarations should not have a @type annotation,
+// regardless of untyped.
+(function() {
+  // With a type annotation:
+  let {a, b}: {a:string, b:number} = {a:null, b:null};
+})();
+(function() {
+  // Without a type annotation:
+  let {a, b} = {a:null, b:null};
+})();
