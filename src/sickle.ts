@@ -360,8 +360,7 @@ class Annotator extends Rewriter {
         this.writeNode(node);
         return true;
       case ts.SyntaxKind.EnumDeclaration:
-        this.visitEnum(<ts.EnumDeclaration>node);
-        return true;
+        return this.maybeProcessEnum(<ts.EnumDeclaration>node);
       case ts.SyntaxKind.TypeAssertionExpression:
         let typeAssertion = <ts.TypeAssertion>node;
         this.maybeEmitJSDocType(typeAssertion.type);
@@ -872,7 +871,14 @@ class Annotator extends Rewriter {
     this.emit(`var ${node.name.getText()}: void;\n`);
   }
 
-  private visitEnum(node: ts.EnumDeclaration) {
+  /** Processes an EnumDeclaration or returns false for ordinary processing. */
+  private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
+    if (node.flags & ts.NodeFlags.Const) {
+      // const enums disappear after TS compilation and consequently need no
+      // help from sickle.
+      return false;
+    }
+
     if (!this.options.untyped) this.emit('/** @typedef {number} */\n');
     this.writeNode(node);
     this.emit('\n');
@@ -892,6 +898,7 @@ class Annotator extends Rewriter {
       }
       this.emit(';\n');
     }
+    return true;
   }
 
   /**

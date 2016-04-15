@@ -29,3 +29,9 @@ enum ComponentIndex {
 /** @type {ComponentIndex} */
 (<any>ComponentIndex).Domain = 3;
 
+
+// const enums not have any Closure output, as they are purely compile-time.
+const enum EnumTestDisappears {
+  ShouldNotHaveAnySickleOutput,
+}
+let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;

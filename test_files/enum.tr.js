@@ -33,3 +33,4 @@ ComponentIndex.Scheme = 1;
 ComponentIndex.UserInfo = 2;
 /** @type {ComponentIndex} */
 ComponentIndex.Domain = 3;
+let enumTestDisappears = 0 /* ShouldNotHaveAnySickleOutput */;

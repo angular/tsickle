@@ -9,3 +9,9 @@ enum ComponentIndex {
   UserInfo,
   Domain
 }
+
+// const enums not have any Closure output, as they are purely compile-time.
+const enum EnumTestDisappears {
+  ShouldNotHaveAnySickleOutput,
+}
+let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;
