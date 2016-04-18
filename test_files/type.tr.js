@@ -5,6 +5,7 @@ let /** @type {Array<Array<{a: ?}>>} */ typeNestedArr = null;
 let /** @type {{a: number, b: string}} */ typeObject = { a: 3, b: 'b' };
 let /** @type {Object<string,number>} */ typeObject2 = null;
 let /** @type {?} */ typeObject3 = null;
+let /** @type {Object} */ typeObjectEmpty = null;
 let /** @type {(string|boolean)} */ typeUnion = false;
 let /** @type {((string|boolean))} */ typeUnion2 = false;
 let /** @type {{optional: (boolean|undefined)}} */ typeOptionalField = {};

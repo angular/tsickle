@@ -819,7 +819,13 @@ class Annotator extends Rewriter {
         // Anonymous type literal, e.g. {a:number, b:string}.
         let typeLiteral = <ts.TypeLiteralNode>node;
 
-        // Special case 1: an ordinary indexable, e.g. {[key:string]:number}.
+        // Special case: no defined fields (e.g. the type {}) becomes an plain "Object".
+        if (typeLiteral.members.length === 0) {
+          // TODO(evanm): not sure about this, revisit if necessary.
+          return `Object`;
+        }
+
+        // Special case: an ordinary indexable, e.g. {[key:string]:number}.
         // In that case we want to emit Object<string, number>.
         if (typeLiteral.members.length === 1 &&
             typeLiteral.members[0].kind === ts.SyntaxKind.IndexSignature) {
@@ -837,7 +843,7 @@ class Annotator extends Rewriter {
           return `Object<${keyType},${valType}>`;
         }
 
-        // Special case 2: a collection of named fields.
+        // Special case: a collection of named fields.
         // Emit {a:string, b:number}, etc.
         if (typeLiteral.members.every(m => m.kind === ts.SyntaxKind.PropertySignature)) {
           let memberTypes: string[] = [];

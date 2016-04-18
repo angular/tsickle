@@ -5,6 +5,7 @@ let typeNestedArr: {a:any}[][] = null;
 let typeObject: {a:number, b:string} = {a:3, b:'b'};
 let typeObject2: {[key:string]: number} = null;
 let typeObject3: {a:number, [key:string]: number} = null;
+let typeObjectEmpty: {} = null;
 
 let typeUnion: string|boolean = false;
 let typeUnion2: (string|boolean) = false;
