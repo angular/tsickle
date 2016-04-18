@@ -12,7 +12,7 @@ constructor(public x: number) {}
 
   static _sickle_typeAnnotationsHelper() {
  /** @type {number} */
-    SuperTestBaseOneArg.prototype.x;
+SuperTestBaseOneArg.prototype.x;
   }
 
 }
@@ -28,7 +28,7 @@ constructor(public y: string) {
 
   static _sickle_typeAnnotationsHelper() {
  /** @type {string} */
-    SuperTestDerivedParamProps.prototype.y;
+SuperTestDerivedParamProps.prototype.y;
   }
 
 }
@@ -44,7 +44,7 @@ constructor() {
 
   static _sickle_typeAnnotationsHelper() {
  /** @type {string} */
-    SuperTestDerivedInitializedProps.prototype.y;
+SuperTestDerivedInitializedProps.prototype.y;
   }
 
 }
@@ -79,7 +79,7 @@ class SuperTestDerivedInterface implements SuperTestInterface {
 
   static _sickle_typeAnnotationsHelper() {
  /** @type {number} */
-    SuperTestDerivedInterface.prototype.foo;
+SuperTestDerivedInterface.prototype.foo;
   }
 
 }
@@ -87,3 +87,6 @@ class SuperTestDerivedInterface implements SuperTestInterface {
 class SuperTestStaticProp extends SuperTestBaseOneArg {
   static foo = 3;
 }
+ /** @type {?} */
+SuperTestStaticProp.foo;
+

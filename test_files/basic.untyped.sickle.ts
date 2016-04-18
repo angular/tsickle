@@ -18,9 +18,9 @@ constructor(private ctorArg: string) {
 
   static _sickle_typeAnnotationsHelper() {
  /** @type {?} */
-    Foo.prototype.field;
+Foo.prototype.field;
  /** @type {?} */
-    Foo.prototype.ctorArg;
+Foo.prototype.ctorArg;
   }
 
 }

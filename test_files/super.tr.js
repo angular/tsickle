@@ -67,3 +67,5 @@ class SuperTestDerivedInterface {
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
+/** @type {?} */
+SuperTestStaticProp.foo;

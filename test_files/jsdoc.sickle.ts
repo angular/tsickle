@@ -27,11 +27,11 @@ class JSDocTest {
   static _sickle_typeAnnotationsHelper() {
  /** @export
  @type {string} */
-    JSDocTest.prototype.exported;
+JSDocTest.prototype.exported;
  /** @type {string} */
-    JSDocTest.prototype.stringWithoutJSDoc;
+JSDocTest.prototype.stringWithoutJSDoc;
  /** @type {number} */
-    JSDocTest.prototype.typedThing;
+JSDocTest.prototype.typedThing;
   }
 
 }

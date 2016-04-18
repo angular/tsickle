@@ -303,6 +303,19 @@ class Annotator extends Rewriter {
         }
         this.emitTypeAnnotationsHelper(classNode);
         this.writeNode(classNode.getLastToken());
+        // Emit static properties after the closing class }.
+        let staticProperties: ts.PropertyDeclaration[] = [];
+        for (let member of classNode.members) {
+          let isStatic = (member.flags & ts.NodeFlags.Static) !== 0;
+          let isProperty = member.kind === ts.SyntaxKind.PropertyDeclaration;
+          if (isStatic && isProperty) staticProperties.push(member as ts.PropertyDeclaration);
+        }
+        if (staticProperties.length > 0) {
+          this.emit('\n');
+          for (let prop of staticProperties) {
+            this.visitProperty([classNode.name.text], prop);
+          }
+        }
         return true;
       case ts.SyntaxKind.PublicKeyword:
       case ts.SyntaxKind.PrivateKeyword:
@@ -568,13 +581,14 @@ class Annotator extends Rewriter {
       return;
     }
 
+    let namespace = [classDecl.name.text, 'prototype'];
     this.emit('\n\n  static _sickle_typeAnnotationsHelper() {\n');
-    nonStaticProps.forEach((p) => this.visitProperty(classDecl.name.text, p));
-    paramProps.forEach((p) => this.visitProperty(classDecl.name.text, p));
+    nonStaticProps.forEach((p) => this.visitProperty(namespace, p));
+    paramProps.forEach((p) => this.visitProperty(namespace, p));
     this.emit('  }\n');
   }
 
-  private visitProperty(className: string, p: ts.PropertyDeclaration|ts.ParameterDeclaration) {
+  private visitProperty(namespace: string[], p: ts.PropertyDeclaration|ts.ParameterDeclaration) {
     let jsDoc = this.getJSDoc(p) || {tags: []};
     let existingAnnotation = '';
     for (let {tagName, text} of jsDoc.tags) {
@@ -588,7 +602,8 @@ class Annotator extends Rewriter {
     // because otherwise the Closure compiler objects to the below declaration
     // having no effect.
     this.emitJSDocType(p.type, existingAnnotation);
-    this.emit(`\n    ${className}.prototype.${p.name.getText()};\n`);
+    namespace = namespace.concat([p.name.getText()]);
+    this.emit(`\n${namespace.join('.')};\n`);
   }
 
   /**

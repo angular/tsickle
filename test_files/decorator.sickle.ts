@@ -11,7 +11,7 @@ private x: number;
 
   static _sickle_typeAnnotationsHelper() {
  /** @type {number} */
-    DecoratorTest.prototype.x;
+DecoratorTest.prototype.x;
   }
 
 }
