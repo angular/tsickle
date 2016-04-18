@@ -1,12 +1,9 @@
 (function() {
-
-function FunctionsTest1(a: any): string;
 /**
  * @param {?} a
- * @return {?}
  */
-function FunctionsTest1(a: number): string {
-  return "a";
+function FunctionsTest1(a: number) {
+  return a;
 }
 /**
  * @param {?} a
@@ -19,6 +16,16 @@ function FunctionsTest2(a: number, b: number) {}
  * @param {?} b
  */
 function FunctionsTest3(a: number, b: number) {}
+
+// Test overloaded functions.
+function FunctionsTest4(a: number): string;
+/**
+ * @param {?} a
+ * @return {?}
+ */
+function FunctionsTest4(a: any): string {
+  return "a";
+}
 /**
  * @param {?} param0
  */
@@ -28,8 +35,14 @@ function Destructuring({a, b}: {a: number, b: number}) {}
  * @param {?} param1
  */
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
+/**
+ * @param param0
+ * @param param1
+ */
+function Destructuring3([a, b], [[c]]) {}
 Destructuring({a:1, b:2});
 Destructuring2([1, 2], [['a']]);
+Destructuring3([1, 2], [['a']]);
 /**
  * @param {...?} a
  */

@@ -8,3 +8,11 @@ var fn3 =
  * @return {number}
  */
     (a) => 12;
+var fn4 = 
+/**
+ * @param a
+ */
+/**
+ * @param a
+ */
+    (a) => a + 12;

@@ -1,10 +1,9 @@
 (function () {
     /**
      * @param {?} a
-     * @return {?}
      */
     function FunctionsTest1(a) {
-        return "a";
+        return a;
     }
     /**
      * @param {?} a
@@ -18,6 +17,13 @@
      */
     function FunctionsTest3(a, b) { }
     /**
+     * @param {?} a
+     * @return {?}
+     */
+    function FunctionsTest4(a) {
+        return "a";
+    }
+    /**
      * @param {?} param0
      */
     function Destructuring({ a, b }) { }
@@ -26,8 +32,14 @@
      * @param {?} param1
      */
     function Destructuring2([a, b], [[c]]) { }
+    /**
+     * @param param0
+     * @param param1
+     */
+    function Destructuring3([a, b], [[c]]) { }
     Destructuring({ a: 1, b: 2 });
     Destructuring2([1, 2], [['a']]);
+    Destructuring3([1, 2], [['a']]);
     /**
      * @param {...?} a
      */
