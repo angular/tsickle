@@ -303,19 +303,6 @@ class Annotator extends Rewriter {
         }
         this.emitTypeAnnotationsHelper(classNode);
         this.writeNode(classNode.getLastToken());
-        // Emit static properties after the closing class }.
-        let staticProperties: ts.PropertyDeclaration[] = [];
-        for (let member of classNode.members) {
-          let isStatic = (member.flags & ts.NodeFlags.Static) !== 0;
-          let isProperty = member.kind === ts.SyntaxKind.PropertyDeclaration;
-          if (isStatic && isProperty) staticProperties.push(member as ts.PropertyDeclaration);
-        }
-        if (staticProperties.length > 0) {
-          this.emit('\n');
-          for (let prop of staticProperties) {
-            this.visitProperty([classNode.name.text], prop);
-          }
-        }
         return true;
       case ts.SyntaxKind.PublicKeyword:
       case ts.SyntaxKind.PrivateKeyword:
@@ -561,30 +548,40 @@ class Annotator extends Rewriter {
   // method somewhere.
   private emitTypeAnnotationsHelper(classDecl: ts.ClassDeclaration) {
     // Gather parameter properties from the constructor, if it exists.
+    let ctors: ts.ConstructorDeclaration[] = [];
     let paramProps: ts.ParameterDeclaration[] = [];
-    let ctors = classDecl.members.filter((e) => e.kind === ts.SyntaxKind.Constructor);
-    if (ctors && ctors.length > 0) {
-      let ctor = <ts.ConstructorDeclaration>ctors[0];
+    let nonStaticProps: ts.PropertyDeclaration[] = [];
+    let staticProps: ts.PropertyDeclaration[] = [];
+    for (let member of classDecl.members) {
+      if (member.kind === ts.SyntaxKind.Constructor) {
+        ctors.push(member as ts.ConstructorDeclaration);
+      } else if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
+        let prop = member as ts.PropertyDeclaration;
+        let isStatic = (prop.flags & ts.NodeFlags.Static) !== 0;
+        if (isStatic) {
+          staticProps.push(prop);
+        } else {
+          nonStaticProps.push(prop);
+        }
+      }
+    }
+
+    if (ctors.length > 0) {
+      let ctor = ctors[0];
       paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
     }
 
-    // Gather other non-static properties on the class.
-    let nonStaticProps = <ts.PropertyDeclaration[]>(classDecl.members.filter((e) => {
-      let isStatic = (e.flags & ts.NodeFlags.Static) !== 0;
-      let isProperty = e.kind === ts.SyntaxKind.PropertyDeclaration;
-      return !isStatic && isProperty;
-    }));
-
-    if (nonStaticProps.length === 0 && paramProps.length === 0) {
+    if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0) {
       // There are no members so we don't need to emit any type
       // annotations helper.
       return;
     }
 
-    let namespace = [classDecl.name.text, 'prototype'];
     this.emit('\n\n  static _sickle_typeAnnotationsHelper() {\n');
-    nonStaticProps.forEach((p) => this.visitProperty(namespace, p));
-    paramProps.forEach((p) => this.visitProperty(namespace, p));
+    staticProps.forEach(p => this.visitProperty([classDecl.name.text], p));
+    let memberNamespace = [classDecl.name.text, 'prototype'];
+    nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));
+    paramProps.forEach((p) => this.visitProperty(memberNamespace, p));
     this.emit('  }\n');
   }
 
