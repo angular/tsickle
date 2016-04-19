@@ -26,6 +26,7 @@ var ComponentIndex;
     ComponentIndex[ComponentIndex["Scheme"] = 1] = "Scheme";
     ComponentIndex[ComponentIndex["UserInfo"] = 2] = "UserInfo";
     ComponentIndex[ComponentIndex["Domain"] = 3] = "Domain";
+    ComponentIndex[ComponentIndex["UserInfo2"] = 2] = "UserInfo2";
 })(ComponentIndex || (ComponentIndex = {}));
 /** @type {ComponentIndex} */
 ComponentIndex.Scheme = 1;
@@ -33,4 +34,6 @@ ComponentIndex.Scheme = 1;
 ComponentIndex.UserInfo = 2;
 /** @type {ComponentIndex} */
 ComponentIndex.Domain = 3;
+/** @type {ComponentIndex} */
+ComponentIndex.UserInfo2 = 2;
 let enumTestDisappears = 0 /* ShouldNotHaveAnySickleOutput */;

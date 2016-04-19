@@ -905,10 +905,12 @@ class Annotator extends Rewriter {
       if (!this.options.untyped) this.emit(`/** @type {${node.name.getText()}} */\n`);
       this.emit(`(<any>${node.name.getText()}).${member.name.getText()} = `);
       if (member.initializer) {
-        this.visit(member.initializer);
         let enumConstValue = this.program.getTypeChecker().getConstantValue(member);
         if (enumConstValue) {
+          this.emit(enumConstValue.toString());
           i = enumConstValue + 1;
+        } else {
+          this.visit(member.initializer);
         }
       } else {
         this.emit(String(i));

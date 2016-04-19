@@ -7,7 +7,8 @@ export enum EnumTest2 {XYZ, PI = 3.14159}
 enum ComponentIndex {
   Scheme = 1,
   UserInfo,
-  Domain
+  Domain,
+  UserInfo2 = UserInfo,
 }
 
 // const enums not have any Closure output, as they are purely compile-time.
