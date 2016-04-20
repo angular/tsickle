@@ -66,7 +66,7 @@ class SuperTestDerivedInterface {
 }
 class SuperTestStaticProp extends SuperTestBaseOneArg {
     static _sickle_typeAnnotationsHelper() {
-        /** @type {?} */
+        /** @type {number} */
         SuperTestStaticProp.foo;
     }
 }

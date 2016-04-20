@@ -1,6 +1,6 @@
 class Static {
     static _sickle_typeAnnotationsHelper() {
-        /** @type {?} */
+        /** @type {number} */
         Static.bar;
         /** @type {number} */
         Static.baz;

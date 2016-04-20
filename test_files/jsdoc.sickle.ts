@@ -12,6 +12,7 @@ function jsDocTestFunction(foo: string, baz: string): string {
 }
 /**
  * @param {string} foo
+ * @return {void}
  */
 function jsDocTestBadDoc(foo: string) {}
 

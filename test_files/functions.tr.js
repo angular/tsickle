@@ -1,6 +1,7 @@
 (function () {
     /**
      * @param {number} a
+     * @return {number}
      */
     function FunctionsTest1(a) {
         return a;
@@ -8,12 +9,14 @@
     /**
      * @param {number} a
      * @param {number} b
+     * @return {void}
      */
     function FunctionsTest2(a, b) { }
     /**
      * @ngInject
      * @param {number} a
      * @param {number} b
+     * @return {void}
      */
     function FunctionsTest3(a, b) { }
     /**
@@ -24,17 +27,20 @@
         return "a";
     }
     /**
-     * @param {!{a: number, b: number}} param0
+     * @param {!{a: number, b: number}} __0
+     * @return {void}
      */
     function Destructuring({ a, b }) { }
     /**
-     * @param {!Array<number>} param0
-     * @param {!Array<!Array<string>>} param1
+     * @param {!Array<number>} __0
+     * @param {!Array<!Array<string>>} __1
+     * @return {void}
      */
     function Destructuring2([a, b], [[c]]) { }
     /**
-     * @param param0
-     * @param param1
+     * @param {?} __0
+     * @param {?} __1
+     * @return {void}
      */
     function Destructuring3([a, b], [[c]]) { }
     Destructuring({ a: 1, b: 2 });
@@ -42,14 +48,17 @@
     Destructuring3([1, 2], [['a']]);
     /**
      * @param {...number} a
+     * @return {void}
      */
     function FunctionsTestsSplat(...a) { }
     /**
      * @param {...number} a
+     * @return {void}
      */
     function FunctionsTestsSplat2(...a) { }
     /**
-     * @param a
+     * @param {...?} a
+     * @return {void}
      */
     function FunctionsTestsSplat3(...a) { }
     FunctionsTestsSplat(1, 2);

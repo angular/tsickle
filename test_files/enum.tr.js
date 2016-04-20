@@ -36,4 +36,4 @@ ComponentIndex.UserInfo = 2;
 ComponentIndex.Domain = 3;
 /** @type {ComponentIndex} */
 ComponentIndex.UserInfo2 = 2;
-let enumTestDisappears = 0 /* ShouldNotHaveAnySickleOutput */;
+let /** @type {number} */ enumTestDisappears = 0 /* ShouldNotHaveAnySickleOutput */;

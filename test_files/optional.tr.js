@@ -1,6 +1,7 @@
 /**
  * @param {number} x
  * @param {string=} y
+ * @return {void}
  */
 function optionalArgument(x, y) {
 }
@@ -14,8 +15,9 @@ class OptionalTest {
     }
     /**
      * @param {string=} c
+     * @return {void}
      */
     method(c = 'hi') { }
 }
-let optionalTest = new OptionalTest('a');
+let /** @type {OptionalTest} */ optionalTest = new OptionalTest('a');
 optionalTest.method();

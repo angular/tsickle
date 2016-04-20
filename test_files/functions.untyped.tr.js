@@ -1,6 +1,7 @@
 (function () {
     /**
      * @param {?} a
+     * @return {?}
      */
     function FunctionsTest1(a) {
         return a;
@@ -8,12 +9,14 @@
     /**
      * @param {?} a
      * @param {?} b
+     * @return {?}
      */
     function FunctionsTest2(a, b) { }
     /**
      * @ngInject
      * @param {?} a
      * @param {?} b
+     * @return {?}
      */
     function FunctionsTest3(a, b) { }
     /**
@@ -24,17 +27,20 @@
         return "a";
     }
     /**
-     * @param {?} param0
+     * @param {?} __0
+     * @return {?}
      */
     function Destructuring({ a, b }) { }
     /**
-     * @param {?} param0
-     * @param {?} param1
+     * @param {?} __0
+     * @param {?} __1
+     * @return {?}
      */
     function Destructuring2([a, b], [[c]]) { }
     /**
-     * @param param0
-     * @param param1
+     * @param {?} __0
+     * @param {?} __1
+     * @return {?}
      */
     function Destructuring3([a, b], [[c]]) { }
     Destructuring({ a: 1, b: 2 });
@@ -42,14 +48,17 @@
     Destructuring3([1, 2], [['a']]);
     /**
      * @param {...?} a
+     * @return {?}
      */
     function FunctionsTestsSplat(...a) { }
     /**
      * @param {...?} a
+     * @return {?}
      */
     function FunctionsTestsSplat2(...a) { }
     /**
-     * @param a
+     * @param {...?} a
+     * @return {?}
      */
     function FunctionsTestsSplat3(...a) { }
     FunctionsTestsSplat(1, 2);

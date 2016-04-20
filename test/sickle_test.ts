@@ -1,3 +1,4 @@
+import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 import {expect} from 'chai';
@@ -68,11 +69,14 @@ describe('golden tests', () => {
       let tsSource = fs.readFileSync(test.tsPath, 'utf-8');
 
       // Run TypeScript through sickle and compare against goldens.
+      let warnings: ts.Diagnostic[] = [];
+      options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
       let {output, externs, diagnostics} = annotateSource(test.tsPath, tsSource, options);
 
       // If there were any diagnostics, convert them into strings for
       // the golden output.
       let fileOutput = output;
+      diagnostics.push(...warnings);
       if (diagnostics.length > 0) {
         // Munge the filenames in the diagnostics so that they don't include
         // the sickle checkout path.

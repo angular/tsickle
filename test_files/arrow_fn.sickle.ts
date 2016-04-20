@@ -1,11 +1,12 @@
-var fn3 =
+var /** @type {function(number): number} */ fn3 =
 /**
  * @param {number} a
  * @return {number}
  */
 (a: number): number => 12;
-var fn4 =
+var /** @type {function(?): ?} */ fn4 =
 /**
- * @param a
+ * @param {?} a
+ * @return {?}
  */
 (a) => a + 12;

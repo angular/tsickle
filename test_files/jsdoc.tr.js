@@ -8,6 +8,7 @@ function jsDocTestFunction(foo, baz) {
 }
 /**
  * @param {string} foo
+ * @return {void}
  */
 function jsDocTestBadDoc(foo) { }
 class JSDocTest {

@@ -37,4 +37,4 @@ enum ComponentIndex {
 const enum EnumTestDisappears {
   ShouldNotHaveAnySickleOutput,
 }
-let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;
+let /** @type {number} */ enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;

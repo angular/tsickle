@@ -11,6 +11,7 @@ constructor(private field3: number) {
   // A field without an explicit type declaration.
   field4 = 'string';
 /**
+ * @return {string}
  */
 getF1() {
     // This access prints a warning without a generated field stub declaration.
@@ -22,7 +23,7 @@ getF1() {
 FieldsTest.prototype.field1;
  /** @type {number} */
 FieldsTest.prototype.field2;
- /** @type {?} */
+ /** @type {string} */
 FieldsTest.prototype.field4;
  /** @type {number} */
 FieldsTest.prototype.field3;
@@ -30,6 +31,6 @@ FieldsTest.prototype.field3;
 
 }
 
-let fieldsTest = new FieldsTest(3);
+let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';

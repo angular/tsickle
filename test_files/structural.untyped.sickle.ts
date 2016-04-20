@@ -15,6 +15,7 @@ StructuralTest.prototype.field1;
 }
 /**
  * @param {?} st
+ * @return {?}
  */
 function expectsAStructuralTest(st: StructuralTest) {}
 expectsAStructuralTest({field1: 'hi', method: () => 'hi'});

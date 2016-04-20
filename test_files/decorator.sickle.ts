@@ -2,6 +2,7 @@
 /**
  * @param {Object} a
  * @param {string} b
+ * @return {void}
  */
 function decorator(a: Object, b: string) {}
 

@@ -4,7 +4,7 @@ class Static {
 private static baz: number = 3;
 
   static _sickle_typeAnnotationsHelper() {
- /** @type {?} */
+ /** @type {number} */
 Static.bar;
  /** @type {number} */
 Static.baz;

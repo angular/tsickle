@@ -12,6 +12,7 @@ class StructuralTest {
 }
 /**
  * @param {?} st
+ * @return {?}
  */
 function expectsAStructuralTest(st) { }
 expectsAStructuralTest({ field1: 'hi', method: () => 'hi' });

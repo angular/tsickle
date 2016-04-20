@@ -9,6 +9,7 @@ class FieldsTest {
         this.field3 = 2 + 1;
     }
     /**
+     * @return {string}
      */
     getF1() {
         // This access prints a warning without a generated field stub declaration.
@@ -19,12 +20,12 @@ class FieldsTest {
         FieldsTest.prototype.field1;
         /** @type {number} */
         FieldsTest.prototype.field2;
-        /** @type {?} */
+        /** @type {string} */
         FieldsTest.prototype.field4;
         /** @type {number} */
         FieldsTest.prototype.field3;
     }
 }
-let fieldsTest = new FieldsTest(3);
+let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';

@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 /**
  * @param {Object} a
  * @param {string} b
+ * @return {void}
  */
 function decorator(a, b) { }
 class DecoratorTest {
