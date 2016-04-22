@@ -72,6 +72,9 @@ export class TypeTranslator {
    *    is to work around the difference between TS and Closure destructuring.
    */
   translate(type: ts.Type, notNull = false): string {
+    // See the function `buildTypeDisplay` in the TypeScript compiler source
+    // for guidance on a similar operation.
+
     // NOTE: type.flags is a single value for primitive types, but sometimes a
     // bitwise 'or' of some values for more complex types.  We use a switch
     // statement for the basics and a series of "if" tests for the complex ones,
@@ -128,6 +131,15 @@ export class TypeTranslator {
       }
       return typeStr;
     } else if (type.flags & ts.TypeFlags.Anonymous) {
+      if (!type.symbol) {
+        // This comes up when generating code for an arrow function as passed
+        // to a generic function.  The passed-in type is tagged as anonymous
+        // and has no properties so it's hard to figure out what to generate.
+        // Just avoid it for now so we don't crash.
+        this.warn('anonymous type has no symbol');
+        return '?';
+      }
+
       if (type.symbol.flags === ts.SymbolFlags.TypeLiteral) {
         return notNullPrefix + this.translateTypeLiteral(type);
       } else if (type.symbol.flags === ts.SymbolFlags.Function) {

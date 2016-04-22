@@ -13,4 +13,15 @@ let /** @type {{optional: ((string|boolean)|undefined)}} */ typeOptionalUnion = 
 let /** @type {function(): void} */ typeFunc = function () { };
 let /** @type {function(number, ?): string} */ typeFunc2 = function (a, b) { return ''; };
 let /** @type {function(number, function(number): string): string} */ typeFunc3 = function (x, cb) { return ''; };
-// TODO: let typeFunc4: (a: number, ...args: number[]) => void;
+/**
+ * @param {function(number): number} callback
+ * @return {void}
+ */
+function typeCallback(callback) { }
+typeCallback(val => val + 1);
+/**
+ * @param {function(?): ?} callback
+ * @return {void}
+ */
+function typeGenericCallback(callback) { }
+typeGenericCallback(val => val);

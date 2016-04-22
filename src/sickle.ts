@@ -337,15 +337,11 @@ class Annotator extends Rewriter {
         this.writeRange(offset, node.getEnd());
         return true;
       case ts.SyntaxKind.ArrowFunction:
-        if (this.options.untyped) {
-          // In untyped mode, don't emit any type before the arrow function.
-          // Works around issue #57.
-          return false;
-        }
-      // Otherwise, fall through to the shared processing for function.
-      /* tslint:disable: no-switch-case-fall-through */
+        // It's difficult to annotate arrow functions due to a bug in
+        // TypeScript (see sickle issue 57).  For now, just pass them
+        // through unannotated.
+        return false;
       case ts.SyntaxKind.FunctionDeclaration:
-      /* tslint:enable: no-switch-case-fall-through */
       case ts.SyntaxKind.MethodDeclaration:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
 

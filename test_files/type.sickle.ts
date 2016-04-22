@@ -1,4 +1,6 @@
 Warning at test_files/type.in.ts:7:5: unhandled type literal
+Warning at test_files/type.in.ts:22:1: unhandled type {type flags:0x200 TypeParameter symbol.name:"T"}
+Warning at test_files/type.in.ts:22:1: unhandled type {type flags:0x200 TypeParameter symbol.name:"T"}
 ====
 let /** @type {?} */ typeAny: any;
 let /** @type {Array<?>} */ typeArr: Array<any> = null;
@@ -17,4 +19,15 @@ let /** @type {{optional: ((string|boolean)|undefined)}} */ typeOptionalUnion: {
 let /** @type {function(): void} */ typeFunc: () => void = function() {};
 let /** @type {function(number, ?): string} */ typeFunc2: (a: number, b: any) => string = function(a, b) { return ''; };
 let /** @type {function(number, function(number): string): string} */ typeFunc3: (x: number, callback: (x: number) => string) => string = function(x, cb) { return ''; }
-// TODO: let typeFunc4: (a: number, ...args: number[]) => void;
+/**
+ * @param {function(number): number} callback
+ * @return {void}
+ */
+function typeCallback(callback: (val: number) => number) { }
+typeCallback(val => val + 1);
+/**
+ * @param {function(?): ?} callback
+ * @return {void}
+ */
+function typeGenericCallback<T>(callback: (val: T) => T) { }
+typeGenericCallback(val => val);
