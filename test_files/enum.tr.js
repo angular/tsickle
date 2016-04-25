@@ -1,33 +1,39 @@
 /** @typedef {number} */
-var EnumTest1;
-(function (EnumTest1) {
-    EnumTest1[EnumTest1["XYZ"] = 0] = "XYZ";
-    EnumTest1[EnumTest1["PI"] = 3.14159] = "PI";
-})(EnumTest1 || (EnumTest1 = {}));
+let EnumTest1 = {};
+EnumTest1[0] = "XYZ";
+EnumTest1[3.14159] = "PI";
 /** @type {EnumTest1} */
 EnumTest1.XYZ = 0;
 /** @type {EnumTest1} */
 EnumTest1.PI = 3.14159;
+// Sickle rewrites the above "enum" declaration into just a plain
+// number.  Verify that the resulting TypeScript still allows you to
+// index into the enum with all the various ways allowed of enums.
+let /** @type {number} */ enumTestValue = EnumTest1.XYZ;
+let /** @type {number} */ enumTestValue2 = EnumTest1['XYZ'];
+let /** @type {string} */ enumNumIndex = EnumTest1[null];
+let /** @type {number} */ enumStrIndex = EnumTest1[null];
+/**
+ * @param {number} val
+ * @return {void}
+ */
+function enumTestFunction(val) { }
+enumTestFunction(enumTestValue);
+let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
 /** @typedef {number} */
-// This additional exported enum is here to exercise the fix for issue #51.
-export var EnumTest2;
-(function (EnumTest2) {
-    EnumTest2[EnumTest2["XYZ"] = 0] = "XYZ";
-    EnumTest2[EnumTest2["PI"] = 3.14159] = "PI";
-})(EnumTest2 || (EnumTest2 = {}));
+let EnumTest2 = {};
+EnumTest2[0] = "XYZ";
+EnumTest2[3.14159] = "PI";
 /** @type {EnumTest2} */
 EnumTest2.XYZ = 0;
 /** @type {EnumTest2} */
 EnumTest2.PI = 3.14159;
 /** @typedef {number} */
-// Repro for #97
-var ComponentIndex;
-(function (ComponentIndex) {
-    ComponentIndex[ComponentIndex["Scheme"] = 1] = "Scheme";
-    ComponentIndex[ComponentIndex["UserInfo"] = 2] = "UserInfo";
-    ComponentIndex[ComponentIndex["Domain"] = 3] = "Domain";
-    ComponentIndex[ComponentIndex["UserInfo2"] = 2] = "UserInfo2";
-})(ComponentIndex || (ComponentIndex = {}));
+let ComponentIndex = {};
+ComponentIndex[1] = "Scheme";
+ComponentIndex[2] = "UserInfo";
+ComponentIndex[3] = "Domain";
+ComponentIndex[2] = "UserInfo2";
 /** @type {ComponentIndex} */
 ComponentIndex.Scheme = 1;
 /** @type {ComponentIndex} */

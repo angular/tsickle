@@ -1,36 +1,52 @@
+type EnumTest1 = number;
 /** @typedef {number} */
-enum EnumTest1 {XYZ, PI = 3.14159}
+let EnumTest1: any = {};
+EnumTest1[0] = "XYZ";
+EnumTest1[3.14159] = "PI";
 /** @type {EnumTest1} */
-(<any>EnumTest1).XYZ = 0;
+EnumTest1.XYZ = 0;
 /** @type {EnumTest1} */
-(<any>EnumTest1).PI = 3.14159;
+EnumTest1.PI = 3.14159;
+
+
+// Sickle rewrites the above "enum" declaration into just a plain
+// number.  Verify that the resulting TypeScript still allows you to
+// index into the enum with all the various ways allowed of enums.
+let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
+let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
+let /** @type {string} */ enumNumIndex: string = EnumTest1[null as number];
+let /** @type {number} */ enumStrIndex: number = EnumTest1[null as string];
+/**
+ * @param {number} val
+ * @return {void}
+ */
+function enumTestFunction(val: EnumTest1) {}
+enumTestFunction(enumTestValue);
+
+let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];type EnumTest2 = number;
 /** @typedef {number} */
-
-
-// This additional exported enum is here to exercise the fix for issue #51.
-export enum EnumTest2 {XYZ, PI = 3.14159}
+let EnumTest2: any = {};
+EnumTest2[0] = "XYZ";
+EnumTest2[3.14159] = "PI";
 /** @type {EnumTest2} */
-(<any>EnumTest2).XYZ = 0;
+EnumTest2.XYZ = 0;
 /** @type {EnumTest2} */
-(<any>EnumTest2).PI = 3.14159;
+EnumTest2.PI = 3.14159;
+type ComponentIndex = number;
 /** @typedef {number} */
-
-
-// Repro for #97
-enum ComponentIndex {
-  Scheme = 1,
-  UserInfo,
-  Domain,
-  UserInfo2 = UserInfo,
-}
+let ComponentIndex: any = {};
+ComponentIndex[1] = "Scheme";
+ComponentIndex[2] = "UserInfo";
+ComponentIndex[3] = "Domain";
+ComponentIndex[2] = "UserInfo2";
 /** @type {ComponentIndex} */
-(<any>ComponentIndex).Scheme = 1;
+ComponentIndex.Scheme = 1;
 /** @type {ComponentIndex} */
-(<any>ComponentIndex).UserInfo = 2;
+ComponentIndex.UserInfo = 2;
 /** @type {ComponentIndex} */
-(<any>ComponentIndex).Domain = 3;
+ComponentIndex.Domain = 3;
 /** @type {ComponentIndex} */
-(<any>ComponentIndex).UserInfo2 = 2;
+ComponentIndex.UserInfo2 = 2;
 
 
 // const enums not have any Closure output, as they are purely compile-time.

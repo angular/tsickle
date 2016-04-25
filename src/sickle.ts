@@ -41,7 +41,7 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
           let {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
           res += (line + 1) + ':' + (character + 1) + ':';
         }
-        res += ' ' + d.messageText;
+        res += ' ' + ts.flattenDiagnosticMessageText(d.messageText, '\n');
         return res;
       })
       .join('\n');
@@ -795,27 +795,49 @@ class Annotator extends Rewriter {
       return false;
     }
 
-    if (!this.options.untyped) this.emit('/** @typedef {number} */\n');
-    this.writeNode(node);
-    this.emit('\n');
+    // Gather the members of enum, computing out the initializer values.
+    let members: {[name: string]: number} = {};
     let i = 0;
     for (let member of node.members) {
-      if (!this.options.untyped) this.emit(`/** @type {${node.name.getText()}} */\n`);
-      this.emit(`(<any>${node.name.getText()}).${member.name.getText()} = `);
+      let memberName = member.name.getText();
       if (member.initializer) {
         let enumConstValue = this.program.getTypeChecker().getConstantValue(member);
         if (enumConstValue) {
-          this.emit(enumConstValue.toString());
+          members[memberName] = enumConstValue;
           i = enumConstValue + 1;
         } else {
-          this.visit(member.initializer);
+          this.error(member, 'enum does not have constant value');
         }
       } else {
-        this.emit(String(i));
+        members[memberName] = i;
         i++;
       }
-      this.emit(';\n');
     }
+
+    // Emit the enum declaration, which looks like:
+    //   type Foo = number;
+    //   let Foo: any = {};
+    // We use an "any" here rather than a more specific type because
+    // we think TypeScript has already checked types for us, and it's
+    // a bit difficult to provide a type that matches all the interfaces
+    // expected of an enum (in particular, it is keyable both by
+    // string and number).
+    let name = node.name.getText();
+    this.emit(`type ${name} = number;\n`);
+    if (!this.options.untyped) this.emit('/** @typedef {number} */\n');
+    this.emit(`let ${name}: any = {};\n`);
+
+    // Emit foo[0] = 'BAR'; lines.
+    for (let member of Object.keys(members)) {
+      this.emit(`${name}[${members[member]}] = "${member}";\n`);
+    }
+
+    // Emit foo.BAR = 0; lines.
+    for (let member of Object.keys(members)) {
+      if (!this.options.untyped) this.emit(`/** @type {${name}} */\n`);
+      this.emit(`${name}.${member} = ${members[member]};\n`);
+    }
+
     return true;
   }
 
