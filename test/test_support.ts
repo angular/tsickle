@@ -12,6 +12,8 @@ const compilerOptions: ts.CompilerOptions = {
   noEmitOnError: true,
   experimentalDecorators: true,
   emitDecoratorMetadata: true,
+  noEmitHelpers: true,
+  module: ts.ModuleKind.CommonJS,
 };
 
 const {cachedLibPath, cachedLib} = (function() {
@@ -72,7 +74,17 @@ export function transformSource(inputFileName: string, sourceText: string): stri
   }
   let outputFileName = inputFileName.replace('.ts', '.js');
   expect(Object.keys(transformed)).to.deep.equal([outputFileName]);
-  return transformed[outputFileName];
+  let outputSource = transformed[outputFileName];
+
+  function pathToModuleName(context: string, fileName: string): string {
+    if (fileName[0] === '.') {
+      fileName = path.join(path.dirname(context), fileName);
+    }
+    return fileName.replace(/^.+\/test_files\//, 'sickle_test/')
+        .replace(/\.sickle\.js$/, '')
+        .replace('/', '.');
+  }
+  return sickle.convertCommonJsToGoogModule(outputFileName, outputSource, pathToModuleName).output;
 }
 
 export interface GoldenFileTest {

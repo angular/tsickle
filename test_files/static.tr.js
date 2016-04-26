@@ -1,4 +1,4 @@
-class Static {
+goog.module('sickle_test.static');class Static {
     static _sickle_typeAnnotationsHelper() {
         /** @type {number} */
         Static.bar;

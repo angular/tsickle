@@ -1,4 +1,4 @@
-// Ensure that a class is structurally equivalent to an object literal
+goog.module('sickle_test.structural.untyped');// Ensure that a class is structurally equivalent to an object literal
 // with the same fields.
 class StructuralTest {
     /**

@@ -1,4 +1,4 @@
-class Comments {
+goog.module('sickle_test.comments');class Comments {
     static _sickle_typeAnnotationsHelper() {
         /** @export
         @type {string} */

@@ -1,4 +1,4 @@
-(function () {
+goog.module('sickle_test.functions.untyped');(function () {
     /**
      * @param {?} a
      * @return {?}

@@ -1,4 +1,4 @@
-/**
+goog.module('sickle_test.jsdoc');/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.

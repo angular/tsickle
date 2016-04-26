@@ -1,10 +1,11 @@
+goog.module('sickle_test.enum.untyped');
 let EnumUntypedTest1 = {};
 EnumUntypedTest1[0] = "XYZ";
 EnumUntypedTest1[3.14159] = "PI";
 EnumUntypedTest1.XYZ = 0;
 EnumUntypedTest1.PI = 3.14159;
-let EnumUntypedTest2 = {};
-EnumUntypedTest2[0] = "XYZ";
-EnumUntypedTest2[3.14159] = "PI";
-EnumUntypedTest2.XYZ = 0;
-EnumUntypedTest2.PI = 3.14159;
+exports.EnumUntypedTest2 = {};
+exports.EnumUntypedTest2[0] = "XYZ";
+exports.EnumUntypedTest2[3.14159] = "PI";
+exports.EnumUntypedTest2.XYZ = 0;
+exports.EnumUntypedTest2.PI = 3.14159;

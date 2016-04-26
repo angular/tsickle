@@ -1,10 +1,10 @@
-/** @typedef {number} */
+goog.module('sickle_test.enum');
 let EnumTest1 = {};
 EnumTest1[0] = "XYZ";
 EnumTest1[3.14159] = "PI";
-/** @type {EnumTest1} */
+/** @type {number} */
 EnumTest1.XYZ = 0;
-/** @type {EnumTest1} */
+/** @type {number} */
 EnumTest1.PI = 3.14159;
 // Sickle rewrites the above "enum" declaration into just a plain
 // number.  Verify that the resulting TypeScript still allows you to
@@ -20,26 +20,24 @@ let /** @type {number} */ enumStrIndex = EnumTest1[null];
 function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
 let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
-/** @typedef {number} */
-let EnumTest2 = {};
-EnumTest2[0] = "XYZ";
-EnumTest2[3.14159] = "PI";
-/** @type {EnumTest2} */
-EnumTest2.XYZ = 0;
-/** @type {EnumTest2} */
-EnumTest2.PI = 3.14159;
-/** @typedef {number} */
+exports.EnumTest2 = {};
+exports.EnumTest2[0] = "XYZ";
+exports.EnumTest2[3.14159] = "PI";
+/** @type {number} */
+exports.EnumTest2.XYZ = 0;
+/** @type {number} */
+exports.EnumTest2.PI = 3.14159;
 let ComponentIndex = {};
 ComponentIndex[1] = "Scheme";
 ComponentIndex[2] = "UserInfo";
 ComponentIndex[3] = "Domain";
 ComponentIndex[2] = "UserInfo2";
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.Scheme = 1;
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.UserInfo = 2;
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.Domain = 3;
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.UserInfo2 = 2;
 let /** @type {number} */ enumTestDisappears = 0 /* ShouldNotHaveAnySickleOutput */;

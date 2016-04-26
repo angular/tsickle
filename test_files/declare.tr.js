@@ -1,0 +1,1 @@
+goog.module('sickle_test.declare');

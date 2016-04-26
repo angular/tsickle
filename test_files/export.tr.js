@@ -1,10 +1,15 @@
-export { export2, export5, export4 } from './export_helper';
+goog.module('sickle_test.export');
+var export_helper_1 = goog.require('sickle_test.export_helper');
+exports.export2 = export_helper_1.export2;
+exports.export5 = export_helper_1.export5;
+exports.export4 = export_helper_1.export4;
 // These conflict with an export discovered via the above exports,
 // so the above export's versions should not show up.
-export var /** @type {string} */ export1 = 'wins';
-export { export4 as export3 } from './export_helper';
+exports.export1 = 'wins';
+var export_helper_2 = export_helper_1;
+exports.export3 = export_helper_2.export4;
 // This local should be fine to export.
-export var /** @type {number} */ exportLocal = 3;
+exports.exportLocal = 3;
 // The existence of a local should not prevent "export2" from making
 // it to the exports list.  export2 should only show up once in the
 // above two "export *" lines, though.

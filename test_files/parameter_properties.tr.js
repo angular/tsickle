@@ -1,4 +1,4 @@
-class ParamProps {
+goog.module('sickle_test.parameter_properties');class ParamProps {
     /**
      * @param {string} bar
      * @param {string} bar2

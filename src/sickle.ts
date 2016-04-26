@@ -845,9 +845,17 @@ class Annotator extends Rewriter {
     // a bit difficult to provide a type that matches all the interfaces
     // expected of an enum (in particular, it is keyable both by
     // string and number).
+    // We don't emit a specific Closure type for the enum because it's
+    // also difficult to make work: for example, we can't make the name
+    // both a typedef and an indexable object if we export it.
     let name = node.name.getText();
+    if (node.flags & ts.NodeFlags.Export) {
+      this.emit('export ');
+    }
     this.emit(`type ${name} = number;\n`);
-    if (!this.options.untyped) this.emit('/** @typedef {number} */\n');
+    if (node.flags & ts.NodeFlags.Export) {
+      this.emit('export ');
+    }
     this.emit(`let ${name}: any = {};\n`);
 
     // Emit foo[0] = 'BAR'; lines.
@@ -857,7 +865,7 @@ class Annotator extends Rewriter {
 
     // Emit foo.BAR = 0; lines.
     for (let member of Object.keys(members)) {
-      if (!this.options.untyped) this.emit(`/** @type {${name}} */\n`);
+      if (!this.options.untyped) this.emit(`/** @type {number} */\n`);
       this.emit(`${name}.${member} = ${members[member]};\n`);
     }
 

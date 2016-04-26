@@ -1,4 +1,4 @@
-/**
+goog.module('sickle_test.basic.untyped');/**
  * @param {?} arg1
  * @return {?}
  */

@@ -1,4 +1,4 @@
-class SuperTestBaseNoArg {
+goog.module('sickle_test.super');class SuperTestBaseNoArg {
     /**
      */
     constructor() {

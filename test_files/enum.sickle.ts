@@ -1,11 +1,10 @@
 type EnumTest1 = number;
-/** @typedef {number} */
 let EnumTest1: any = {};
 EnumTest1[0] = "XYZ";
 EnumTest1[3.14159] = "PI";
-/** @type {EnumTest1} */
+/** @type {number} */
 EnumTest1.XYZ = 0;
-/** @type {EnumTest1} */
+/** @type {number} */
 EnumTest1.PI = 3.14159;
 
 
@@ -23,29 +22,27 @@ let /** @type {number} */ enumStrIndex: number = EnumTest1[null as string];
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
-let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];type EnumTest2 = number;
-/** @typedef {number} */
-let EnumTest2: any = {};
+let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];export type EnumTest2 = number;
+export let EnumTest2: any = {};
 EnumTest2[0] = "XYZ";
 EnumTest2[3.14159] = "PI";
-/** @type {EnumTest2} */
+/** @type {number} */
 EnumTest2.XYZ = 0;
-/** @type {EnumTest2} */
+/** @type {number} */
 EnumTest2.PI = 3.14159;
 type ComponentIndex = number;
-/** @typedef {number} */
 let ComponentIndex: any = {};
 ComponentIndex[1] = "Scheme";
 ComponentIndex[2] = "UserInfo";
 ComponentIndex[3] = "Domain";
 ComponentIndex[2] = "UserInfo2";
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.Scheme = 1;
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.UserInfo = 2;
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.Domain = 3;
-/** @type {ComponentIndex} */
+/** @type {number} */
 ComponentIndex.UserInfo2 = 2;
 
 

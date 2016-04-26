@@ -1,4 +1,4 @@
-class FieldsTest {
+goog.module('sickle_test.fields');class FieldsTest {
     /**
      * @param {number} field3
      */
