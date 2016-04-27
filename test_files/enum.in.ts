@@ -2,7 +2,7 @@
 const EnumTestMissingSemi = []
 enum EnumTest1 {XYZ, PI = 3.14159}
 
-// Sickle rewrites the above "enum" declaration into just a plain
+// Tsickle rewrites the above "enum" declaration into just a plain
 // number.  Verify that the resulting TypeScript still allows you to
 // index into the enum with all the various ways allowed of enums.
 let enumTestValue: EnumTest1 = EnumTest1.XYZ;
@@ -28,9 +28,9 @@ enum ComponentIndex {
 
 // const enums not have any Closure output, as they are purely compile-time.
 const enum EnumTestDisappears {
-  ShouldNotHaveAnySickleOutput,
+  ShouldNotHaveAnyTsickleOutput,
 }
-let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;
+let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnyTsickleOutput;
 
 // One place where enums with non-constant values make sense is when
 // you are exporting a Closure value into a TypeScript namespace:

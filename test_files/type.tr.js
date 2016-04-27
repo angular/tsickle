@@ -1,4 +1,4 @@
-goog.module('sickle_test.type');let /** @type {?} */ typeAny;
+goog.module('tsickle_test.type');let /** @type {?} */ typeAny;
 let /** @type {Array<?>} */ typeArr = null;
 let /** @type {Array<?>} */ typeArr2 = null;
 let /** @type {Array<Array<{a: ?}>>} */ typeNestedArr = null;

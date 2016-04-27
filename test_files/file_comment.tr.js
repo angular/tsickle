@@ -1,4 +1,4 @@
-goog.module('sickle_test.file_comment');/**
+goog.module('tsickle_test.file_comment');/**
  * @return {string}
  */
 function foo() {

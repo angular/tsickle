@@ -1,4 +1,4 @@
-goog.module('sickle_test.enum.untyped');
+goog.module('tsickle_test.enum.untyped');
 let EnumUntypedTest1 = {};
 EnumUntypedTest1.XYZ = 0;
 EnumUntypedTest1.PI = 3.14159;

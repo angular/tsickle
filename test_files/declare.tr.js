@@ -1,1 +1,1 @@
-goog.module('sickle_test.declare');
+goog.module('tsickle_test.declare');

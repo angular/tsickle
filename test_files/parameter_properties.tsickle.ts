@@ -7,7 +7,7 @@ constructor(
 public bar: string,
 public bar2: string) {}
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @export
  @type {string} */
 ParamProps.prototype.bar;

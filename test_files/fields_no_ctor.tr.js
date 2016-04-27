@@ -1,5 +1,5 @@
-goog.module('sickle_test.fields_no_ctor');class NoCtor {
-    static _sickle_typeAnnotationsHelper() {
+goog.module('tsickle_test.fields_no_ctor');class NoCtor {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         NoCtor.prototype.field1;
     }

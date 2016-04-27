@@ -16,7 +16,7 @@ constructor(private ctorArg: string) {
     this.field = 'hello';
   }
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {?} */
 Foo.prototype.field;
  /** @type {?} */

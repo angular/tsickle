@@ -7,7 +7,7 @@ class StructuralTest {
  */
 method(): string { return this.field1; }
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {?} */
 StructuralTest.prototype.field1;
   }

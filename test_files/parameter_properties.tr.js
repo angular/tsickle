@@ -1,4 +1,4 @@
-goog.module('sickle_test.parameter_properties');class ParamProps {
+goog.module('tsickle_test.parameter_properties');class ParamProps {
     /**
      * @param {string} bar
      * @param {string} bar2
@@ -7,7 +7,7 @@ goog.module('sickle_test.parameter_properties');class ParamProps {
         this.bar = bar;
         this.bar2 = bar2;
     }
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @export
         @type {string} */
         ParamProps.prototype.bar;

@@ -4,16 +4,16 @@ import * as minimist from 'minimist';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import * as sickle from './sickle';
+import * as tsickle from './tsickle';
 
 /**
  * File name for the generated Closure externs.
  * This is never written to disk, but should be unique with respect to
  * the js files that may actually exist.
  */
-const externsFileName = 'sickle_externs.js';
+const externsFileName = 'tsickle_externs.js';
 
-/** Sickle settings passed on the command line. */
+/** Tsickle settings passed on the command line. */
 interface Settings {
   /** If true, write temporary .js files to disk. Useful for debugging. */
   saveTemporaries?: boolean;
@@ -23,19 +23,19 @@ interface Settings {
 }
 
 function usage() {
-  console.error(`usage: sickle [sickle args] -- [tsc args]
+  console.error(`usage: tsickle [tsickle args] -- [tsc args]
 
 example:
-  sickle --output bundle.js -- -p src --noImplicitAny
+  tsickle --output bundle.js -- -p src --noImplicitAny
 
-sickle flags are:
+tsickle flags are:
   --saveTemporaries  save intermediate .js files to disk
   --output=PATH      write final Closure bundle to PATH
 `);
 }
 
 /**
- * Parses the command-line arguments, extracting the sickle settings and
+ * Parses the command-line arguments, extracting the tsickle settings and
  * the arguments to pass on to tsc.
  */
 function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: string[]} {
@@ -150,40 +150,40 @@ function createSourceReplacingCompilerHost(
  */
 function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
     {jsFiles?: {[fileName: string]: string}, errors?: ts.Diagnostic[]} {
-  // Parse and load the program without sickle processing.
+  // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
-  // - sickle can use the result of typechecking for annotation
+  // - tsickle can use the result of typechecking for annotation
   let program = ts.createProgram(fileNames, options);
   let errors = ts.getPreEmitDiagnostics(program);
   if (errors.length > 0) {
     return {errors};
   }
 
-  // TODO(evanm): let the user configure sickle options via the command line.
-  // Or, better, just make sickle always work without needing any options.
-  const sickleOptions: sickle.Options = {
+  // TODO(evanm): let the user configure tsickle options via the command line.
+  // Or, better, just make tsickle always work without needing any options.
+  const tsickleOptions: tsickle.Options = {
     untyped: true,
   };
 
-  // Process each input file with sickle and save the output.
-  let sickleOutput: ts.Map<string> = {};
-  let sickleExterns = '';
+  // Process each input file with tsickle and save the output.
+  let tsickleOutput: ts.Map<string> = {};
+  let tsickleExterns = '';
   for (let fileName of fileNames) {
     let {output, externs, diagnostics} =
-        sickle.annotate(program, program.getSourceFile(fileName), sickleOptions);
+        tsickle.annotate(program, program.getSourceFile(fileName), tsickleOptions);
     if (diagnostics.length > 0) {
       return {errors: diagnostics};
     }
-    sickleOutput[fileName] = output;
+    tsickleOutput[fileName] = output;
     if (externs) {
-      sickleExterns += externs;
+      tsickleExterns += externs;
     }
   }
 
-  // Reparse and reload the program, inserting the sickle output in
+  // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
-  let host = createSourceReplacingCompilerHost(sickleOutput, ts.createCompilerHost(options));
+  let host = createSourceReplacingCompilerHost(tsickleOutput, ts.createCompilerHost(options));
   program = ts.createProgram(fileNames, options, host);
   errors = ts.getPreEmitDiagnostics(program);
   if (errors.length > 0) {
@@ -192,7 +192,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
 
   // Emit, creating a map of fileName => generated JS source.
   let jsFiles: {[fileName: string]: string} = {
-    [externsFileName]: sickleExterns,
+    [externsFileName]: tsickleExterns,
   };
   function writeFile(fileName: string, data: string): void { jsFiles[fileName] = data; }
   let {diagnostics} = program.emit(undefined, writeFile);
@@ -207,7 +207,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
   }
   for (let fileName of Object.keys(jsFiles)) {
     let {output} =
-        sickle.convertCommonJsToGoogModule(fileName, jsFiles[fileName], pathToModuleName);
+        tsickle.convertCommonJsToGoogModule(fileName, jsFiles[fileName], pathToModuleName);
     jsFiles[fileName] = output;
   }
 
@@ -244,15 +244,15 @@ function main(args: string[]) {
   let {settings, tscArgs} = loadSettingsFromArgs(args);
   let {options, fileNames, errors} = loadTscConfig(tscArgs);
   if (errors && errors.length > 0) {
-    console.error(sickle.formatDiagnostics(errors));
+    console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
   }
 
-  // Run sickle+TSC to convert inputs to Closure JS files.
+  // Run tsickle+TSC to convert inputs to Closure JS files.
   let jsFiles: {[fileName: string]: string};
   ({jsFiles, errors} = toClosureJS(options, fileNames));
   if (errors && errors.length > 0) {
-    console.error(sickle.formatDiagnostics(errors));
+    console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
   }
   if (Object.keys(jsFiles).length === 0) {

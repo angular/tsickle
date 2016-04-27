@@ -1,11 +1,11 @@
-goog.module('sickle_test.decorator');/**
+goog.module('tsickle_test.decorator');/**
  * @param {Object} a
  * @param {string} b
  * @return {void}
  */
 function decorator(a, b) { }
 class DecoratorTest {
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         DecoratorTest.prototype.x;
     }

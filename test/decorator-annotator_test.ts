@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import {convertDecorators} from '../src/decorator-annotator';
 import {expect} from 'chai';
-import * as sickle from '../src/sickle';
+import * as tsickle from '../src/tsickle';
 
 /**
  * If true, attempt to compile all the test cases.
@@ -47,7 +47,7 @@ function verifyCompiles(sourceText: string) {
   let errors = ts.getPreEmitDiagnostics(program);
   if (errors.length > 0) {
     console.error(sourceText);
-    console.error(sickle.formatDiagnostics(errors));
+    console.error(tsickle.formatDiagnostics(errors));
   }
 }
 
@@ -237,7 +237,7 @@ class Foo {
 }`,
               true /* allow errors */);
 
-          expect(sickle.formatDiagnostics(diagnostics))
+          expect(tsickle.formatDiagnostics(diagnostics))
               .to.equal(
                   'Error at testcase.ts:3:3: cannot process decorators on ComputedPropertyName');
         });

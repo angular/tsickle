@@ -19,7 +19,7 @@ class Comments {
    */
   jsdoc2: number;
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @export
  @type {string} */
 Comments.prototype.export1;

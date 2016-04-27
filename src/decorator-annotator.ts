@@ -1,10 +1,10 @@
-import * as sickle from './sickle';
+import * as tsickle from './tsickle';
 import * as ts from 'typescript';
 
 // ClassRewriter rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
 // separately for each class we encounter.
-class ClassRewriter extends sickle.Rewriter {
+class ClassRewriter extends tsickle.Rewriter {
   /** Decorators on the class itself. */
   decorators: ts.Decorator[];
   /** The constructor parameter list and decorators on each param. */
@@ -203,7 +203,7 @@ class ClassRewriter extends sickle.Rewriter {
   }
 }
 
-class DecoratorRewriter extends sickle.Rewriter {
+class DecoratorRewriter extends tsickle.Rewriter {
   process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.visit(this.file);
     return this.getOutput();

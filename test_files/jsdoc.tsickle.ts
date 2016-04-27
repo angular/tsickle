@@ -25,7 +25,7 @@ class JSDocTest {
   /** @type {badType} */
   typedThing: number;
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @export
  @type {string} */
 JSDocTest.prototype.exported;

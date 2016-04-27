@@ -1,5 +1,5 @@
-goog.module('sickle_test.static');class Static {
-    static _sickle_typeAnnotationsHelper() {
+goog.module('tsickle_test.static');class Static {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         Static.bar;
         /** @type {number} */

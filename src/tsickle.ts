@@ -22,7 +22,7 @@ export interface Output {
 
 /**
  * Symbols that are already declared as externs in Closure, that should
- * be avoided by sickle's "declare ..." => externs.js conversion.
+ * be avoided by tsickle's "declare ..." => externs.js conversion.
  */
 export let closureExternsBlacklist: string[] = [
   'exports',
@@ -285,7 +285,7 @@ class Annotator extends Rewriter {
   maybeProcess(node: ts.Node): boolean {
     if (node.flags & ts.NodeFlags.Ambient) {
       this.visitExterns(node);
-      // An ambient declaration declares types for TypeScript's benefit, so we want to skip Sickle
+      // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
       this.writeRange(node.getFullStart(), node.getEnd());
       return true;
@@ -361,7 +361,7 @@ class Annotator extends Rewriter {
         return true;
       case ts.SyntaxKind.ArrowFunction:
         // It's difficult to annotate arrow functions due to a bug in
-        // TypeScript (see sickle issue 57).  For now, just pass them
+        // TypeScript (see tsickle issue 57).  For now, just pass them
         // through unannotated.
         return false;
       case ts.SyntaxKind.FunctionDeclaration:
@@ -551,7 +551,7 @@ class Annotator extends Rewriter {
   }
 
   // emitTypeAnnotationsHelper produces a
-  // _sickle_typeAnnotationsHelper() where none existed in the
+  // _tsickle_typeAnnotationsHelper() where none existed in the
   // original source.  It's necessary in the case where TypeScript
   // syntax specifies there are additional properties on the class,
   // because to declare these in Closure you must declare these in a
@@ -587,7 +587,7 @@ class Annotator extends Rewriter {
       return;
     }
 
-    this.emit('\n\n  static _sickle_typeAnnotationsHelper() {\n');
+    this.emit('\n\n  static _tsickle_typeAnnotationsHelper() {\n');
     staticProps.forEach(p => this.visitProperty([classDecl.name.text], p));
     let memberNamespace = [classDecl.name.text, 'prototype'];
     nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));
@@ -814,7 +814,7 @@ class Annotator extends Rewriter {
   private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
     if (node.flags & ts.NodeFlags.Const) {
       // const enums disappear after TS compilation and consequently need no
-      // help from sickle.
+      // help from tsickle.
       return false;
     }
 
@@ -898,10 +898,10 @@ class Annotator extends Rewriter {
 
   /**
    * debug logs a debug warning.  These should only be used for cases
-   * where sickle is making a questionable judgement about what to do.
-   * By default, sickle does not report any warnings to the caller,
+   * where tsickle is making a questionable judgement about what to do.
+   * By default, tsickle does not report any warnings to the caller,
    * and warnings are hidden behind a debug flag, as warnings are only
-   * for sickle to debug itself.
+   * for tsickle to debug itself.
    */
   private debugWarn(node: ts.Node, messageText: string) {
     if (!this.options.logWarning) return;

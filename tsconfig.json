@@ -7,8 +7,8 @@
   "files": [
     "src/google-closure-compiler.d.ts",
     "src/main.ts",
-    "src/sickle.ts",
-    "test/sickle_test.ts",
+    "src/tsickle.ts",
+    "test/tsickle_test.ts",
     "typings/tsd.d.ts"
   ]
 }

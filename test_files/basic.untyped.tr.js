@@ -1,4 +1,4 @@
-goog.module('sickle_test.basic.untyped');/**
+goog.module('tsickle_test.basic.untyped');/**
  * @param {?} arg1
  * @return {?}
  */
@@ -13,7 +13,7 @@ class Foo {
         this.ctorArg = ctorArg;
         this.field = 'hello';
     }
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {?} */
         Foo.prototype.field;
         /** @type {?} */

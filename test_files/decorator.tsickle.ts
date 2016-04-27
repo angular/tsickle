@@ -10,7 +10,7 @@ class DecoratorTest {
   @decorator
 private x: number;
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {number} */
 DecoratorTest.prototype.x;
   }

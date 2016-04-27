@@ -1,4 +1,4 @@
-goog.module('sickle_test.super');class SuperTestBaseNoArg {
+goog.module('tsickle_test.super');class SuperTestBaseNoArg {
     /**
      */
     constructor() {
@@ -11,7 +11,7 @@ class SuperTestBaseOneArg {
     constructor(x) {
         this.x = x;
     }
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         SuperTestBaseOneArg.prototype.x;
     }
@@ -25,7 +25,7 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
         super(3);
         this.y = y;
     }
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {string} */
         SuperTestDerivedParamProps.prototype.y;
     }
@@ -38,7 +38,7 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
         super(3);
         this.y = 'foo';
     }
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {string} */
         SuperTestDerivedInitializedProps.prototype.y;
     }
@@ -59,13 +59,13 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 }
 // A class implementing an interface.
 class SuperTestDerivedInterface {
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         SuperTestDerivedInterface.prototype.foo;
     }
 }
 class SuperTestStaticProp extends SuperTestBaseOneArg {
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         SuperTestStaticProp.foo;
     }

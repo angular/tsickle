@@ -1,1 +1,1 @@
-goog.module('sickle_test.typedef.untyped');var /** @type {?} */ y = 3;
+goog.module('tsickle_test.typedef.untyped');var /** @type {?} */ y = 3;

@@ -10,7 +10,7 @@ EnumTest1[EnumTest1.XYZ] = "XYZ";
 EnumTest1[EnumTest1.PI] = "PI";
 
 
-// Sickle rewrites the above "enum" declaration into just a plain
+// Tsickle rewrites the above "enum" declaration into just a plain
 // number.  Verify that the resulting TypeScript still allows you to
 // index into the enum with all the various ways allowed of enums.
 let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
@@ -52,9 +52,9 @@ ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
 
 // const enums not have any Closure output, as they are purely compile-time.
 const enum EnumTestDisappears {
-  ShouldNotHaveAnySickleOutput,
+  ShouldNotHaveAnyTsickleOutput,
 }
-let /** @type {number} */ enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;
+let /** @type {number} */ enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnyTsickleOutput;
 type EnumWithNonConstValues = number;
 let EnumWithNonConstValues: any = {};
 /** @type {number} */

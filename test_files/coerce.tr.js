@@ -1,4 +1,4 @@
-goog.module('sickle_test.coerce');/**
+goog.module('tsickle_test.coerce');/**
  * @param {string} arg
  * @return {string}
  */

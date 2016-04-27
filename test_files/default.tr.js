@@ -1,4 +1,4 @@
-goog.module('sickle_test.default');/**
+goog.module('tsickle_test.default');/**
  * @param {number} x
  * @param {string=} y
  * @return {void}

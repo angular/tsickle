@@ -1,5 +1,5 @@
-goog.module('sickle_test.comments');class Comments {
-    static _sickle_typeAnnotationsHelper() {
+goog.module('tsickle_test.comments');class Comments {
+    static _tsickle_typeAnnotationsHelper() {
         /** @export
         @type {string} */
         Comments.prototype.export1;

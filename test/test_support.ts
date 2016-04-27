@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 import * as glob from 'glob';
 import * as path from 'path';
 
-import * as sickle from '../src/sickle';
+import * as tsickle from '../src/tsickle';
 
 /** The TypeScript compiler options used by the test suite. */
 const compilerOptions: ts.CompilerOptions = {
@@ -24,7 +24,7 @@ const {cachedLibPath, cachedLib} = (function() {
 })();
 
 export function annotateSource(
-    inputFileName: string, sourceText: string, options: sickle.Options = {}): sickle.Output {
+    inputFileName: string, sourceText: string, options: tsickle.Options = {}): tsickle.Output {
   let host = ts.createCompilerHost(compilerOptions);
   let original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
@@ -40,10 +40,10 @@ export function annotateSource(
   let program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
-    throw new Error(sickle.formatDiagnostics(diagnostics));
+    throw new Error(tsickle.formatDiagnostics(diagnostics));
   }
 
-  return sickle.annotate(program, program.getSourceFile(inputFileName), options);
+  return tsickle.annotate(program, program.getSourceFile(inputFileName), options);
 }
 
 export function transformSource(inputFileName: string, sourceText: string): string {
@@ -63,16 +63,17 @@ export function transformSource(inputFileName: string, sourceText: string): stri
   let program = ts.createProgram([inputFileName], compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
-    throw new Error('Failed to parse ' + sourceText + '\n' + sickle.formatDiagnostics(diagnostics));
+    throw new Error(
+        'Failed to parse ' + sourceText + '\n' + tsickle.formatDiagnostics(diagnostics));
   }
 
   let transformed: {[fileName: string]: string} = {};
   let emitRes =
       program.emit(mainSrc, (fileName: string, data: string) => { transformed[fileName] = data; });
   if (emitRes.diagnostics.length) {
-    throw new Error(sickle.formatDiagnostics(emitRes.diagnostics));
+    throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
   }
-  let outputFileName = inputFileName.replace('.ts', '.js');
+  let outputFileName = inputFileName.replace(/.ts$/, '.js');
   expect(Object.keys(transformed)).to.deep.equal([outputFileName]);
   let outputSource = transformed[outputFileName];
 
@@ -80,22 +81,22 @@ export function transformSource(inputFileName: string, sourceText: string): stri
     if (fileName[0] === '.') {
       fileName = path.join(path.dirname(context), fileName);
     }
-    return fileName.replace(/^.+\/test_files\//, 'sickle_test/')
-        .replace(/\.sickle\.js$/, '')
+    return fileName.replace(/^.+\/test_files\//, 'tsickle_test/')
+        .replace(/\.tsickle\.js$/, '')
         .replace('/', '.');
   }
-  return sickle.convertCommonJsToGoogModule(outputFileName, outputSource, pathToModuleName).output;
+  return tsickle.convertCommonJsToGoogModule(outputFileName, outputSource, pathToModuleName).output;
 }
 
 export interface GoldenFileTest {
   name: string;
   // Path to input file.
   tsPath: string;
-  // Path to golden of post-sickle processing.
-  sicklePath: string;
-  // Path to golden of post-sickle externs, if any.
+  // Path to golden of post-tsickle processing.
+  tsicklePath: string;
+  // Path to golden of post-tsickle externs, if any.
   externsPath: string;
-  // Path to golden of post-sickle, post TypeScript->ES6 processing.
+  // Path to golden of post-tsickle, post TypeScript->ES6 processing.
   es6Path: string;
 }
 
@@ -108,12 +109,11 @@ export function goldenTests(): GoldenFileTest[] {
     return {
       name: testName,
       tsPath: testPath,
-      sicklePath: testPath.replace(/\.in\.ts$/, '.sickle.ts'),
-      externsPath: testPath.replace(/\.in\.ts$/, '.sickle_externs.js'),
+      tsicklePath: testPath.replace(/\.in\.ts$/, '.tsickle.ts'),
+      externsPath: testPath.replace(/\.in\.ts$/, '.tsickle_externs.js'),
       es6Path: testPath.replace(/\.in\.ts$/, '.tr.js'),
     };
   });
-
   // export_helper*.ts is special, because it is imported by another
   // test.  It it must be importable as plain './export_helper' so its
   // files can't have extensions a ".in.ts" or ".tr.js".
@@ -123,8 +123,8 @@ export function goldenTests(): GoldenFileTest[] {
     let exportHelperTestCase: GoldenFileTest = {
       name: testName,
       tsPath: testPath,
-      sicklePath: testPath.replace(/\.ts$/, '.sickle.ts'),
-      externsPath: testPath.replace(/\.ts$/, '.sickle_externs.js'),
+      tsicklePath: testPath.replace(/\.ts$/, '.tsickle.ts'),
+      externsPath: testPath.replace(/\.ts$/, '.tsickle_externs.js'),
       es6Path: testPath.replace(/\.ts$/, '.js'),
     };
     tests.push(exportHelperTestCase);

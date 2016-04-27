@@ -10,7 +10,7 @@ class SuperTestBaseOneArg {
  */
 constructor(public x: number) {}
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {number} */
 SuperTestBaseOneArg.prototype.x;
   }
@@ -26,7 +26,7 @@ constructor(public y: string) {
     super(3);
   }
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {string} */
 SuperTestDerivedParamProps.prototype.y;
   }
@@ -42,7 +42,7 @@ constructor() {
     super(3);
   }
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {string} */
 SuperTestDerivedInitializedProps.prototype.y;
   }
@@ -77,7 +77,7 @@ interface SuperTestInterface {
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {number} */
 SuperTestDerivedInterface.prototype.foo;
   }
@@ -87,7 +87,7 @@ SuperTestDerivedInterface.prototype.foo;
 class SuperTestStaticProp extends SuperTestBaseOneArg {
   static foo = 3;
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {number} */
 SuperTestStaticProp.foo;
   }

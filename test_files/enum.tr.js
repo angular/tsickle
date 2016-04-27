@@ -1,4 +1,4 @@
-goog.module('sickle_test.enum');
+goog.module('tsickle_test.enum');
 // Line with a missing semicolon should not break the following enum.
 const /** @type {Array<?>} */ EnumTestMissingSemi = [];
 let EnumTest1 = {};
@@ -8,7 +8,7 @@ EnumTest1.XYZ = 0;
 EnumTest1.PI = 3.14159;
 EnumTest1[EnumTest1.XYZ] = "XYZ";
 EnumTest1[EnumTest1.PI] = "PI";
-// Sickle rewrites the above "enum" declaration into just a plain
+// Tsickle rewrites the above "enum" declaration into just a plain
 // number.  Verify that the resulting TypeScript still allows you to
 // index into the enum with all the various ways allowed of enums.
 let /** @type {number} */ enumTestValue = EnumTest1.XYZ;
@@ -42,7 +42,7 @@ ComponentIndex[ComponentIndex.Scheme] = "Scheme";
 ComponentIndex[ComponentIndex.UserInfo] = "UserInfo";
 ComponentIndex[ComponentIndex.Domain] = "Domain";
 ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
-let /** @type {number} */ enumTestDisappears = 0 /* ShouldNotHaveAnySickleOutput */;
+let /** @type {number} */ enumTestDisappears = 0 /* ShouldNotHaveAnyTsickleOutput */;
 let EnumWithNonConstValues = {};
 /** @type {number} */
 EnumWithNonConstValues.Scheme = (x => x + 1)(3);

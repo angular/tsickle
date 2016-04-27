@@ -3,13 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {expect} from 'chai';
 
-import * as sickle from '../src/sickle';
+import * as tsickle from '../src/tsickle';
 import {annotateSource, transformSource, goldenTests} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
 
-// If true, update all the golden .js files to be whatever sickle
+// If true, update all the golden .js files to be whatever tsickle
 // produces from the .ts source. Do not change this code but run as:
 //     UPDATE_GOLDENS=y gulp test
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
@@ -61,14 +61,14 @@ describe('golden tests', () => {
       it.skip(test.name);
       return;
     }
-    let options: sickle.Options = {};
+    let options: tsickle.Options = {};
     if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
     }
     it(test.name, () => {
       let tsSource = fs.readFileSync(test.tsPath, 'utf-8');
 
-      // Run TypeScript through sickle and compare against goldens.
+      // Run TypeScript through tsickle and compare against goldens.
       let warnings: ts.Diagnostic[] = [];
       options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
       let {output, externs, diagnostics} = annotateSource(test.tsPath, tsSource, options);
@@ -79,19 +79,19 @@ describe('golden tests', () => {
       diagnostics.push(...warnings);
       if (diagnostics.length > 0) {
         // Munge the filenames in the diagnostics so that they don't include
-        // the sickle checkout path.
+        // the tsickle checkout path.
         for (let diag of diagnostics) {
           let fileName = diag.file.fileName;
           diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
         }
-        fileOutput = sickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
+        fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
       }
-      compareAgainstGolden(fileOutput, test.sicklePath);
+      compareAgainstGolden(fileOutput, test.tsicklePath);
       compareAgainstGolden(externs, test.externsPath);
 
-      // Run sickled TypeScript through TypeScript compiler
+      // Run tsickled TypeScript through TypeScript compiler
       // and compare against goldens.
-      let es6Source = transformSource(test.sicklePath, output);
+      let es6Source = transformSource(test.tsicklePath, output);
       compareAgainstGolden(es6Source, test.es6Path);
     });
   });
@@ -100,11 +100,11 @@ describe('golden tests', () => {
 describe('getJSDocAnnotation', () => {
   it('does not get non-jsdoc values', () => {
     let source = '/* ordinary comment */';
-    expect(sickle.getJSDocAnnotation(source)).to.equal(null);
+    expect(tsickle.getJSDocAnnotation(source)).to.equal(null);
   });
   it('grabs plain text from jsdoc', () => {
     let source = '/** jsdoc comment */';
-    expect(sickle.getJSDocAnnotation(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
+    expect(tsickle.getJSDocAnnotation(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
   });
   it('gathers @tags from jsdoc', () => {
     let source = `/**
@@ -114,7 +114,7 @@ describe('getJSDocAnnotation', () => {
   * @return foobar
   * @nosideeffects
   */`;
-    expect(sickle.getJSDocAnnotation(source)).to.deep.equal({
+    expect(tsickle.getJSDocAnnotation(source)).to.deep.equal({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
         {tagName: 'param', parameterName: 'bar', text: 'multiple line comment'},
@@ -127,15 +127,15 @@ describe('getJSDocAnnotation', () => {
     let source = `/**
   * @param {string} foo
 */`;
-    expect(() => sickle.getJSDocAnnotation(source)).to.throw(Error);
+    expect(() => tsickle.getJSDocAnnotation(source)).to.throw(Error);
   });
   it('rejects @type annotations', () => {
     let source = `/** @type {string} foo */`;
-    expect(() => sickle.getJSDocAnnotation(source)).to.throw(Error);
+    expect(() => tsickle.getJSDocAnnotation(source)).to.throw(Error);
   });
   it('allows @suppress annotations', () => {
     let source = `/** @suppress {checkTypes} I hate types */`;
-    expect(sickle.getJSDocAnnotation(source)).to.deep.equal({
+    expect(tsickle.getJSDocAnnotation(source)).to.deep.equal({
       tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]
     });
   });
@@ -151,7 +151,7 @@ describe('convertCommonJsToGoogModule', () => {
 
   function expectCommonJs(fileName: string, content: string) {
     fileName = fileName.substring(0, fileName.lastIndexOf('.'));
-    return expect(sickle.convertCommonJsToGoogModule(fileName, content, pathToModuleName).output);
+    return expect(tsickle.convertCommonJsToGoogModule(fileName, content, pathToModuleName).output);
   }
 
   it('adds a goog.module call', () => {
@@ -271,7 +271,7 @@ foo_1.A, foo_2.B, foo_2        , foo_3.default;
   });
 
   it('gathers referenced modules', () => {
-    let {referencedModules} = sickle.convertCommonJsToGoogModule(
+    let {referencedModules} = tsickle.convertCommonJsToGoogModule(
         'a/b', `
 require('../foo/bare-require');
 var googRequire = require('goog:foo.bar');

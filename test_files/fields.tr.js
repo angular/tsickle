@@ -1,4 +1,4 @@
-goog.module('sickle_test.fields');class FieldsTest {
+goog.module('tsickle_test.fields');class FieldsTest {
     /**
      * @param {number} field3
      */
@@ -15,7 +15,7 @@ goog.module('sickle_test.fields');class FieldsTest {
         // This access prints a warning without a generated field stub declaration.
         return this.field1;
     }
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @type {string} */
         FieldsTest.prototype.field1;
         /** @type {number} */

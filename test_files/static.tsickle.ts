@@ -3,7 +3,7 @@ class Static {
   static bar = 3;
 private static baz: number = 3;
 
-  static _sickle_typeAnnotationsHelper() {
+  static _tsickle_typeAnnotationsHelper() {
  /** @type {number} */
 Static.bar;
  /** @type {number} */

@@ -1,4 +1,4 @@
-goog.module('sickle_test.jsdoc');/**
+goog.module('tsickle_test.jsdoc');/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.
@@ -12,7 +12,7 @@ function jsDocTestFunction(foo, baz) {
  */
 function jsDocTestBadDoc(foo) { }
 class JSDocTest {
-    static _sickle_typeAnnotationsHelper() {
+    static _tsickle_typeAnnotationsHelper() {
         /** @export
         @type {string} */
         JSDocTest.prototype.exported;
