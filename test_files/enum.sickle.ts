@@ -2,12 +2,12 @@
 const /** @type {Array<?>} */ EnumTestMissingSemi = []
 type EnumTest1 = number;
 let EnumTest1: any = {};
-EnumTest1[0] = "XYZ";
-EnumTest1[3.14159] = "PI";
 /** @type {number} */
 EnumTest1.XYZ = 0;
 /** @type {number} */
 EnumTest1.PI = 3.14159;
+EnumTest1[EnumTest1.XYZ] = "XYZ";
+EnumTest1[EnumTest1.PI] = "PI";
 
 
 // Sickle rewrites the above "enum" declaration into just a plain
@@ -27,19 +27,15 @@ enumTestFunction(enumTestValue);
 let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
 export type EnumTest2 = number;
 export let EnumTest2: any = {};
-EnumTest2[0] = "XYZ";
-EnumTest2[3.14159] = "PI";
 /** @type {number} */
 EnumTest2.XYZ = 0;
 /** @type {number} */
 EnumTest2.PI = 3.14159;
+EnumTest2[EnumTest2.XYZ] = "XYZ";
+EnumTest2[EnumTest2.PI] = "PI";
 
 type ComponentIndex = number;
 let ComponentIndex: any = {};
-ComponentIndex[1] = "Scheme";
-ComponentIndex[2] = "UserInfo";
-ComponentIndex[0] = "Domain";
-ComponentIndex[2] = "UserInfo2";
 /** @type {number} */
 ComponentIndex.Scheme = 1;
 /** @type {number} */
@@ -48,6 +44,10 @@ ComponentIndex.UserInfo = 2;
 ComponentIndex.Domain = 0;
 /** @type {number} */
 ComponentIndex.UserInfo2 = 2;
+ComponentIndex[ComponentIndex.Scheme] = "Scheme";
+ComponentIndex[ComponentIndex.UserInfo] = "UserInfo";
+ComponentIndex[ComponentIndex.Domain] = "Domain";
+ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
 
 
 // const enums not have any Closure output, as they are purely compile-time.
@@ -55,3 +55,12 @@ const enum EnumTestDisappears {
   ShouldNotHaveAnySickleOutput,
 }
 let /** @type {number} */ enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;
+type EnumWithNonConstValues = number;
+let EnumWithNonConstValues: any = {};
+/** @type {number} */
+EnumWithNonConstValues.Scheme =  (x => x + 1)(3);
+/** @type {number} */
+EnumWithNonConstValues.UserInfoRenamed = 2;
+EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = "Scheme";
+EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = "UserInfoRenamed";
+

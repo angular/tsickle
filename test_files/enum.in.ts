@@ -31,3 +31,15 @@ const enum EnumTestDisappears {
   ShouldNotHaveAnySickleOutput,
 }
 let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnySickleOutput;
+
+// One place where enums with non-constant values make sense is when
+// you are exporting a Closure value into a TypeScript namespace:
+//   import Foo from 'goog:bar.baz';
+//   export enum MyEnum { MyFoo = Foo }
+// However, just immediately evaluating an arrow expression as done here
+// is sufficient to trigger the non-constant value code path that we're
+// testing with this block.
+enum EnumWithNonConstValues {
+  Scheme = (x => x + 1)(3),
+  UserInfoRenamed = ComponentIndex.UserInfo,
+}

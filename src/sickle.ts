@@ -818,8 +818,9 @@ class Annotator extends Rewriter {
       return false;
     }
 
-    // Gather the members of enum, computing out the initializer values.
-    let members: {[name: string]: number} = {};
+    // Gather the members of enum, saving the constant value or
+    // initializer expression in the case of a non-constant value.
+    let members: {[name: string]: number | ts.Node} = {};
     let i = 0;
     for (let member of node.members) {
       let memberName = member.name.getText();
@@ -829,7 +830,22 @@ class Annotator extends Rewriter {
           members[memberName] = enumConstValue;
           i = enumConstValue + 1;
         } else {
-          this.error(member, 'enum does not have constant value');
+          // Non-constant enum value.  Save the initializer expression for
+          // emitting as-is.
+          // Note: if the member's initializer expression refers to another
+          // value within the enum (e.g. something like
+          //   enum Foo {
+          //     Field1,
+          //     Field2 = Field1 + something(),
+          //   }
+          // Then when we emit the initializer we produce invalid code because
+          // on the Closure side it has to be written "Foo.Field1 + something()".
+          // Hopefully this doesn't come up often -- if the enum instead has
+          // something like
+          //     Field2 = Field1 + 3,
+          // then it's still a constant expression and we inline the constant
+          // value in the above branch of this "if" statement.
+          members[memberName] = member.initializer;
         }
       } else {
         members[memberName] = i;
@@ -859,15 +875,22 @@ class Annotator extends Rewriter {
     }
     this.emit(`let ${name}: any = {};\n`);
 
-    // Emit foo[0] = 'BAR'; lines.
-    for (let member of Object.keys(members)) {
-      this.emit(`${name}[${members[member]}] = "${member}";\n`);
-    }
-
     // Emit foo.BAR = 0; lines.
     for (let member of Object.keys(members)) {
       if (!this.options.untyped) this.emit(`/** @type {number} */\n`);
-      this.emit(`${name}.${member} = ${members[member]};\n`);
+      this.emit(`${name}.${member} = `);
+      let value = members[member];
+      if (typeof value === 'number') {
+        this.emit(value.toString());
+      } else {
+        this.visit(value);
+      }
+      this.emit(';\n');
+    }
+
+    // Emit foo[foo.BAR] = 'BAR'; lines.
+    for (let member of Object.keys(members)) {
+      this.emit(`${name}[${name}.${member}] = "${member}";\n`);
     }
 
     return true;
