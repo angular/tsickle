@@ -1,3 +1,5 @@
+// Line with a missing semicolon should not break the following enum.
+const /** @type {Array<?>} */ EnumTestMissingSemi = []
 type EnumTest1 = number;
 let EnumTest1: any = {};
 EnumTest1[0] = "XYZ";
@@ -22,7 +24,8 @@ let /** @type {number} */ enumStrIndex: number = EnumTest1[null as string];
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
-let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];export type EnumTest2 = number;
+let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
+export type EnumTest2 = number;
 export let EnumTest2: any = {};
 EnumTest2[0] = "XYZ";
 EnumTest2[3.14159] = "PI";
@@ -30,6 +33,7 @@ EnumTest2[3.14159] = "PI";
 EnumTest2.XYZ = 0;
 /** @type {number} */
 EnumTest2.PI = 3.14159;
+
 type ComponentIndex = number;
 let ComponentIndex: any = {};
 ComponentIndex[1] = "Scheme";

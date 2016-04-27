@@ -1,4 +1,6 @@
 goog.module('sickle_test.enum');
+// Line with a missing semicolon should not break the following enum.
+const /** @type {Array<?>} */ EnumTestMissingSemi = [];
 let EnumTest1 = {};
 EnumTest1[0] = "XYZ";
 EnumTest1[3.14159] = "PI";

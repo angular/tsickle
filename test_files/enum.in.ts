@@ -1,3 +1,5 @@
+// Line with a missing semicolon should not break the following enum.
+const EnumTestMissingSemi = []
 enum EnumTest1 {XYZ, PI = 3.14159}
 
 // Sickle rewrites the above "enum" declaration into just a plain

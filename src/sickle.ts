@@ -848,6 +848,7 @@ class Annotator extends Rewriter {
     // We don't emit a specific Closure type for the enum because it's
     // also difficult to make work: for example, we can't make the name
     // both a typedef and an indexable object if we export it.
+    this.emit('\n');
     let name = node.name.getText();
     if (node.flags & ts.NodeFlags.Export) {
       this.emit('export ');
