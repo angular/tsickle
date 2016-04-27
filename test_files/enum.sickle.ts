@@ -34,14 +34,14 @@ type ComponentIndex = number;
 let ComponentIndex: any = {};
 ComponentIndex[1] = "Scheme";
 ComponentIndex[2] = "UserInfo";
-ComponentIndex[3] = "Domain";
+ComponentIndex[0] = "Domain";
 ComponentIndex[2] = "UserInfo2";
 /** @type {number} */
 ComponentIndex.Scheme = 1;
 /** @type {number} */
 ComponentIndex.UserInfo = 2;
 /** @type {number} */
-ComponentIndex.Domain = 3;
+ComponentIndex.Domain = 0;
 /** @type {number} */
 ComponentIndex.UserInfo2 = 2;
 

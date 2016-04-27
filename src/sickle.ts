@@ -825,7 +825,7 @@ class Annotator extends Rewriter {
       let memberName = member.name.getText();
       if (member.initializer) {
         let enumConstValue = this.program.getTypeChecker().getConstantValue(member);
-        if (enumConstValue) {
+        if (enumConstValue !== undefined) {
           members[memberName] = enumConstValue;
           i = enumConstValue + 1;
         } else {

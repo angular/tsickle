@@ -20,7 +20,7 @@ export enum EnumTest2 {XYZ, PI = 3.14159}
 enum ComponentIndex {
   Scheme = 1,
   UserInfo,
-  Domain,
+  Domain = 0,  // Be sure to exercise the code with a 0 enum value.
   UserInfo2 = UserInfo,
 }
 
