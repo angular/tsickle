@@ -139,7 +139,7 @@ class ClassRewriter extends Rewriter {
 
     if (this.ctorParameters) {
       this.emit(
-          `static ctorParameters: {type: new (...args) => any, decorators?: DecoratorInvocation[]}[] = [\n`);
+          `static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [\n`);
       for (let param of this.ctorParameters) {
         if (!param) {
           this.emit('null,\n');

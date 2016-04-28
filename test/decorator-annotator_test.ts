@@ -27,6 +27,7 @@ let Test4: Function;
 let Inject: Function;
 let param: any;
 class BarService {}
+abstract class AbstractService {}
 `;
 
 function verifyCompiles(sourceText: string) {
@@ -151,14 +152,14 @@ class Foo {
         it('transforms injected ctors', () => {
           expect(translate(`
 class Foo {
-  constructor(@Inject bar: BarService, num: number) {
+  constructor(@Inject bar: AbstractService, num: number) {
   }
 }`).output).to.equal(`
 class Foo {
-  constructor( bar: BarService, num: number) {
+  constructor( bar: AbstractService, num: number) {
   }
-static ctorParameters: {type: new (...args) => any, decorators?: DecoratorInvocation[]}[] = [
-{type: BarService, decorators: [{ type: Inject }, ]},
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+{type: AbstractService, decorators: [{ type: Inject }, ]},
 null,
 ];
 }`);
@@ -177,7 +178,7 @@ class Foo {
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
-static ctorParameters: {type: new (...args) => any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: BarService, },
 null,
 ];
@@ -193,7 +194,7 @@ class Foo {
 class Foo {
   constructor( x: BarService, {a, b}, defArg = 3, optional?: BarService) {
   }
-static ctorParameters: {type: new (...args) => any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
 null,
 null,
