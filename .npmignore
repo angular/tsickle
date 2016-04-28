@@ -1,7 +1,7 @@
-typings
-.idea
 .clang-format
+.gitignore
+.idea
 .travis.yml
-tsd.json
 build/test
-build/e2e
+tsd.json
+typings
