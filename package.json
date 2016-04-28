@@ -11,8 +11,10 @@
   "dependencies": {
     "minimist": "^1.2.0",
     "source-map": "^0.4.2",
-    "source-map-support": "^0.3.1",
-    "typescript": "^1.8.0"
+    "source-map-support": "^0.3.1"
+  },
+  "peerDependencies": {
+    "typescript": "^1.8.0 || ^1.9.0-dev"
   },
   "devDependencies": {
     "chai": "^2.1.1",
@@ -29,7 +31,8 @@
     "merge2": "^0.3.1",
     "temp": "^0.8.1",
     "tsd": "^0.6.0",
-    "tslint": "^3.7.1"
+    "tslint": "^3.7.1",
+    "typescript": "1.8.9"
   },
   "scripts": {
     "prepublish": "npm install tsd@^0.6.0 && tsd reinstall --overwrite && gulp compile",
