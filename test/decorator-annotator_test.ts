@@ -202,6 +202,21 @@ null,
 ];
 }`);
         });
+
+        it('strips generic type arguments', () => {
+expect(translate(`
+class Foo {
+  constructor(@Inject typed: Promise<string>) {
+  }
+}`).output).to.equal(`
+class Foo {
+  constructor( typed: Promise<string>) {
+  }
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+{type: Promise, decorators: [{ type: Inject }, ]},
+];
+}`);
+        });
       });
 
       describe('method decorator rewriter', () => {

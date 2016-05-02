@@ -54,11 +54,12 @@ class ClassRewriter extends Rewriter {
         switch (param.type.kind) {
           case ts.SyntaxKind.TypeReference:
             let typeRef = param.type as ts.TypeReferenceNode;
-            // Type reference can be a bare name or a qualified name (foo.bar).
-            // There are also type arguments to worry about.  We are making the
-            // big assumption that a type reference is the same name as a ctor
-            // for that type, and it's simplest to just use the source text.
-            paramCtor = typeRef.getText();
+            // Type reference can be a bare name or a qualified name (foo.bar),
+            // possibly followed by type arguments (<X, Y>).
+            // We are making the assumption that a type reference is the same
+            // name as a ctor for that type, and it's simplest to just use the
+            // source text. We use `typeName` to avoid emitting type parameters.
+            paramCtor = typeRef.typeName.getText();
             break;
           default:
             // Some other type of type; just ignore it.
