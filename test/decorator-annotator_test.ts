@@ -204,7 +204,7 @@ null,
         });
 
         it('strips generic type arguments', () => {
-expect(translate(`
+          expect(translate(`
 class Foo {
   constructor(@Inject typed: Promise<string>) {
   }
