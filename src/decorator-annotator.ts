@@ -82,7 +82,7 @@ class ClassRewriter extends Rewriter {
   /**
    * gatherMethod grabs the decorators off a class method and emits nothing.
    */
-  private gatherMethod(method: ts.MethodDeclaration) {
+  private gatherMethod(method: ts.Declaration) {
     if (!method.decorators) return;
     if (method.name.kind !== ts.SyntaxKind.Identifier) {
       // Method has a weird name, e.g.
@@ -120,6 +120,11 @@ class ClassRewriter extends Rewriter {
       case ts.SyntaxKind.Decorator:
         // Skip emit of all decorators, as they are specially handled.
         return true;
+      case ts.SyntaxKind.PropertyDeclaration:
+      case ts.SyntaxKind.SetAccessor:
+      case ts.SyntaxKind.GetAccessor:
+        this.gatherMethod(node as ts.Declaration);
+        return false;
       default:
         return false;
     }

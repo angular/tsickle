@@ -257,6 +257,25 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 }`);
         });
 
+        it('gathers decorators from fields and setters', () => {
+          expect(translate(`
+class ClassWithDecorators {
+  @PropDecorator("p1") @PropDecorator("p2") a;
+  b;
+
+  @PropDecorator("p3")
+  set c(value) {}
+}`).output).to.equal(`
+class ClassWithDecorators { a;
+  b;
+  set c(value) {}
+static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
+'c': [{ type: PropDecorator, args: ["p3", ] },],
+};
+}`);
+        });
+
         it('errors on weird class members', () => {
           let {diagnostics} = translate(
               `
