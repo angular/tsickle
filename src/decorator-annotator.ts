@@ -49,6 +49,7 @@ class ClassRewriter extends Rewriter {
       let decorators: ts.Decorator[];
       if (param.decorators) {
         decorators = param.decorators.slice();
+        hasDecoratedParam = true;
       }
       if (param.type) {
         switch (param.type.kind) {
@@ -65,8 +66,7 @@ class ClassRewriter extends Rewriter {
             // Some other type of type; just ignore it.
         }
       }
-      if (paramCtor) {
-        if (decorators) hasDecoratedParam = true;
+      if (paramCtor || decorators) {
         ctorParameters.push([paramCtor, decorators]);
       } else {
         ctorParameters.push(null);

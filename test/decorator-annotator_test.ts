@@ -203,6 +203,19 @@ null,
 }`);
         });
 
+        it('includes decorators for primitive type ctor parameters', () => {
+          expect(translate(`
+class ViewUtils {
+  constructor(@Inject(APP_ID) private _appId: string) {}
+}`).output).to.equal(`
+class ViewUtils {
+  constructor( private _appId: string) {}
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+{type: undefined, decorators: [{ type: Inject, args: [APP_ID, ] }, ]},
+];
+}`);
+        });
+
         it('strips generic type arguments', () => {
           expect(translate(`
 class Foo {
