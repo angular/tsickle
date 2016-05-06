@@ -6,7 +6,6 @@
     "jsx": "react"
   },
   "files": [
-    "src/google-closure-compiler.d.ts",
     "src/main.ts",
     "src/tsickle.ts",
     "test/tsickle_test.ts",
