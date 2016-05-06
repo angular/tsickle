@@ -2,7 +2,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitAny": true,
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react"
   },
   "files": [
     "src/google-closure-compiler.d.ts",

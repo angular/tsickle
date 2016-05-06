@@ -14,6 +14,7 @@ const compilerOptions: ts.CompilerOptions = {
   emitDecoratorMetadata: true,
   noEmitHelpers: true,
   module: ts.ModuleKind.CommonJS,
+  jsx: ts.JsxEmit.React,
 };
 
 const {cachedLibPath, cachedLib} = (function() {
@@ -73,7 +74,7 @@ export function transformSource(inputFileName: string, sourceText: string): stri
   if (emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
   }
-  let outputFileName = inputFileName.replace(/.ts$/, '.js');
+  let outputFileName = inputFileName.replace(/.tsx?$/, '.js');
   expect(Object.keys(transformed)).to.deep.equal([outputFileName]);
   let outputSource = transformed[outputFileName];
 
@@ -102,16 +103,16 @@ export interface GoldenFileTest {
 
 export function goldenTests(): GoldenFileTest[] {
   let basePath = path.join(__dirname, '..', '..', 'test_files');
-  let testInputs = glob.sync(path.join(basePath, '*.in.ts'));
+  let testInputs = glob.sync(path.join(basePath, '*.in.ts*'));
 
   let tests = testInputs.map((testPath) => {
-    let testName = testPath.match(/\/test_files\/(.*)\.in\.ts$/)[1];
+    let [, testBasePath, testName, jsx] = testPath.match(/^(.*\/test_files\/(.*))\.in\.ts(x?)$/);
     return {
       name: testName,
       tsPath: testPath,
-      tsicklePath: testPath.replace(/\.in\.ts$/, '.tsickle.ts'),
-      externsPath: testPath.replace(/\.in\.ts$/, '.tsickle_externs.js'),
-      es6Path: testPath.replace(/\.in\.ts$/, '.tr.js'),
+      tsicklePath: testBasePath + '.tsickle.ts' + (jsx ? 'x' : ''),
+      externsPath: testBasePath + '.tsickle_externs.js',
+      es6Path: testBasePath + '.tr.js',
     };
   });
   // export_helper*.ts is special, because it is imported by another
@@ -120,12 +121,13 @@ export function goldenTests(): GoldenFileTest[] {
   let helperInputs = glob.sync(path.join(basePath, 'export_helper{,_2}.ts'));
   for (let testPath of helperInputs) {
     let testName = testPath.match(/\/test_files\/(export_helper[^.]*)\.ts$/)[1];
+    let testBasePath = testPath.replace(/\.ts$/, '');
     let exportHelperTestCase: GoldenFileTest = {
       name: testName,
       tsPath: testPath,
-      tsicklePath: testPath.replace(/\.ts$/, '.tsickle.ts'),
-      externsPath: testPath.replace(/\.ts$/, '.tsickle_externs.js'),
-      es6Path: testPath.replace(/\.ts$/, '.js'),
+      tsicklePath: testBasePath + '.tsickle.ts',
+      externsPath: testBasePath + '.tsickle_externs.js',
+      es6Path: testBasePath + '.js',
     };
     tests.push(exportHelperTestCase);
   }
