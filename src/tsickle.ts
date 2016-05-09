@@ -580,7 +580,7 @@ class Annotator extends Rewriter {
         this.writeExternsEnum(node as ts.EnumDeclaration, namespace);
         break;
       default:
-        this.errorUnimplementedKind(node, 'externs generation');
+        this.emit(`\n/* TODO: ${ts.SyntaxKind[node.kind]} in ${namespace.join('.')} */\n`);
         break;
     }
     this.output = originalOutput;
@@ -633,9 +633,13 @@ class Annotator extends Rewriter {
         default:
           // Members can include things like index signatures, for e.g.
           //   interface Foo { [key: string]: number; }
-          // For now, just die unless all the members are regular old
+          // For now, just skip it unless all the members are regular old
           // properties.
-          this.errorUnimplementedKind(member, 'externs for interface');
+          let name = namespace;
+          if (member.name) {
+            name = name.concat([member.name.getText()]);
+          }
+          this.emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]} in ${name.join('.')} */\n`);
       }
     }
   }
