@@ -1,4 +1,4 @@
-Error at test_files/declare.in.ts:17:5: IndexSignature not implemented in externs for interface
+Error at test_files/declare.in.ts:18:5: IndexSignature not implemented in externs for interface
 ====
 declare namespace DeclareTestModule {
   namespace inner {
@@ -7,6 +7,7 @@ declare namespace DeclareTestModule {
 
   interface Foo {
     field: string;
+    method(a: string): number;
   }
 
   class Clazz {

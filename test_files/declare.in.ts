@@ -5,6 +5,7 @@ declare namespace DeclareTestModule {
 
   interface Foo {
     field: string;
+    method(a: string): number;
   }
 
   class Clazz {

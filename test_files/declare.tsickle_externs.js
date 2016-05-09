@@ -11,6 +11,12 @@ DeclareTestModule.Foo = function() {};
 DeclareTestModule.Foo.prototype.field;
 
 /**
+ * @param {string} a
+ * @return {number}
+ */
+DeclareTestModule.Foo.prototype.method = function(a) {};
+
+/**
  * @constructor
  * @struct
  * @param {number} a

@@ -336,7 +336,7 @@ class Annotator extends Rewriter {
     return Object.keys(reexports);
   }
 
-  private emitFunctionType(fnDecl: ts.FunctionLikeDeclaration, extraTags: JSDocTag[] = []) {
+  private emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: JSDocTag[] = []) {
     let typeChecker = this.program.getTypeChecker();
     let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
 
@@ -620,6 +620,7 @@ class Annotator extends Rewriter {
           this.emitJSDocType(prop);
           this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
           break;
+        case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
           let m = <ts.MethodDeclaration>member;
           this.emitFunctionType(m);
