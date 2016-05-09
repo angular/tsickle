@@ -16,6 +16,11 @@ declare namespace DeclareTestModule {
   interface NotYetHandled {
     [key: string]: string;
   }
+
+  enum Enumeration {
+    Value1 = 2,
+    Value3
+  }
 }
 
 // This module is quoted, so it shouldn't show up in externs.js.

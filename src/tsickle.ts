@@ -576,6 +576,9 @@ class Annotator extends Rewriter {
           this.writeExternsVariable(decl, namespace);
         }
         break;
+      case ts.SyntaxKind.EnumDeclaration:
+        this.writeExternsEnum(node as ts.EnumDeclaration, namespace);
+        break;
       default:
         this.errorUnimplementedKind(node, 'externs generation');
         break;
@@ -658,6 +661,18 @@ class Annotator extends Rewriter {
       this.emit(`${name} = function(${params}) {};\n`);
     } else {
       this.emit(`function ${name}(${params}) {}\n`);
+    }
+  }
+
+  private writeExternsEnum(decl: ts.EnumDeclaration, namespace: string[]) {
+    namespace = namespace.concat([decl.name.text]);
+    this.emit('\n/** @const */\n');
+    this.emit(`${namespace.join('.')} = {};\n`);
+    for (let member of decl.members) {
+      let memberName = member.name.getText();
+      let name = namespace.concat([memberName]).join('.');
+      this.emit('/** @const {number} */\n');
+      this.emit(`${name};\n`);
     }
   }
 

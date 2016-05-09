@@ -25,6 +25,13 @@ DeclareTestModule.Clazz = function(a) {};
 DeclareTestModule.Clazz.prototype.method = function(a) {};
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};
+
+/** @const */
+DeclareTestModule.Enumeration = {};
+/** @const {number} */
+DeclareTestModule.Enumeration.Value1;
+/** @const {number} */
+DeclareTestModule.Enumeration.Value3;
  /** @type {number} */
 var declareGlobalVar;
 
