@@ -1,0 +1,1 @@
+goog.module('tsickle_test.declare.declare');

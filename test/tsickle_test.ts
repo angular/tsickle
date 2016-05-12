@@ -4,7 +4,7 @@ import * as path from 'path';
 import {expect} from 'chai';
 
 import * as tsickle from '../src/tsickle';
-import {annotateSource, transformSource, goldenTests} from './test_support';
+import {annotateSource, transformSource, goldenTests, GoldenFileTest} from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
@@ -66,33 +66,40 @@ describe('golden tests', () => {
       options.untyped = true;
     }
     it(test.name, () => {
-      let tsSource = fs.readFileSync(test.tsPath, 'utf-8');
+      let allExterns: string = null;
+      for (let tsFile of test.tsFiles) {
+        let tsPath = path.join(test.path, tsFile);
+        let tsSource = fs.readFileSync(tsPath, 'utf-8');
 
-      // Run TypeScript through tsickle and compare against goldens.
-      let warnings: ts.Diagnostic[] = [];
-      options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
-      let {output, externs, diagnostics} = annotateSource(test.tsPath, tsSource, options);
+        // Run TypeScript through tsickle and compare against goldens.
+        let warnings: ts.Diagnostic[] = [];
+        options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
+        let {output, externs, diagnostics} = annotateSource(tsPath, tsSource, options);
+        if (externs) allExterns = externs;
 
-      // If there were any diagnostics, convert them into strings for
-      // the golden output.
-      let fileOutput = output;
-      diagnostics.push(...warnings);
-      if (diagnostics.length > 0) {
-        // Munge the filenames in the diagnostics so that they don't include
-        // the tsickle checkout path.
-        for (let diag of diagnostics) {
-          let fileName = diag.file.fileName;
-          diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
+        // If there were any diagnostics, convert them into strings for
+        // the golden output.
+        let fileOutput = output;
+        diagnostics.push(...warnings);
+        if (diagnostics.length > 0) {
+          // Munge the filenames in the diagnostics so that they don't include
+          // the tsickle checkout path.
+          for (let diag of diagnostics) {
+            let fileName = diag.file.fileName;
+            diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
+          }
+          fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
         }
-        fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
-      }
-      compareAgainstGolden(fileOutput, test.tsicklePath);
-      compareAgainstGolden(externs, test.externsPath);
+        let tsicklePath = tsPath.replace(/.ts(x)?$/, '.tsickle.ts$1');
+        expect(tsicklePath).to.not.equal(tsPath);
+        compareAgainstGolden(fileOutput, tsicklePath);
 
-      // Run tsickled TypeScript through TypeScript compiler
-      // and compare against goldens.
-      let es6Source = transformSource(test.tsicklePath, output);
-      compareAgainstGolden(es6Source, test.es6Path);
+        // Run tsickled TypeScript through TypeScript compiler
+        // and compare against goldens.
+        let es6Source = transformSource(tsicklePath, output);
+        compareAgainstGolden(es6Source, GoldenFileTest.tsPathToJs(tsPath));
+      }
+      compareAgainstGolden(allExterns, test.externsPath);
     });
   });
 });

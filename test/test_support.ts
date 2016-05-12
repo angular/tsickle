@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import * as fs from 'fs';
 import * as ts from 'typescript';
 import * as glob from 'glob';
 import * as path from 'path';
@@ -84,53 +85,47 @@ export function transformSource(inputFileName: string, sourceText: string): stri
     }
     return fileName.replace(/^.+\/test_files\//, 'tsickle_test/')
         .replace(/\.tsickle\.js$/, '')
-        .replace('/', '.');
+        .replace(/\//g, '.');
   }
   return tsickle.convertCommonJsToGoogModule(outputFileName, outputSource, pathToModuleName).output;
 }
 
-export interface GoldenFileTest {
-  name: string;
-  // Path to input file.
-  tsPath: string;
-  // Path to golden of post-tsickle processing.
-  tsicklePath: string;
-  // Path to golden of post-tsickle externs, if any.
-  externsPath: string;
-  // Path to golden of post-tsickle, post TypeScript->ES6 processing.
-  es6Path: string;
+export class GoldenFileTest {
+  // Path to directory containing test files.
+  path: string;
+  // Input .ts/.tsx file names.
+  tsFiles: string[];
+
+  constructor(path: string, tsFiles: string[]) {
+    this.path = path;
+    this.tsFiles = tsFiles;
+  }
+
+  get name(): string { return path.basename(this.path); }
+
+  get externsPath(): string { return path.join(this.path, 'externs.js'); }
+
+  get tsPaths(): string[] { return this.tsFiles.map(f => path.join(this.path, f)); }
+
+  get jsPaths(): string[] {
+    return this.tsFiles.map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
+  }
+
+  public static tsPathToJs(tsPath: string): string { return tsPath.replace(/\.tsx?$/, '.js'); }
 }
 
 export function goldenTests(): GoldenFileTest[] {
   let basePath = path.join(__dirname, '..', '..', 'test_files');
-  let testInputs = glob.sync(path.join(basePath, '*.in.ts*'));
+  let testNames = fs.readdirSync(basePath);
 
-  let tests = testInputs.map((testPath) => {
-    let [, testBasePath, testName, jsx] = testPath.match(/^(.*\/test_files\/(.*))\.in\.ts(x?)$/);
-    return {
-      name: testName,
-      tsPath: testPath,
-      tsicklePath: testBasePath + '.tsickle.ts' + (jsx ? 'x' : ''),
-      externsPath: testBasePath + '.tsickle_externs.js',
-      es6Path: testBasePath + '.tr.js',
-    };
+  let tests = testNames.map(testName => {
+    let testDir = path.join(basePath, testName);
+    let tsPaths = glob.sync(path.join(testDir, '*.ts'));
+    tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
+    tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./));
+    let tsFiles = tsPaths.map(f => path.relative(testDir, f));
+    return new GoldenFileTest(testDir, tsFiles);
   });
-  // export_helper*.ts is special, because it is imported by another
-  // test.  It it must be importable as plain './export_helper' so its
-  // files can't have extensions a ".in.ts" or ".tr.js".
-  let helperInputs = glob.sync(path.join(basePath, 'export_helper{,_2}.ts'));
-  for (let testPath of helperInputs) {
-    let testName = testPath.match(/\/test_files\/(export_helper[^.]*)\.ts$/)[1];
-    let testBasePath = testPath.replace(/\.ts$/, '');
-    let exportHelperTestCase: GoldenFileTest = {
-      name: testName,
-      tsPath: testPath,
-      tsicklePath: testBasePath + '.tsickle.ts',
-      externsPath: testBasePath + '.tsickle_externs.js',
-      es6Path: testBasePath + '.js',
-    };
-    tests.push(exportHelperTestCase);
-  }
 
   return tests;
 }

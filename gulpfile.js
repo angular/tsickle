@@ -20,6 +20,7 @@ var TSC_OPTIONS = {
   noImplicitAny: true,
   declarationFiles: true,
   noEmitOnError: true,
+  target: 'es5',
   // Specify the TypeScript version we're using.
   typescript: typescript,
 };

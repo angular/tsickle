@@ -1,1 +1,0 @@
-goog.module('tsickle_test.declare_class_ns');

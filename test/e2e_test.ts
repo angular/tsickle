@@ -31,8 +31,8 @@ export function checkClosureCompile(
 describe('golden file tests', () => {
   it('generates correct Closure code', (done: (err: Error) => void) => {
     let tests = goldenTests();
-    let goldenJs = tests.map(t => t.es6Path);
-    let externs = tests.map(t => t.externsPath).filter(path => fs.existsSync(path));
+    let goldenJs = [].concat(...tests.map(t => t.jsPaths));
+    let externs = tests.map(t => t.externsPath).filter(fs.existsSync);
     checkClosureCompile(goldenJs, externs, done);
   });
 });
