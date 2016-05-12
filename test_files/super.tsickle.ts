@@ -68,6 +68,11 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
   // properly because we generate a constructor that doesn't know
   // how to properly call the parent class's super().
 }
+/** @record */
+function SuperTestInterface() {}
+ /** @type {number} */
+SuperTestInterface.prototype.foo;
+
 
 interface SuperTestInterface {
   foo: number;

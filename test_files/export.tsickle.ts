@@ -1,4 +1,4 @@
-export {export2,export5,export4} from './export_helper';
+export {export2,Bar,export5,export4} from './export_helper';
 export {} from './export_helper_2';
 
 // These conflict with an export discovered via the above exports,

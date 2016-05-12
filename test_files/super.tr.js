@@ -57,6 +57,10 @@ class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {
 // A class without a ctor, extending a no-arg ctor parent.
 class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 }
+/** @record */
+function SuperTestInterface() { }
+/** @type {number} */
+SuperTestInterface.prototype.foo;
 // A class implementing an interface.
 class SuperTestDerivedInterface {
     static _tsickle_typeAnnotationsHelper() {

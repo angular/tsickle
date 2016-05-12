@@ -189,8 +189,8 @@ class Annotator extends Rewriter {
         }
         return false;
       case ts.SyntaxKind.InterfaceDeclaration:
-        this.writeRange(node.getFullStart(), node.getEnd());
-        return true;
+        this.emitInterface(node as ts.InterfaceDeclaration);
+        return false;
       case ts.SyntaxKind.VariableDeclaration:
         let varDecl = node as ts.VariableDeclaration;
         // Only emit a type annotation when it's a plain variable and
@@ -441,6 +441,22 @@ class Annotator extends Rewriter {
     this.emit(' */\n');
   }
 
+  private emitInterface(iface: ts.InterfaceDeclaration) {
+    this.emit(`\n/** @record */\n`);
+    this.emit(`function ${iface.name.text}() {}\n`);
+    if (iface.typeParameters) {
+      this.emit(`// TODO: type parameters.\n`);
+    }
+    if (iface.heritageClauses) {
+      this.emit(`// TODO: derived interfaces.\n`);
+    }
+
+    const memberNamespace = [iface.name.text, 'prototype'];
+    for (let elem of iface.members) {
+      this.visitProperty(memberNamespace, elem);
+    }
+  }
+
   // emitTypeAnnotationsHelper produces a
   // _tsickle_typeAnnotationsHelper() where none existed in the
   // original source.  It's necessary in the case where TypeScript
@@ -486,7 +502,7 @@ class Annotator extends Rewriter {
     this.emit('  }\n');
   }
 
-  private visitProperty(namespace: string[], p: ts.PropertyDeclaration|ts.ParameterDeclaration) {
+  private visitProperty(namespace: string[], p: ts.Declaration) {
     let jsDoc = this.getJSDoc(p) || {tags: []};
     let existingAnnotation = '';
     for (let {tagName, text} of jsDoc.tags) {
