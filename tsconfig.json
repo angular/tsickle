@@ -3,6 +3,7 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "noEmit": true,
+    "target": "es5",
     "jsx": "react"
   },
   "files": [
