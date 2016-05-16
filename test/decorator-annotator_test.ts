@@ -74,6 +74,7 @@ class Foo {
 }`).output).to.equal(`
 class Foo {
   field: string;
+/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 { type: Test2, args: [param, ] },
@@ -90,6 +91,7 @@ static decorators: DecoratorInvocation[] = [
 class Foo {
 }`).output).to.equal(`
 class Foo {
+/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1, args: [{name: 'percentPipe'}, class ZZZ {}, ] },
 { type: Test2 },
@@ -105,6 +107,7 @@ static decorators: DecoratorInvocation[] = [
 export class Foo {
 }`).output).to.equal(`
 export class Foo {
+/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
@@ -124,11 +127,13 @@ export class Foo {
 export class Foo {
   foo() {
     class Bar {
-    static decorators: DecoratorInvocation[] = [
+    /** @nocollapse */
+static decorators: DecoratorInvocation[] = [
 { type: Test2 },
 ];
 }
   }
+/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
@@ -158,6 +163,7 @@ class Foo {
 class Foo {
   constructor( bar: AbstractService, num: number) {
   }
+/** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: AbstractService, decorators: [{ type: Inject }, ]},
 null,
@@ -175,9 +181,11 @@ class Foo {
 class Foo {
   constructor(bar: BarService, num: number) {
   }
+/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
+/** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: BarService, },
 null,
@@ -194,6 +202,7 @@ class Foo {
 class Foo {
   constructor( x: BarService, {a, b}, defArg = 3, optional?: BarService) {
   }
+/** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
 null,
@@ -210,6 +219,7 @@ class ViewUtils {
 }`).output).to.equal(`
 class ViewUtils {
   constructor( private _appId: string) {}
+/** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: undefined, decorators: [{ type: Inject, args: [APP_ID, ] }, ]},
 ];
@@ -225,6 +235,7 @@ class Foo {
 class Foo {
   constructor( typed: Promise<string>) {
   }
+/** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: Promise, decorators: [{ type: Inject }, ]},
 ];
@@ -251,6 +262,7 @@ class Foo {
 }`).output).to.equal(`
 class Foo {
   bar() {}
+/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'bar': [{ type: Test1, args: ['somename', ] },],
 };
@@ -269,6 +281,7 @@ class ClassWithDecorators {
 class ClassWithDecorators { a;
   b;
   set c(value) {}
+/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
 'c': [{ type: PropDecorator, args: ["p3", ] },],
