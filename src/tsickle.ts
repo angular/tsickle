@@ -453,7 +453,11 @@ class Annotator extends Rewriter {
 
     const memberNamespace = [iface.name.text, 'prototype'];
     for (let elem of iface.members) {
-      this.visitProperty(memberNamespace, elem);
+      if (elem.name) {
+        this.visitProperty(memberNamespace, elem);
+      } else {
+        this.emit(`/* TODO: handle unnamed member:\n${elem.getText()}\n*/\n`);
+      }
     }
   }
 

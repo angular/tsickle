@@ -19,3 +19,9 @@ interface Point3 extends Point {
 let p3: Point3 = {x:1, y:1, z:1};
 usePoint(p3);
 */
+
+// This type comes from Angular.
+interface BufferLike {
+  [offset: number]: number;
+  length: number;
+}
