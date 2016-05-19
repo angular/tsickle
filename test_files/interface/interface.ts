@@ -24,4 +24,6 @@ usePoint(p3);
 interface TrickyInterface {
   [offset: number]: number;
   'foo': number;
+  (x: number): /* yuck */
+    number;
 }

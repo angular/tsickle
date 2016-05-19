@@ -520,7 +520,7 @@ class Annotator extends Rewriter {
   private visitProperty(namespace: string[], p: ts.Declaration) {
     let name = this.propertyName(p);
     if (!name) {
-      this.emit(`/* TODO: handle strange member:\n${p.getText()}\n*/\n`);
+      this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(p.getText())}\n*/\n`);
       return;
     }
 

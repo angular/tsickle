@@ -27,6 +27,10 @@ function TrickyInterface() {}
 */
  /** @type {number} */
 TrickyInterface.prototype.foo;
+/* TODO: handle strange member:
+(x: number): __ yuck __
+    number;
+*/
 
 
 /*
@@ -42,4 +46,6 @@ usePoint(p3);
 interface TrickyInterface {
   [offset: number]: number;
   'foo': number;
+  (x: number): /* yuck */
+    number;
 }

@@ -88,6 +88,11 @@ export abstract class Rewriter {
 
   emit(str: string) { this.output.push(str); }
 
+  /** Removes comment metacharacters from a string, to make it safe to embed in a comment. */
+  escapeForComment(str: string): string {
+    return str.replace(/\/\*/g, '__').replace(/\*\//g, '__');
+  }
+
   /* tslint:disable: no-unused-variable */
   logWithIndent(message: string) {
     /* tslint:enable: no-unused-variable */
