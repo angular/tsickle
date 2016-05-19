@@ -15,9 +15,9 @@ let /** @type {Point} */ p = { x: 1, y: 1 };
 usePoint(p);
 usePoint({ x: 1, y: 1 });
 /** @record */
-function BufferLike() { }
-/* TODO: handle unnamed member:
+function TrickyInterface() { }
+/* TODO: handle strange member:
 [offset: number]: number;
 */
 /** @type {number} */
-BufferLike.prototype.length;
+TrickyInterface.prototype.foo;

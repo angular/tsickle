@@ -453,11 +453,7 @@ class Annotator extends Rewriter {
 
     const memberNamespace = [iface.name.text, 'prototype'];
     for (let elem of iface.members) {
-      if (elem.name) {
-        this.visitProperty(memberNamespace, elem);
-      } else {
-        this.emit(`/* TODO: handle unnamed member:\n${elem.getText()}\n*/\n`);
-      }
+      this.visitProperty(memberNamespace, elem);
     }
   }
 
@@ -506,7 +502,28 @@ class Annotator extends Rewriter {
     this.emit('  }\n');
   }
 
+  private propertyName(prop: ts.Declaration): string {
+    if (!prop.name) return null;
+
+    switch (prop.name.kind) {
+      case ts.SyntaxKind.Identifier:
+        return (prop.name as ts.Identifier).text;
+      case ts.SyntaxKind.StringLiteral:
+        // E.g. interface Foo { 'bar': number; }
+        // If 'bar' is a name that is not valid in Closure then there's nothing we can do.
+        return (prop.name as ts.StringLiteral).text;
+      default:
+        return null;
+    }
+  }
+
   private visitProperty(namespace: string[], p: ts.Declaration) {
+    let name = this.propertyName(p);
+    if (!name) {
+      this.emit(`/* TODO: handle strange member:\n${p.getText()}\n*/\n`);
+      return;
+    }
+
     let jsDoc = this.getJSDoc(p) || {tags: []};
     let existingAnnotation = '';
     for (let {tagName, text} of jsDoc.tags) {
@@ -521,7 +538,7 @@ class Annotator extends Rewriter {
       this.emit(' ' + existingAnnotation);
     }
     this.emit(` @type {${this.typeToClosure(p)}} */\n`);
-    namespace = namespace.concat([p.name.getText()]);
+    namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
   }
 

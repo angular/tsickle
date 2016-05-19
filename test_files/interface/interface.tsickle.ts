@@ -21,12 +21,12 @@ let /** @type {Point} */ p: Point = {x:1, y:1};
 usePoint(p);
 usePoint({x:1, y:1});
 /** @record */
-function BufferLike() {}
-/* TODO: handle unnamed member:
+function TrickyInterface() {}
+/* TODO: handle strange member:
 [offset: number]: number;
 */
  /** @type {number} */
-BufferLike.prototype.length;
+TrickyInterface.prototype.foo;
 
 
 /*
@@ -38,8 +38,8 @@ let p3: Point3 = {x:1, y:1, z:1};
 usePoint(p3);
 */
 
-// This type comes from Angular.
-interface BufferLike {
+// Check some harder interface types.
+interface TrickyInterface {
   [offset: number]: number;
-  length: number;
+  'foo': number;
 }

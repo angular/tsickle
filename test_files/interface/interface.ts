@@ -20,8 +20,8 @@ let p3: Point3 = {x:1, y:1, z:1};
 usePoint(p3);
 */
 
-// This type comes from Angular.
-interface BufferLike {
+// Check some harder interface types.
+interface TrickyInterface {
   [offset: number]: number;
-  length: number;
+  'foo': number;
 }
