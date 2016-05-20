@@ -442,6 +442,7 @@ class Annotator extends Rewriter {
   }
 
   private emitInterface(iface: ts.InterfaceDeclaration) {
+    if (this.options.untyped) return;
     this.emit(`\n/** @record */\n`);
     this.emit(`function ${iface.name.text}() {}\n`);
     if (iface.typeParameters) {
