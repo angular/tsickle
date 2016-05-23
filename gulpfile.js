@@ -59,7 +59,8 @@ gulp.task('compile', function() {
   return merge([
     tsResult.dts.pipe(gulp.dest('build/definitions')),
     // Write external sourcemap next to the js file
-    tsResult.js.pipe(sourcemaps.write('.')).pipe(gulp.dest('build/src')),
+    tsResult.js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../../src'}))
+        .pipe(gulp.dest('build/src')),
     tsResult.js.pipe(gulp.dest('build/src')),
   ]);
 });
@@ -73,7 +74,7 @@ gulp.task('test.compile', ['compile'], function(done) {
       .pipe(sourcemaps.init())
       .pipe(ts(tsProject))
       .on('error', onError)
-      .js.pipe(sourcemaps.write())
+      .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../..'}))
       .pipe(gulp.dest('build/'));  // '/test/' comes from base above.
 });
 
