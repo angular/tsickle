@@ -31,6 +31,8 @@ TrickyInterface.prototype.foo;
 (x: number): __ yuck __
     number;
 */
+ /** @type {(string|string)} */
+TrickyInterface.prototype.foobar;
 
 
 /*
@@ -48,4 +50,6 @@ interface TrickyInterface {
   'foo': number;
   (x: number): /* yuck */
     number;
+  // TODO: handle optional members.  Should have |undefined type.
+  'foobar'?: 'true'|'false';
 }

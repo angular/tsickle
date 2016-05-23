@@ -205,7 +205,9 @@ class Annotator extends Rewriter {
         return false;
       case ts.SyntaxKind.InterfaceDeclaration:
         this.emitInterface(node as ts.InterfaceDeclaration);
-        return false;
+        // Emit the TS interface verbatim, with no tsickle processing of properties.
+        this.writeRange(node.getFullStart(), node.getEnd());
+        return true;
       case ts.SyntaxKind.VariableDeclaration:
         let varDecl = node as ts.VariableDeclaration;
         // Only emit a type annotation when it's a plain variable and
