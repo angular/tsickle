@@ -127,6 +127,21 @@ export function getJSDocAnnotation(comment: string): JSDocComment {
   return {tags};
 }
 
+function getIdentifierText(identifier: ts.Identifier): string {
+  // NOTE: the 'text' property on an Identifier may be escaped if it starts
+  // with '__', so just use getText().
+  return identifier.getText();
+}
+
+/**
+ * Converts an escaped TypeScript name into the original source name.
+ * Prefer getIdentifierText() instead if possible.
+ */
+function unescapeName(name: string): string {
+  // See the private function unescapeIdentifier in TypeScript's utilities.ts.
+  if (name.match(/^___/)) return name.substr(1);
+  return name;
+}
 
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
@@ -365,7 +380,7 @@ class Annotator extends Rewriter {
         let newTag: JSDocTag = {
           tagName: 'param',
           optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-          parameterName: paramSym.name,
+          parameterName: unescapeName(paramSym.getName()),
         };
 
         let destructuring =
@@ -384,7 +399,7 @@ class Annotator extends Rewriter {
 
         // Search for this parameter in the JSDoc @params.
         for (let {tagName, parameterName, text} of jsDoc.tags) {
-          if (tagName === 'param' && parameterName === paramSym.name) {
+          if (tagName === 'param' && parameterName === newTag.parameterName) {
             newTag.text = text;
             break;
           }
@@ -444,7 +459,7 @@ class Annotator extends Rewriter {
   private emitInterface(iface: ts.InterfaceDeclaration) {
     if (this.options.untyped) return;
     this.emit(`\n/** @record */\n`);
-    this.emit(`function ${iface.name.text}() {}\n`);
+    this.emit(`function ${getIdentifierText(iface.name)}() {}\n`);
     if (iface.typeParameters) {
       this.emit(`// TODO: type parameters.\n`);
     }
@@ -452,7 +467,7 @@ class Annotator extends Rewriter {
       this.emit(`// TODO: derived interfaces.\n`);
     }
 
-    const memberNamespace = [iface.name.text, 'prototype'];
+    const memberNamespace = [getIdentifierText(iface.name), 'prototype'];
     for (let elem of iface.members) {
       this.visitProperty(memberNamespace, elem);
     }
@@ -496,8 +511,8 @@ class Annotator extends Rewriter {
     }
 
     this.emit('\n\n  static _tsickle_typeAnnotationsHelper() {\n');
-    staticProps.forEach(p => this.visitProperty([classDecl.name.text], p));
-    let memberNamespace = [classDecl.name.text, 'prototype'];
+    staticProps.forEach(p => this.visitProperty([getIdentifierText(classDecl.name)], p));
+    let memberNamespace = [getIdentifierText(classDecl.name), 'prototype'];
     nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));
     paramProps.forEach((p) => this.visitProperty(memberNamespace, p));
     this.emit('  }\n');
@@ -508,7 +523,7 @@ class Annotator extends Rewriter {
 
     switch (prop.name.kind) {
       case ts.SyntaxKind.Identifier:
-        return (prop.name as ts.Identifier).text;
+        return getIdentifierText(prop.name as ts.Identifier);
       case ts.SyntaxKind.StringLiteral:
         // E.g. interface Foo { 'bar': number; }
         // If 'bar' is a name that is not valid in Closure then there's nothing we can do.
@@ -572,7 +587,19 @@ class Annotator extends Rewriter {
         switch (decl.name.kind) {
           case ts.SyntaxKind.Identifier:
             // E.g. "declare namespace foo {"
-            namespace = namespace.concat(decl.name.text);
+            let name: string;
+            switch (decl.name.kind) {
+              case ts.SyntaxKind.Identifier:
+                name = getIdentifierText(decl.name as ts.Identifier);
+                break;
+              case ts.SyntaxKind.StringLiteral:
+                name = (decl.name as ts.StringLiteral).text;
+                break;
+              default:
+                this.errorUnimplementedKind(decl.name, 'namespace name');
+                break;
+            }
+            namespace = namespace.concat(name);
             let nsName = namespace.join('.');
             if (!this.emittedNamespaces.hasOwnProperty(nsName)) {
               this.emit('/** @const */\n');
@@ -685,7 +712,7 @@ class Annotator extends Rewriter {
   private writeExternsVariable(decl: ts.VariableDeclaration, namespace: string[]) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
       let identifier = <ts.Identifier>decl.name;
-      let qualifiedName = namespace.concat([identifier.text]).join('.');
+      let qualifiedName = namespace.concat([getIdentifierText(identifier)]).join('.');
       if (closureExternsBlacklist.indexOf(qualifiedName) >= 0) return;
       this.emitJSDocType(decl);
       if (namespace.length > 0) {
@@ -708,7 +735,7 @@ class Annotator extends Rewriter {
   }
 
   private writeExternsEnum(decl: ts.EnumDeclaration, namespace: string[]) {
-    namespace = namespace.concat([decl.name.text]);
+    namespace = namespace.concat([getIdentifierText(decl.name)]);
     this.emit('\n/** @const */\n');
     this.emit(`${namespace.join('.')} = {};\n`);
     for (let member of decl.members) {
@@ -993,7 +1020,7 @@ class PostProcessor extends Rewriter {
 
       // Grab the variable name (avoiding things like destructuring binds).
       if (decl.name.kind !== ts.SyntaxKind.Identifier) return false;
-      varName = (decl.name as ts.Identifier).text;
+      varName = getIdentifierText(decl.name as ts.Identifier);
       if (!decl.initializer || decl.initializer.kind !== ts.SyntaxKind.CallExpression) return false;
       call = decl.initializer as ts.CallExpression;
     } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
@@ -1058,7 +1085,7 @@ class PostProcessor extends Rewriter {
     // Verify that the call is a call to require(...).
     if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
     let ident = call.expression as ts.Identifier;
-    if (ident.text !== 'require') return null;
+    if (getIdentifierText(ident) !== 'require') return null;
 
     // Verify the call takes a single string argument and grab it.
     if (call.arguments.length !== 1) return null;
@@ -1094,14 +1121,14 @@ class PostProcessor extends Rewriter {
         let propAccess = node as ts.PropertyAccessExpression;
         // We're looking for an expression of the form:
         //   module_name_var.default
-        if (propAccess.name.text !== 'default') break;
+        if (getIdentifierText(propAccess.name) !== 'default') break;
         if (propAccess.expression.kind !== ts.SyntaxKind.Identifier) break;
-        let lhsIdent = propAccess.expression as ts.Identifier;
-        if (!this.namespaceImports.hasOwnProperty(lhsIdent.text)) break;
+        let lhs = getIdentifierText(propAccess.expression as ts.Identifier);
+        if (!this.namespaceImports.hasOwnProperty(lhs)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
         this.writeRange(node.getFullStart(), node.getStart());
-        this.emit(`${lhsIdent.text}        `);
+        this.emit(`${lhs}        `);
         return true;
       default:
         break;
