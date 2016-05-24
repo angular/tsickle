@@ -25,69 +25,50 @@ const {cachedLibPath, cachedLib} = (function() {
   return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
-export function annotateSource(
-    inputFileName: string, sourceText: string, options: tsickle.Options = {}): tsickle.Output {
+/** Creates a ts.Program from a set of input files.  Throws an exception on errors. */
+export function createProgram(sources: {[fileName: string]: string}): ts.Program {
   let host = ts.createCompilerHost(compilerOptions);
   let original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
-    if (fileName === inputFileName) {
-      return ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true);
+    if (sources.hasOwnProperty(fileName)) {
+      return ts.createSourceFile(fileName, sources[fileName], ts.ScriptTarget.Latest, true);
     }
     return original(fileName, languageVersion, onError);
   };
 
-  let program = ts.createProgram([inputFileName], compilerOptions, host);
+  let program = ts.createProgram(Object.keys(sources), compilerOptions, host);
   let diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(diagnostics));
   }
 
-  return tsickle.annotate(program, program.getSourceFile(inputFileName), options);
+  return program;
 }
 
-export function transformSource(inputFileName: string, sourceText: string): string {
-  let host = ts.createCompilerHost(compilerOptions);
-  let original = host.getSourceFile.bind(host);
-  let mainSrc = ts.createSourceFile(inputFileName, sourceText, ts.ScriptTarget.Latest, true);
-  host.getSourceFile = function(
-                           fileName: string, languageVersion: ts.ScriptTarget,
-                           onError?: (msg: string) => void): ts.SourceFile {
-    if (fileName === cachedLibPath) return cachedLib;
-    if (fileName === inputFileName) {
-      return mainSrc;
-    }
-    return original(fileName, languageVersion, onError);
-  };
-
-  let program = ts.createProgram([inputFileName], compilerOptions, host);
-  let diagnostics = ts.getPreEmitDiagnostics(program);
-  if (diagnostics.length) {
-    throw new Error(
-        'Failed to parse ' + sourceText + '\n' + tsickle.formatDiagnostics(diagnostics));
-  }
-
+/** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
+export function emit(program: ts.Program): {[filename: string]: string} {
   let transformed: {[fileName: string]: string} = {};
-  let emitRes =
-      program.emit(mainSrc, (fileName: string, data: string) => { transformed[fileName] = data; });
+  let emitRes = program.emit(undefined, (fileName: string, data: string) => {
+    transformed[fileName] =
+        tsickle.convertCommonJsToGoogModule(fileName, data, pathToModuleName).output
+  });
   if (emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
   }
-  let outputFileName = inputFileName.replace(/.tsx?$/, '.js');
-  expect(Object.keys(transformed)).to.deep.equal([outputFileName]);
-  let outputSource = transformed[outputFileName];
+
+  return transformed;
 
   function pathToModuleName(context: string, fileName: string): string {
     if (fileName[0] === '.') {
       fileName = path.join(path.dirname(context), fileName);
     }
     return fileName.replace(/^.+\/test_files\//, 'tsickle_test/')
-        .replace(/\.tsickle\.js$/, '')
+        .replace(/\.js$/, '')
         .replace(/\//g, '.');
   }
-  return tsickle.convertCommonJsToGoogModule(outputFileName, outputSource, pathToModuleName).output;
 }
 
 export class GoldenFileTest {

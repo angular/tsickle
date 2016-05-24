@@ -4,7 +4,7 @@ import * as path from 'path';
 import {expect} from 'chai';
 
 import * as tsickle from '../src/tsickle';
-import {annotateSource, transformSource, goldenTests, GoldenFileTest} from './test_support';
+import * as test_support from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
@@ -56,7 +56,7 @@ function compareAgainstGolden(output: string, path: string) {
 }
 
 describe('golden tests', () => {
-  goldenTests().forEach((test) => {
+  test_support.goldenTests().forEach((test) => {
     if (RUN_TESTS_MATCHING && !RUN_TESTS_MATCHING.exec(test.name)) {
       it.skip(test.name);
       return;
@@ -66,15 +66,25 @@ describe('golden tests', () => {
       options.untyped = true;
     }
     it(test.name, () => {
-      let allExterns: string = null;
+      // Read all the inputs into a map, and create a ts.Program from them.
+      let tsSources: {[fileName: string]: string} = {};
       for (let tsFile of test.tsFiles) {
         let tsPath = path.join(test.path, tsFile);
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
+        tsSources[tsPath] = tsSource;
+      }
+      let program = test_support.createProgram(tsSources);
 
-        // Run TypeScript through tsickle and compare against goldens.
+      // Tsickle-annotate all the sources, comparing against goldens, and gather the
+      // generated externs and tsickle-processed sources.
+      let allExterns: string = null;
+      let tsickleSources: {[fileName: string]: string} = {};
+      for (let tsPath of Object.keys(tsSources)) {
         let warnings: ts.Diagnostic[] = [];
         options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
-        let {output, externs, diagnostics} = annotateSource(tsPath, tsSource, options);
+        // Run TypeScript through tsickle and compare against goldens.
+        let {output, externs, diagnostics} =
+            tsickle.annotate(program, program.getSourceFile(tsPath), options);
         if (externs) allExterns = externs;
 
         // If there were any diagnostics, convert them into strings for
@@ -93,13 +103,17 @@ describe('golden tests', () => {
         let tsicklePath = tsPath.replace(/.ts(x)?$/, '.tsickle.ts$1');
         expect(tsicklePath).to.not.equal(tsPath);
         compareAgainstGolden(fileOutput, tsicklePath);
-
-        // Run tsickled TypeScript through TypeScript compiler
-        // and compare against goldens.
-        let es6Source = transformSource(tsicklePath, output);
-        compareAgainstGolden(es6Source, GoldenFileTest.tsPathToJs(tsPath));
+        tsickleSources[tsPath] = output;
       }
       compareAgainstGolden(allExterns, test.externsPath);
+
+      // Run tsickled TypeScript through TypeScript compiler
+      // and compare against goldens.
+      program = test_support.createProgram(tsickleSources);
+      let jsSources = test_support.emit(program);
+      for (let jsPath of Object.keys(jsSources)) {
+        compareAgainstGolden(jsSources[jsPath], jsPath);
+      }
     });
   });
 });
