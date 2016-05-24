@@ -1,4 +1,3 @@
-import {expect} from 'chai';
 import * as fs from 'fs';
 import * as ts from 'typescript';
 import * as glob from 'glob';
@@ -53,7 +52,7 @@ export function emit(program: ts.Program): {[filename: string]: string} {
   let transformed: {[fileName: string]: string} = {};
   let emitRes = program.emit(undefined, (fileName: string, data: string) => {
     transformed[fileName] =
-        tsickle.convertCommonJsToGoogModule(fileName, data, pathToModuleName).output
+        tsickle.convertCommonJsToGoogModule(fileName, data, pathToModuleName).output;
   });
   if (emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
