@@ -17,7 +17,7 @@ var React = {};
 React.createElement = function(args) {};
 
 /**
- * @param {Element} element
+ * @param {JSX.Element} element
  * @param {HTMLElement} node
  * @return {void}
  */

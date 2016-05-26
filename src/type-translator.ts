@@ -68,6 +68,41 @@ export class TypeTranslator {
   constructor(private typeChecker: ts.TypeChecker, private node: ts.Node) {}
 
   /**
+   * Converts a ts.Symbol to a string.
+   * Other approaches that don't work:
+   * - TypeChecker.typeToString translates Array as T[].
+   * - TypeChecker.symbolToString emits types without their namespace,
+   *   and doesn't let you pass the flag to control that.
+   */
+  private symbolToString(sym: ts.Symbol): string {
+    // This follows getSingleLineStringWriter in the TypeScript compiler.
+    let str = '';
+    let writeText = (text: string) => str += text;
+    let doNothing = () => { return; };
+
+    let builder = this.typeChecker.getSymbolDisplayBuilder();
+    let writer: ts.SymbolWriter = {
+      writeKeyword: writeText,
+      writeOperator: writeText,
+      writePunctuation: writeText,
+      writeSpace: writeText,
+      writeStringLiteral: writeText,
+      writeParameter: writeText,
+      writeSymbol: writeText,
+      writeLine: doNothing,
+      increaseIndent: doNothing,
+      decreaseIndent: doNothing,
+      clear: doNothing,
+      trackSymbol(symbol: ts.Symbol, enclosingDeclaration?: ts.Node, meaning?: ts.SymbolFlags) {
+        return;
+      },
+      reportInaccessibleThisError: doNothing,
+    };
+    builder.buildSymbolDisplay(sym, writer, this.node);
+    return str;
+  }
+
+  /**
    * @param notNull When true, insert a ! before any type references.  This
    *    is to work around the difference between TS and Closure destructuring.
    */
@@ -112,7 +147,7 @@ export class TypeTranslator {
       // InterfaceType "Array", but the "number" type parameter is
       // part of the outer TypeReference, not a typeParameter on
       // the InterfaceType.
-      return type.symbol.name;
+      return this.symbolToString(type.symbol);
     } else if (type.flags & ts.TypeFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.

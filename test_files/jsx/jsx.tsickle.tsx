@@ -16,10 +16,10 @@ declare module React {
 // Fake a subcomponent, just to exercise components within components.
 declare var Component: any;
 
-let /** @type {Element} */ simple = <div></div>;
+let /** @type {JSX.Element} */ simple = <div></div>;
 
 let /** @type {string} */ hello = 'hello';
-let /** @type {Element} */ helloDiv = <div>
+let /** @type {JSX.Element} */ helloDiv = <div>
   {hello}
   hello, world
   <Component/>
