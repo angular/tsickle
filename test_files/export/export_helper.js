@@ -7,6 +7,7 @@ exports.export1 = 3;
 exports.export2 = 3;
 /** @record */
 function Bar() { }
+exports.Bar = Bar;
 /** @type {number} */
 Bar.prototype.barField;
 exports.export3 = null;

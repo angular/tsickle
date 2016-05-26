@@ -461,7 +461,8 @@ class Annotator extends Rewriter {
   private emitInterface(iface: ts.InterfaceDeclaration) {
     if (this.options.untyped) return;
     this.emit(`\n/** @record */\n`);
-    this.emit(`function ${getIdentifierText(iface.name)}() {}\n`);
+    let name = getIdentifierText(iface.name);
+    this.emit(`function ${name}() {}\n`);
     if (iface.typeParameters) {
       this.emit(`// TODO: type parameters.\n`);
     }
@@ -469,9 +470,13 @@ class Annotator extends Rewriter {
       this.emit(`// TODO: derived interfaces.\n`);
     }
 
-    const memberNamespace = [getIdentifierText(iface.name), 'prototype'];
+    const memberNamespace = [name, 'prototype'];
     for (let elem of iface.members) {
       this.visitProperty(memberNamespace, elem);
+    }
+
+    if (iface.flags & ts.NodeFlags.Export) {
+      this.emit(`export {${name}};\n`);
     }
   }
 

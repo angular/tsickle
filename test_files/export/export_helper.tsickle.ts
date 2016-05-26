@@ -7,6 +7,7 @@ export let /** @type {number} */ export2 = 3;
 function Bar() {}
  /** @type {number} */
 Bar.prototype.barField;
+export {Bar};
 
 
 export interface Bar { barField: number; }
