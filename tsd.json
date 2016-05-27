@@ -12,7 +12,7 @@
       "commit": "69bdfb0884020e41f17a1dd80ad4c77de2636874"
     },
     "node/node.d.ts": {
-      "commit": "6052959591c9bc6f8463c58220965c7030ba934d"
+      "commit": "edb64e4a35896510ce02b93c0bca5ec3878db738"
     },
     "source-map-support/source-map-support.d.ts": {
       "commit": "69bdfb0884020e41f17a1dd80ad4c77de2636874"
@@ -30,7 +30,7 @@
       "commit": "d99f6bb17b9b8a30551da3a387b0ca4c28f5cb06"
     },
     "google-closure-compiler/google-closure-compiler.d.ts": {
-      "commit": "6052959591c9bc6f8463c58220965c7030ba934d"
+      "commit": "edb64e4a35896510ce02b93c0bca5ec3878db738"
     }
   }
 }
