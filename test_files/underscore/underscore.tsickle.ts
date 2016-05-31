@@ -1,6 +1,8 @@
 // Verify that double-underscored names in various places don't get corrupted.
 // See getIdentifierText() in tsickle.ts.
 
+export {__test} from './export_underscore';
+
 let /** @type {number} */ __foo = 3;
 export {__foo as __bar};
 class __Class {
