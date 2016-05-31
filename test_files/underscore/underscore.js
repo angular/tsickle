@@ -1,6 +1,8 @@
 goog.module('tsickle_test.underscore.underscore');// Verify that double-underscored names in various places don't get corrupted.
 // See getIdentifierText() in tsickle.ts.
 
+var export_underscore_1 = goog.require('tsickle_test.underscore.export_underscore');
+exports.__test = export_underscore_1.__test;
 let /** @type {number} */ __foo = 3;
 exports.__bar = __foo;
 class __Class {

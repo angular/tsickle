@@ -342,7 +342,7 @@ class Annotator extends Rewriter {
         typeChecker.getExportsOfModule(typeChecker.getSymbolAtLocation(exportDecl.moduleSpecifier));
     let reexports: {[name: string]: boolean} = {};
     for (let sym of exports) {
-      let name = sym.name;
+      let name = unescapeName(sym.name);
       if (localSet.hasOwnProperty(name)) {
         // This name is shadowed by a local definition, such as:
         // - export var foo ...
