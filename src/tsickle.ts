@@ -309,6 +309,13 @@ class Annotator extends Rewriter {
     return false;
   }
 
+  /**
+   * Given a "export * from ..." statement, rewrites it to instead "export {foo, bar, baz} from
+   * ...".
+   * This is necessary because TS transpiles "export *" by just doing a runtime loop
+   * over the target module's exports, which means Closure won't see the declarations/types
+   * that are exported.
+   */
   private expandSymbolsFromExportStar(exportDecl: ts.ExportDeclaration): string[] {
     let typeChecker = this.program.getTypeChecker();
 
@@ -330,7 +337,7 @@ class Annotator extends Rewriter {
     }
 
     // Expand the export list, then filter it to the symbols we want
-    // to reexport
+    // to reexport.
     let exports =
         typeChecker.getExportsOfModule(typeChecker.getSymbolAtLocation(exportDecl.moduleSpecifier));
     let reexports: {[name: string]: boolean} = {};
