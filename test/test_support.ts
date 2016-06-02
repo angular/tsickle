@@ -30,15 +30,15 @@ const {cachedLibPath, cachedLib} = (function() {
 /** Creates a ts.Program from a set of input files.  Throws an exception on errors. */
 export function createProgram(sources: {[fileName: string]: string}): ts.Program {
   let host = ts.createCompilerHost(compilerOptions);
-  let original = host.getSourceFile.bind(host);
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
+    if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
     if (sources.hasOwnProperty(fileName)) {
       return ts.createSourceFile(fileName, sources[fileName], ts.ScriptTarget.Latest, true);
     }
-    return original(fileName, languageVersion, onError);
+    throw new Error('unexpected file read of ' + fileName + ' not in ' + Object.keys(sources));
   };
 
   let program = ts.createProgram(Object.keys(sources), compilerOptions, host);
