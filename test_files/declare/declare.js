@@ -1,1 +1,1 @@
-goog.module('tsickle_test.declare.declare');
+goog.module('test_files.declare.declare');let module = {id: 'test_files/declare/declare.js'};

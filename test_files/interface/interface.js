@@ -1,4 +1,4 @@
-goog.module('tsickle_test.interface.interface');/** @record */
+goog.module('test_files.interface.interface');let module = {id: 'test_files/interface/interface.js'};/** @record */
 function Point() { }
 /** @type {number} */
 Point.prototype.x;

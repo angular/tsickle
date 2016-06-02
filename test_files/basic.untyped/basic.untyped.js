@@ -1,4 +1,4 @@
-goog.module('tsickle_test.basic.untyped.basic.untyped');/**
+goog.module('test_files.basic.untyped.basic.untyped');let module = {id: 'test_files/basic.untyped/basic.untyped.js'};/**
  * @param {?} arg1
  * @return {?}
  */

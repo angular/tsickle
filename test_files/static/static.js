@@ -1,4 +1,4 @@
-goog.module('tsickle_test.static.static');class Static {
+goog.module('test_files.static.static');let module = {id: 'test_files/static/static.js'};class Static {
     static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         Static.bar;

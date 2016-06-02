@@ -1,4 +1,4 @@
-goog.module('tsickle_test.enum.enum');
+goog.module('test_files.enum.enum');let module = {id: 'test_files/enum/enum.js'};
 // Line with a missing semicolon should not break the following enum.
 const /** @type {Array<?>} */ EnumTestMissingSemi = [];
 let EnumTest1 = {};

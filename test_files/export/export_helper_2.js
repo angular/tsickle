@@ -1,4 +1,4 @@
-goog.module('tsickle_test.export.export_helper_2');
+goog.module('test_files.export.export_helper_2');let module = {id: 'test_files/export/export_helper_2.js'};
 // This file isn't itself a test case, but it is imported by the
 // export.in.ts test case.
 exports.export2 = 3;

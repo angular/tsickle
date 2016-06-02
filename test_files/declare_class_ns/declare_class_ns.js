@@ -1,1 +1,1 @@
-goog.module('tsickle_test.declare_class_ns.declare_class_ns');
+goog.module('test_files.declare_class_ns.declare_class_ns');let module = {id: 'test_files/declare_class_ns/declare_class_ns.js'};

@@ -1,4 +1,4 @@
-goog.module('tsickle_test.jsdoc_types.module2');
+goog.module('test_files.jsdoc_types.module2');let module = {id: 'test_files/jsdoc_types/module2.js'};
 class ClassOne {
 }
 exports.ClassOne = ClassOne;

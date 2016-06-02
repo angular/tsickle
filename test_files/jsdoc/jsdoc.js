@@ -1,4 +1,4 @@
-goog.module('tsickle_test.jsdoc.jsdoc');/**
+goog.module('test_files.jsdoc.jsdoc');let module = {id: 'test_files/jsdoc/jsdoc.js'};/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.

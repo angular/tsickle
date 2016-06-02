@@ -1,4 +1,4 @@
-goog.module('tsickle_test.fields.fields');class FieldsTest {
+goog.module('test_files.fields.fields');let module = {id: 'test_files/fields/fields.js'};class FieldsTest {
     /**
      * @param {number} field3
      */

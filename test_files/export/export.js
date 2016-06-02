@@ -1,5 +1,5 @@
-goog.module('tsickle_test.export.export');
-var export_helper_1 = goog.require('tsickle_test.export.export_helper');
+goog.module('test_files.export.export');let module = {id: 'test_files/export/export.js'};
+var export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export2 = export_helper_1.export2;
 exports.export5 = export_helper_1.export5;
 exports.export4 = export_helper_1.export4;

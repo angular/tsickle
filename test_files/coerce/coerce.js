@@ -1,4 +1,4 @@
-goog.module('tsickle_test.coerce.coerce');/**
+goog.module('test_files.coerce.coerce');let module = {id: 'test_files/coerce/coerce.js'};/**
  * @param {string} arg
  * @return {string}
  */

@@ -1,1 +1,1 @@
-goog.module('tsickle_test.typedef.untyped.typedef.untyped');var /** @type {?} */ y = 3;
+goog.module('test_files.typedef.untyped.typedef.untyped');let module = {id: 'test_files/typedef.untyped/typedef.untyped.js'};var /** @type {?} */ y = 3;

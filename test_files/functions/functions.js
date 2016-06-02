@@ -1,4 +1,4 @@
-goog.module('tsickle_test.functions.functions');(function () {
+goog.module('test_files.functions.functions');let module = {id: 'test_files/functions/functions.js'};(function () {
     /**
      * @param {number} a
      * @return {number}

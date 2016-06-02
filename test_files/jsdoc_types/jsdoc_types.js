@@ -1,10 +1,10 @@
-goog.module('tsickle_test.jsdoc_types.jsdoc_types');/**
+goog.module('test_files.jsdoc_types.jsdoc_types');let module = {id: 'test_files/jsdoc_types/jsdoc_types.js'};/**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
  */
 
-var module1 = goog.require('tsickle_test.jsdoc_types.module1');
-var module2_1 = goog.require('tsickle_test.jsdoc_types.module2');
+var module1 = goog.require('test_files.jsdoc_types.module1');
+var module2_1 = goog.require('test_files.jsdoc_types.module2');
 const ClassOne = module2_1.ClassOne;
 var module2_2 = module2_1;
 const RenamedClassOne = module2_2.ClassOne;

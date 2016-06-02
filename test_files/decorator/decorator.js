@@ -1,4 +1,4 @@
-goog.module('tsickle_test.decorator.decorator');/**
+goog.module('test_files.decorator.decorator');let module = {id: 'test_files/decorator/decorator.js'};/**
  * @param {Object} a
  * @param {string} b
  * @return {void}

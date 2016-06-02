@@ -1,4 +1,4 @@
-goog.module('tsickle_test.structural.untyped.structural.untyped');// Ensure that a class is structurally equivalent to an object literal
+goog.module('test_files.structural.untyped.structural.untyped');let module = {id: 'test_files/structural.untyped/structural.untyped.js'};// Ensure that a class is structurally equivalent to an object literal
 // with the same fields.
 class StructuralTest {
     /**
