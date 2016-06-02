@@ -15,6 +15,9 @@ const compilerOptions: ts.CompilerOptions = {
   noEmitHelpers: true,
   module: ts.ModuleKind.CommonJS,
   jsx: ts.JsxEmit.React,
+  // Flags below are needed to make sure source paths are correctly set on write calls.
+  rootDir: path.resolve(process.cwd()),
+  outDir: '.',
 };
 
 const {cachedLibPath, cachedLib} = (function() {
@@ -48,7 +51,7 @@ export function createProgram(sources: {[fileName: string]: string}): ts.Program
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
-export function emit(program: ts.Program): {[filename: string]: string} {
+export function emit(program: ts.Program): {[fileName: string]: string} {
   let transformed: {[fileName: string]: string} = {};
   let emitRes = program.emit(undefined, (fileName: string, data: string) => {
     transformed[fileName] =
@@ -57,16 +60,13 @@ export function emit(program: ts.Program): {[filename: string]: string} {
   if (emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
   }
-
   return transformed;
 
   function pathToModuleName(context: string, fileName: string): string {
     if (fileName[0] === '.') {
       fileName = path.join(path.dirname(context), fileName);
     }
-    return fileName.replace(/^.+\/test_files\//, 'tsickle_test/')
-        .replace(/\.js$/, '')
-        .replace(/\//g, '.');
+    return fileName.replace(/\.js$/, '').replace(/\//g, '.');
   }
 }
 

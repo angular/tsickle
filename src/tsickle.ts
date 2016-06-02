@@ -1154,6 +1154,7 @@ class PostProcessor extends Rewriter {
     }
     return true;
   }
+  // workaround for syntax highlighting bug in Sublime: `
 
   /**
    * Returns the string argument if call is of the form
