@@ -15,4 +15,6 @@ export var /** @type {number} */ exportLocal = 3;
 let /** @type {number} */ export2 = 3;
 
 // This is just an import, so export5 should still be included.
-import {export5} from './export_helper';
+import {export5 as tsickle_export5,} from './export_helper';
+const export5 = tsickle_export5;
+

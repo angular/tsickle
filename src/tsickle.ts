@@ -191,6 +191,9 @@ class Annotator extends Rewriter {
     }
 
     switch (node.kind) {
+      case ts.SyntaxKind.ImportDeclaration:
+        this.emitImportDeclaration(node as ts.ImportDeclaration);
+        return true;
       case ts.SyntaxKind.ExportDeclaration:
         let exportDecl = <ts.ExportDeclaration>node;
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
@@ -358,6 +361,64 @@ class Annotator extends Rewriter {
     }
 
     return Object.keys(reexports);
+  }
+
+  /**
+   * Handles emit of an "import ..." statement.
+   * We need to do a bit of rewriting so that imported types show up under the
+   * correct name in JSDoc.
+   */
+  private emitImportDeclaration(decl: ts.ImportDeclaration) {
+    if (this.options.untyped) return;
+
+    const importClause = decl.importClause;
+    // Skip "import './foo';" statements.
+    if (!importClause) {
+      this.writeNode(decl);
+      return;
+    }
+
+    if (importClause.name) {
+      // import foo from ...;
+      this.writeNode(decl);
+      this.errorUnimplementedKind(decl, 'TODO: default import');
+    } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
+      // import * as foo from ...;
+      // This is the format we already work fine with, so do nothing.
+      this.writeNode(decl);
+    } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+      // import {a as b} from ...;
+      // Rewrite it to:
+      //   import {a as tsickle_b} from ...; const b = tsickle_b;
+      // This is because in the generated ES5, tsickle_b will instead get a generated
+      // name like module_import.tsickle_b.  But in our JSDoc we still refer to it
+      // as just "b".  Importing under a different name and then making a local alias
+      // evades this.  (TS uses the namespace-qualified name so that updates to the
+      // module are reflected in the aliases.  We only do this to types, which can't
+      // change, so the namespace qualification is not needed.)
+      const namedImports = importClause.namedBindings as ts.NamedImports;
+
+      this.writeRange(decl.getFullStart(), decl.getStart());
+      // Emit the "import" part, with rewritten binding names.
+      this.emit('import {');
+      for (const imp of namedImports.elements) {
+        // imp.propertyName is the name of the property in the module we're importing from,
+        // while imp.name is the local name.
+        this.emit(
+            `${getIdentifierText(imp.propertyName || imp.name)} as tsickle_${getIdentifierText(imp.name)},`);
+      }
+      this.emit('} from');
+      this.writeNode(decl.moduleSpecifier);
+      this.emit(';\n');
+
+      // Emit aliases that bring the renamed name back into the local name.
+      for (const imp of namedImports.elements) {
+        this.emit(
+            `const ${getIdentifierText(imp.name)} = tsickle_${getIdentifierText(imp.name)};\n`);
+      }
+    } else {
+      this.errorUnimplementedKind(decl, 'unexpected kind of import');
+    }
   }
 
   private emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: JSDocTag[] = []) {
