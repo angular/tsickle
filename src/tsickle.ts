@@ -1014,6 +1014,9 @@ class PostProcessor extends Rewriter {
     const moduleName = this.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
+    // Allow code to use `module.id` to discover its module URL, e.g. to resolve
+    // a template URL against.
+    this.emit(`let module = {id: '${this.file.fileName}'};`);
 
     let pos = 0;
     for (let stmt of this.file.statements) {
