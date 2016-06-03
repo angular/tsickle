@@ -135,6 +135,7 @@ export class TypeTranslator {
         return 'string';
       default:
         // Continue on to more complex tests below.
+        break;
     }
 
     let notNullPrefix = notNull ? '!' : '';
