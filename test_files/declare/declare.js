@@ -1,1 +1,1 @@
-goog.module('test_files.declare.declare');let module = {id: 'test_files/declare/declare.js'};
+goog.module('test_files.declare.declare');var module = {id: 'test_files/declare/declare.js'};

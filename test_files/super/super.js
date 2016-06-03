@@ -1,4 +1,4 @@
-goog.module('test_files.super.super');let module = {id: 'test_files/super/super.js'};class SuperTestBaseNoArg {
+goog.module('test_files.super.super');var module = {id: 'test_files/super/super.js'};class SuperTestBaseNoArg {
     /**
      */
     constructor() {

@@ -1,4 +1,4 @@
-goog.module('test_files.default.default');let module = {id: 'test_files/default/default.js'};/**
+goog.module('test_files.default.default');var module = {id: 'test_files/default/default.js'};/**
  * @param {number} x
  * @param {string=} y
  * @return {void}

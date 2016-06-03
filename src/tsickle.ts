@@ -1016,7 +1016,8 @@ class PostProcessor extends Rewriter {
     this.emit(`goog.module('${moduleName}');`);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
-    this.emit(`let module = {id: '${this.file.fileName}'};`);
+    // Uses 'var', as this code is inserted in ES6 and ES5 modes.
+    this.emit(`var module = {id: '${this.file.fileName}'};`);
 
     let pos = 0;
     for (let stmt of this.file.statements) {

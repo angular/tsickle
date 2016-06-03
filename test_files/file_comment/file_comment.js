@@ -1,4 +1,4 @@
-goog.module('test_files.file_comment.file_comment');let module = {id: 'test_files/file_comment/file_comment.js'};/**
+goog.module('test_files.file_comment.file_comment');var module = {id: 'test_files/file_comment/file_comment.js'};/**
  * @return {string}
  */
 function foo() {
