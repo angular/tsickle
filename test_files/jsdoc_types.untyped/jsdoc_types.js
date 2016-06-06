@@ -8,9 +8,14 @@ var module2_1 = goog.require('test_files.jsdoc_types.untyped.module2');
 var module2_2 = module2_1;
 var module2_3 = module2_1;
 // Check that imported types get the proper names in JSDoc.
-let /** @type {?} */ x1 = new module1.Class();
-let /** @type {?} */ x2 = null;
-// Should be refer to the names in module2.
-let /** @type {?} */ x3 = new module2_1.ClassOne();
-let /** @type {?} */ x4 = new module2_2.ClassOne();
-let /** @type {?} */ x5 = new module2_3.ClassTwo();
+let /** @type {?} */ useNamespacedClass = new module1.Class();
+let /** @type {?} */ useNamespacedClassAsType = null;
+let /** @type {?} */ useNamespacedType = null;
+// Should be references to the symbols in module2, perhaps via locals.
+let /** @type {?} */ useLocalClass = new module2_1.ClassOne();
+let /** @type {?} */ useLocalClassRenamed = new module2_2.ClassOne();
+let /** @type {?} */ useLocalClassRenamedTwo = new module2_3.ClassTwo();
+let /** @type {?} */ useLocalClassAsTypeRenamed = null;
+let /** @type {?} */ useLocalInterface = null;
+// This is purely a value; it doesn't need renaming.
+let /** @type {?} */ useLocalValue = module2_1.value;

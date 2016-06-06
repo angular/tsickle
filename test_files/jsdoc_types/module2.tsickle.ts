@@ -7,3 +7,5 @@ Interface.prototype.x;
 export {Interface};
 
 export interface Interface { x: number }
+
+export let /** @type {number} */ value = 3;

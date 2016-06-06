@@ -14,6 +14,3 @@ exports.exportLocal = 3;
 // it to the exports list.  export2 should only show up once in the
 // above two "export *" lines, though.
 let /** @type {number} */ export2 = 3;
-// This is just an import, so export5 should still be included.
-var export_helper_3 = export_helper_1;
-const export5 = export_helper_3.export5;

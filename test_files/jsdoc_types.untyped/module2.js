@@ -5,3 +5,4 @@ exports.ClassOne = ClassOne;
 class ClassTwo {
 }
 exports.ClassTwo = ClassTwo;
+exports.value = 3;

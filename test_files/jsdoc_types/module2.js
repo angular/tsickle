@@ -10,3 +10,4 @@ function Interface() { }
 exports.Interface = Interface;
 /** @type {number} */
 Interface.prototype.x;
+exports.value = 3;

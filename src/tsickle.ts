@@ -383,34 +383,61 @@ class Annotator extends Rewriter {
       // import * as foo from ...;
       return false;  // Use default processing.
     } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
-      // import {a as b} from ...;
-      // Rewrite it to:
-      //   import {a as tsickle_b} from ...; const b = tsickle_b;
-      // This is because in the generated ES5, tsickle_b will instead get a generated
-      // name like module_import.tsickle_b.  But in our JSDoc we still refer to it
-      // as just "b".  Importing under a different name and then making a local alias
-      // evades this.  (TS uses the namespace-qualified name so that updates to the
+      // The statement looks like "import {a as b} from ...;".
+      //
+      // If a is a type, rewrite it to:
+      //   import {a as tsickle_b} from ...;
+      //   const b = tsickle_b;
+      //   type b = tsickle_b;
+      // This is because in the generated ES5, the variable chosen in the import statement
+      // (here, "tsickle_b") will instead get a generated name like module_import.tsickle_b.
+      // But in our JSDoc we still refer to it as just "b".  Importing under a different
+      // name and then making a local alias evades this.
+      // (TS uses the namespace-qualified name so that updates to the
       // module are reflected in the aliases.  We only do this to types, which can't
       // change, so the namespace qualification is not needed.)
       const namedImports = importClause.namedBindings as ts.NamedImports;
+      const typeChecker = this.program.getTypeChecker();
 
       this.writeRange(decl.getFullStart(), decl.getStart());
-      // Emit the "import" part, with rewritten binding names.
+      // Emit the "import" part, with rewritten binding names for types.
       this.emit('import {');
+      let renamed: ts.Symbol[] = [];
       for (const imp of namedImports.elements) {
         // imp.propertyName is the name of the property in the module we're importing from,
-        // while imp.name is the local name.
-        this.emit(
-            `${getIdentifierText(imp.propertyName || imp.name)} as tsickle_${getIdentifierText(imp.name)},`);
+        // while imp.name is the local name.  propertyName is undefined in the case where
+        // it's not being renamed as it's imported.
+        this.emit(getIdentifierText(imp.propertyName || imp.name));
+
+        // Rename it if the symbol references a type.
+        let name = getIdentifierText(imp.name);
+        let sym = typeChecker.getSymbolAtLocation(imp.name);
+        const isType = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Type) !== 0;
+        if (isType) {
+          renamed.push(sym);
+          this.emit(` as tsickle_${name}`);
+        } else if (imp.propertyName) {
+          this.emit(` as ${name}`);
+        }
+        this.emit(',');
       }
       this.emit('} from');
       this.writeNode(decl.moduleSpecifier);
       this.emit(';\n');
 
-      // Emit aliases that bring the renamed name back into the local name.
-      for (const imp of namedImports.elements) {
-        this.emit(
-            `const ${getIdentifierText(imp.name)} = tsickle_${getIdentifierText(imp.name)};\n`);
+      // Emit aliases that bring the renamed names back to the local names.
+      for (const sym of renamed) {
+        let name = unescapeName(sym.name);
+        // Note that tsickle_foo types are eventually always both values and types, because
+        // post-tsickle processing (in Closure-land), all types are also values.
+        const isValue = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Value) !== 0;
+        if (!isValue) {
+          // Once tsickle processes the other module, it will create a var for it.
+          // But until then we just hack this symbol in to the value namespace.
+          this.emit(`declare var tsickle_${name};\n`);
+        }
+        this.emit(`const ${name} = tsickle_${name};\n`);
+        this.emit(`type ${name} = tsickle_${name};\n`);
       }
       return true;
     } else {

@@ -4,15 +4,22 @@
  */
 
 import * as module1 from './module1';
-import {ClassOne} from './module2';
+import {ClassOne, value} from './module2';
 import {ClassOne as RenamedClassOne} from './module2';
 import {ClassTwo as RenamedClassTwo} from './module2';
+import {Interface} from './module2';
 
 // Check that imported types get the proper names in JSDoc.
-let /** @type {?} */ x1 = new module1.Class();
-let /** @type {?} */ x2: module1.Interface = null;
+let /** @type {?} */ useNamespacedClass = new module1.Class();
+let /** @type {?} */ useNamespacedClassAsType: module1.Class = null;
+let /** @type {?} */ useNamespacedType: module1.Interface = null;
 
-// Should be refer to the names in module2.
-let /** @type {?} */ x3 = new ClassOne();
-let /** @type {?} */ x4 = new RenamedClassOne();
-let /** @type {?} */ x5 = new RenamedClassTwo();
+// Should be references to the symbols in module2, perhaps via locals.
+let /** @type {?} */ useLocalClass = new ClassOne();
+let /** @type {?} */ useLocalClassRenamed = new RenamedClassOne();
+let /** @type {?} */ useLocalClassRenamedTwo = new RenamedClassTwo();
+let /** @type {?} */ useLocalClassAsTypeRenamed: RenamedClassOne = null;
+let /** @type {?} */ useLocalInterface: Interface = null;
+
+// This is purely a value; it doesn't need renaming.
+let /** @type {?} */ useLocalValue = value;
