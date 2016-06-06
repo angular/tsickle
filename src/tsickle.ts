@@ -192,8 +192,7 @@ class Annotator extends Rewriter {
 
     switch (node.kind) {
       case ts.SyntaxKind.ImportDeclaration:
-        this.emitImportDeclaration(node as ts.ImportDeclaration);
-        return true;
+        return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         let exportDecl = <ts.ExportDeclaration>node;
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
@@ -367,25 +366,22 @@ class Annotator extends Rewriter {
    * Handles emit of an "import ..." statement.
    * We need to do a bit of rewriting so that imported types show up under the
    * correct name in JSDoc.
+   * @return true if the decl was handled, false to allow default processing.
    */
-  private emitImportDeclaration(decl: ts.ImportDeclaration) {
-    if (this.options.untyped) return;
+  private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
+    if (this.options.untyped) return false;
 
     const importClause = decl.importClause;
-    // Skip "import './foo';" statements.
     if (!importClause) {
-      this.writeNode(decl);
-      return;
-    }
-
-    if (importClause.name) {
+      // import './foo';
+      return false;  // Use default processing.
+    } else if (importClause.name) {
       // import foo from ...;
-      this.writeNode(decl);
       this.errorUnimplementedKind(decl, 'TODO: default import');
+      return false;  // Use default processing.
     } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
       // import * as foo from ...;
-      // This is the format we already work fine with, so do nothing.
-      this.writeNode(decl);
+      return false;  // Use default processing.
     } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
       // import {a as b} from ...;
       // Rewrite it to:
@@ -416,8 +412,10 @@ class Annotator extends Rewriter {
         this.emit(
             `const ${getIdentifierText(imp.name)} = tsickle_${getIdentifierText(imp.name)};\n`);
       }
+      return true;
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
+      return false;  // Use default processing.
     }
   }
 
