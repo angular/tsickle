@@ -7,16 +7,19 @@ import * as ts from 'typescript';
 import * as tsickle from './tsickle';
 
 /**
- * File name for the generated Closure externs.
+ * Internal file name for the generated Closure externs.
  * This is never written to disk, but should be unique with respect to
  * the js files that may actually exist.
  */
-const externsFileName = 'tsickle_externs.js';
+const internalExternsFileName = 'tsickle_externs.js';
 
 /** Tsickle settings passed on the command line. */
 interface Settings {
   /** If true, write temporary .js files to disk. Useful for debugging. */
   saveTemporaries?: boolean;
+
+  /** If provided, path to save externs to. */
+  externsPath?: string;
 
   /** Path to write the final JS bundle to. */
   outputPath: string;
@@ -30,6 +33,7 @@ example:
 
 tsickle flags are:
   --saveTemporaries  save intermediate .js files to disk
+  --externs=PATH     save generated Closure externs.js to PATH
   --output=PATH      write final Closure bundle to PATH
 `);
 }
@@ -54,6 +58,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
       case 'saveTemporaries':
         settings.saveTemporaries = true;
         break;
+      case 'externs':
+        settings.externsPath = parsedArgs[flag];
+        break;
       case 'output':
         settings.outputPath = parsedArgs[flag];
         break;
@@ -66,8 +73,8 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         process.exit(1);
     }
   }
-  if (!settings.outputPath) {
-    console.error('must specify --output path');
+  if (!settings.outputPath && !settings.externsPath) {
+    console.error('must specify --output or --externs path');
     usage();
     process.exit(1);
   }
@@ -191,9 +198,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
   }
 
   // Emit, creating a map of fileName => generated JS source.
-  let jsFiles: {[fileName: string]: string} = {
-    [externsFileName]: tsickleExterns,
-  };
+  let jsFiles: {[fileName: string]: string} = {};
   function writeFile(fileName: string, data: string): void { jsFiles[fileName] = data; }
   let {diagnostics} = program.emit(undefined, writeFile);
   if (diagnostics.length > 0) {
@@ -210,6 +215,8 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
         tsickle.convertCommonJsToGoogModule(fileName, jsFiles[fileName], pathToModuleName);
     jsFiles[fileName] = output;
   }
+
+  jsFiles[internalExternsFileName] = tsickleExterns;
 
   return {jsFiles};
 }
@@ -266,11 +273,17 @@ function main(args: string[]) {
     }
   }
 
-  // Run Closure compiiler to convert JS files to output bundle.
-  closureCompile(jsFiles, settings.outputPath, (exitCode, output) => {
-    if (output) console.error(output);
-    process.exit(exitCode);
-  });
+  if (settings.externsPath) {
+    fs.writeFileSync(settings.externsPath, jsFiles[internalExternsFileName]);
+  }
+
+  if (settings.outputPath) {
+    // Run Closure compiiler to convert JS files to output bundle.
+    closureCompile(jsFiles, settings.outputPath, (exitCode, output) => {
+      if (output) console.error(output);
+      process.exit(exitCode);
+    });
+  }
 }
 
 // CLI entry point
