@@ -12,6 +12,8 @@ class ClassRewriter extends Rewriter {
   /** Per-method decorators. */
   propDecorators: {[key: string]: ts.Decorator[]};
 
+  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) { super(sourceFile); }
+
   /**
    * process is the main entry point, rewriting a single class node.
    */
@@ -52,18 +54,11 @@ class ClassRewriter extends Rewriter {
         hasDecoratedParam = true;
       }
       if (param.type) {
-        switch (param.type.kind) {
-          case ts.SyntaxKind.TypeReference:
-            let typeRef = param.type as ts.TypeReferenceNode;
-            // Type reference can be a bare name or a qualified name (foo.bar),
-            // possibly followed by type arguments (<X, Y>).
-            // We are making the assumption that a type reference is the same
-            // name as a ctor for that type, and it's simplest to just use the
-            // source text. We use `typeName` to avoid emitting type parameters.
-            paramCtor = typeRef.typeName.getText();
-            break;
-          default:
-            // Some other type of type; just ignore it.
+        // param has a type provided, e.g. "foo: Bar".
+        // Verify that "Bar" is a value (e.g. a constructor) and not just a type.
+        let sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
+        if (sym && (sym.flags & ts.SymbolFlags.Value)) {
+          paramCtor = sym.name;
         }
       }
       if (paramCtor || decorators) {
@@ -107,7 +102,7 @@ class ClassRewriter extends Rewriter {
         // Encountered a new class while processing this class; use a new separate
         // rewriter to gather+emit its metadata.
         let {output, diagnostics} =
-            new ClassRewriter(this.file).process(node as ts.ClassDeclaration);
+            new ClassRewriter(this.typeChecker, this.file).process(node as ts.ClassDeclaration);
         this.diagnostics.push(...diagnostics);
         this.emit(output);
         return true;
@@ -211,6 +206,8 @@ class ClassRewriter extends Rewriter {
 }
 
 class DecoratorRewriter extends Rewriter {
+  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) { super(sourceFile); }
+
   process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.visit(this.file);
     return this.getOutput();
@@ -220,7 +217,7 @@ class DecoratorRewriter extends Rewriter {
     switch (node.kind) {
       case ts.SyntaxKind.ClassDeclaration:
         let {output, diagnostics} =
-            new ClassRewriter(this.file).process(node as ts.ClassDeclaration);
+            new ClassRewriter(this.typeChecker, this.file).process(node as ts.ClassDeclaration);
         this.diagnostics.push(...diagnostics);
         this.emit(output);
         return true;
@@ -230,8 +227,7 @@ class DecoratorRewriter extends Rewriter {
   }
 }
 
-export function convertDecorators(
-    fileName: string, sourceText: string): {output: string, diagnostics: ts.Diagnostic[]} {
-  let file = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.ES5, true);
-  return new DecoratorRewriter(file).process();
+export function convertDecorators(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile):
+    {output: string, diagnostics: ts.Diagnostic[]} {
+  return new DecoratorRewriter(typeChecker, sourceFile).process();
 }

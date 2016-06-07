@@ -1,63 +1,38 @@
-import * as ts from 'typescript';
 import {convertDecorators} from '../src/decorator-annotator';
 import {expect} from 'chai';
 import * as tsickle from '../src/tsickle';
-
-/**
- * If true, attempt to compile all the test cases.
- * Off by default because compilation takes a long time, and the test cases
- * as currently produced are all valid.
- */
-const checkCompilation = false;
+import * as test_support from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 
-// If we verify the produced code compiles, this blob of code is some scaffolding
-// of some types and variables used in the test cases so the compiler likes it.
+// When we verify that the produced code compiles, we need to provide a definition
+// of DecoratorInvocation.
 const testSupportCode = `
 interface DecoratorInvocation {
   type: Function;
   args?: any[];
 }
-
-let Test1: Function;
-let Test2: Function;
-let Test3: Function;
-let Test4: Function;
-let Inject: Function;
-let param: any;
-class BarService {}
-abstract class AbstractService {}
 `;
 
 function verifyCompiles(sourceText: string) {
-  let compilerOptions: ts.CompilerOptions = {
-    experimentalDecorators: true,
-    emitDecoratorMetadata: true,
+  let sources: {[fileName: string]: string} = {
+    [testCaseFileName]: testSupportCode + sourceText,
   };
-  let host = ts.createCompilerHost(compilerOptions);
-  let origGetSourceFile = host.getSourceFile;
-  host.getSourceFile = function(fileName: string, languageVersion: ts.ScriptTarget): ts.SourceFile {
-    if (fileName === testCaseFileName) {
-      sourceText = testSupportCode + sourceText;
-      return ts.createSourceFile(fileName, sourceText, languageVersion, true);
-    }
-    return origGetSourceFile(fileName, languageVersion);
-  };
-  let program = ts.createProgram([testCaseFileName], compilerOptions, host);
-  let errors = ts.getPreEmitDiagnostics(program);
-  if (errors.length > 0) {
-    console.error(sourceText);
-    console.error(tsickle.formatDiagnostics(errors));
-  }
+  // This throws an exception on error.
+  test_support.createProgram(sources);
 }
 
 describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
-        let {output, diagnostics} = convertDecorators(testCaseFileName, sourceText);
+        let sources: {[fileName: string]: string} = {
+          [testCaseFileName]: sourceText,
+        };
+        let program = test_support.createProgram(sources);
+        let {output, diagnostics} =
+            convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
         if (!allowErrors) expect(diagnostics).to.be.empty;
-        if (checkCompilation) verifyCompiles(output);
+        verifyCompiles(output);
         return {output, diagnostics};
       }
 
@@ -67,11 +42,17 @@ describe(
 
         it('transforms decorated classes', () => {
           expect(translate(`
+let Test1: Function;
+let Test2: Function;
+let param: any;
 @Test1
 @Test2(param)
 class Foo {
   field: string;
 }`).output).to.equal(`
+let Test1: Function;
+let Test2: Function;
+let param: any;
 class Foo {
   field: string;
 /** @nocollapse */
@@ -84,12 +65,22 @@ static decorators: DecoratorInvocation[] = [
 
         it('accepts various complicated decorators', () => {
           expect(translate(`
+let Test1: Function;
+let Test2: Function;
+let Test3: Function;
+function Test4<T>(param: any): ClassDecorator { return null; }
+let param: any;
 @Test1({name: 'percentPipe'}, class ZZZ {})
 @Test2
 @Test3()
-@Test4<T>(param)
+@Test4<string>(param)
 class Foo {
 }`).output).to.equal(`
+let Test1: Function;
+let Test2: Function;
+let Test3: Function;
+function Test4<T>(param: any): ClassDecorator { return null; }
+let param: any;
 class Foo {
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
@@ -103,9 +94,11 @@ static decorators: DecoratorInvocation[] = [
 
         it(`doesn't eat 'export'`, () => {
           expect(translate(`
+let Test1: Function;
 @Test1
 export class Foo {
 }`).output).to.equal(`
+let Test1: Function;
 export class Foo {
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
@@ -116,6 +109,8 @@ static decorators: DecoratorInvocation[] = [
 
         it(`handles nested classes`, () => {
           expect(translate(`
+let Test1: Function;
+let Test2: Function;
 @Test1
 export class Foo {
   foo() {
@@ -124,6 +119,8 @@ export class Foo {
     }
   }
 }`).output).to.equal(`
+let Test1: Function;
+let Test2: Function;
 export class Foo {
   foo() {
     class Bar {
@@ -144,10 +141,12 @@ static decorators: DecoratorInvocation[] = [
       describe('ctor decorator rewriter', () => {
         it('ignores ctors that have no applicable injects', () => {
           expect(translate(`
+class BarService {};
 class Foo {
   constructor(bar: BarService, num: number) {
   }
 }`).output).to.equal(`
+class BarService {};
 class Foo {
   constructor(bar: BarService, num: number) {
   }
@@ -156,10 +155,14 @@ class Foo {
 
         it('transforms injected ctors', () => {
           expect(translate(`
+let Inject: Function;
+abstract class AbstractService {}
 class Foo {
   constructor(@Inject bar: AbstractService, num: number) {
   }
 }`).output).to.equal(`
+let Inject: Function;
+abstract class AbstractService {}
 class Foo {
   constructor( bar: AbstractService, num: number) {
   }
@@ -173,11 +176,15 @@ null,
 
         it('stores non annotated parameters if the class has at least one decorator', () => {
           expect(translate(`
+let Test1: Function;
+class BarService {}
 @Test1()
 class Foo {
   constructor(bar: BarService, num: number) {
   }
 }`).output).to.equal(`
+let Test1: Function;
+class BarService {}
 class Foo {
   constructor(bar: BarService, num: number) {
   }
@@ -195,10 +202,16 @@ null,
 
         it('handles complex ctor parameters', () => {
           expect(translate(`
+let Inject: Function;
+class BarService {}
+let param: any;
 class Foo {
   constructor(@Inject(param) x: BarService, {a, b}, defArg = 3, optional?: BarService) {
   }
 }`).output).to.equal(`
+let Inject: Function;
+class BarService {}
+let param: any;
 class Foo {
   constructor( x: BarService, {a, b}, defArg = 3, optional?: BarService) {
   }
@@ -214,9 +227,13 @@ null,
 
         it('includes decorators for primitive type ctor parameters', () => {
           expect(translate(`
+let Inject: Function;
+let APP_ID: any;
 class ViewUtils {
   constructor(@Inject(APP_ID) private _appId: string) {}
 }`).output).to.equal(`
+let Inject: Function;
+let APP_ID: any;
 class ViewUtils {
   constructor( private _appId: string) {}
 /** @nocollapse */
@@ -228,16 +245,39 @@ static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = 
 
         it('strips generic type arguments', () => {
           expect(translate(`
+let Inject: Function;
 class Foo {
   constructor(@Inject typed: Promise<string>) {
   }
 }`).output).to.equal(`
+let Inject: Function;
 class Foo {
   constructor( typed: Promise<string>) {
   }
 /** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: Promise, decorators: [{ type: Inject }, ]},
+];
+}`);
+        });
+
+        it('avoids using interfaces as values', () => {
+          expect(translate(`
+let Inject: Function = null;
+class Class {}
+interface Iface {}
+class Foo {
+  constructor(@Inject aClass: Class, @Inject aIface: Iface) {}
+}`).output).to.equal(`
+let Inject: Function = null;
+class Class {}
+interface Iface {}
+class Foo {
+  constructor( aClass: Class, aIface: Iface) {}
+/** @nocollapse */
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+{type: Class, decorators: [{ type: Inject }, ]},
+{type: undefined, decorators: [{ type: Inject }, ]},
 ];
 }`);
         });
@@ -256,10 +296,12 @@ class Foo {
 
         it('gathers decorators from methods', () => {
           expect(translate(`
+let Test1: Function;
 class Foo {
   @Test1('somename')
   bar() {}
 }`).output).to.equal(`
+let Test1: Function;
 class Foo {
   bar() {}
 /** @nocollapse */
@@ -271,6 +313,7 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 
         it('gathers decorators from fields and setters', () => {
           expect(translate(`
+let PropDecorator: Function;
 class ClassWithDecorators {
   @PropDecorator("p1") @PropDecorator("p2") a;
   b;
@@ -278,6 +321,7 @@ class ClassWithDecorators {
   @PropDecorator("p3")
   set c(value) {}
 }`).output).to.equal(`
+let PropDecorator: Function;
 class ClassWithDecorators { a;
   b;
   set c(value) {}
@@ -292,6 +336,8 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
         it('errors on weird class members', () => {
           let {diagnostics} = translate(
               `
+let Test1: Function;
+let param: any;
 class Foo {
   @Test1('somename')
   [param]() {}
@@ -300,7 +346,7 @@ class Foo {
 
           expect(tsickle.formatDiagnostics(diagnostics))
               .to.equal(
-                  'Error at testcase.ts:3:3: cannot process decorators on ComputedPropertyName');
+                  'Error at testcase.ts:5:3: cannot process decorators on ComputedPropertyName');
         });
 
       });
