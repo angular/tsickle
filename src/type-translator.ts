@@ -74,7 +74,7 @@ export class TypeTranslator {
    * - TypeChecker.symbolToString emits types without their namespace,
    *   and doesn't let you pass the flag to control that.
    */
-  private symbolToString(sym: ts.Symbol): string {
+  public symbolToString(sym: ts.Symbol): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
     let writeText = (text: string) => str += text;
