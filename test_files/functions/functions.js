@@ -1,4 +1,4 @@
-goog.module('test_files.functions.functions');var module = {id: 'test_files/functions/functions.js'};(function () {
+goog.module('test_files.functions.functions');var module = module || {id: 'test_files/functions/functions.js'};(function () {
     /**
      * @param {number} a
      * @return {number}
