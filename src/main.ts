@@ -143,11 +143,12 @@ function createSourceReplacingCompilerHost(
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void): ts.SourceFile {
     let sourceText: string;
-    if (substituteSource.hasOwnProperty(fileName)) {
-      sourceText = substituteSource[fileName];
-      return ts.createSourceFile(fileName, sourceText, languageVersion);
+    let path: string = ts.sys.resolvePath(fileName);
+    if (substituteSource.hasOwnProperty(path)) {
+      sourceText = substituteSource[path];
+      return ts.createSourceFile(path, sourceText, languageVersion);
     }
-    return delegate.getSourceFile(fileName, languageVersion, onError);
+    return delegate.getSourceFile(path, languageVersion, onError);
   }
 }
 
@@ -182,7 +183,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
     if (diagnostics.length > 0) {
       return {errors: diagnostics};
     }
-    tsickleOutput[fileName] = output;
+    tsickleOutput[ts.sys.resolvePath(fileName)] = output;
     if (externs) {
       tsickleExterns += externs;
     }
