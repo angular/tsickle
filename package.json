@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "chai": "^2.1.1",
-    "clang-format": "1.0.37",
+    "clang-format": "^1.0.41",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20160315.2.0",
     "gulp": "^3.8.11",

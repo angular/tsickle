@@ -1,9 +1,10 @@
 import * as fs from 'fs';
-import * as ts from 'typescript';
 import * as glob from 'glob';
 import * as path from 'path';
+import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
+
 
 /** The TypeScript compiler options used by the test suite. */
 const compilerOptions: ts.CompilerOptions = {

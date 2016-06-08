@@ -1,6 +1,8 @@
 import * as ts from 'typescript';
-import {TypeTranslator} from './type-translator';
+
 import {Rewriter} from './rewriter';
+import {TypeTranslator} from './type-translator';
+
 export {convertDecorators} from './decorator-annotator';
 
 export interface Options {

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as closure from 'google-closure-compiler';
 import * as fs from 'fs';
 import * as minimist from 'minimist';

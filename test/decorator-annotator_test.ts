@@ -1,6 +1,8 @@
-import {convertDecorators} from '../src/decorator-annotator';
 import {expect} from 'chai';
+
+import {convertDecorators} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
+
 import * as test_support from './test_support';
 
 const testCaseFileName = 'testcase.ts';
