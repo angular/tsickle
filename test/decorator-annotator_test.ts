@@ -14,21 +14,22 @@ interface DecoratorInvocation {
 }
 `;
 
-function verifyCompiles(sourceText: string) {
-  let sources: {[fileName: string]: string} = {
-    [testCaseFileName]: testSupportCode + sourceText,
+function sources(sourceText: string): {[fileName: string]: string} {
+  return {
+    [testCaseFileName]: sourceText,
+    'bar.d.ts': 'declare module "bar" { export class BarService {} }'
   };
+}
+
+function verifyCompiles(sourceText: string) {
   // This throws an exception on error.
-  test_support.createProgram(sources);
+  test_support.createProgram(sources(testSupportCode + sourceText));
 }
 
 describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
-        let sources: {[fileName: string]: string} = {
-          [testCaseFileName]: sourceText,
-        };
-        let program = test_support.createProgram(sources);
+        let program = test_support.createProgram(sources(sourceText));
         let {output, diagnostics} =
             convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
         if (!allowErrors) expect(diagnostics).to.be.empty;
@@ -141,12 +142,12 @@ static decorators: DecoratorInvocation[] = [
       describe('ctor decorator rewriter', () => {
         it('ignores ctors that have no applicable injects', () => {
           expect(translate(`
-class BarService {};
+import {BarService} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
   }
 }`).output).to.equal(`
-class BarService {};
+import {BarService} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
   }
@@ -176,15 +177,15 @@ null,
 
         it('stores non annotated parameters if the class has at least one decorator', () => {
           expect(translate(`
+import {BarService} from 'bar';
 let Test1: Function;
-class BarService {}
 @Test1()
 class Foo {
   constructor(bar: BarService, num: number) {
   }
 }`).output).to.equal(`
+import {BarService} from 'bar';
 let Test1: Function;
-class BarService {}
 class Foo {
   constructor(bar: BarService, num: number) {
   }
@@ -202,25 +203,25 @@ null,
 
         it('handles complex ctor parameters', () => {
           expect(translate(`
+import * as bar from 'bar';
 let Inject: Function;
-class BarService {}
 let param: any;
 class Foo {
-  constructor(@Inject(param) x: BarService, {a, b}, defArg = 3, optional?: BarService) {
+  constructor(@Inject(param) x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
 }`).output).to.equal(`
+import * as bar from 'bar';
 let Inject: Function;
-class BarService {}
 let param: any;
 class Foo {
-  constructor( x: BarService, {a, b}, defArg = 3, optional?: BarService) {
+  constructor( x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
 /** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
-{type: BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
+{type: bar.BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
 null,
 null,
-{type: BarService, },
+{type: bar.BarService, },
 ];
 }`);
         });

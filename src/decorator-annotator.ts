@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import {Rewriter} from './rewriter';
+import {TypeTranslator} from './type-translator';
 
 // ClassRewriter rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
@@ -58,7 +59,7 @@ class ClassRewriter extends Rewriter {
         // Verify that "Bar" is a value (e.g. a constructor) and not just a type.
         let sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
         if (sym && (sym.flags & ts.SymbolFlags.Value)) {
-          paramCtor = sym.name;
+          paramCtor = new TypeTranslator(this.typeChecker, param.type).symbolToString(sym);
         }
       }
       if (paramCtor || decorators) {
