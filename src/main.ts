@@ -6,6 +6,7 @@ import * as minimist from 'minimist';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import * as cli_support from './cli_support';
 import * as tsickle from './tsickle';
 
 /**
@@ -208,14 +209,9 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
     return {errors: diagnostics};
   }
 
-  // Postprocess generated JS.
-  function pathToModuleName(context: string, fileName: string): string {
-    // TODO(evanm): something more sophisticated here?
-    return fileName.replace(/\//g, '.');
-  }
   for (let fileName of Object.keys(jsFiles)) {
-    let {output} =
-        tsickle.convertCommonJsToGoogModule(fileName, jsFiles[fileName], pathToModuleName);
+    let {output} = tsickle.convertCommonJsToGoogModule(
+        fileName, jsFiles[fileName], cli_support.pathToModuleName);
     jsFiles[fileName] = output;
   }
 
