@@ -211,7 +211,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
   // Postprocess generated JS.
   function pathToModuleName(context: string, fileName: string): string {
     // TODO(evanm): something more sophisticated here?
-    return fileName.replace('/', '.');
+    return fileName.replace(/\//g, '.');
   }
   for (let fileName of Object.keys(jsFiles)) {
     let {output} =
