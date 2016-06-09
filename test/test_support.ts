@@ -3,8 +3,8 @@ import * as glob from 'glob';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import * as cli_support from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
-
 
 /** The TypeScript compiler options used by the test suite. */
 const compilerOptions: ts.CompilerOptions = {
@@ -56,19 +56,12 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
   let transformed: {[fileName: string]: string} = {};
   let emitRes = program.emit(undefined, (fileName: string, data: string) => {
     transformed[fileName] =
-        tsickle.convertCommonJsToGoogModule(fileName, data, pathToModuleName).output;
+        tsickle.convertCommonJsToGoogModule(fileName, data, cli_support.pathToModuleName).output;
   });
   if (emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
   }
   return transformed;
-
-  function pathToModuleName(context: string, fileName: string): string {
-    if (fileName[0] === '.') {
-      fileName = path.join(path.dirname(context), fileName);
-    }
-    return fileName.replace(/\.js$/, '').replace(/\//g, '.');
-  }
 }
 
 export class GoldenFileTest {
