@@ -26,8 +26,8 @@ well.
 
 ### Invocation
 
-Run `tsickle --help` for the full syntax, but basically you specify the minified
-output bundle path and the input TypeScript project.
+Run `tsickle --help` for the full syntax, but basically you provide any tsickle
+specific options and use it as a TypeScript compiler.
 
 ## Development
 

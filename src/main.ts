@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import * as closure from 'google-closure-compiler';
 import * as fs from 'fs';
 import * as minimist from 'minimist';
 import * as path from 'path';
@@ -18,26 +17,18 @@ const internalExternsFileName = 'tsickle_externs.js';
 
 /** Tsickle settings passed on the command line. */
 interface Settings {
-  /** If true, write temporary .js files to disk. Useful for debugging. */
-  saveTemporaries?: boolean;
-
   /** If provided, path to save externs to. */
   externsPath?: string;
-
-  /** Path to write the final JS bundle to. */
-  outputPath: string;
 }
 
 function usage() {
-  console.error(`usage: tsickle [tsickle args] -- [tsc args]
+  console.error(`usage: tsickle [tsickle options] -- [tsc options]
 
 example:
-  tsickle --output bundle.js -- -p src --noImplicitAny
+  tsickle --externs=foo/externs.js -- -p src --noImplicitAny
 
 tsickle flags are:
-  --saveTemporaries  save intermediate .js files to disk
   --externs=PATH     save generated Closure externs.js to PATH
-  --output=PATH      write final Closure bundle to PATH
 `);
 }
 
@@ -46,10 +37,7 @@ tsickle flags are:
  * the arguments to pass on to tsc.
  */
 function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: string[]} {
-  let settings: Settings = {
-    saveTemporaries: null,
-    outputPath: null,
-  };
+  let settings: Settings = {};
   let parsedArgs = minimist(args);
   for (let flag of Object.keys(parsedArgs)) {
     switch (flag) {
@@ -58,14 +46,8 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         usage();
         process.exit(0);
         break;
-      case 'saveTemporaries':
-        settings.saveTemporaries = true;
-        break;
       case 'externs':
         settings.externsPath = parsedArgs[flag];
-        break;
-      case 'output':
-        settings.outputPath = parsedArgs[flag];
         break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
@@ -75,11 +57,6 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         usage();
         process.exit(1);
     }
-  }
-  if (!settings.outputPath && !settings.externsPath) {
-    console.error('must specify --output or --externs path');
-    usage();
-    process.exit(1);
   }
   // Arguments after the '--' arg are arguments to tsc.
   let tscArgs = parsedArgs['_'];
@@ -220,32 +197,6 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
   return {jsFiles};
 }
 
-function closureCompile(
-    jsFiles: {[fileName: string]: string}, outFile: string,
-    callback: (exitCode: number, output: string) => void): void {
-  const closureOptions: closure.CompileOptions = {
-    // Read input files from stdin as JSON.
-    'json_streams': 'IN',
-    // Write output file to disk.
-    'js_output_file': outFile,
-    'warning_level': 'VERBOSE',
-    'language_in': 'ECMASCRIPT6_STRICT',
-    'compilation_level': 'ADVANCED_OPTIMIZATIONS',
-  };
-
-  let compiler = new closure.compiler(closureOptions);
-  let process = compiler.run((exitCode, stdout, stderr) => { callback(exitCode, stderr); });
-
-  let jsonInput: closure.JSONStreamFile[] = [];
-  for (let fileName of Object.keys(jsFiles)) {
-    jsonInput.push({
-      path: fileName,
-      src: jsFiles[fileName],
-    });
-  }
-  process.stdin.end(JSON.stringify(jsonInput));
-}
-
 function main(args: string[]) {
   let {settings, tscArgs} = loadSettingsFromArgs(args);
   let {options, fileNames, errors} = loadTscConfig(tscArgs);
@@ -266,22 +217,12 @@ function main(args: string[]) {
     process.exit(1);
   }
 
-  if (settings.saveTemporaries) {
-    for (let fileName of Object.keys(jsFiles)) {
-      fs.writeFileSync(fileName, jsFiles[fileName]);
-    }
+  for (let fileName of Object.keys(jsFiles)) {
+    fs.writeFileSync(fileName, jsFiles[fileName]);
   }
 
   if (settings.externsPath) {
     fs.writeFileSync(settings.externsPath, jsFiles[internalExternsFileName]);
-  }
-
-  if (settings.outputPath) {
-    // Run Closure compiiler to convert JS files to output bundle.
-    closureCompile(jsFiles, settings.outputPath, (exitCode, output) => {
-      if (output) console.error(output);
-      process.exit(exitCode);
-    });
   }
 }
 
