@@ -12,6 +12,9 @@ import * as tsickle from './tsickle';
 interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
+
+  /** If provided, convert every type to the Closure {?} type */
+  isUntyped: boolean;
 }
 
 function usage() {
@@ -22,6 +25,7 @@ example:
 
 tsickle flags are:
   --externs=PATH     save generated Closure externs.js to PATH
+  --untyped          convert every type in TypeScript to the Closure {?} type
 `);
 }
 
@@ -30,7 +34,7 @@ tsickle flags are:
  * the arguments to pass on to tsc.
  */
 function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: string[]} {
-  let settings: Settings = {};
+  let settings: Settings = {isUntyped: false};
   let parsedArgs = minimist(args);
   for (let flag of Object.keys(parsedArgs)) {
     switch (flag) {
@@ -41,6 +45,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'externs':
         settings.externsPath = parsedArgs[flag];
+        break;
+      case 'untyped':
+        settings.isUntyped = true;
         break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
@@ -129,7 +136,7 @@ function createSourceReplacingCompilerHost(
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
-function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
+function toClosureJS(options: ts.CompilerOptions, fileNames: string[], isUntyped: boolean):
     {jsFiles?: {[fileName: string]: string}, externs?: string, errors?: ts.Diagnostic[]} {
   // Parse and load the program without tsickle processing.
   // This is so:
@@ -141,10 +148,8 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
     return {errors};
   }
 
-  // TODO(evanm): let the user configure tsickle options via the command line.
-  // Or, better, just make tsickle always work without needing any options.
   const tsickleOptions: tsickle.Options = {
-    untyped: true,
+    untyped: isUntyped,
   };
 
   // Process each input file with tsickle and save the output.
@@ -201,7 +206,7 @@ function main(args: string[]) {
   // Run tsickle+TSC to convert inputs to Closure JS files.
   let jsFiles: {[fileName: string]: string};
   let externs: string;
-  ({jsFiles, externs, errors} = toClosureJS(options, fileNames));
+  ({jsFiles, externs, errors} = toClosureJS(options, fileNames, settings.isUntyped));
   if (errors && errors.length > 0) {
     console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
