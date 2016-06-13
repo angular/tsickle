@@ -8,13 +8,6 @@ import * as ts from 'typescript';
 import * as cli_support from './cli_support';
 import * as tsickle from './tsickle';
 
-/**
- * Internal file name for the generated Closure externs.
- * This is never written to disk, but should be unique with respect to
- * the js files that may actually exist.
- */
-const internalExternsFileName = 'tsickle_externs.js';
-
 /** Tsickle settings passed on the command line. */
 interface Settings {
   /** If provided, path to save externs to. */
@@ -137,7 +130,7 @@ function createSourceReplacingCompilerHost(
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
 function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
-    {jsFiles?: {[fileName: string]: string}, errors?: ts.Diagnostic[]} {
+    {jsFiles?: {[fileName: string]: string}, externs?: string, errors?: ts.Diagnostic[]} {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
@@ -192,9 +185,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
     jsFiles[fileName] = output;
   }
 
-  jsFiles[internalExternsFileName] = tsickleExterns;
-
-  return {jsFiles};
+  return {jsFiles, externs: tsickleExterns};
 }
 
 function main(args: string[]) {
@@ -207,7 +198,8 @@ function main(args: string[]) {
 
   // Run tsickle+TSC to convert inputs to Closure JS files.
   let jsFiles: {[fileName: string]: string};
-  ({jsFiles, errors} = toClosureJS(options, fileNames));
+  let externs: string;
+  ({jsFiles, externs, errors} = toClosureJS(options, fileNames));
   if (errors && errors.length > 0) {
     console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
@@ -222,7 +214,7 @@ function main(args: string[]) {
   }
 
   if (settings.externsPath) {
-    fs.writeFileSync(settings.externsPath, jsFiles[internalExternsFileName]);
+    fs.writeFileSync(settings.externsPath, externs);
   }
 }
 
