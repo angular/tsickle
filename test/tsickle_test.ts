@@ -165,9 +165,11 @@ describe('getJSDocAnnotation', () => {
 });
 
 describe('convertCommonJsToGoogModule', () => {
-  function expectCommonJs(fileName: string, content: string) {
+  function expectCommonJs(fileName: string, content: string, useDeclareLegacyNamespace = false) {
     return expect(
-        tsickle.convertCommonJsToGoogModule(fileName, content, cli_support.pathToModuleName)
+        tsickle
+            .convertCommonJsToGoogModule(
+                fileName, content, cli_support.pathToModuleName, useDeclareLegacyNamespace)
             .output);
   }
 
@@ -175,6 +177,12 @@ describe('convertCommonJsToGoogModule', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `console.log('hello');`)
         .to.equal(`goog.module('a');var module = module || {id: 'a.js'};console.log('hello');`);
+  });
+
+  it('adds declareLegacyNamespace when specified', () => {
+    expectCommonJs('a.js', `console.log('hello');`, true)
+        .to.equal(
+            `goog.module('a');goog.module.declareLegacyNamespace();var module = module || {id: 'a.js'};console.log('hello');`);
   });
 
   it('adds a goog.module call to empty files', () => {

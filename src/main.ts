@@ -19,6 +19,9 @@ const internalExternsFileName = 'tsickle_externs.js';
 interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
+
+  /** If provided, declareLegacyNamespace when replacing modules with goog.module */
+  useDeclareLegacyNamespace: boolean;
 }
 
 function usage() {
@@ -28,7 +31,11 @@ example:
   tsickle --externs=foo/externs.js -- -p src --noImplicitAny
 
 tsickle flags are:
-  --externs=PATH     save generated Closure externs.js to PATH
+  --externs=PATH             Save generated Closure externs.js to PATH
+  --declareLegacyNamespace   Provide modules' exports as a globally accessible
+                             objects under the modules' declared names. Useful
+                             for codebases that have not migrated to goog.module
+                             from goog.provide/require.
 `);
 }
 
@@ -37,7 +44,9 @@ tsickle flags are:
  * the arguments to pass on to tsc.
  */
 function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: string[]} {
-  let settings: Settings = {};
+  let settings: Settings = {
+    useDeclareLegacyNamespace: false,
+  };
   let parsedArgs = minimist(args);
   for (let flag of Object.keys(parsedArgs)) {
     switch (flag) {
@@ -48,6 +57,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'externs':
         settings.externsPath = parsedArgs[flag];
+        break;
+      case 'declareLegacyNamespace':
+        settings.useDeclareLegacyNamespace = true;
         break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
@@ -136,7 +148,8 @@ function createSourceReplacingCompilerHost(
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
-function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
+function toClosureJS(
+    options: ts.CompilerOptions, fileNames: string[], useDeclareLegacyNamespace: boolean):
     {jsFiles?: {[fileName: string]: string}, errors?: ts.Diagnostic[]} {
   // Parse and load the program without tsickle processing.
   // This is so:
@@ -188,7 +201,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
 
   for (let fileName of Object.keys(jsFiles)) {
     let {output} = tsickle.convertCommonJsToGoogModule(
-        fileName, jsFiles[fileName], cli_support.pathToModuleName);
+        fileName, jsFiles[fileName], cli_support.pathToModuleName, useDeclareLegacyNamespace);
     jsFiles[fileName] = output;
   }
 
@@ -207,7 +220,7 @@ function main(args: string[]) {
 
   // Run tsickle+TSC to convert inputs to Closure JS files.
   let jsFiles: {[fileName: string]: string};
-  ({jsFiles, errors} = toClosureJS(options, fileNames));
+  ({jsFiles, errors} = toClosureJS(options, fileNames, settings.useDeclareLegacyNamespace));
   if (errors && errors.length > 0) {
     console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
