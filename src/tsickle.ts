@@ -1032,8 +1032,8 @@ class PostProcessor extends Rewriter {
   unusedIndex: number = 0;
 
   constructor(
-      file: ts.SourceFile,
-      private pathToModuleName: (context: string, fileName: string) => string) {
+      file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
+      private useDeclareLegacyNamespace = false) {
     super(file);
   }
 
@@ -1043,6 +1043,9 @@ class PostProcessor extends Rewriter {
     const moduleName = this.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
+    if (this.useDeclareLegacyNamespace) {
+      this.emit(`goog.module.declareLegacyNamespace();`);
+    }
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
@@ -1257,8 +1260,9 @@ class PostProcessor extends Rewriter {
  *     imports with relative paths like "import * as foo from '../foo';".
  */
 export function convertCommonJsToGoogModule(
-    fileName: string, content: string, pathToModuleName: (context: string, fileName: string) =>
-                                           string): {output: string, referencedModules: string[]} {
+    fileName: string, content: string,
+    pathToModuleName: (context: string, fileName: string) => string,
+    useDeclareLegacyNamespace = false): {output: string, referencedModules: string[]} {
   let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new PostProcessor(file, pathToModuleName).process();
+  return new PostProcessor(file, pathToModuleName, useDeclareLegacyNamespace).process();
 }
