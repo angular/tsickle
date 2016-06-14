@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import * as ts from 'typescript';
 
 import {convertDecorators} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
@@ -38,6 +39,16 @@ describe(
         verifyCompiles(output);
         return {output, diagnostics};
       }
+
+      it('rejects non-typechecked inputs', () => {
+        let sourceText = 'let x = 3;';
+        let program = test_support.createProgram(sources(sourceText));
+        let goodSourceFile = program.getSourceFile(testCaseFileName);
+        expect(() => convertDecorators(program.getTypeChecker(), goodSourceFile)).to.not.throw();
+        let badSourceFile =
+            ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES6, true);
+        expect(() => convertDecorators(program.getTypeChecker(), badSourceFile)).to.throw();
+      });
 
       describe('class decorator rewriter', () => {
         it('leaves plain classes alone',

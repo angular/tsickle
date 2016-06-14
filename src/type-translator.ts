@@ -1,5 +1,11 @@
 import * as ts from 'typescript';
 
+export function assertTypeChecked(sourceFile: ts.SourceFile) {
+  if (!('resolvedModules' in sourceFile)) {
+    throw new Error('must provide typechecked program');
+  }
+}
+
 /**
  * Determines if fileName refers to a builtin lib.d.ts file.
  * This is a terrible hack but it mirrors a similar thing done in Clutz.

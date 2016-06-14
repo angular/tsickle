@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 
 import {Rewriter, getIdentifierText, unescapeName} from './rewriter';
-import {TypeTranslator} from './type-translator';
+import {TypeTranslator, assertTypeChecked} from './type-translator';
 
 export {convertDecorators} from './decorator-annotator';
 export {processES5 as convertCommonJsToGoogModule} from './es5processor';
@@ -1015,5 +1015,6 @@ class Annotator extends Rewriter {
 }
 
 export function annotate(program: ts.Program, file: ts.SourceFile, options: Options = {}): Output {
+  assertTypeChecked(file);
   return new Annotator(program, file, options).annotate();
 }

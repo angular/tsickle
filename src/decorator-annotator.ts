@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import {Rewriter} from './rewriter';
-import {TypeTranslator} from './type-translator';
+import {TypeTranslator, assertTypeChecked} from './type-translator';
 
 // ClassRewriter rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
@@ -230,5 +230,6 @@ class DecoratorRewriter extends Rewriter {
 
 export function convertDecorators(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile):
     {output: string, diagnostics: ts.Diagnostic[]} {
+  assertTypeChecked(sourceFile);
   return new DecoratorRewriter(typeChecker, sourceFile).process();
 }
