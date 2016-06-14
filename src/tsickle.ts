@@ -542,6 +542,12 @@ class Annotator extends Rewriter {
 
   private emitInterface(iface: ts.InterfaceDeclaration) {
     if (this.options.untyped) return;
+
+    // If this symbol is both a type and a value, we cannot emit both into Closure's
+    // single namespace.
+    let sym = this.program.getTypeChecker().getSymbolAtLocation(iface.name);
+    if (sym.flags & ts.SymbolFlags.Value) return;
+
     this.emit(`\n/** @record */\n`);
     let name = getIdentifierText(iface.name);
     this.emit(`function ${name}() {}\n`);

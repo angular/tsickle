@@ -1,5 +1,23 @@
 import * as ts from 'typescript';
 
+/**
+ * Determines if fileName refers to a builtin lib.d.ts file.
+ * This is a terrible hack but it mirrors a similar thing done in Clutz.
+ */
+function isBuiltinLibDTS(fileName: string): boolean {
+  return fileName.match(/\blib\.[^/]+\.d\.ts$/) != null;
+}
+
+/**
+ * @return True if the named type is considered compatible with the Closure-defined
+ *     type of the same name, e.g. "Array".  Note that we don't actually enforce
+ *     that the types are actually compatible, but mostly just hope that they are due
+ *     to being derived from the same HTML specs.
+ */
+function isClosureProvidedType(symbol: ts.Symbol): boolean {
+  return symbol.declarations.every(n => isBuiltinLibDTS(n.getSourceFile().fileName));
+}
+
 export function typeToDebugString(type: ts.Type): string {
   const basicTypes: ts.TypeFlags[] = [
     ts.TypeFlags.Any,           ts.TypeFlags.String,
@@ -140,7 +158,9 @@ export class TypeTranslator {
 
     let notNullPrefix = notNull ? '!' : '';
 
-    if (type.flags & (ts.TypeFlags.Interface | ts.TypeFlags.Class)) {
+    if (type.flags & ts.TypeFlags.Class) {
+      return this.symbolToString(type.symbol);
+    } else if (type.flags & ts.TypeFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
       // when it's used, and should not be transformed to the output.
@@ -148,6 +168,15 @@ export class TypeTranslator {
       // InterfaceType "Array", but the "number" type parameter is
       // part of the outer TypeReference, not a typeParameter on
       // the InterfaceType.
+      if (type.symbol.flags & ts.SymbolFlags.Value) {
+        // The symbol is both a type and a value.
+        // For user-defined types in this state, we don't have a Closure name
+        // for the type.  See the type_and_value test.
+        if (!isClosureProvidedType(type.symbol)) {
+          this.warn(`type/symbol conflict for ${type.symbol.name}, using {?} for now`);
+          return '?';
+        }
+      }
       return this.symbolToString(type.symbol);
     } else if (type.flags & ts.TypeFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
