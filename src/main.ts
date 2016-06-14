@@ -187,9 +187,11 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[]):
   }
 
   for (let fileName of Object.keys(jsFiles)) {
-    let {output} = tsickle.convertCommonJsToGoogModule(
-        fileName, jsFiles[fileName], cli_support.pathToModuleName);
-    jsFiles[fileName] = output;
+    if (path.extname(fileName) !== '.map') {
+      let {output} = tsickle.convertCommonJsToGoogModule(
+          fileName, jsFiles[fileName], cli_support.pathToModuleName);
+      jsFiles[fileName] = output;
+    }
   }
 
   jsFiles[internalExternsFileName] = tsickleExterns;
