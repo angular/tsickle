@@ -40,7 +40,7 @@ console.log('hello');`);
   it('converts require calls without assignments on first line', () => {
     expectCommonJs('a.js', `require('req/mod');`)
         .to.equal(
-            `goog.module('a');var module = module || {id: 'a.js'};var unused_0_ = goog.require('req.mod');`);
+            `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('req.mod');`);
   });
 
   it('converts require calls without assignments on a new line', () => {
@@ -48,8 +48,8 @@ console.log('hello');`);
 require('req/mod');
 require('other');`)
         .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
-var unused_0_ = goog.require('req.mod');
-var unused_1_ = goog.require('other');`);
+var tsickle_module_0_ = goog.require('req.mod');
+var tsickle_module_1_ = goog.require('other');`);
   });
 
   it('converts require calls without assignments after comments', () => {
@@ -58,7 +58,7 @@ var unused_1_ = goog.require('other');`);
 require('req/mod');`)
         .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
 // Comment
-var unused_0_ = goog.require('req.mod');`);
+var tsickle_module_0_ = goog.require('req.mod');`);
   });
 
   it('converts const require calls', () => {
@@ -67,10 +67,26 @@ var unused_0_ = goog.require('req.mod');`);
             `goog.module('a');var module = module || {id: 'a.js'};var r = goog.require('req.mod');`);
   });
 
-  it('converts export * statements', () => {
-    expectCommonJs('a.js', `__export(require('req/mod'));`)
-        .to.equal(
-            `goog.module('a');var module = module || {id: 'a.js'};__export(goog.require('req.mod'));`);
+  describe('ES5 export *', () => {
+    it('converts export * statements', () => {
+      expectCommonJs('a.js', `__export(require('req/mod'));`)
+          .to.equal(
+              `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('req.mod');__export(tsickle_module_0_);`);
+    });
+    it('uses correct module name with subsequent exports', () => {
+      expectCommonJs('a.js', `__export(require('req/mod'));
+var mod2 = require('req/mod');`)
+          .to.equal(
+              `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('req.mod');__export(tsickle_module_0_);
+var mod2 = tsickle_module_0_;`);
+    });
+    it('reuses an existing imported variable name', () => {
+      expectCommonJs('a.js', `var mod = require('req/mod');
+__export(require('req/mod'));`)
+          .to.equal(
+              `goog.module('a');var module = module || {id: 'a.js'};var mod = goog.require('req.mod');
+__export(mod);`);
+    });
   });
 
   it('resolves relative module URIs', () => {

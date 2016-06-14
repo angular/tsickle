@@ -116,9 +116,6 @@ class ES5Processor extends Rewriter {
     // We're looking for requires, of one of the forms:
     // - "var importName = require(...);".
     // - "require(...);".
-    // Find the CallExpression contained in either of these.
-    let varName: string;          // E.g. importName in the above example.
-    let call: ts.CallExpression;  // The require(...) expression.
     if (node.kind === ts.SyntaxKind.VariableStatement) {
       // It's possibly of the form "var x = require(...);".
       let varStmt = node as ts.VariableStatement;
@@ -129,9 +126,14 @@ class ES5Processor extends Rewriter {
 
       // Grab the variable name (avoiding things like destructuring binds).
       if (decl.name.kind !== ts.SyntaxKind.Identifier) return false;
-      varName = getIdentifierText(decl.name as ts.Identifier);
+      let varName = getIdentifierText(decl.name as ts.Identifier);
       if (!decl.initializer || decl.initializer.kind !== ts.SyntaxKind.CallExpression) return false;
-      call = decl.initializer as ts.CallExpression;
+      let call = decl.initializer as ts.CallExpression;
+      let require = this.isRequire(call);
+      if (!require) return false;
+      this.writeRange(node.getFullStart(), node.getStart());
+      this.emitGoogRequire(varName, require);
+      return true;
     } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
       // It's possibly of the form:
       // - require(...);
@@ -140,50 +142,77 @@ class ES5Processor extends Rewriter {
       let exprStmt = node as ts.ExpressionStatement;
       let expr = exprStmt.expression;
       if (expr.kind !== ts.SyntaxKind.CallExpression) return false;
-      call = expr as ts.CallExpression;
+      let call = expr as ts.CallExpression;
 
-      let require = this.isExportRequire(call);
-      if (require) {
-        let modName = this.pathToModuleName(this.file.fileName, require);
-        this.writeRange(node.getFullStart(), node.getStart());
-        this.emit(`__export(goog.require('${modName}'));`);
-        // Mark that this module was imported; it doesn't have an associated
-        // variable so just call the variable "*".
-        this.moduleVariables[modName] = '*';
-        return true;
+      let require = this.isRequire(call);
+      let isExport = false;
+      if (!require) {
+        // If it's an __export(require(...)), we emit:
+        //   var x = require(...);
+        //   __export(x);
+        // This extra variable is necessary in case there's a later import of the
+        // same module name.
+        require = this.isExportRequire(call);
+        isExport = require != null;
       }
+      if (!require) return false;
+
+      this.writeRange(node.getFullStart(), node.getStart());
+      let varName = this.emitGoogRequire(null, require);
+
+      if (isExport) {
+        this.emit(`__export(${varName});`);
+      }
+      return true;
     } else {
       // It's some other type of statement.
       return false;
     }
+  }
 
-    let require = this.isRequire(call);
-    if (!require) return false;
-
-    // Even if it's a bare require(); statement, introduce a variable for it.
-    // This avoids a Closure error.
-    if (!varName) {
-      varName = `unused_${this.unusedIndex++}_`;
-    }
-
+  /**
+   * Emits a goog.require() statement for a given variable name and TypeScript import.
+   *
+   * E.g. from:
+   *   var varName = require('tsImport');
+   * produces:
+   *   var varName = goog.require('goog.module.name');
+   *
+   * If the input varName is null, generates a new variable name if necessary.
+   *
+   * @return The variable name for the imported module, reusing a previous import if one
+   *    is available.
+   */
+  emitGoogRequire(varName: string, tsImport: string): string {
     let modName: string;
-    if (require.match(/^goog:/)) {
+    if (tsImport.match(/^goog:/)) {
       // This is a namespace import, of the form "goog:foo.bar".
       // Fix it to just "foo.bar", and save the variable name.
-      modName = require.substr(5);
+      modName = tsImport.substr(5);
       this.namespaceImports[varName] = true;
     } else {
-      modName = this.pathToModuleName(this.file.fileName, require);
+      modName = this.pathToModuleName(this.file.fileName, tsImport);
     }
 
-    this.writeRange(node.getFullStart(), node.getStart());
+    if (!varName) {
+      if (this.moduleVariables.hasOwnProperty(modName)) {
+        // Caller didn't request a specific variable name and we've already
+        // imported the module, so just return the name we already have for this module.
+        return this.moduleVariables[modName];
+      }
+
+      // Note: we always introduce a variable for any import, regardless of whether
+      // the caller requested one.  This avoids a Closure error.
+      varName = this.generateFreshVariableName();
+    }
+
     if (this.moduleVariables.hasOwnProperty(modName)) {
       this.emit(`var ${varName} = ${this.moduleVariables[modName]};`);
     } else {
       this.emit(`var ${varName} = goog.require('${modName}');`);
       this.moduleVariables[modName] = varName;
     }
-    return true;
+    return varName;
   }
   // workaround for syntax highlighting bug in Sublime: `
 
@@ -213,7 +242,7 @@ class ES5Processor extends Rewriter {
     let ident = call.expression as ts.Identifier;
     if (ident.getText() !== '__export') return null;
 
-    // Verify the call takes a single string argument and grab it.
+    // Verify the call takes a single call argument and check it.
     if (call.arguments.length !== 1) return null;
     let arg = call.arguments[0];
     if (arg.kind !== ts.SyntaxKind.CallExpression) return null;
@@ -245,6 +274,9 @@ class ES5Processor extends Rewriter {
     }
     return false;
   }
+
+  /** Generates a new variable name inside the tsickle_ namespace. */
+  generateFreshVariableName(): string { return `tsickle_module_${this.unusedIndex++}_`; }
 }
 
 /**
