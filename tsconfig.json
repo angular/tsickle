@@ -8,12 +8,14 @@
   },
   "files": [
     "src/decorator-annotator.ts",
+    "src/es5processor.ts",
     "src/main.ts",
     "src/rewriter.ts",
     "src/tsickle.ts",
     "src/type-translator.ts",
     "test/decorator-annotator_test.ts",
     "test/e2e_test.ts",
+    "test/es5processor_test.ts",
     "test/test_support.ts",
     "test/tsickle_test.ts",
     "typings/tsd.d.ts"

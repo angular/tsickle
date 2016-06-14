@@ -122,3 +122,20 @@ export abstract class Rewriter {
     });
   }
 }
+
+/** Returns the string contents of a ts.Identifier. */
+export function getIdentifierText(identifier: ts.Identifier): string {
+  // NOTE: the 'text' property on an Identifier may be escaped if it starts
+  // with '__', so just use getText().
+  return identifier.getText();
+}
+
+/**
+ * Converts an escaped TypeScript name into the original source name.
+ * Prefer getIdentifierText() instead if possible.
+ */
+export function unescapeName(name: string): string {
+  // See the private function unescapeIdentifier in TypeScript's utilities.ts.
+  if (name.match(/^___/)) return name.substr(1);
+  return name;
+}
