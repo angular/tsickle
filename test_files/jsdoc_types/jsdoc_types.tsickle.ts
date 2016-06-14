@@ -21,6 +21,10 @@ declare var tsickle_Interface;
 const Interface = tsickle_Interface;
 type Interface = tsickle_Interface;
 
+import tsickle_DefaultClass from './default';
+const DefaultClass = tsickle_DefaultClass;
+type DefaultClass = tsickle_DefaultClass;
+
 
 // Check that imported types get the proper names in JSDoc.
 let /** @type {module1.Class} */ useNamespacedClass = new module1.Class();
@@ -36,3 +40,7 @@ let /** @type {Interface} */ useLocalInterface: Interface = null;
 
 // This is purely a value; it doesn't need renaming.
 let /** @type {number} */ useLocalValue = value;
+
+// Check a default import.
+let /** @type {DefaultClass} */ useDefaultClass = new DefaultClass();
+let /** @type {DefaultClass} */ useDefaultClassAsType: DefaultClass = null;

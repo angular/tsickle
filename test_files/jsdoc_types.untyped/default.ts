@@ -1,0 +1,1 @@
+../jsdoc_types/default.ts

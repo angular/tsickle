@@ -352,6 +352,20 @@ class Annotator extends Rewriter {
   }
 
   /**
+   * @return the ts.Symbol if an identifier's symbol points at a type.
+   */
+  private getTypeSymbol(ident: ts.Identifier): ts.Symbol {
+    const typeChecker = this.program.getTypeChecker();
+    const sym = typeChecker.getSymbolAtLocation(ident);
+    const isType = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Type) !== 0;
+    if (isType) {
+      return sym;
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Handles emit of an "import ..." statement.
    * We need to do a bit of rewriting so that imported types show up under the
    * correct name in JSDoc.
@@ -364,17 +378,13 @@ class Annotator extends Rewriter {
     if (!importClause) {
       // import './foo';
       return false;  // Use default processing.
-    } else if (importClause.name) {
-      // import foo from ...;
-      this.errorUnimplementedKind(decl, 'TODO: default import');
-      return false;  // Use default processing.
-    } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
-      // import * as foo from ...;
-      return false;  // Use default processing.
-    } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
-      // The statement looks like "import {a as b} from ...;".
-      //
-      // If a is a type, rewrite it to:
+    } else if (
+        importClause.name || importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+      // importClause.name implies
+      //   import a from ...;
+      // namedBindings being NamedImports implies
+      //   import {a as b} from ...;
+      // In both cases, if a is a type, rewrite it to something like:
       //   import {a as tsickle_b} from ...;
       //   const b = tsickle_b;
       //   type b = tsickle_b;
@@ -385,32 +395,45 @@ class Annotator extends Rewriter {
       // (TS uses the namespace-qualified name so that updates to the
       // module are reflected in the aliases.  We only do this to types, which can't
       // change, so the namespace qualification is not needed.)
-      const namedImports = importClause.namedBindings as ts.NamedImports;
       const typeChecker = this.program.getTypeChecker();
-
       this.writeRange(decl.getFullStart(), decl.getStart());
-      // Emit the "import" part, with rewritten binding names for types.
-      this.emit('import {');
-      let renamed: ts.Symbol[] = [];
-      for (const imp of namedImports.elements) {
-        // imp.propertyName is the name of the property in the module we're importing from,
-        // while imp.name is the local name.  propertyName is undefined in the case where
-        // it's not being renamed as it's imported.
-        this.emit(getIdentifierText(imp.propertyName || imp.name));
 
-        // Rename it if the symbol references a type.
-        let name = getIdentifierText(imp.name);
-        let sym = typeChecker.getSymbolAtLocation(imp.name);
-        const isType = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Type) !== 0;
-        if (isType) {
-          renamed.push(sym);
-          this.emit(` as tsickle_${name}`);
-        } else if (imp.propertyName) {
-          this.emit(` as ${name}`);
+      // Emit the "import" part, with rewritten binding names for types.
+      this.emit('import ');
+      let renamed: ts.Symbol[] = [];
+      if (importClause.name) {
+        // import a from ...;
+        const name = getIdentifierText(importClause.name);
+        const renameSym = this.getTypeSymbol(importClause.name);
+        if (renameSym) {
+          renamed.push(renameSym);
+          this.emit(`tsickle_${name}`);
+        } else {
+          this.emit(name);
         }
-        this.emit(',');
+      } else {
+        // import {a as b} from ...;
+        this.emit('{');
+        const namedImports = importClause.namedBindings as ts.NamedImports;
+        for (const imp of namedImports.elements) {
+          // imp.propertyName is the name of the property in the module we're importing from,
+          // while imp.name is the local name.  propertyName is undefined in the case where
+          // it's not being renamed as it's imported.
+          this.emit(getIdentifierText(imp.propertyName || imp.name));
+
+          let name = getIdentifierText(imp.name);
+          let renameSym = this.getTypeSymbol(imp.name);
+          if (renameSym) {
+            renamed.push(renameSym);
+            this.emit(` as tsickle_${name}`);
+          } else if (imp.propertyName) {
+            this.emit(` as ${name}`);
+          }
+          this.emit(',');
+        }
+        this.emit('}');
       }
-      this.emit('} from');
+      this.emit(' from');
       this.writeNode(decl.moduleSpecifier);
       this.emit(';\n');
 
@@ -429,6 +452,9 @@ class Annotator extends Rewriter {
         this.emit(`type ${name} = tsickle_${name};\n`);
       }
       return true;
+    } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
+      // import * as foo from ...;
+      return false;  // Use default processing.
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
       return false;  // Use default processing.

@@ -8,6 +8,7 @@ import {ClassOne, value} from './module2';
 import {ClassOne as RenamedClassOne} from './module2';
 import {ClassTwo as RenamedClassTwo} from './module2';
 import {Interface} from './module2';
+import DefaultClass from './default';
 
 // Check that imported types get the proper names in JSDoc.
 let useNamespacedClass = new module1.Class();
@@ -23,3 +24,7 @@ let useLocalInterface: Interface = null;
 
 // This is purely a value; it doesn't need renaming.
 let useLocalValue = value;
+
+// Check a default import.
+let useDefaultClass = new DefaultClass();
+let useDefaultClassAsType: DefaultClass = null;
