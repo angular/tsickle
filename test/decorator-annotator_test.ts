@@ -40,6 +40,10 @@ describe(
         return {output, diagnostics};
       }
 
+      function expectUnchanged(sourceText: string) {
+        expect(translate(sourceText).output).to.equal(sourceText);
+      }
+
       it('rejects non-typechecked inputs', () => {
         let sourceText = 'let x = 3;';
         let program = test_support.createProgram(sources(sourceText));
@@ -51,21 +55,29 @@ describe(
       });
 
       describe('class decorator rewriter', () => {
-        it('leaves plain classes alone',
-           () => { expect(translate(`class Foo {}`).output).to.equal(`class Foo {}`); });
+        it('leaves plain classes alone', () => { expectUnchanged(`class Foo {}`); });
+
+        it('leaves un-marked decorators alone', () => {
+          expectUnchanged(`
+          let Decor: Function;
+          @Decor class Foo {
+            constructor(@Decor p: number) {}
+            @Decor m(): void {}
+          }`);
+        });
 
         it('transforms decorated classes', () => {
           expect(translate(`
-let Test1: Function;
-let Test2: Function;
+/** @Annotation */ let Test1: Function;
+/** @Annotation */ let Test2: Function;
 let param: any;
 @Test1
 @Test2(param)
 class Foo {
   field: string;
 }`).output).to.equal(`
-let Test1: Function;
-let Test2: Function;
+/** @Annotation */ let Test1: Function;
+/** @Annotation */ let Test2: Function;
 let param: any;
 class Foo {
   field: string;
@@ -79,10 +91,10 @@ static decorators: DecoratorInvocation[] = [
 
         it('accepts various complicated decorators', () => {
           expect(translate(`
-let Test1: Function;
-let Test2: Function;
-let Test3: Function;
-function Test4<T>(param: any): ClassDecorator { return null; }
+/** @Annotation */ let Test1: Function;
+/** @Annotation */ let Test2: Function;
+/** @Annotation */ let Test3: Function;
+/** @Annotation */ function Test4<T>(param: any): ClassDecorator { return null; }
 let param: any;
 @Test1({name: 'percentPipe'}, class ZZZ {})
 @Test2
@@ -90,10 +102,10 @@ let param: any;
 @Test4<string>(param)
 class Foo {
 }`).output).to.equal(`
-let Test1: Function;
-let Test2: Function;
-let Test3: Function;
-function Test4<T>(param: any): ClassDecorator { return null; }
+/** @Annotation */ let Test1: Function;
+/** @Annotation */ let Test2: Function;
+/** @Annotation */ let Test3: Function;
+/** @Annotation */ function Test4<T>(param: any): ClassDecorator { return null; }
 let param: any;
 class Foo {
 /** @nocollapse */
@@ -108,11 +120,11 @@ static decorators: DecoratorInvocation[] = [
 
         it(`doesn't eat 'export'`, () => {
           expect(translate(`
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 @Test1
 export class Foo {
 }`).output).to.equal(`
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 export class Foo {
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
@@ -123,8 +135,8 @@ static decorators: DecoratorInvocation[] = [
 
         it(`handles nested classes`, () => {
           expect(translate(`
-let Test1: Function;
-let Test2: Function;
+/** @Annotation */ let Test1: Function;
+/** @Annotation */ let Test2: Function;
 @Test1
 export class Foo {
   foo() {
@@ -133,8 +145,8 @@ export class Foo {
     }
   }
 }`).output).to.equal(`
-let Test1: Function;
-let Test2: Function;
+/** @Annotation */ let Test1: Function;
+/** @Annotation */ let Test2: Function;
 export class Foo {
   foo() {
     class Bar {
@@ -154,12 +166,7 @@ static decorators: DecoratorInvocation[] = [
 
       describe('ctor decorator rewriter', () => {
         it('ignores ctors that have no applicable injects', () => {
-          expect(translate(`
-import {BarService} from 'bar';
-class Foo {
-  constructor(bar: BarService, num: number) {
-  }
-}`).output).to.equal(`
+          expectUnchanged(`
 import {BarService} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
@@ -169,13 +176,13 @@ class Foo {
 
         it('transforms injected ctors', () => {
           expect(translate(`
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 abstract class AbstractService {}
 class Foo {
   constructor(@Inject bar: AbstractService, num: number) {
   }
 }`).output).to.equal(`
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 abstract class AbstractService {}
 class Foo {
   constructor( bar: AbstractService, num: number) {
@@ -191,14 +198,14 @@ null,
         it('stores non annotated parameters if the class has at least one decorator', () => {
           expect(translate(`
 import {BarService} from 'bar';
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 @Test1()
 class Foo {
   constructor(bar: BarService, num: number) {
   }
 }`).output).to.equal(`
 import {BarService} from 'bar';
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 class Foo {
   constructor(bar: BarService, num: number) {
   }
@@ -217,14 +224,14 @@ null,
         it('handles complex ctor parameters', () => {
           expect(translate(`
 import * as bar from 'bar';
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 let param: any;
 class Foo {
   constructor(@Inject(param) x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
 }`).output).to.equal(`
 import * as bar from 'bar';
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 let param: any;
 class Foo {
   constructor( x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
@@ -241,12 +248,12 @@ null,
 
         it('includes decorators for primitive type ctor parameters', () => {
           expect(translate(`
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 let APP_ID: any;
 class ViewUtils {
   constructor(@Inject(APP_ID) private _appId: string) {}
 }`).output).to.equal(`
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 let APP_ID: any;
 class ViewUtils {
   constructor( private _appId: string) {}
@@ -259,12 +266,12 @@ static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = 
 
         it('strips generic type arguments', () => {
           expect(translate(`
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 class Foo {
   constructor(@Inject typed: Promise<string>) {
   }
 }`).output).to.equal(`
-let Inject: Function;
+/** @Annotation */ let Inject: Function;
 class Foo {
   constructor( typed: Promise<string>) {
   }
@@ -277,13 +284,13 @@ static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = 
 
         it('avoids using interfaces as values', () => {
           expect(translate(`
-let Inject: Function = null;
+/** @Annotation */ let Inject: Function = null;
 class Class {}
 interface Iface {}
 class Foo {
   constructor(@Inject aClass: Class, @Inject aIface: Iface) {}
 }`).output).to.equal(`
-let Inject: Function = null;
+/** @Annotation */ let Inject: Function = null;
 class Class {}
 interface Iface {}
 class Foo {
@@ -299,10 +306,7 @@ static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = 
 
       describe('method decorator rewriter', () => {
         it('leaves ordinary methods alone', () => {
-          expect(translate(`
-class Foo {
-  bar() {}
-}`).output).to.equal(`
+          expectUnchanged(`
 class Foo {
   bar() {}
 }`);
@@ -310,12 +314,12 @@ class Foo {
 
         it('gathers decorators from methods', () => {
           expect(translate(`
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 class Foo {
   @Test1('somename')
   bar() {}
 }`).output).to.equal(`
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 class Foo {
   bar() {}
 /** @nocollapse */
@@ -327,7 +331,7 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 
         it('gathers decorators from fields and setters', () => {
           expect(translate(`
-let PropDecorator: Function;
+/** @Annotation */ let PropDecorator: Function;
 class ClassWithDecorators {
   @PropDecorator("p1") @PropDecorator("p2") a;
   b;
@@ -335,7 +339,7 @@ class ClassWithDecorators {
   @PropDecorator("p3")
   set c(value) {}
 }`).output).to.equal(`
-let PropDecorator: Function;
+/** @Annotation */ let PropDecorator: Function;
 class ClassWithDecorators { a;
   b;
   set c(value) {}
@@ -350,7 +354,7 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
         it('errors on weird class members', () => {
           let {diagnostics} = translate(
               `
-let Test1: Function;
+/** @Annotation */ let Test1: Function;
 let param: any;
 class Foo {
   @Test1('somename')
