@@ -17,7 +17,7 @@ const RenamedClassTwo = tsickle_RenamedClassTwo;
 type RenamedClassTwo = tsickle_RenamedClassTwo;
 
 import {Interface as tsickle_Interface,} from './module2';
-declare var tsickle_Interface;
+declare var tsickle_Interface: any;
 const Interface = tsickle_Interface;
 type Interface = tsickle_Interface;
 

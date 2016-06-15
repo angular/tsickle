@@ -446,7 +446,7 @@ class Annotator extends Rewriter {
         if (!isValue) {
           // Once tsickle processes the other module, it will create a var for it.
           // But until then we just hack this symbol in to the value namespace.
-          this.emit(`declare var tsickle_${name};\n`);
+          this.emit(`declare var tsickle_${name}: any;\n`);
         }
         this.emit(`const ${name} = tsickle_${name};\n`);
         this.emit(`type ${name} = tsickle_${name};\n`);
