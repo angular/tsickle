@@ -18,6 +18,7 @@ let /** @type {?} */ useLocalClassRenamed = new module2_2.ClassOne();
 let /** @type {?} */ useLocalClassRenamedTwo = new module2_3.ClassTwo();
 let /** @type {?} */ useLocalClassAsTypeRenamed = null;
 let /** @type {?} */ useLocalInterface = null;
+let /** @type {?} */ useClassWithParams = null;
 // This is purely a value; it doesn't need renaming.
 let /** @type {?} */ useLocalValue = module2_1.value;
 // Check a default import.

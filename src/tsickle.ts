@@ -449,7 +449,17 @@ class Annotator extends Rewriter {
           this.emit(`declare var tsickle_${name}: any;\n`);
         }
         this.emit(`const ${name} = tsickle_${name};\n`);
-        this.emit(`type ${name} = tsickle_${name};\n`);
+
+        const type = typeChecker.getDeclaredTypeOfSymbol(sym);
+        // If it's a parameterized type (e.g. Foo<T>), gather a type parameter list.
+        let typeParams = '';
+        if (type.flags & ts.TypeFlags.Reference) {
+          const typeRef = type as ts.TypeReference;
+          if (typeRef.typeArguments) {
+            typeParams = '<' + typeRef.typeArguments.map((_, i) => `T${i}`).join(',') + '>';
+          }
+        }
+        this.emit(`type ${name}${typeParams} = tsickle_${name}${typeParams};\n`);
       }
       return true;
     } else if (importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {

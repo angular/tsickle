@@ -5,4 +5,10 @@ exports.ClassOne = ClassOne;
 class ClassTwo {
 }
 exports.ClassTwo = ClassTwo;
+class ClassWithParams {
+}
+exports.ClassWithParams = ClassWithParams;
+// TODO(evanm):
+// export type TypeAlias = number;
+// export type TypeAliasWithParam<T> = T[];
 exports.value = 3;

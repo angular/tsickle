@@ -8,6 +8,7 @@ import {ClassOne, value} from './module2';
 import {ClassOne as RenamedClassOne} from './module2';
 import {ClassTwo as RenamedClassTwo} from './module2';
 import {Interface} from './module2';
+import {ClassWithParams} from './module2';
 import DefaultClass from './default';
 
 // Check that imported types get the proper names in JSDoc.
@@ -21,6 +22,7 @@ let /** @type {?} */ useLocalClassRenamed = new RenamedClassOne();
 let /** @type {?} */ useLocalClassRenamedTwo = new RenamedClassTwo();
 let /** @type {?} */ useLocalClassAsTypeRenamed: RenamedClassOne = null;
 let /** @type {?} */ useLocalInterface: Interface = null;
+let /** @type {?} */ useClassWithParams: ClassWithParams<number> = null;
 
 // This is purely a value; it doesn't need renaming.
 let /** @type {?} */ useLocalValue = value;

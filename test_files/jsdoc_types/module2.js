@@ -10,4 +10,10 @@ function Interface() { }
 exports.Interface = Interface;
 /** @type {number} */
 Interface.prototype.x;
+class ClassWithParams {
+}
+exports.ClassWithParams = ClassWithParams;
+// TODO(evanm):
+// export type TypeAlias = number;
+// export type TypeAliasWithParam<T> = T[];
 exports.value = 3;

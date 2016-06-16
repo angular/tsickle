@@ -21,6 +21,10 @@ declare var tsickle_Interface: any;
 const Interface = tsickle_Interface;
 type Interface = tsickle_Interface;
 
+import {ClassWithParams as tsickle_ClassWithParams,} from './module2';
+const ClassWithParams = tsickle_ClassWithParams;
+type ClassWithParams<T0> = tsickle_ClassWithParams<T0>;
+
 import tsickle_DefaultClass from './default';
 const DefaultClass = tsickle_DefaultClass;
 type DefaultClass = tsickle_DefaultClass;
@@ -37,6 +41,7 @@ let /** @type {ClassOne} */ useLocalClassRenamed = new RenamedClassOne();
 let /** @type {RenamedClassTwo} */ useLocalClassRenamedTwo = new RenamedClassTwo();
 let /** @type {ClassOne} */ useLocalClassAsTypeRenamed: RenamedClassOne = null;
 let /** @type {Interface} */ useLocalInterface: Interface = null;
+let /** @type {ClassWithParams<number>} */ useClassWithParams: ClassWithParams<number> = null;
 
 // This is purely a value; it doesn't need renaming.
 let /** @type {number} */ useLocalValue = value;
