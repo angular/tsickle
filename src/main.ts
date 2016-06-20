@@ -220,10 +220,6 @@ function main(args: string[]) {
     console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
   }
-  if (Object.keys(jsFiles).length === 0) {
-    console.error('no js files');
-    process.exit(1);
-  }
 
   for (let fileName of Object.keys(jsFiles)) {
     fs.writeFileSync(fileName, jsFiles[fileName]);
