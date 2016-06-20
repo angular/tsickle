@@ -3,7 +3,7 @@ import * as glob from 'glob';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import * as cli_support from '../src/cli_support';
+import * as cliSupport from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
 
 /** The TypeScript compiler options used by the test suite. */
@@ -56,7 +56,7 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
   let transformed: {[fileName: string]: string} = {};
   let emitRes = program.emit(undefined, (fileName: string, data: string) => {
     transformed[fileName] =
-        tsickle.convertCommonJsToGoogModule(fileName, data, cli_support.pathToModuleName).output;
+        tsickle.convertCommonJsToGoogModule(fileName, data, cliSupport.pathToModuleName).output;
   });
   if (emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));

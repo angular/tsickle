@@ -1,11 +1,11 @@
 import {expect} from 'chai';
 
-import * as cli_support from '../src/cli_support';
+import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
 describe('convertCommonJsToGoogModule', () => {
   function expectCommonJs(fileName: string, content: string) {
-    return expect(es5processor.processES5(fileName, content, cli_support.pathToModuleName).output);
+    return expect(es5processor.processES5(fileName, content, cliSupport.pathToModuleName).output);
   }
 
   it('adds a goog.module call', () => {
@@ -157,7 +157,7 @@ var es6RelativeRequire = require('./relative');
 var es6NonRelativeRequire = require('non/relative');
 __export(require('./export-star');
 `,
-        cli_support.pathToModuleName);
+        cliSupport.pathToModuleName);
 
     return expect(referencedModules).to.deep.equal([
       'foo.bare-require',

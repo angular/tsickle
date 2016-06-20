@@ -4,7 +4,7 @@ import * as ts from 'typescript';
 import {convertDecorators} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
 
-import * as test_support from './test_support';
+import * as testSupport from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 
@@ -26,13 +26,13 @@ function sources(sourceText: string): {[fileName: string]: string} {
 
 function verifyCompiles(sourceText: string) {
   // This throws an exception on error.
-  test_support.createProgram(sources(testSupportCode + sourceText));
+  testSupport.createProgram(sources(testSupportCode + sourceText));
 }
 
 describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
-        let program = test_support.createProgram(sources(sourceText));
+        let program = testSupport.createProgram(sources(sourceText));
         let {output, diagnostics} =
             convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
         if (!allowErrors) expect(diagnostics).to.be.empty;
@@ -46,7 +46,7 @@ describe(
 
       it('rejects non-typechecked inputs', () => {
         let sourceText = 'let x = 3;';
-        let program = test_support.createProgram(sources(sourceText));
+        let program = testSupport.createProgram(sources(sourceText));
         let goodSourceFile = program.getSourceFile(testCaseFileName);
         expect(() => convertDecorators(program.getTypeChecker(), goodSourceFile)).to.not.throw();
         let badSourceFile =

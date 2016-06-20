@@ -5,7 +5,7 @@ import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
 
-import * as test_support from './test_support';
+import * as testSupport from './test_support';
 
 let RUN_TESTS_MATCHING: RegExp = null;
 // RUN_TESTS_MATCHING = /fields/;
@@ -57,7 +57,7 @@ function compareAgainstGolden(output: string, path: string) {
 }
 
 describe('golden tests', () => {
-  test_support.goldenTests().forEach((test) => {
+  testSupport.goldenTests().forEach((test) => {
     if (RUN_TESTS_MATCHING && !RUN_TESTS_MATCHING.exec(test.name)) {
       it.skip(test.name);
       return;
@@ -74,7 +74,7 @@ describe('golden tests', () => {
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
         tsSources[tsPath] = tsSource;
       }
-      let program = test_support.createProgram(tsSources);
+      let program = testSupport.createProgram(tsSources);
 
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
       // generated externs and tsickle-processed sources.
@@ -110,8 +110,8 @@ describe('golden tests', () => {
 
       // Run tsickled TypeScript through TypeScript compiler
       // and compare against goldens.
-      program = test_support.createProgram(tsickleSources);
-      let jsSources = test_support.emit(program);
+      program = testSupport.createProgram(tsickleSources);
+      let jsSources = testSupport.emit(program);
       for (let jsPath of Object.keys(jsSources)) {
         compareAgainstGolden(jsSources[jsPath], jsPath);
       }

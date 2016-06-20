@@ -5,7 +5,7 @@ import * as minimist from 'minimist';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import * as cli_support from './cli_support';
+import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
 
 /** Tsickle settings passed on the command line. */
@@ -196,7 +196,7 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[], settings:
   for (let fileName of Object.keys(jsFiles)) {
     if (path.extname(fileName) !== '.map') {
       let {output} = tsickle.convertCommonJsToGoogModule(
-          fileName, jsFiles[fileName], cli_support.pathToModuleName);
+          fileName, jsFiles[fileName], cliSupport.pathToModuleName);
       jsFiles[fileName] = output;
     }
   }
