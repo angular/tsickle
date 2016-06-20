@@ -18,6 +18,7 @@
     "test/es5processor_test.ts",
     "test/test_support.ts",
     "test/tsickle_test.ts",
+    "test/type-translator_test.ts",
     "typings/tsd.d.ts"
   ]
 }

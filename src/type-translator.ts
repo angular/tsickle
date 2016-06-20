@@ -10,8 +10,8 @@ export function assertTypeChecked(sourceFile: ts.SourceFile) {
  * Determines if fileName refers to a builtin lib.d.ts file.
  * This is a terrible hack but it mirrors a similar thing done in Clutz.
  */
-function isBuiltinLibDTS(fileName: string): boolean {
-  return fileName.match(/\blib\.[^/]+\.d\.ts$/) != null;
+export function isBuiltinLibDTS(fileName: string): boolean {
+  return fileName.match(/\blib\.(?:[^/]+\.)?d\.ts$/) != null;
 }
 
 /**
