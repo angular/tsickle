@@ -12,5 +12,5 @@ describe('isBuiltinLibDTS', () => {
     expect(type_translator.isBuiltinLibDTS('lib.ts')).to.equal(false);
     expect(type_translator.isBuiltinLibDTS('libfoo.d.tts')).to.equal(false);
     expect(type_translator.isBuiltinLibDTS('lib.a/b.d.tts')).to.equal(false);
-  })
+  });
 });
