@@ -7,6 +7,13 @@ function jsDocTestFunction(foo: string, baz: string): string {
 }
 
 /**
+ * @returns return comment in a "@returns" block.
+ */
+function returnsTest(): string {
+  return 'abc';
+}
+
+/**
  * @param {badTypeHere} foo no types allowed.
  */
 function jsDocTestBadDoc(foo: string) {}

@@ -99,6 +99,10 @@ export function getJSDocAnnotation(comment: string): JSDocComment {
     match = line.match(/^@(\S+) *(.*)/);
     if (match) {
       let [_, tagName, text] = match;
+      if (tagName === 'returns') {
+        // A synonym for 'return'.
+        tagName = 'return';
+      }
       if (tagName === 'type') {
         throw new Error('@type annotations are not allowed');
       }

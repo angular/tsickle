@@ -1,5 +1,5 @@
-Error at test_files/jsdoc/jsdoc.ts:9:1: type annotations (using {...}) are not allowed
-Error at test_files/jsdoc/jsdoc.ts:20:3: @type annotations are not allowed
+Error at test_files/jsdoc/jsdoc.ts:16:1: type annotations (using {...}) are not allowed
+Error at test_files/jsdoc/jsdoc.ts:27:3: @type annotations are not allowed
 ====
 
 /**
@@ -9,6 +9,12 @@ Error at test_files/jsdoc/jsdoc.ts:20:3: @type annotations are not allowed
  */
 function jsDocTestFunction(foo: string, baz: string): string {
   return foo;
+}
+/**
+ * @return {string} return comment in a "@returns" block.
+ */
+function returnsTest(): string {
+  return 'abc';
 }
 /**
  * @param {string} foo

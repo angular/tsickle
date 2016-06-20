@@ -7,6 +7,12 @@ function jsDocTestFunction(foo, baz) {
     return foo;
 }
 /**
+ * @return {string} return comment in a "@returns" block.
+ */
+function returnsTest() {
+    return 'abc';
+}
+/**
  * @param {string} foo
  * @return {void}
  */
