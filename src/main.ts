@@ -15,6 +15,9 @@ interface Settings {
 
   /** If provided, convert every type to the Closure {?} type */
   isUntyped: boolean;
+
+  /** If true, log internal debug warnings to the console. */
+  verbose: boolean;
 }
 
 function usage() {
@@ -48,6 +51,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'untyped':
         settings.isUntyped = true;
+        break;
+      case 'verbose':
+        settings.verbose = true;
         break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
@@ -136,7 +142,7 @@ function createSourceReplacingCompilerHost(
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
-function toClosureJS(options: ts.CompilerOptions, fileNames: string[], isUntyped: boolean):
+function toClosureJS(options: ts.CompilerOptions, fileNames: string[], settings: Settings):
     {jsFiles?: {[fileName: string]: string}, externs?: string, errors?: ts.Diagnostic[]} {
   // Parse and load the program without tsickle processing.
   // This is so:
@@ -149,7 +155,10 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[], isUntyped
   }
 
   const tsickleOptions: tsickle.Options = {
-    untyped: isUntyped,
+    untyped: settings.isUntyped,
+    logWarning: settings.verbose ?
+        (warning: ts.Diagnostic) => { console.error(tsickle.formatDiagnostics([warning])); } :
+        null,
   };
 
   // Process each input file with tsickle and save the output.
@@ -206,7 +215,7 @@ function main(args: string[]) {
   // Run tsickle+TSC to convert inputs to Closure JS files.
   let jsFiles: {[fileName: string]: string};
   let externs: string;
-  ({jsFiles, externs, errors} = toClosureJS(options, fileNames, settings.isUntyped));
+  ({jsFiles, externs, errors} = toClosureJS(options, fileNames, settings));
   if (errors && errors.length > 0) {
     console.error(tsickle.formatDiagnostics(errors));
     process.exit(1);
