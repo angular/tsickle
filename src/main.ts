@@ -17,7 +17,7 @@ interface Settings {
   isUntyped: boolean;
 
   /** If true, log internal debug warnings to the console. */
-  verbose: boolean;
+  verbose?: boolean;
 }
 
 function usage() {
