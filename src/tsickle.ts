@@ -80,6 +80,26 @@ export interface JSDocTag {
 
 export interface JSDocComment { tags: JSDocTag[]; }
 
+function arrayIncludes<T>(array: T[], key: T): boolean {
+  for (const elem of array) {
+    if (elem === key) return true;
+  }
+  return false;
+}
+
+/**
+ * A list of JSDoc @tags that are never allowed in TypeScript source.
+ * These are Closure tags that can be expressed in the TypeScript surface
+ * syntax.  Note that we don't disallow all Closure-specific tags here,
+ * because a user might want to specify them for some optimization purpose;
+ * if they affect Closure, the compiler will yell at them and hopefuly it
+ * will be obvious.
+ */
+const JSDOC_TAGS_BLACKLIST = ['private', 'public', 'type'];
+
+/** A list of JSDoc @tags that might include a {type} after them. */
+const JSDOC_TAGS_WITH_TYPES = ['export', 'param', 'return'];
+
 /**
  * getJSDocAnnotation parses JSDoc out of a comment string.
  * Returns null if comment is not JSDoc.
@@ -103,10 +123,10 @@ export function getJSDocAnnotation(comment: string): JSDocComment {
         // A synonym for 'return'.
         tagName = 'return';
       }
-      if (tagName === 'type') {
-        throw new Error('@type annotations are not allowed');
+      if (arrayIncludes(JSDOC_TAGS_BLACKLIST, tagName)) {
+        throw new Error(`@${tagName} annotations are not allowed`);
       }
-      if ((tagName === 'param' || tagName === 'return') && text[0] === '{') {
+      if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
         throw new Error('type annotations (using {...}) are not allowed');
       }
 

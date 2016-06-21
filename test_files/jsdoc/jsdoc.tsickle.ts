@@ -1,5 +1,6 @@
 Error at test_files/jsdoc/jsdoc.ts:16:1: type annotations (using {...}) are not allowed
-Error at test_files/jsdoc/jsdoc.ts:27:3: @type annotations are not allowed
+Error at test_files/jsdoc/jsdoc.ts:25:3: type annotations (using {...}) are not allowed
+Error at test_files/jsdoc/jsdoc.ts:30:3: @type annotations are not allowed
 ====
 
 /**
@@ -26,6 +27,9 @@ class JSDocTest {
   /** @export */
   exported: string;
 
+  /** @export {number} */
+  badExport: string;
+
   stringWithoutJSDoc: string;
 
   /** @type {badType} */
@@ -35,6 +39,8 @@ class JSDocTest {
  /** @export
  @type {string} */
 JSDocTest.prototype.exported;
+ /** @type {string} */
+JSDocTest.prototype.badExport;
  /** @type {string} */
 JSDocTest.prototype.stringWithoutJSDoc;
  /** @type {number} */

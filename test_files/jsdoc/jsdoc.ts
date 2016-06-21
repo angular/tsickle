@@ -22,6 +22,9 @@ class JSDocTest {
   /** @export */
   exported: string;
 
+  /** @export {number} */
+  badExport: string;
+
   stringWithoutJSDoc: string;
 
   /** @type {badType} */
