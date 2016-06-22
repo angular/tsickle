@@ -311,13 +311,6 @@ class Annotator extends Rewriter {
         this.writeNode(node);
         this.emit('))');
         return true;
-      case ts.SyntaxKind.JsxText:
-        // TypeScript seems to accidentally include one extra token of
-        // text in each JSX text node as a child.  Avoid it here by just
-        // emitting the node's text rather than visiting its children.
-        // https://github.com/angular/tsickle/issues/76
-        this.emit(node.getFullText());
-        return true;
       default:
         break;
     }

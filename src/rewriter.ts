@@ -30,7 +30,17 @@ export abstract class Rewriter {
   visit(node: ts.Node) {
     // this.logWithIndent('node: ' + ts.SyntaxKind[node.kind]);
     this.indent++;
-    if (!this.maybeProcess(node)) this.writeNode(node);
+    if (!this.maybeProcess(node)) {
+      if (node.kind === ts.SyntaxKind.JsxText) {
+        // TypeScript seems to accidentally include one extra token of
+        // text in each JSX text node as a child.  Avoid it here by just
+        // emitting the node's text rather than visiting its children.
+        // https://github.com/angular/tsickle/issues/76
+        this.emit(node.getFullText());
+      } else {
+        this.writeNode(node);
+      }
+    }
     this.indent--;
   }
 

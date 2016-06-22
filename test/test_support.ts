@@ -97,7 +97,7 @@ export function goldenTests(): GoldenFileTest[] {
     testDir = path.relative(process.cwd(), testDir);
     let tsPaths = glob.sync(path.join(testDir, '*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
-    tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./));
+    tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
     let tsFiles = tsPaths.map(f => path.relative(testDir, f));
     return new GoldenFileTest(testDir, tsFiles);
   });

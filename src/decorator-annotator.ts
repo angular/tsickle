@@ -2,6 +2,13 @@ import * as ts from 'typescript';
 import {Rewriter} from './rewriter';
 import {TypeTranslator, assertTypeChecked} from './type-translator';
 
+export const ANNOTATION_SUPPORT_CODE = `
+interface DecoratorInvocation {
+  type: Function;
+  args?: any[];
+}
+`;
+
 // ClassRewriter rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
 // separately for each class we encounter.

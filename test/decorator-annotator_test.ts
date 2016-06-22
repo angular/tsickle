@@ -1,21 +1,12 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
 
-import {convertDecorators} from '../src/decorator-annotator';
+import {ANNOTATION_SUPPORT_CODE, convertDecorators} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
 
 const testCaseFileName = 'testcase.ts';
-
-// When we verify that the produced code compiles, we need to provide a definition
-// of DecoratorInvocation.
-const testSupportCode = `
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
-}
-`;
 
 function sources(sourceText: string): {[fileName: string]: string} {
   return {
@@ -26,7 +17,7 @@ function sources(sourceText: string): {[fileName: string]: string} {
 
 function verifyCompiles(sourceText: string) {
   // This throws an exception on error.
-  testSupport.createProgram(sources(testSupportCode + sourceText));
+  testSupport.createProgram(sources(ANNOTATION_SUPPORT_CODE + sourceText));
 }
 
 describe(

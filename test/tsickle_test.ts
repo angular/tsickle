@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {ANNOTATION_SUPPORT_CODE} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
@@ -75,6 +76,29 @@ describe('golden tests', () => {
         tsSources[tsPath] = tsSource;
       }
       let program = testSupport.createProgram(tsSources);
+
+      // Run TypeScript through the decorator annotator and emit goldens if
+      // it changed anything.
+      let convertDecoratorsMadeChange = false;
+      for (let tsPath of Object.keys(tsSources)) {
+        // Run TypeScript through the decorator annotator and emit goldens if
+        // it changed anything.
+        let {output, diagnostics} =
+            tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
+        expect(diagnostics).to.be.empty;
+        if (output !== tsSources[tsPath]) {
+          output += ANNOTATION_SUPPORT_CODE;
+          let decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
+          expect(decoratedPath).to.not.equal(tsPath);
+          compareAgainstGolden(output, decoratedPath);
+          tsSources[tsPath] = output;
+          convertDecoratorsMadeChange = true;
+        }
+      }
+      if (convertDecoratorsMadeChange) {
+        // A file changed; reload the program on the new output.
+        program = testSupport.createProgram(tsSources);
+      }
 
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
       // generated externs and tsickle-processed sources.
