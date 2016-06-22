@@ -302,7 +302,9 @@ class Annotator extends Rewriter {
       case ts.SyntaxKind.EnumDeclaration:
         return this.maybeProcessEnum(<ts.EnumDeclaration>node);
       case ts.SyntaxKind.TypeAssertionExpression:
-        let typeAssertion = <ts.TypeAssertion>node;
+      case ts.SyntaxKind.AsExpression:
+        // Both of these cases are AssertionExpressions.
+        let typeAssertion = node as ts.AssertionExpression;
         this.emitJSDocType(typeAssertion);
         // When TypeScript emits JS, it removes one layer of "redundant"
         // parens, but we need them for the Closure type assertion.  Work

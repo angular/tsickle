@@ -15,8 +15,8 @@ EnumTest1[EnumTest1.PI] = "PI";
 // index into the enum with all the various ways allowed of enums.
 let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
 let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
-let /** @type {string} */ enumNumIndex: string = EnumTest1[null as number];
-let /** @type {number} */ enumStrIndex: number = EnumTest1[null as string];
+let /** @type {string} */ enumNumIndex: string = EnumTest1[ /** @type {number} */((null as number))];
+let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} */((null as string))];
 /**
  * @param {number} val
  * @return {void}
