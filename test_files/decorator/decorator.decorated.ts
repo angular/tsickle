@@ -6,6 +6,8 @@ function annotationDecorator(a: Object, b: string) {}
 class DecoratorTest {
   @decorator
   private x: number;
+
+  
   private y: number;
 /** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {

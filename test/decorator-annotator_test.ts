@@ -70,6 +70,8 @@ class Foo {
 /** @Annotation */ let Test1: Function;
 /** @Annotation */ let Test2: Function;
 let param: any;
+
+
 class Foo {
   field: string;
 /** @nocollapse */
@@ -98,6 +100,10 @@ class Foo {
 /** @Annotation */ let Test3: Function;
 /** @Annotation */ function Test4<T>(param: any): ClassDecorator { return null; }
 let param: any;
+
+
+
+
 class Foo {
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
@@ -116,6 +122,7 @@ static decorators: DecoratorInvocation[] = [
 export class Foo {
 }`).output).to.equal(`
 /** @Annotation */ let Test1: Function;
+
 export class Foo {
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
@@ -138,9 +145,10 @@ export class Foo {
 }`).output).to.equal(`
 /** @Annotation */ let Test1: Function;
 /** @Annotation */ let Test2: Function;
+
 export class Foo {
   foo() {
-    class Bar {
+    \n    class Bar {
     /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test2 },
@@ -197,6 +205,7 @@ class Foo {
 }`).output).to.equal(`
 import {BarService} from 'bar';
 /** @Annotation */ let Test1: Function;
+
 class Foo {
   constructor(bar: BarService, num: number) {
   }
@@ -285,7 +294,7 @@ class Foo {
 class Class {}
 interface Iface {}
 class Foo {
-  constructor( aClass: Class, aIface: Iface) {}
+  constructor( aClass: Class,  aIface: Iface) {}
 /** @nocollapse */
 static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 {type: Class, decorators: [{ type: Inject }, ]},
@@ -312,7 +321,7 @@ class Foo {
 }`).output).to.equal(`
 /** @Annotation */ let Test1: Function;
 class Foo {
-  bar() {}
+  \n  bar() {}
 /** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'bar': [{ type: Test1, args: ['somename', ] },],
@@ -331,9 +340,11 @@ class ClassWithDecorators {
   set c(value) {}
 }`).output).to.equal(`
 /** @Annotation */ let PropDecorator: Function;
-class ClassWithDecorators { a;
+class ClassWithDecorators {
+    a;
   b;
-  set c(value) {}
+
+  \n  set c(value) {}
 /** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
@@ -357,8 +368,23 @@ class Foo {
               .to.equal(
                   'Error at testcase.ts:5:3: cannot process decorators on ComputedPropertyName');
         });
+        it('avoids mangling code relying on ASI', () => {
+          expect(translate(`
+/** @Annotation */ let PropDecorator: Function;
+class Foo {
+  missingSemi = () => {}
+  @PropDecorator other: number;
+}`).output).to.equal(`
+/** @Annotation */ let PropDecorator: Function;
+class Foo {
+  missingSemi = () => {}
+   other: number;
+/** @nocollapse */
+static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+'other': [{ type: PropDecorator },],
+};
+}`);
 
+        });
       });
-
-
     });

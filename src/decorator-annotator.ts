@@ -154,7 +154,13 @@ class ClassRewriter extends Rewriter {
         this.gatherMethodOrProperty(node as ts.Declaration);
         return false;  // Proceed with ordinary emit of the method.
       case ts.SyntaxKind.Decorator:
-        return this.shouldLower(node as ts.Decorator);
+        if (this.shouldLower(node as ts.Decorator)) {
+          // Return true to signal that this node should not be emitted,
+          // but still emit the whitespace *before* the node.
+          this.writeRange(node.getFullStart(), node.getStart());
+          return true;
+        }
+        return false;
       default:
         return false;
     }
