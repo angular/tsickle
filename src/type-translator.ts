@@ -21,7 +21,7 @@ export function isBuiltinLibDTS(fileName: string): boolean {
  *     to being derived from the same HTML specs.
  */
 function isClosureProvidedType(symbol: ts.Symbol): boolean {
-  return symbol.declarations.every(n => isBuiltinLibDTS(n.getSourceFile().fileName));
+  return symbol.declarations.some(n => isBuiltinLibDTS(n.getSourceFile().fileName));
 }
 
 export function typeToDebugString(type: ts.Type): string {

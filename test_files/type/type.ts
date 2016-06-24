@@ -1,3 +1,9 @@
+// Ensure we still understand what Array is, even when it has been
+// monkeypatched -- issue #170.
+interface Array<T> {
+  monkeyPatch: boolean;
+}
+
 let typeAny: any;
 let typeArr: Array<any> = null;
 let typeArr2: any[] = null;
