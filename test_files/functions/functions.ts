@@ -1,17 +1,15 @@
-(function() {
-
-function FunctionsTest1(a: number) {
+function Test1(a: number) {
   return a;
 }
 
-function FunctionsTest2(a: number, b: number) {}
+function Test2(a: number, b: number) {}
 
 /** @ngInject */
-function FunctionsTest3(a: number, b: number) {}
+function Test3(a: number, b: number) {}
 
 // Test overloaded functions.
-function FunctionsTest4(a: number): string;
-function FunctionsTest4(a: any): string {
+function Test4(a: number): string;
+function Test4(a: any): string {
   return "a";
 }
 
@@ -22,11 +20,9 @@ Destructuring({a:1, b:2});
 Destructuring2([1, 2], [['a']]);
 Destructuring3([1, 2], [['a']]);
 
-function FunctionsTestsSplat(...a: number[]) {}
-function FunctionsTestsSplat2(...a: Array<number>) {}
-function FunctionsTestsSplat3(...a) {}
-FunctionsTestsSplat(1, 2);
-FunctionsTestsSplat2(1, 2);
-FunctionsTestsSplat3(1, 2);
-
-})();
+function TestSplat(...a: number[]) {}
+function TestSplat2(...a: Array<number>) {}
+function TestSplat3(...a) {}
+TestSplat(1, 2);
+TestSplat2(1, 2);
+TestSplat3(1, 2);

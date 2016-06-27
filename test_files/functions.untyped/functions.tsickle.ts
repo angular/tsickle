@@ -1,9 +1,9 @@
-(function() {
+
 /**
  * @param {?} a
  * @return {?}
  */
-function FunctionsTest1(a: number) {
+function Test1(a: number) {
   return a;
 }
 /**
@@ -11,22 +11,22 @@ function FunctionsTest1(a: number) {
  * @param {?} b
  * @return {?}
  */
-function FunctionsTest2(a: number, b: number) {}
+function Test2(a: number, b: number) {}
 /**
  * @ngInject
  * @param {?} a
  * @param {?} b
  * @return {?}
  */
-function FunctionsTest3(a: number, b: number) {}
+function Test3(a: number, b: number) {}
 
 // Test overloaded functions.
-function FunctionsTest4(a: number): string;
+function Test4(a: number): string;
 /**
  * @param {?} a
  * @return {?}
  */
-function FunctionsTest4(a: any): string {
+function Test4(a: any): string {
   return "a";
 }
 /**
@@ -53,19 +53,17 @@ Destructuring3([1, 2], [['a']]);
  * @param {...?} a
  * @return {?}
  */
-function FunctionsTestsSplat(...a: number[]) {}
+function TestSplat(...a: number[]) {}
 /**
  * @param {...?} a
  * @return {?}
  */
-function FunctionsTestsSplat2(...a: Array<number>) {}
+function TestSplat2(...a: Array<number>) {}
 /**
  * @param {...?} a
  * @return {?}
  */
-function FunctionsTestsSplat3(...a) {}
-FunctionsTestsSplat(1, 2);
-FunctionsTestsSplat2(1, 2);
-FunctionsTestsSplat3(1, 2);
-
-})();
+function TestSplat3(...a) {}
+TestSplat(1, 2);
+TestSplat2(1, 2);
+TestSplat3(1, 2);
