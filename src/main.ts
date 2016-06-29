@@ -2,6 +2,7 @@
 
 import * as fs from 'fs';
 import * as minimist from 'minimist';
+import * as mkdirp from 'mkdirp';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -86,6 +87,9 @@ function loadTscConfig(args: string[]):
     return {errors};
   }
 
+  // Store file arguments
+  let tsFileArguments = fileNames;
+
   // Read further settings from tsconfig.json.
   let projectDir = options.project || '.';
   let configFileName = path.join(projectDir, 'tsconfig.json');
@@ -99,6 +103,9 @@ function loadTscConfig(args: string[]):
   if (errors.length > 0) {
     return {errors};
   }
+
+  // if file arguments were given to the typescript transpiler than transpile only those files
+  fileNames = tsFileArguments.length > 0 ? tsFileArguments : fileNames;
 
   return {options, fileNames};
 }
@@ -222,10 +229,12 @@ function main(args: string[]) {
   }
 
   for (let fileName of Object.keys(jsFiles)) {
+    mkdirp.sync(path.dirname(fileName));
     fs.writeFileSync(fileName, jsFiles[fileName]);
   }
 
   if (settings.externsPath) {
+    mkdirp.sync(path.dirname(settings.externsPath));
     fs.writeFileSync(settings.externsPath, externs);
   }
 }

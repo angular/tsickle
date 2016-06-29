@@ -31,6 +31,9 @@
     },
     "google-closure-compiler/google-closure-compiler.d.ts": {
       "commit": "edb64e4a35896510ce02b93c0bca5ec3878db738"
+    },
+    "mkdirp/mkdirp.d.ts": {
+      "commit": "3bbe35a4cfdf09bd2a87ed660bf918131679da19"
     }
   }
 }
