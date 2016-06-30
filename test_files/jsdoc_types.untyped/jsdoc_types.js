@@ -24,3 +24,6 @@ let /** @type {?} */ useLocalValue = module2_1.value;
 // Check a default import.
 let /** @type {?} */ useDefaultClass = new default_1.default();
 let /** @type {?} */ useDefaultClassAsType = null;
+// NeverTyped should be {?}, even in typed mode.
+let /** @type {?} */ useNeverTyped = null;
+let /** @type {?} */ useNeverTyped2 = null;

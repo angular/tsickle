@@ -14,6 +14,8 @@ export interface Options {
   // These warnings are not actionable by an end user and should be hidden
   // by default.
   logWarning?: (warning: ts.Diagnostic) => void;
+  // If provided, a set of paths whose types should always generate as {?}.
+  typeBlackListPaths?: {[fileName: string]: boolean};
 }
 
 export interface Output {
@@ -924,7 +926,7 @@ class Annotator extends Rewriter {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    let translator = new TypeTranslator(typeChecker, context);
+    let translator = new TypeTranslator(typeChecker, context, this.options.typeBlackListPaths);
     translator.warn = msg => this.debugWarn(context, msg);
     return translator.translate(type, destructuring);
   }

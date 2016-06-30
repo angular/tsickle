@@ -88,8 +88,13 @@ export class TypeTranslator {
   /**
    * @param node is the source AST ts.Node the type comes from.  This is used
    *     in some cases (e.g. anonymous types) for looking up field names.
+   * @param pathBlackList is a set of paths that should never get typed;
+   *     any reference to symbols defined in these paths should by typed
+   *     as {?}.
    */
-  constructor(private typeChecker: ts.TypeChecker, private node: ts.Node) {}
+  constructor(
+      private typeChecker: ts.TypeChecker, private node: ts.Node,
+      private pathBlackList?: {[fileName: string]: boolean}) {}
 
   /**
    * Converts a ts.Symbol to a string.
@@ -161,6 +166,8 @@ export class TypeTranslator {
         // Continue on to more complex tests below.
         break;
     }
+
+    if (type.symbol && this.isBlackListed(type.symbol)) return '?';
 
     let notNullPrefix = notNull ? '!' : '';
 
@@ -311,5 +318,14 @@ export class TypeTranslator {
   warn(msg: string) {
     // By default, warn() does nothing.  The caller will overwrite this
     // if it wants different behavior.
+  }
+
+  /** @return true if sym should always have type {?}. */
+  isBlackListed(symbol: ts.Symbol): boolean {
+    if (!this.pathBlackList) return false;
+    return symbol.declarations.every(n => {
+      const path = n.getSourceFile().fileName;
+      return this.pathBlackList.hasOwnProperty(path);
+    });
   }
 }

@@ -63,7 +63,10 @@ describe('golden tests', () => {
       it.skip(test.name);
       return;
     }
-    let options: tsickle.Options = {};
+    let options: tsickle.Options = {
+      // See test_files/jsdoc_types/nevertyped.ts.
+      typeBlackListPaths: {'test_files/jsdoc_types/nevertyped.ts': true},
+    };
     if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
     }

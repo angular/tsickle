@@ -10,6 +10,7 @@ import {ClassTwo as RenamedClassTwo} from './module2';
 import {Interface} from './module2';
 import {ClassWithParams} from './module2';
 import DefaultClass from './default';
+import {NeverTyped} from './nevertyped';
 
 // Check that imported types get the proper names in JSDoc.
 let useNamespacedClass = new module1.Class();
@@ -30,3 +31,7 @@ let useLocalValue = value;
 // Check a default import.
 let useDefaultClass = new DefaultClass();
 let useDefaultClassAsType: DefaultClass = null;
+
+// NeverTyped should be {?}, even in typed mode.
+let useNeverTyped: NeverTyped = null;
+let useNeverTyped2: string|NeverTyped = null;

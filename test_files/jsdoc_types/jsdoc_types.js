@@ -16,6 +16,8 @@ var module2_5 = module2_1;
 const ClassWithParams = module2_5.ClassWithParams;
 var default_1 = goog.require('test_files.jsdoc_types.default');
 const DefaultClass = default_1.default;
+var nevertyped_1 = goog.require('test_files.jsdoc_types.nevertyped');
+const NeverTyped = nevertyped_1.NeverTyped;
 // Check that imported types get the proper names in JSDoc.
 let /** @type {module1.Class} */ useNamespacedClass = new module1.Class();
 let /** @type {module1.Class} */ useNamespacedClassAsType = null;
@@ -32,3 +34,6 @@ let /** @type {number} */ useLocalValue = module2_1.value;
 // Check a default import.
 let /** @type {DefaultClass} */ useDefaultClass = new DefaultClass();
 let /** @type {DefaultClass} */ useDefaultClassAsType = null;
+// NeverTyped should be {?}, even in typed mode.
+let /** @type {?} */ useNeverTyped = null;
+let /** @type {(string|?)} */ useNeverTyped2 = null;
