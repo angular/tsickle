@@ -161,20 +161,20 @@ foo_1.A, foo_2.B, foo_2        , foo_3.default;
   it('gathers referenced modules', () => {
     let {referencedModules} = es5processor.processES5(
         'a/b', `
-require('../foo/bare-require');
+require('../foo/bare_require');
 var googRequire = require('goog:foo.bar');
 var es6RelativeRequire = require('./relative');
 var es6NonRelativeRequire = require('non/relative');
-__export(require('./export-star');
+__export(require('./export_star');
 `,
         cliSupport.pathToModuleName);
 
     return expect(referencedModules).to.deep.equal([
-      'foo.bare-require',
+      'foo.bare_require',
       'foo.bar',
       'a.relative',
       'non.relative',
-      'a.export-star',
+      'a.export_star',
     ]);
   });
 });
