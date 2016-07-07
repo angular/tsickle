@@ -87,7 +87,8 @@ export function symbolToDebugString(sym: ts.Symbol): string {
 export class TypeTranslator {
   /**
    * A list of types we've encountered while emitting; used to avoid getting stuck in recursive
-   * types. */
+   * types.
+   */
   private seenTypes: ts.Type[] = [];
 
   /**
