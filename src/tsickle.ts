@@ -298,8 +298,8 @@ class Annotator extends Rewriter {
         this.visit(fnDecl.body);
         return true;
       case ts.SyntaxKind.TypeAliasDeclaration:
-        this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
         this.writeNode(node);
+        this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
         return true;
       case ts.SyntaxKind.EnumDeclaration:
         return this.maybeProcessEnum(<ts.EnumDeclaration>node);
@@ -934,7 +934,7 @@ class Annotator extends Rewriter {
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
     if (this.options.untyped) return;
     // Write a Closure typedef, which involves an unused "var" declaration.
-    this.emit(`/** @typedef {${this.typeToClosure(node)}} */\n`);
+    this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
     this.emit(`var ${node.name.getText()}: void;\n`);
   }
 

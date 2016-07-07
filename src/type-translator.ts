@@ -86,6 +86,11 @@ export function symbolToDebugString(sym: ts.Symbol): string {
 /** TypeTranslator translates TypeScript types to Closure types. */
 export class TypeTranslator {
   /**
+   * A list of types we've encountered while emitting; used to avoid getting stuck in recursive
+   * types. */
+  private seenTypes: ts.Type[] = [];
+
+  /**
    * @param node is the source AST ts.Node the type comes from.  This is used
    *     in some cases (e.g. anonymous types) for looking up field names.
    * @param pathBlackList is a set of paths that should never get typed;
@@ -238,6 +243,13 @@ export class TypeTranslator {
   }
 
   private translateTypeLiteral(type: ts.Type): string {
+    // Avoid infinite loops on recursive types.
+    // It would be nice to just emit the name of the recursive type here,
+    // but type.symbol doesn't seem to have the name here (perhaps something
+    // to do with aliases?).
+    if (this.seenTypes.indexOf(type) !== -1) return '?';
+    this.seenTypes.push(type);
+
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;
