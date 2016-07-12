@@ -33,7 +33,7 @@ DeclareTestModule.Clazz.prototype.method = function(a) {};
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};
 
-/* TODO: IndexSignature in DeclareTestModule */
+/* TODO: IndexSignature: DeclareTestModule */
 
 /** @const */
 DeclareTestModule.Enumeration = {};

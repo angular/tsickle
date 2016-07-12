@@ -5,6 +5,7 @@ declare module JSX {
   interface Element {}
   interface IntrinsicElements {
     div: any;
+    "var": any;  // HTML <var>, tests interaction with builtin keywords.
   }
 }
 // The "React" module is the runtime API of React.

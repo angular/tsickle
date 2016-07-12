@@ -8,6 +8,8 @@ JSX.Element = function() {};
 JSX.IntrinsicElements = function() {};
  /** @type {?} */
 JSX.IntrinsicElements.prototype.div;
+
+/* TODO: PropertySignature: JSX."var" */
 /** @const */
 var React = {};
 

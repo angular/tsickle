@@ -834,8 +834,13 @@ class Annotator extends Rewriter {
         case ts.SyntaxKind.PropertySignature:
         case ts.SyntaxKind.PropertyDeclaration:
           let prop = <ts.PropertySignature>member;
-          this.emitJSDocType(prop);
-          this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
+          if (prop.name.kind === ts.SyntaxKind.Identifier) {
+            this.emitJSDocType(prop);
+            this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
+            continue;
+          }
+          // TODO: For now property names other than Identifiers are not handled; e.g.
+          //    interface Foo { "123bar": number }
           break;
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
@@ -844,20 +849,21 @@ class Annotator extends Rewriter {
           this.emit(
               `${typeName}.prototype.${m.name.getText()} = ` +
               `function(${m.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
-          break;
+          continue;
         case ts.SyntaxKind.Constructor:
-          break;  // Handled above.
+          continue;  // Handled above.
         default:
           // Members can include things like index signatures, for e.g.
           //   interface Foo { [key: string]: number; }
-          // For now, just skip it unless all the members are regular old
-          // properties.
-          let name = namespace;
-          if (member.name) {
-            name = name.concat([member.name.getText()]);
-          }
-          this.emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]} in ${name.join('.')} */\n`);
+          // For now, just skip it.
+          break;
       }
+      // If we get here, the member wasn't handled in the switch statement.
+      let name = namespace;
+      if (member.name) {
+        name = name.concat([member.name.getText()]);
+      }
+      this.emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]}: ${name.join('.')} */\n`);
     }
   }
 
