@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 
+import * as jsdoc from './jsdoc';
 import {Rewriter, getIdentifierText, unescapeName} from './rewriter';
 import {TypeTranslator, assertTypeChecked} from './type-translator';
 
@@ -52,108 +53,6 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
         return res;
       })
       .join('\n');
-}
-
-/**
- * TypeScript has an API for JSDoc already, but it's not exposed.
- * https://github.com/Microsoft/TypeScript/issues/7393
- * For now we create types that are similar to theirs so that migrating
- * to their API will be easier.  See e.g. ts.JSDocTag and ts.JSDocComment.
- */
-export interface JSDocTag {
-  // tagName is e.g. "param" in an @param declaration.  It's absent
-  // for the plain text documentation that occurs before any @foo lines.
-  tagName?: string;
-  // parameterName is the the name of the function parameter, e.g. "foo"
-  // in
-  //   @param foo The foo param.
-  parameterName?: string;
-  type?: string;
-  // optional is true for optional function parameters.
-  optional?: boolean;
-  // restParam is true for "...x: foo[]" function parameters.
-  restParam?: boolean;
-  // destructuring is true for destructuring bind parameters, which require
-  // non-null arguments on the Closure side.  Can likely remove this
-  // once TypeScript nullable types are available.
-  destructuring?: boolean;
-  text?: string;
-}
-
-export interface JSDocComment { tags: JSDocTag[]; }
-
-function arrayIncludes<T>(array: T[], key: T): boolean {
-  for (const elem of array) {
-    if (elem === key) return true;
-  }
-  return false;
-}
-
-/**
- * A list of JSDoc @tags that are never allowed in TypeScript source.
- * These are Closure tags that can be expressed in the TypeScript surface
- * syntax.  Note that we don't disallow all Closure-specific tags here,
- * because a user might want to specify them for some optimization purpose;
- * if they affect Closure, the compiler will yell at them and hopefuly it
- * will be obvious.
- */
-const JSDOC_TAGS_BLACKLIST = ['private', 'public', 'type'];
-
-/** A list of JSDoc @tags that might include a {type} after them. */
-const JSDOC_TAGS_WITH_TYPES = ['export', 'param', 'return'];
-
-/**
- * getJSDocAnnotation parses JSDoc out of a comment string.
- * Returns null if comment is not JSDoc.
- */
-export function getJSDocAnnotation(comment: string): JSDocComment {
-  // TODO(evanm): this is a pile of hacky regexes for now, because we
-  // would rather use the better TypeScript implementation of JSDoc
-  // parsing.  https://github.com/Microsoft/TypeScript/issues/7393
-  let match = comment.match(/^\/\*\*([\s\S]*?)\*\/$/);
-  if (!match) return null;
-  comment = match[1].trim();
-  // Strip all the " * " bits from the front of each line.
-  comment = comment.replace(/^\s*\* /gm, '');
-  let lines = comment.split('\n');
-  let tags: JSDocTag[] = [];
-  for (let line of lines) {
-    match = line.match(/^@(\S+) *(.*)/);
-    if (match) {
-      let [_, tagName, text] = match;
-      if (tagName === 'returns') {
-        // A synonym for 'return'.
-        tagName = 'return';
-      }
-      if (arrayIncludes(JSDOC_TAGS_BLACKLIST, tagName)) {
-        throw new Error(`@${tagName} annotations are not allowed`);
-      }
-      if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
-        throw new Error('type annotations (using {...}) are not allowed');
-      }
-
-      // Grab the parameter name from @param tags.
-      let parameterName: string;
-      if (tagName === 'param') {
-        match = text.match(/^(\S+) ?(.*)/);
-        if (match) [_, parameterName, text] = match;
-      }
-
-      let tag: JSDocTag = {tagName};
-      if (parameterName) tag.parameterName = parameterName;
-      if (text) tag.text = text;
-      tags.push(tag);
-    } else {
-      // Text without a preceding @tag on it is either the plain text
-      // documentation or a continuation of a previous tag.
-      if (tags.length === 0) {
-        tags.push({text: line.trim()});
-      } else {
-        tags[tags.length - 1].text += ' ' + line.trim();
-      }
-    }
-  }
-  return {tags};
 }
 
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
@@ -492,7 +391,7 @@ class Annotator extends Rewriter {
     }
   }
 
-  private emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: JSDocTag[] = []) {
+  private emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: jsdoc.Tag[] = []) {
     let typeChecker = this.program.getTypeChecker();
     let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
 
@@ -500,7 +399,7 @@ class Annotator extends Rewriter {
     // any, and merging it with the known types of the function
     // parameters and return type.
     let jsDoc = this.getJSDoc(fnDecl) || {tags: []};
-    let newDoc: JSDocComment = {tags: extraTags};
+    let newDoc: jsdoc.Comment = {tags: extraTags};
 
     // Copy all the tags other than @param/@return into the new
     // comment without any change; @param/@return are handled later.
@@ -518,7 +417,7 @@ class Annotator extends Rewriter {
         let paramSym = sig.parameters[i];
         let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
 
-        let newTag: JSDocTag = {
+        let newTag: jsdoc.Tag = {
           tagName: 'param',
           optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
           parameterName: unescapeName(paramSym.getName()),
@@ -569,32 +468,7 @@ class Annotator extends Rewriter {
     // The first \n makes the output sometimes uglier than necessary,
     // but it's needed to work around
     // https://github.com/Microsoft/TypeScript/issues/6982
-    this.emit('\n/**\n');
-    for (let tag of newDoc.tags) {
-      this.emit(' * ');
-      if (tag.tagName) {
-        this.emit(`@${tag.tagName}`);
-      }
-      if (tag.type) {
-        this.emit(' {');
-        if (tag.restParam) {
-          this.emit('...');
-        }
-        this.emit(tag.type);
-        if (tag.optional) {
-          this.emit('=');
-        }
-        this.emit('}');
-      }
-      if (tag.parameterName) {
-        this.emit(' ' + tag.parameterName);
-      }
-      if (tag.text) {
-        this.emit(' ' + tag.text);
-      }
-      this.emit('\n');
-    }
-    this.emit(' */\n');
+    this.emit('\n' + jsdoc.toString(newDoc));
   }
 
   private emitInterface(iface: ts.InterfaceDeclaration) {
@@ -713,7 +587,7 @@ class Annotator extends Rewriter {
   /**
    * Returns null if there is no existing comment.
    */
-  private getJSDoc(node: ts.Node): JSDocComment {
+  private getJSDoc(node: ts.Node): jsdoc.Comment {
     let text = node.getFullText();
     let comments = ts.getLeadingCommentRanges(text, 0);
 
@@ -723,7 +597,7 @@ class Annotator extends Rewriter {
     let {pos, end} = comments[comments.length - 1];
     let comment = text.substring(pos, end);
     try {
-      return getJSDocAnnotation(comment);
+      return jsdoc.parse(comment);
     } catch (e) {
       this.error(node, e.message, node.getFullStart() + pos);
       return null;
