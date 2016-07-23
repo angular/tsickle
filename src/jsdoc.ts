@@ -24,9 +24,6 @@ export interface Tag {
   text?: string;
 }
 
-/** Matches ts.JSDocComment. */
-export interface Comment { tags: Tag[]; }
-
 function arrayIncludes<T>(array: T[], key: T): boolean {
   for (const elem of array) {
     if (elem === key) return true;
@@ -51,7 +48,7 @@ const JSDOC_TAGS_WITH_TYPES = ['export', 'param', 'return'];
  * parse parses JSDoc out of a comment string.
  * Returns null if comment is not JSDoc.
  */
-export function parse(comment: string): Comment {
+export function parse(comment: string): {tags: Tag[], warnings?: string[]} {
   // TODO(evanm): this is a pile of hacky regexes for now, because we
   // would rather use the better TypeScript implementation of JSDoc
   // parsing.  https://github.com/Microsoft/TypeScript/issues/7393
@@ -62,6 +59,7 @@ export function parse(comment: string): Comment {
   comment = comment.replace(/^\s*\* /gm, '');
   let lines = comment.split('\n');
   let tags: Tag[] = [];
+  let warnings: string[] = [];
   for (let line of lines) {
     match = line.match(/^@(\S+) *(.*)/);
     if (match) {
@@ -71,10 +69,11 @@ export function parse(comment: string): Comment {
         tagName = 'return';
       }
       if (arrayIncludes(JSDOC_TAGS_BLACKLIST, tagName)) {
-        throw new Error(`@${tagName} annotations are not allowed`);
-      }
-      if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
-        throw new Error('type annotations (using {...}) are not allowed');
+        warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
+        continue;  // Drop the tag so Closure won't process it.
+      } else if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
+        warnings.push('type annotations (using {...}) are redundant with TypeScript types');
+        continue;
       }
 
       // Grab the parameter name from @param tags.
@@ -98,14 +97,17 @@ export function parse(comment: string): Comment {
       }
     }
   }
+  if (warnings.length > 0) {
+    return {tags, warnings};
+  }
   return {tags};
 }
 
 /** Serializes a Comment out to a string usable in source code. */
-export function toString(jsdoc: Comment): string {
+export function toString(tags: Tag[]): string {
   let out = '';
   out += '/**\n';
-  for (let tag of jsdoc.tags) {
+  for (let tag of tags) {
     out += ' * ';
     if (tag.tagName) {
       out += `@${tag.tagName}`;

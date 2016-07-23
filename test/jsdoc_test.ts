@@ -28,15 +28,21 @@ describe('jsdoc.parse', () => {
       ]
     });
   });
-  it('rejects type annotations in parameters', () => {
+  it('warns on type annotations in parameters', () => {
     let source = `/**
   * @param {string} foo
 */`;
-    expect(() => jsdoc.parse(source)).to.throw(Error);
+    expect(jsdoc.parse(source)).to.deep.equal({
+      tags: [],
+      warnings: ['type annotations (using {...}) are redundant with TypeScript types']
+    });
   });
-  it('rejects @type annotations', () => {
+  it('warns on @type annotations', () => {
     let source = `/** @type {string} foo */`;
-    expect(() => jsdoc.parse(source)).to.throw(Error);
+    expect(jsdoc.parse(source)).to.deep.equal({
+      tags: [],
+      warnings: ['@type annotations are redundant with TypeScript equivalents']
+    });
   });
   it('allows @suppress annotations', () => {
     let source = `/** @suppress {checkTypes} I hate types */`;

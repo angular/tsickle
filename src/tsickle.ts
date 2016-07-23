@@ -398,14 +398,14 @@ class Annotator extends Rewriter {
     // Construct the JSDoc comment by reading the existing JSDoc, if
     // any, and merging it with the known types of the function
     // parameters and return type.
-    let jsDoc = this.getJSDoc(fnDecl) || {tags: []};
-    let newDoc: jsdoc.Comment = {tags: extraTags};
+    let jsDoc = this.getJSDoc(fnDecl) || [];
+    let newDoc = extraTags;
 
     // Copy all the tags other than @param/@return into the new
     // comment without any change; @param/@return are handled later.
-    for (let tag of jsDoc.tags) {
+    for (let tag of jsDoc) {
       if (tag.tagName === 'param' || tag.tagName === 'return') continue;
-      newDoc.tags.push(tag);
+      newDoc.push(tag);
     }
 
     // Parameters.
@@ -438,13 +438,13 @@ class Annotator extends Rewriter {
         newTag.type = this.typeToClosure(fnDecl, type, destructuring);
 
         // Search for this parameter in the JSDoc @params.
-        for (let {tagName, parameterName, text} of jsDoc.tags) {
+        for (let {tagName, parameterName, text} of jsDoc) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
             newTag.text = text;
             break;
           }
         }
-        newDoc.tags.push(newTag);
+        newDoc.push(newTag);
       }
     }
 
@@ -452,13 +452,13 @@ class Annotator extends Rewriter {
     if (fnDecl.kind !== ts.SyntaxKind.Constructor) {
       let retType = typeChecker.getReturnTypeOfSignature(sig);
       let returnDoc: string;
-      for (let {tagName, text} of jsDoc.tags) {
+      for (let {tagName, text} of jsDoc) {
         if (tagName === 'return') {
           returnDoc = text;
           break;
         }
       }
-      newDoc.tags.push({
+      newDoc.push({
         tagName: 'return',
         type: this.typeToClosure(fnDecl, retType),
         text: returnDoc,
@@ -566,9 +566,9 @@ class Annotator extends Rewriter {
       return;
     }
 
-    let jsDoc = this.getJSDoc(p) || {tags: []};
+    let jsDoc = this.getJSDoc(p) || [];
     let existingAnnotation = '';
-    for (let {tagName, text} of jsDoc.tags) {
+    for (let {tagName, text} of jsDoc) {
       if (tagName) {
         existingAnnotation += `@${tagName}\n`;
       } else {
@@ -587,7 +587,7 @@ class Annotator extends Rewriter {
   /**
    * Returns null if there is no existing comment.
    */
-  private getJSDoc(node: ts.Node): jsdoc.Comment {
+  private getJSDoc(node: ts.Node): jsdoc.Tag[] {
     let text = node.getFullText();
     let comments = ts.getLeadingCommentRanges(text, 0);
 
@@ -596,12 +596,20 @@ class Annotator extends Rewriter {
     // JS compiler only considers the last comment significant.
     let {pos, end} = comments[comments.length - 1];
     let comment = text.substring(pos, end);
-    try {
-      return jsdoc.parse(comment);
-    } catch (e) {
-      this.error(node, e.message, node.getFullStart() + pos);
-      return null;
+    let parsed = jsdoc.parse(comment);
+    if (!parsed) return null;
+    if (parsed.warnings) {
+      const start = node.getFullStart() + pos;
+      this.diagnostics.push({
+        file: this.file,
+        start,
+        length: node.getStart() - start,
+        messageText: parsed.warnings.join('\n'),
+        category: ts.DiagnosticCategory.Warning,
+        code: 0,
+      });
     }
+    return parsed.tags;
   }
 
   private visitExterns(node: ts.Node, namespace: string[] = []) {

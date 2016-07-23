@@ -119,14 +119,12 @@ export abstract class Rewriter {
     this.error(node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
   }
 
-  error(node: ts.Node, messageText: string, start?: number, length?: number) {
-    start = start || node.getStart();
-    length = length || (node.getEnd() - start);
+  error(node: ts.Node, messageText: string) {
     this.diagnostics.push({
       file: this.file,
-      start,
-      length,
-      messageText,
+      start: node.getStart(),
+      length: node.getEnd() - node.getStart(),
+      messageText: messageText,
       category: ts.DiagnosticCategory.Error,
       code: undefined,
     });
