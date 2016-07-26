@@ -82,7 +82,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
 function loadTscConfig(args: string[]):
     {options?: ts.CompilerOptions, fileNames?: string[], errors?: ts.Diagnostic[]} {
   // Gather tsc options/input files from command line.
-  let {options, fileNames, errors} = ts.parseCommandLine(args);
+  // Bypass visibilty of parseCommandLine, see
+  // https://github.com/Microsoft/TypeScript/issues/2620
+  let {options, fileNames, errors} = (ts as any).parseCommandLine(args);
   if (errors.length > 0) {
     return {errors};
   }
@@ -130,6 +132,7 @@ function createSourceReplacingCompilerHost(
     fileExists: delegate.fileExists,
     readFile: delegate.readFile,
     directoryExists: delegate.directoryExists,
+    getDirectories: delegate.getDirectories,
   };
 
   function getSourceFile(
