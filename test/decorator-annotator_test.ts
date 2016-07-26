@@ -79,6 +79,9 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 { type: Test2, args: [param, ] },
 ];
+/** @nocollapse */
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+];
 }`);
         });
 
@@ -112,6 +115,9 @@ static decorators: DecoratorInvocation[] = [
 { type: Test3 },
 { type: Test4, args: [param, ] },
 ];
+/** @nocollapse */
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+];
 }`);
         });
 
@@ -127,6 +133,9 @@ export class Foo {
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
+];
+/** @nocollapse */
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 ];
 }`);
         });
@@ -153,11 +162,17 @@ export class Foo {
 static decorators: DecoratorInvocation[] = [
 { type: Test2 },
 ];
+/** @nocollapse */
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+];
 }
   }
 /** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
+];
+/** @nocollapse */
+static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
 ];
 }`);
         });

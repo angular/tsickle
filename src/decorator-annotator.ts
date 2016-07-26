@@ -180,11 +180,11 @@ class ClassRewriter extends Rewriter {
       this.emit('];\n');
     }
 
-    if (this.ctorParameters) {
+    if (this.decorators || this.ctorParameters) {
       this.emit(`/** @nocollapse */\n`);
       this.emit(
           `static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [\n`);
-      for (let param of this.ctorParameters) {
+      for (let param of this.ctorParameters || []) {
         if (!param) {
           this.emit('null,\n');
           continue;
