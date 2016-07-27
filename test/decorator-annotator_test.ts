@@ -80,7 +80,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test2, args: [param, ] },
 ];
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 ];
 }`);
         });
@@ -116,7 +116,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test4, args: [param, ] },
 ];
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 ];
 }`);
         });
@@ -135,7 +135,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 ];
 }`);
         });
@@ -163,7 +163,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test2 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 ];
 }
   }
@@ -172,7 +172,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 ];
 }`);
         });
@@ -191,20 +191,22 @@ class Foo {
         it('transforms injected ctors', () => {
           expect(translate(`
 /** @Annotation */ let Inject: Function;
+enum AnEnum { ONE, TWO, };
 abstract class AbstractService {}
 class Foo {
-  constructor(@Inject bar: AbstractService, num: number) {
+  constructor(@Inject bar: AbstractService, @Inject('enum') num: AnEnum) {
   }
 }`).output).to.equal(`
 /** @Annotation */ let Inject: Function;
+enum AnEnum { ONE, TWO, };
 abstract class AbstractService {}
 class Foo {
-  constructor( bar: AbstractService, num: number) {
+  constructor( bar: AbstractService,  num: AnEnum) {
   }
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 {type: AbstractService, decorators: [{ type: Inject }, ]},
-null,
+{type: AnEnum, decorators: [{ type: Inject, args: ['enum', ] }, ]},
 ];
 }`);
         });
@@ -229,7 +231,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 {type: BarService, },
 null,
 ];
@@ -252,7 +254,7 @@ class Foo {
   constructor( x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 {type: bar.BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
 null,
 null,
@@ -273,7 +275,7 @@ let APP_ID: any;
 class ViewUtils {
   constructor( private _appId: string) {}
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 {type: undefined, decorators: [{ type: Inject, args: [APP_ID, ] }, ]},
 ];
 }`);
@@ -291,7 +293,7 @@ class Foo {
   constructor( typed: Promise<string>) {
   }
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 {type: Promise, decorators: [{ type: Inject }, ]},
 ];
 }`);
@@ -311,7 +313,7 @@ interface Iface {}
 class Foo {
   constructor( aClass: Class,  aIface: Iface) {}
 /** @nocollapse */
-static ctorParameters: {type: Function, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
 {type: Class, decorators: [{ type: Inject }, ]},
 {type: undefined, decorators: [{ type: Inject }, ]},
 ];
