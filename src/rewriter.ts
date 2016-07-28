@@ -31,15 +31,7 @@ export abstract class Rewriter {
     // this.logWithIndent('node: ' + ts.SyntaxKind[node.kind]);
     this.indent++;
     if (!this.maybeProcess(node)) {
-      if (node.kind === ts.SyntaxKind.JsxText) {
-        // TypeScript seems to accidentally include one extra token of
-        // text in each JSX text node as a child.  Avoid it here by just
-        // emitting the node's text rather than visiting its children.
-        // https://github.com/angular/tsickle/issues/76
-        this.emit(node.getFullText());
-      } else {
-        this.writeNode(node);
-      }
+      this.writeNode(node);
     }
     this.indent--;
   }
@@ -54,34 +46,24 @@ export abstract class Rewriter {
 
   /** writeNode writes a ts.Node, calling this.visit() on its children. */
   writeNode(node: ts.Node, skipComments = false) {
-    if (node.getChildCount() === 0) {
-      // Directly write complete tokens.
-      if (skipComments) {
-        // To skip comments, we skip all whitespace/comments preceding
-        // the node.  But if there was anything skipped we should emit
-        // a newline in its place so that the node remains separated
-        // from the previous node.  TODO: don't skip anything here if
-        // there wasn't any comment.
-        if (node.getFullStart() < node.getStart()) {
-          this.emit('\n');
-        }
-        this.emit(node.getText());
-      } else {
-        this.emit(node.getFullText());
-      }
-      return;
-    }
+    let pos = node.getFullStart();
     if (skipComments) {
-      throw new Error('skipComments unimplemented for complex Nodes');
+      // To skip comments, we skip all whitespace/comments preceding
+      // the node.  But if there was anything skipped we should emit
+      // a newline in its place so that the node remains separated
+      // from the previous node.  TODO: don't skip anything here if
+      // there wasn't any comment.
+      if (node.getFullStart() < node.getStart()) {
+        this.emit('\n');
+      }
+      pos = node.getStart();
     }
-    let lastEnd = node.getFullStart();
-    for (let child of node.getChildren()) {
-      this.writeRange(lastEnd, child.getFullStart());
+    ts.forEachChild(node, child => {
+      this.writeRange(pos, child.getFullStart());
       this.visit(child);
-      lastEnd = child.getEnd();
-    }
-    // Write any trailing text.
-    this.writeRange(lastEnd, node.getEnd());
+      pos = child.getEnd();
+    });
+    this.writeRange(pos, node.getEnd());
   }
 
   // Write a span of the input file as expressed by absolute offsets.

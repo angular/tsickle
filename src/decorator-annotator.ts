@@ -58,21 +58,29 @@ class ClassRewriter extends Rewriter {
       let toLower = this.decoratorsToLower(node);
       if (toLower.length > 0) this.decorators = toLower;
     }
+
+    // Emit the class contents, but stop just before emitting the closing curly brace.
+    // (This code is the same as Rewriter.writeNode except for the curly brace handling.)
     let pos = node.getFullStart();
-    for (let child of node.getChildren()) {
-      switch (child.kind) {
-        case ts.SyntaxKind.CloseBraceToken:
-          // Before writing the close brace, dump the metadata.
-          this.writeRange(pos, child.getStart());
-          this.emitMetadata();
-          this.writeRange(child.getStart(), child.getEnd());
-          break;
-        default:
-          this.writeRange(pos, child.getFullStart());
-          this.visit(child);
-      }
+    ts.forEachChild(node, child => {
+      // This forEachChild handles emitting the text between each child, while child.visit
+      // recursively emits the children themselves.
+      this.writeRange(pos, child.getFullStart());
+      this.visit(child);
       pos = child.getEnd();
+    });
+
+    // At this point, we've emitted up through the final child of the class, so all that
+    // remains is the trailing whitespace and closing curly brace.
+    // The final character owned by the class node should always be a '}',
+    // or we somehow got the AST wrong and should report an error.
+    // (Any whitespace or semicolon following the '}' will be part of the next Node.)
+    if (this.file.text[node.getEnd() - 1] !== '}') {
+      this.error(node, 'unexpected class terminator');
     }
+    this.writeRange(pos, node.getEnd() - 1);
+    this.emitMetadata();
+    this.emit('}');
     return this.getOutput();
   }
 
