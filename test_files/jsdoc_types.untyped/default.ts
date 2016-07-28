@@ -1,1 +1,1 @@
-../jsdoc_types/default.ts
+export default class DefaultClass {}

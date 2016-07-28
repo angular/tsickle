@@ -31,6 +31,17 @@ const {cachedLibPath, cachedLib} = (function() {
 /** Creates a ts.Program from a set of input files.  Throws an exception on errors. */
 export function createProgram(sources: {[fileName: string]: string}): ts.Program {
   let host = ts.createCompilerHost(compilerOptions);
+
+  // Fake out host.directoryExists so that it doesn't read through node_modules/@types.
+  let realDirectoryExists = host.directoryExists;
+  host.directoryExists = dirName => {
+    if (path.isAbsolute(dirName)) {
+      let relName = path.relative(process.cwd(), dirName);
+      if (relName === 'node_modules/@types') return false;
+    }
+    return realDirectoryExists(dirName);
+  };
+
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {

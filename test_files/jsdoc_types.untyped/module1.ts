@@ -1,1 +1,2 @@
-../jsdoc_types/module1.ts
+export class Class {}
+export interface Interface { x: number }
