@@ -6,7 +6,6 @@
  */
 function decorator(a: Object, b: string) {}
 /**
- * @Annotation
  * @param {Object} a
  * @param {string} b
  * @return {void}

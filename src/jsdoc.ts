@@ -32,12 +32,82 @@ function arrayIncludes<T>(array: T[], key: T): boolean {
 }
 
 /**
+ * A list of all JSDoc tags allowed by the Closure compiler.
+ * The public Closure docs don't list all the tags it allows; this list comes
+ * from the compiler source itself.
+ * https://github.com/google/closure-compiler/blob/master/src/com/google/javascript/jscomp/parsing/Annotation.java
+ */
+const JSDOC_TAGS_WHITELIST = [
+  'ngInject',
+  'abstract',
+  'argument',
+  'author',
+  'consistentIdGenerator',
+  'const',
+  'constant',
+  'constructor',
+  'copyright',
+  'define',
+  'deprecated',
+  'desc',
+  'dict',
+  'disposes',
+  'enum',
+  'export',
+  'expose',
+  'extends',
+  'externs',
+  'fileoverview',
+  'final',
+  'hidden',
+  'idGenerator',
+  'implements',
+  'implicitCast',
+  'inheritDoc',
+  'interface',
+  'record',
+  'jaggerInject',
+  'jaggerModule',
+  'jaggerProvidePromise',
+  'jaggerProvide',
+  'lends',
+  'license',
+  'meaning',
+  'modifies',
+  'noalias',
+  'nocollapse',
+  'nocompile',
+  'nosideeffects',
+  'override',
+  'owner',
+  'package',
+  'param',
+  'polymerBehavior',
+  'preserve',
+  'preserveTry',
+  'private',
+  'protected',
+  'public',
+  'return',
+  'returns',
+  'see',
+  'stableIdGenerator',
+  'struct',
+  'suppress',
+  'template',
+  'this',
+  'throws',
+  'type',
+  'typedef',
+  'unrestricted',
+  'version',
+  'wizaction',
+];
+
+/**
  * A list of JSDoc @tags that are never allowed in TypeScript source.
  * These are Closure tags that can be expressed in the TypeScript surface
- * syntax.  Note that we don't disallow all Closure-specific tags here,
- * because a user might want to specify them for some optimization purpose;
- * if they affect Closure, the compiler will yell at them and hopefuly it
- * will be obvious.
+ * syntax.
  */
 const JSDOC_TAGS_BLACKLIST = ['private', 'public', 'type'];
 
@@ -73,6 +143,19 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]} {
         continue;  // Drop the tag so Closure won't process it.
       } else if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
         warnings.push('type annotations (using {...}) are redundant with TypeScript types');
+        continue;
+      } else if (!arrayIncludes(JSDOC_TAGS_WHITELIST, tagName)) {
+        // Silently drop tags we don't understand.  This is a subtle
+        // compromise between multiple issues.
+        // 1) If we pass through these non-Closure tags, the user will
+        //    get a warning from Closure, and the point of tsickle is
+        //    to insulate the user from Closure.
+        // 2) The output of tsickle is for Closure only, so we don't
+        //    care if we drop tags that Closure doesn't undersand.
+        // 3) Finally, we don't want to warn because users should be
+        //    free to add whichever JSDoc they feel like.  If the user
+        //    wants help ensuring they didn't typo a tag, that is the
+        //    responsibility of a linter.
         continue;
       }
 

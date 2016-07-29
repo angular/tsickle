@@ -30,3 +30,9 @@ class JSDocTest {
   /** @type {badType} */
   typedThing: number;
 }
+
+/**
+ * @madeUptag This tag will be stripped, because Closure disallows it.
+ * @see This tag will be kept, because Closure allows it.
+ */
+function x() {};

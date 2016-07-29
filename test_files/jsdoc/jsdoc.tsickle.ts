@@ -48,3 +48,8 @@ JSDocTest.prototype.typedThing;
   }
 
 }
+/**
+ * @see This tag will be kept, because Closure allows it.
+ * @return {void}
+ */
+function x() {};

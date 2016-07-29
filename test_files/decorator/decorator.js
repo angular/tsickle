@@ -5,7 +5,6 @@ goog.module('test_files.decorator.decorator');var module = module || {id: 'test_
  */
 function decorator(a, b) { }
 /**
- * @Annotation
  * @param {Object} a
  * @param {string} b
  * @return {void}
