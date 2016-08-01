@@ -39,3 +39,9 @@ declare interface DeclareTestInterface {
 // Should be omitted from externs -- conflicts with Closure.
 declare var global: any;
 declare interface exports {}
+
+// A class with an overloaded constructor.
+declare class MultipleConstructors {
+  constructor();
+  constructor(a: number);
+}

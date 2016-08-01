@@ -53,3 +53,9 @@ function declareGlobalFunction(x) {}
 function DeclareTestInterface() {}
  /** @type {string} */
 DeclareTestInterface.prototype.foo;
+
+/**
+ * @constructor
+ * @struct
+ */
+function MultipleConstructors() {}

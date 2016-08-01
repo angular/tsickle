@@ -697,7 +697,10 @@ class Annotator extends Rewriter {
           (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
       if (ctors.length) {
         if (ctors.length > 1) {
-          this.error(ctors[1], 'multiple constructor signatures in declarations');
+          // TODO: unify the multiple constructors as overloads.
+          // For now, we just drop all but the first.
+          // See https://github.com/angular/tsickle/issues/180 .
+          this.debugWarn(ctors[1], 'multiple constructor signatures in declarations');
         }
         let ctor = <ts.ConstructorDeclaration>ctors[0];
         this.emitFunctionType(ctor, [{tagName: 'constructor'}, {tagName: 'struct'}]);

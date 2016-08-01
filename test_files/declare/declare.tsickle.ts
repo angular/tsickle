@@ -1,3 +1,5 @@
+Warning at test_files/declare/declare.ts:46:3: multiple constructor signatures in declarations
+====
 declare namespace DeclareTestModule {
   namespace inner {
     var someBool: boolean;
@@ -39,3 +41,9 @@ declare interface DeclareTestInterface {
 // Should be omitted from externs -- conflicts with Closure.
 declare var global: any;
 declare interface exports {}
+
+// A class with an overloaded constructor.
+declare class MultipleConstructors {
+  constructor();
+  constructor(a: number);
+}
