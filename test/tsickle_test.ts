@@ -8,7 +8,7 @@ import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
 
-let RUN_TESTS_MATCHING: RegExp = null;
+let RUN_TESTS_MATCHING: RegExp|null = null;
 // RUN_TESTS_MATCHING = /fields/;
 
 // If true, update all the golden .js files to be whatever tsickle
@@ -26,8 +26,8 @@ const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
  *    externs files, where the majority of tests are not expected to
  *    produce one.)
  */
-function compareAgainstGolden(output: string, path: string) {
-  let golden: string = null;
+function compareAgainstGolden(output: string|null, path: string) {
+  let golden: string|null = null;
   try {
     golden = fs.readFileSync(path, 'utf-8');
   } catch (e) {
@@ -105,7 +105,7 @@ describe('golden tests', () => {
 
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
       // generated externs and tsickle-processed sources.
-      let allExterns: string = null;
+      let allExterns: string|null = null;
       let tsickleSources: {[fileName: string]: string} = {};
       for (let tsPath of Object.keys(tsSources)) {
         let warnings: ts.Diagnostic[] = [];

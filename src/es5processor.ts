@@ -183,13 +183,14 @@ class ES5Processor extends Rewriter {
    * @return The variable name for the imported module, reusing a previous import if one
    *    is available.
    */
-  emitGoogRequire(varName: string, tsImport: string): string {
+  emitGoogRequire(varName: string|null, tsImport: string): string {
     let modName: string;
+    let isNamespaceImport = false;
     if (tsImport.match(/^goog:/)) {
       // This is a namespace import, of the form "goog:foo.bar".
       // Fix it to just "foo.bar", and save the variable name.
       modName = tsImport.substr(5);
-      this.namespaceImports[varName] = true;
+      isNamespaceImport = true;
     } else {
       modName = this.pathToModuleName(this.file.fileName, tsImport);
     }
@@ -206,6 +207,7 @@ class ES5Processor extends Rewriter {
       varName = this.generateFreshVariableName();
     }
 
+    if (isNamespaceImport) this.namespaceImports[varName] = true;
     if (this.moduleVariables.hasOwnProperty(modName)) {
       this.emit(`var ${varName} = ${this.moduleVariables[modName]};`);
     } else {
@@ -220,7 +222,7 @@ class ES5Processor extends Rewriter {
    * Returns the string argument if call is of the form
    *   require('foo')
    */
-  isRequire(call: ts.CallExpression): string {
+  isRequire(call: ts.CallExpression): string|null {
     // Verify that the call is a call to require(...).
     if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
     let ident = call.expression as ts.Identifier;
@@ -237,7 +239,7 @@ class ES5Processor extends Rewriter {
    * Returns the inner string if call is of the form
    *   __export(require('foo'))
    */
-  isExportRequire(call: ts.CallExpression): string {
+  isExportRequire(call: ts.CallExpression): string|null {
     if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
     let ident = call.expression as ts.Identifier;
     if (ident.getText() !== '__export') return null;

@@ -80,7 +80,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test2, args: [param, ] },
 ];
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 ];
 }`);
         });
@@ -116,7 +116,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test4, args: [param, ] },
 ];
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 ];
 }`);
         });
@@ -135,7 +135,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 ];
 }`);
         });
@@ -163,7 +163,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test2 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 ];
 }
   }
@@ -172,7 +172,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 ];
 }`);
         });
@@ -204,7 +204,7 @@ class Foo {
   constructor( bar: AbstractService,  num: AnEnum) {
   }
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 {type: AbstractService, decorators: [{ type: Inject }, ]},
 {type: AnEnum, decorators: [{ type: Inject, args: ['enum', ] }, ]},
 ];
@@ -231,7 +231,7 @@ static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 {type: BarService, },
 null,
 ];
@@ -254,7 +254,7 @@ class Foo {
   constructor( x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 {type: bar.BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
 null,
 null,
@@ -275,7 +275,7 @@ let APP_ID: any;
 class ViewUtils {
   constructor( private _appId: string) {}
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 {type: undefined, decorators: [{ type: Inject, args: [APP_ID, ] }, ]},
 ];
 }`);
@@ -293,7 +293,7 @@ class Foo {
   constructor( typed: Promise<string>) {
   }
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 {type: Promise, decorators: [{ type: Inject }, ]},
 ];
 }`);
@@ -313,7 +313,7 @@ interface Iface {}
 class Foo {
   constructor( aClass: Class,  aIface: Iface) {}
 /** @nocollapse */
-static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [
+static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
 {type: Class, decorators: [{ type: Inject }, ]},
 {type: undefined, decorators: [{ type: Inject }, ]},
 ];
@@ -383,7 +383,7 @@ class Foo {
 
           expect(tsickle.formatDiagnostics(diagnostics))
               .to.equal(
-                  'Error at testcase.ts:5:3: cannot process decorators on ComputedPropertyName');
+                  'Error at testcase.ts:5:3: cannot process decorators on strangely named method');
         });
         it('avoids mangling code relying on ASI', () => {
           expect(translate(`

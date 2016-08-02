@@ -79,14 +79,15 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
  *
  * @param args tsc command-line arguments.
  */
-function loadTscConfig(args: string[]):
-    {options?: ts.CompilerOptions, fileNames?: string[], errors?: ts.Diagnostic[]} {
+function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
+    {options: ts.CompilerOptions, fileNames: string[]}|null {
   // Gather tsc options/input files from command line.
   // Bypass visibilty of parseCommandLine, see
   // https://github.com/Microsoft/TypeScript/issues/2620
   let {options, fileNames, errors} = (ts as any).parseCommandLine(args);
   if (errors.length > 0) {
-    return {errors};
+    allDiagnostics.push(...errors);
+    return null;
   }
 
   // Store file arguments
@@ -98,12 +99,14 @@ function loadTscConfig(args: string[]):
   let {config: json, error} =
       ts.readConfigFile(configFileName, path => fs.readFileSync(path, 'utf-8'));
   if (error) {
-    return {errors: [error]};
+    allDiagnostics.push(error);
+    return null;
   }
   ({options, fileNames, errors} =
        ts.parseJsonConfigFileContent(json, ts.sys, projectDir, options, configFileName));
   if (errors.length > 0) {
-    return {errors};
+    allDiagnostics.push(...errors);
+    return null;
   }
 
   // if file arguments were given to the typescript transpiler than transpile only those files
@@ -152,23 +155,28 @@ function createSourceReplacingCompilerHost(
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
-function toClosureJS(options: ts.CompilerOptions, fileNames: string[], settings: Settings):
-    {jsFiles?: {[fileName: string]: string}, externs?: string, errors?: ts.Diagnostic[]} {
+function toClosureJS(
+    options: ts.CompilerOptions, fileNames: string[], settings: Settings,
+    allDiagnostics: ts.Diagnostic[]): {jsFiles: {[fileName: string]: string}, externs: string}|
+    null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
   let program = ts.createProgram(fileNames, options);
-  let errors = ts.getPreEmitDiagnostics(program);
-  if (errors.length > 0) {
-    return {errors};
+  {  // Scope for the "diagnostics" variable so we can use the name again later.
+    let diagnostics = ts.getPreEmitDiagnostics(program);
+    if (diagnostics.length > 0) {
+      allDiagnostics.push(...diagnostics);
+      return null;
+    }
   }
 
   const tsickleOptions: tsickle.Options = {
     untyped: settings.isUntyped,
     logWarning: settings.verbose ?
         (warning: ts.Diagnostic) => { console.error(tsickle.formatDiagnostics([warning])); } :
-        null,
+        undefined,
   };
 
   // Process each input file with tsickle and save the output.
@@ -178,7 +186,8 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[], settings:
     let {output, externs, diagnostics} =
         tsickle.annotate(program, program.getSourceFile(fileName), tsickleOptions);
     if (diagnostics.length > 0) {
-      return {errors: diagnostics};
+      allDiagnostics.push(...diagnostics);
+      return null;
     }
     tsickleOutput[ts.sys.resolvePath(fileName)] = output;
     if (externs) {
@@ -190,17 +199,19 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[], settings:
   // place of the original source.
   let host = createSourceReplacingCompilerHost(tsickleOutput, ts.createCompilerHost(options));
   program = ts.createProgram(fileNames, options, host);
-  errors = ts.getPreEmitDiagnostics(program);
-  if (errors.length > 0) {
-    return {errors};
+  let diagnostics = ts.getPreEmitDiagnostics(program);
+  if (diagnostics.length > 0) {
+    allDiagnostics.push(...diagnostics);
+    return null;
   }
 
   // Emit, creating a map of fileName => generated JS source.
   let jsFiles: {[fileName: string]: string} = {};
   function writeFile(fileName: string, data: string): void { jsFiles[fileName] = data; }
-  let {diagnostics} = program.emit(undefined, writeFile);
+  ({diagnostics} = program.emit(undefined, writeFile));
   if (diagnostics.length > 0) {
-    return {errors: diagnostics};
+    allDiagnostics.push(...diagnostics);
+    return null;
   }
 
   for (let fileName of Object.keys(jsFiles)) {
@@ -214,35 +225,35 @@ function toClosureJS(options: ts.CompilerOptions, fileNames: string[], settings:
   return {jsFiles, externs: tsickleExterns};
 }
 
-function main(args: string[]) {
+function main(args: string[]): number {
   let {settings, tscArgs} = loadSettingsFromArgs(args);
-  let {options, fileNames, errors} = loadTscConfig(tscArgs);
-  if (errors && errors.length > 0) {
-    console.error(tsickle.formatDiagnostics(errors));
-    process.exit(1);
+  let diagnostics: ts.Diagnostic[] = [];
+  let config = loadTscConfig(tscArgs, diagnostics);
+  if (config === null) {
+    console.error(tsickle.formatDiagnostics(diagnostics));
+    return 1;
   }
 
   // Run tsickle+TSC to convert inputs to Closure JS files.
-  let jsFiles: {[fileName: string]: string};
-  let externs: string;
-  ({jsFiles, externs, errors} = toClosureJS(options, fileNames, settings));
-  if (errors && errors.length > 0) {
-    console.error(tsickle.formatDiagnostics(errors));
-    process.exit(1);
+  let closure = toClosureJS(config.options, config.fileNames, settings, diagnostics);
+  if (closure === null) {
+    console.error(tsickle.formatDiagnostics(diagnostics));
+    return 1;
   }
 
-  for (let fileName of Object.keys(jsFiles)) {
+  for (let fileName of Object.keys(closure.jsFiles)) {
     mkdirp.sync(path.dirname(fileName));
-    fs.writeFileSync(fileName, jsFiles[fileName]);
+    fs.writeFileSync(fileName, closure.jsFiles[fileName]);
   }
 
   if (settings.externsPath) {
     mkdirp.sync(path.dirname(settings.externsPath));
-    fs.writeFileSync(settings.externsPath, externs);
+    fs.writeFileSync(settings.externsPath, closure.externs);
   }
+  return 0;
 }
 
 // CLI entry point
 if (require.main === module) {
-  main(process.argv.splice(2));
+  process.exit(main(process.argv.splice(2)));
 }

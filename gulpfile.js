@@ -23,6 +23,7 @@ var TSC_OPTIONS = {
   target: 'es5',
   // Specify the TypeScript version we're using.
   typescript: typescript,
+  strictNullChecks: true,
 };
 var tsProject = ts.createProject(TSC_OPTIONS);
 

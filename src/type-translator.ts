@@ -21,7 +21,8 @@ export function isBuiltinLibDTS(fileName: string): boolean {
  *     to being derived from the same HTML specs.
  */
 function isClosureProvidedType(symbol: ts.Symbol): boolean {
-  return symbol.declarations.some(n => isBuiltinLibDTS(n.getSourceFile().fileName));
+  return symbol.declarations != null &&
+      symbol.declarations.some(n => isBuiltinLibDTS(n.getSourceFile().fileName));
 }
 
 export function typeToDebugString(type: ts.Type): string {
@@ -178,6 +179,10 @@ export class TypeTranslator {
     let notNullPrefix = notNull ? '!' : '';
 
     if (type.flags & ts.TypeFlags.Class) {
+      if (!type.symbol) {
+        this.warn('class has no symbol');
+        return '?';
+      }
       return this.symbolToString(type.symbol);
     } else if (type.flags & ts.TypeFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
@@ -187,6 +192,10 @@ export class TypeTranslator {
       // InterfaceType "Array", but the "number" type parameter is
       // part of the outer TypeReference, not a typeParameter on
       // the InterfaceType.
+      if (!type.symbol) {
+        this.warn('interface has no symbol');
+        return '?';
+      }
       if (type.symbol.flags & ts.SymbolFlags.Value) {
         // The symbol is both a type and a value.
         // For user-defined types in this state, we don't have a Closure name
@@ -255,6 +264,10 @@ export class TypeTranslator {
     let callable = false;
     let indexable = false;
     let fields: string[] = [];
+    if (!type.symbol || !type.symbol.members) {
+      this.warn('type literal has no symbol');
+      return '?';
+    }
     for (let field of Object.keys(type.symbol.members)) {
       switch (field) {
         case '__call':
@@ -335,10 +348,15 @@ export class TypeTranslator {
 
   /** @return true if sym should always have type {?}. */
   isBlackListed(symbol: ts.Symbol): boolean {
-    if (!this.pathBlackList) return false;
+    if (this.pathBlackList === undefined) return false;
+    const pathBlackList = this.pathBlackList;
+    if (symbol.declarations === undefined) {
+      this.warn('symbol has no declarations');
+      return true;
+    }
     return symbol.declarations.every(n => {
       const path = n.getSourceFile().fileName;
-      return this.pathBlackList.hasOwnProperty(path);
+      return pathBlackList.hasOwnProperty(path);
     });
   }
 }

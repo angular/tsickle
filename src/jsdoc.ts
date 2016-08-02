@@ -118,7 +118,7 @@ const JSDOC_TAGS_WITH_TYPES = ['export', 'param', 'return'];
  * parse parses JSDoc out of a comment string.
  * Returns null if comment is not JSDoc.
  */
-export function parse(comment: string): {tags: Tag[], warnings?: string[]} {
+export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null {
   // TODO(evanm): this is a pile of hacky regexes for now, because we
   // would rather use the better TypeScript implementation of JSDoc
   // parsing.  https://github.com/Microsoft/TypeScript/issues/7393
@@ -160,7 +160,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]} {
       }
 
       // Grab the parameter name from @param tags.
-      let parameterName: string;
+      let parameterName: string|undefined;
       if (tagName === 'param') {
         match = text.match(/^(\S+) ?(.*)/);
         if (match) [_, parameterName, text] = match;

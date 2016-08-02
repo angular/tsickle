@@ -29,3 +29,6 @@ goog.module('test_files.fields.fields');var module = module || {id: 'test_files/
 let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';
+let /** @type {?} */ AnonymousClass = class {
+}
+;

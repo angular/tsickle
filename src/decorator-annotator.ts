@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+
 import {Rewriter} from './rewriter';
 import {TypeTranslator, assertTypeChecked} from './type-translator';
 
@@ -16,7 +17,7 @@ class ClassRewriter extends Rewriter {
   /** Decorators on the class itself. */
   decorators: ts.Decorator[];
   /** The constructor parameter list and decorators on each param. */
-  ctorParameters: [string, ts.Decorator[]][];
+  ctorParameters: ([string | undefined, ts.Decorator[]|undefined]|null)[];
   /** Per-method decorators. */
   propDecorators: {[key: string]: ts.Decorator[]};
 
@@ -48,7 +49,9 @@ class ClassRewriter extends Rewriter {
     return decSym.getDocumentationComment().some(c => c.text.indexOf('@Annotation') >= 0);
   }
 
-  private decoratorsToLower = (n: ts.Node) => n.decorators.filter(d => this.shouldLower(d));
+  private decoratorsToLower(n: ts.Node): ts.Decorator[] {
+    return (n.decorators || []).filter(d => this.shouldLower(d));
+  }
 
   /**
    * process is the main entry point, rewriting a single class node.
@@ -89,11 +92,11 @@ class ClassRewriter extends Rewriter {
    * constructor, and emits nothing.
    */
   private gatherConstructor(ctor: ts.ConstructorDeclaration) {
-    let ctorParameters: [string, ts.Decorator[]][] = [];
+    let ctorParameters: ([string | undefined, ts.Decorator[] | undefined] | null)[] = [];
     let hasDecoratedParam = false;
     for (let param of ctor.parameters) {
-      let paramCtor: string;
-      let decorators: ts.Decorator[];
+      let paramCtor: string|undefined;
+      let decorators: ts.Decorator[]|undefined;
       if (param.decorators) {
         decorators = this.decoratorsToLower(param);
         hasDecoratedParam = decorators.length > 0;
@@ -124,10 +127,10 @@ class ClassRewriter extends Rewriter {
    */
   private gatherMethodOrProperty(method: ts.Declaration) {
     if (!method.decorators) return;
-    if (method.name.kind !== ts.SyntaxKind.Identifier) {
+    if (!method.name || method.name.kind !== ts.SyntaxKind.Identifier) {
       // Method has a weird name, e.g.
       //   [Symbol.foo]() {...}
-      this.error(method, `cannot process decorators on ${ts.SyntaxKind[method.name.kind]}`);
+      this.error(method, 'cannot process decorators on strangely named method');
       return;
     }
 
@@ -190,7 +193,8 @@ class ClassRewriter extends Rewriter {
 
     if (this.decorators || this.ctorParameters) {
       this.emit(`/** @nocollapse */\n`);
-      this.emit(`static ctorParameters: {type: any, decorators?: DecoratorInvocation[]}[] = [\n`);
+      this.emit(
+          `static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [\n`);
       for (let param of this.ctorParameters || []) {
         if (!param) {
           this.emit('null,\n');

@@ -5,7 +5,8 @@
     "noImplicitAny": true,
     "noEmit": true,
     "target": "es5",
-    "jsx": "react"
+    "jsx": "react",
+    "strictNullChecks": true
   },
   "files": [
     "src/decorator-annotator.ts",

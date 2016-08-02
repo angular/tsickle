@@ -1,3 +1,5 @@
+Warning at test_files/fields/fields.ts:22:5: unhandled anonymous type
+====
 class FieldsTest {
   field1: string;
   field2: number;
@@ -34,3 +36,7 @@ FieldsTest.prototype.field3;
 let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';
+
+let /** @type {?} */ AnonymousClass = class {
+  field: number;
+}

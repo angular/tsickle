@@ -39,7 +39,7 @@ export function createProgram(sources: {[fileName: string]: string}): ts.Program
       let relName = path.relative(process.cwd(), dirName);
       if (relName === 'node_modules/@types') return false;
     }
-    return realDirectoryExists(dirName);
+    return realDirectoryExists ? realDirectoryExists(dirName) : false;
   };
 
   host.getSourceFile = function(

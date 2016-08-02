@@ -108,7 +108,7 @@ export abstract class Rewriter {
       length: node.getEnd() - node.getStart(),
       messageText: messageText,
       category: ts.DiagnosticCategory.Error,
-      code: undefined,
+      code: 0,
     });
   }
 }
