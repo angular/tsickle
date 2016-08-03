@@ -846,6 +846,7 @@ class Annotator extends Rewriter {
     if (this.options.untyped) return;
     // Write a Closure typedef, which involves an unused "var" declaration.
     this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
+    if (node.flags & ts.NodeFlags.Export) this.emit('export ');
     this.emit(`var ${node.name.getText()}: void;\n`);
   }
 
