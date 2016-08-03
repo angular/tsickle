@@ -42,7 +42,7 @@ export abstract class Rewriter {
    * @return True if the node has been handled and doesn't need to be traversed;
    *    false to have the node written and its children recursively visited.
    */
-  protected abstract maybeProcess(node: ts.Node): boolean;
+  protected maybeProcess(node: ts.Node): boolean { return false; }
 
   /** writeNode writes a ts.Node, calling this.visit() on its children. */
   writeNode(node: ts.Node, skipComments = false) {

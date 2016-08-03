@@ -58,37 +58,227 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
- * A source processor that takes TypeScript code and annotates the output with Closure-style JSDoc
- * comments.
+ * A Rewriter subclass that adds Tsickle-specific (Closure translation) functionality.
+ *
+ * One Rewriter subclass manages .ts => .ts+Closure translation.
+ * Another Rewriter subclass manages .ts => externs translation.
  */
-class Annotator extends Rewriter {
-  /** Generated externs.js, if any. */
-  private externsOutput: string[] = [];
+class ClosureRewriter extends Rewriter {
+  constructor(protected program: ts.Program, file: ts.SourceFile, protected options: Options) {
+    super(file);
+  }
+
+  /**
+   * @return The ts.Symbol if an identifier's symbol points at a type.
+   */
+  getTypeSymbol(ident: ts.Identifier): ts.Symbol|null {
+    const typeChecker = this.program.getTypeChecker();
+    const sym = typeChecker.getSymbolAtLocation(ident);
+    const isType = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Type) !== 0;
+    if (isType) {
+      return sym;
+    } else {
+      return null;
+    }
+  }
+
+  emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: jsdoc.Tag[] = []) {
+    let typeChecker = this.program.getTypeChecker();
+    let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
+
+    // Construct the JSDoc comment by reading the existing JSDoc, if
+    // any, and merging it with the known types of the function
+    // parameters and return type.
+    let jsDoc = this.getJSDoc(fnDecl) || [];
+    let newDoc = extraTags;
+
+    // Copy all the tags other than @param/@return into the new
+    // comment without any change; @param/@return are handled later.
+    for (let tag of jsDoc) {
+      if (tag.tagName === 'param' || tag.tagName === 'return') continue;
+      newDoc.push(tag);
+    }
+
+    // Parameters.
+    if (sig.parameters.length) {
+      // Iterate through both the AST parameter list and the type's parameter
+      // list, as some information is only available in the former.
+      for (let i = 0; i < sig.parameters.length; i++) {
+        let paramNode = fnDecl.parameters[i];
+        let paramSym = sig.parameters[i];
+        let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
+
+        let newTag: jsdoc.Tag = {
+          tagName: 'param',
+          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
+          parameterName: unescapeName(paramSym.getName()),
+        };
+
+        let destructuring =
+            (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
+             paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
+
+        if (paramNode.dotDotDotToken !== undefined) {
+          newTag.restParam = true;
+          // In TypeScript you write "...x: number[]", but in Closure
+          // you don't write the array: "@param {...number} x".  Unwrap
+          // the Array<> wrapper.
+          type = (type as ts.TypeReference).typeArguments[0];
+        }
+
+        newTag.type = this.typeToClosure(fnDecl, type, destructuring);
+
+        // Search for this parameter in the JSDoc @params.
+        for (let {tagName, parameterName, text} of jsDoc) {
+          if (tagName === 'param' && parameterName === newTag.parameterName) {
+            newTag.text = text;
+            break;
+          }
+        }
+        newDoc.push(newTag);
+      }
+    }
+
+    // Return type.
+    if (fnDecl.kind !== ts.SyntaxKind.Constructor) {
+      let retType = typeChecker.getReturnTypeOfSignature(sig);
+      let returnDoc: string|undefined;
+      for (let {tagName, text} of jsDoc) {
+        if (tagName === 'return') {
+          returnDoc = text;
+          break;
+        }
+      }
+      newDoc.push({
+        tagName: 'return',
+        type: this.typeToClosure(fnDecl, retType),
+        text: returnDoc,
+      });
+    }
+
+    // The first \n makes the output sometimes uglier than necessary,
+    // but it's needed to work around
+    // https://github.com/Microsoft/TypeScript/issues/6982
+    this.emit('\n' + jsdoc.toString(newDoc));
+  }
+
+  /**
+   * Returns null if there is no existing comment.
+   */
+  getJSDoc(node: ts.Node): jsdoc.Tag[]|null {
+    let text = node.getFullText();
+    let comments = ts.getLeadingCommentRanges(text, 0);
+
+    if (!comments || comments.length === 0) return null;
+
+    // JS compiler only considers the last comment significant.
+    let {pos, end} = comments[comments.length - 1];
+    let comment = text.substring(pos, end);
+    let parsed = jsdoc.parse(comment);
+    if (!parsed) return null;
+    if (parsed.warnings) {
+      const start = node.getFullStart() + pos;
+      this.diagnostics.push({
+        file: this.file,
+        start,
+        length: node.getStart() - start,
+        messageText: parsed.warnings.join('\n'),
+        category: ts.DiagnosticCategory.Warning,
+        code: 0,
+      });
+    }
+    return parsed.tags;
+  }
+
+  /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
+  emitJSDocType(node: ts.Node, additionalDocTag?: string) {
+    this.emit(' /**');
+    if (additionalDocTag) {
+      this.emit(' ' + additionalDocTag);
+    }
+    this.emit(` @type {${this.typeToClosure(node)}} */`);
+  }
+
+  /**
+   * Convert a TypeScript ts.Type into the equivalent Closure type.
+   *
+   * @param context The ts.Node containing the type reference; used for resolving symbols
+   *     in context.
+   * @param type The type to translate; if not provided, the Node's type will be used.
+   * @param destructuring If true, insert a Closure "!" (not-null annotation) on all
+   *     object/array types.  This is a workaround specifically for destructuring
+   *     bind patterns.
+   */
+  typeToClosure(context: ts.Node, type?: ts.Type, destructuring?: boolean): string {
+    if (this.options.untyped) {
+      return '?';
+    }
+
+    let typeChecker = this.program.getTypeChecker();
+    if (!type) {
+      type = typeChecker.getTypeAtLocation(context);
+    }
+    let translator = new TypeTranslator(typeChecker, context, this.options.typeBlackListPaths);
+    translator.warn = msg => this.debugWarn(context, msg);
+    return translator.translate(type, destructuring);
+  }
+
+  /**
+   * debug logs a debug warning.  These should only be used for cases
+   * where tsickle is making a questionable judgement about what to do.
+   * By default, tsickle does not report any warnings to the caller,
+   * and warnings are hidden behind a debug flag, as warnings are only
+   * for tsickle to debug itself.
+   */
+  debugWarn(node: ts.Node, messageText: string) {
+    if (!this.options.logWarning) return;
+    // Use a ts.Diagnosic so that the warning includes context and file offets.
+    let diagnostic: ts.Diagnostic = {
+      file: this.file,
+      start: node.getStart(),
+      length: node.getEnd() - node.getStart(), messageText,
+      category: ts.DiagnosticCategory.Warning,
+      code: 0,
+    };
+    this.options.logWarning(diagnostic);
+  }
+}
+
+/** Annotator translates a .ts to a .ts with Closure annotations. */
+class Annotator extends ClosureRewriter {
+  /**
+   * Generated externs, if any. Any "declare" blocks encountered in the source
+   * are forwarded to the ExternsWriter to be translated into externs.
+   */
+  private externsWriter: ExternsWriter;
+
   /** Exported symbol names that have been generated by expanding an "export * from ...". */
   private generatedExports: {[symbol: string]: boolean} = {};
-  /** The set of namespaces that have already been emitted (through classes or modules). */
-  private emittedNamespaces: ts.Map<boolean> = {};
 
-  constructor(private program: ts.Program, file: ts.SourceFile, private options: Options) {
-    super(file);
+  constructor(program: ts.Program, file: ts.SourceFile, options: Options) {
+    super(program, file, options);
+    this.externsWriter = new ExternsWriter(program, file, options);
   }
 
   annotate(): Output {
     this.visit(this.file);
-    let externs: string|null = null;
-    if (this.externsOutput.length > 0) {
-      externs = `/** @externs */
+
+    let externs = this.externsWriter.getOutput();
+    let annotated = this.getOutput();
+
+    let externsSource: string|null = null;
+    if (externs.output) {
+      externsSource = `/** @externs */
 // NOTE: generated by tsickle, do not edit.
-` + this.externsOutput.join('');
+` + externs.output;
     }
-    let {output, diagnostics} = this.getOutput();
+
     return {
-      output,
-      externs,
-      diagnostics: diagnostics,
+      output: annotated.output,
+      externs: externsSource,
+      diagnostics: externs.diagnostics.concat(annotated.diagnostics),
     };
   }
-
   /**
    * Examines a ts.Node and decides whether to do special processing of it for output.
    *
@@ -97,7 +287,7 @@ class Annotator extends Rewriter {
    */
   maybeProcess(node: ts.Node): boolean {
     if (node.flags & ts.NodeFlags.Ambient) {
-      this.visitExterns(node);
+      this.externsWriter.visit(node);
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
       this.writeRange(node.getFullStart(), node.getEnd());
@@ -275,20 +465,6 @@ class Annotator extends Rewriter {
   }
 
   /**
-   * @return the ts.Symbol if an identifier's symbol points at a type.
-   */
-  private getTypeSymbol(ident: ts.Identifier): ts.Symbol|null {
-    const typeChecker = this.program.getTypeChecker();
-    const sym = typeChecker.getSymbolAtLocation(ident);
-    const isType = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Type) !== 0;
-    if (isType) {
-      return sym;
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Handles emit of an "import ..." statement.
    * We need to do a bit of rewriting so that imported types show up under the
    * correct name in JSDoc.
@@ -395,86 +571,6 @@ class Annotator extends Rewriter {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
       return false;  // Use default processing.
     }
-  }
-
-  private emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: jsdoc.Tag[] = []) {
-    let typeChecker = this.program.getTypeChecker();
-    let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
-
-    // Construct the JSDoc comment by reading the existing JSDoc, if
-    // any, and merging it with the known types of the function
-    // parameters and return type.
-    let jsDoc = this.getJSDoc(fnDecl) || [];
-    let newDoc = extraTags;
-
-    // Copy all the tags other than @param/@return into the new
-    // comment without any change; @param/@return are handled later.
-    for (let tag of jsDoc) {
-      if (tag.tagName === 'param' || tag.tagName === 'return') continue;
-      newDoc.push(tag);
-    }
-
-    // Parameters.
-    if (sig.parameters.length) {
-      // Iterate through both the AST parameter list and the type's parameter
-      // list, as some information is only available in the former.
-      for (let i = 0; i < sig.parameters.length; i++) {
-        let paramNode = fnDecl.parameters[i];
-        let paramSym = sig.parameters[i];
-        let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
-
-        let newTag: jsdoc.Tag = {
-          tagName: 'param',
-          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-          parameterName: unescapeName(paramSym.getName()),
-        };
-
-        let destructuring =
-            (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
-             paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
-
-        if (paramNode.dotDotDotToken !== undefined) {
-          newTag.restParam = true;
-          // In TypeScript you write "...x: number[]", but in Closure
-          // you don't write the array: "@param {...number} x".  Unwrap
-          // the Array<> wrapper.
-          type = (type as ts.TypeReference).typeArguments[0];
-        }
-
-        newTag.type = this.typeToClosure(fnDecl, type, destructuring);
-
-        // Search for this parameter in the JSDoc @params.
-        for (let {tagName, parameterName, text} of jsDoc) {
-          if (tagName === 'param' && parameterName === newTag.parameterName) {
-            newTag.text = text;
-            break;
-          }
-        }
-        newDoc.push(newTag);
-      }
-    }
-
-    // Return type.
-    if (fnDecl.kind !== ts.SyntaxKind.Constructor) {
-      let retType = typeChecker.getReturnTypeOfSignature(sig);
-      let returnDoc: string|undefined;
-      for (let {tagName, text} of jsDoc) {
-        if (tagName === 'return') {
-          returnDoc = text;
-          break;
-        }
-      }
-      newDoc.push({
-        tagName: 'return',
-        type: this.typeToClosure(fnDecl, retType),
-        text: returnDoc,
-      });
-    }
-
-    // The first \n makes the output sometimes uglier than necessary,
-    // but it's needed to work around
-    // https://github.com/Microsoft/TypeScript/issues/6982
-    this.emit('\n' + jsdoc.toString(newDoc));
   }
 
   private emitInterface(iface: ts.InterfaceDeclaration) {
@@ -593,37 +689,108 @@ class Annotator extends Rewriter {
     this.emit(`${namespace.join('.')};\n`);
   }
 
-  /**
-   * Returns null if there is no existing comment.
-   */
-  private getJSDoc(node: ts.Node): jsdoc.Tag[]|null {
-    let text = node.getFullText();
-    let comments = ts.getLeadingCommentRanges(text, 0);
-
-    if (!comments || comments.length === 0) return null;
-
-    // JS compiler only considers the last comment significant.
-    let {pos, end} = comments[comments.length - 1];
-    let comment = text.substring(pos, end);
-    let parsed = jsdoc.parse(comment);
-    if (!parsed) return null;
-    if (parsed.warnings) {
-      const start = node.getFullStart() + pos;
-      this.diagnostics.push({
-        file: this.file,
-        start,
-        length: node.getStart() - start,
-        messageText: parsed.warnings.join('\n'),
-        category: ts.DiagnosticCategory.Warning,
-        code: 0,
-      });
-    }
-    return parsed.tags;
+  private visitTypeAlias(node: ts.TypeAliasDeclaration) {
+    if (this.options.untyped) return;
+    // Write a Closure typedef, which involves an unused "var" declaration.
+    this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
+    if (node.flags & ts.NodeFlags.Export) this.emit('export ');
+    this.emit(`var ${node.name.getText()}: void;\n`);
   }
 
-  private visitExterns(node: ts.Node, namespace: string[] = []) {
-    let originalOutput = this.output;
-    this.output = this.externsOutput;
+  /** Processes an EnumDeclaration or returns false for ordinary processing. */
+  private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
+    if (node.flags & ts.NodeFlags.Const) {
+      // const enums disappear after TS compilation and consequently need no
+      // help from tsickle.
+      return false;
+    }
+
+    // Gather the members of enum, saving the constant value or
+    // initializer expression in the case of a non-constant value.
+    let members: {[name: string]: number | ts.Node} = {};
+    let i = 0;
+    for (let member of node.members) {
+      let memberName = member.name.getText();
+      if (member.initializer) {
+        let enumConstValue = this.program.getTypeChecker().getConstantValue(member);
+        if (enumConstValue !== undefined) {
+          members[memberName] = enumConstValue;
+          i = enumConstValue + 1;
+        } else {
+          // Non-constant enum value.  Save the initializer expression for
+          // emitting as-is.
+          // Note: if the member's initializer expression refers to another
+          // value within the enum (e.g. something like
+          //   enum Foo {
+          //     Field1,
+          //     Field2 = Field1 + something(),
+          //   }
+          // Then when we emit the initializer we produce invalid code because
+          // on the Closure side it has to be written "Foo.Field1 + something()".
+          // Hopefully this doesn't come up often -- if the enum instead has
+          // something like
+          //     Field2 = Field1 + 3,
+          // then it's still a constant expression and we inline the constant
+          // value in the above branch of this "if" statement.
+          members[memberName] = member.initializer;
+        }
+      } else {
+        members[memberName] = i;
+        i++;
+      }
+    }
+
+    // Emit the enum declaration, which looks like:
+    //   type Foo = number;
+    //   let Foo: any = {};
+    // We use an "any" here rather than a more specific type because
+    // we think TypeScript has already checked types for us, and it's
+    // a bit difficult to provide a type that matches all the interfaces
+    // expected of an enum (in particular, it is keyable both by
+    // string and number).
+    // We don't emit a specific Closure type for the enum because it's
+    // also difficult to make work: for example, we can't make the name
+    // both a typedef and an indexable object if we export it.
+    this.emit('\n');
+    let name = node.name.getText();
+    if (node.flags & ts.NodeFlags.Export) {
+      this.emit('export ');
+    }
+    this.emit(`type ${name} = number;\n`);
+    if (node.flags & ts.NodeFlags.Export) {
+      this.emit('export ');
+    }
+    this.emit(`let ${name}: any = {};\n`);
+
+    // Emit foo.BAR = 0; lines.
+    for (let member of Object.keys(members)) {
+      if (!this.options.untyped) this.emit(`/** @type {number} */\n`);
+      this.emit(`${name}.${member} = `);
+      let value = members[member];
+      if (typeof value === 'number') {
+        this.emit(value.toString());
+      } else {
+        this.visit(value);
+      }
+      this.emit(';\n');
+    }
+
+    // Emit foo[foo.BAR] = 'BAR'; lines.
+    for (let member of Object.keys(members)) {
+      this.emit(`${name}[${name}.${member}] = "${member}";\n`);
+    }
+
+    return true;
+  }
+}
+
+/** ExternsWriter generates Closure externs from TypeScript source. */
+class ExternsWriter extends ClosureRewriter {
+  /** The set of namespaces that have already been emitted (through classes or modules). */
+  private emittedNamespaces: ts.Map<boolean> = {};
+
+  /** visit is the main entry point.  It generates externs from a ts.Node. */
+  public visit(node: ts.Node, namespace: string[] = []) {
     switch (node.kind) {
       case ts.SyntaxKind.ModuleDeclaration:
         let decl = <ts.ModuleDeclaration>node;
@@ -654,7 +821,7 @@ class Annotator extends Rewriter {
               }
             }
             this.emittedNamespaces[nsName] = true;
-            if (decl.body) this.visitExterns(decl.body, namespace);
+            if (decl.body) this.visit(decl.body, namespace);
             break;
           case ts.SyntaxKind.StringLiteral:
             // E.g. "declare module 'foo' {" (note the quotes).
@@ -667,7 +834,7 @@ class Annotator extends Rewriter {
       case ts.SyntaxKind.ModuleBlock:
         let block = <ts.ModuleBlock>node;
         for (let stmt of block.statements) {
-          this.visitExterns(stmt, namespace);
+          this.visit(stmt, namespace);
         }
         break;
       case ts.SyntaxKind.ClassDeclaration:
@@ -697,7 +864,6 @@ class Annotator extends Rewriter {
         this.emit(`\n/* TODO: ${ts.SyntaxKind[node.kind]} in ${namespace.join('.')} */\n`);
         break;
     }
-    this.output = originalOutput;
   }
 
   private writeExternsType(decl: ts.InterfaceDeclaration|ts.ClassDeclaration, namespace: string[]) {
@@ -807,153 +973,6 @@ class Annotator extends Rewriter {
       this.emit('/** @const {number} */\n');
       this.emit(`${name};\n`);
     }
-  }
-
-  /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
-  private emitJSDocType(node: ts.Node, additionalDocTag?: string) {
-    this.emit(' /**');
-    if (additionalDocTag) {
-      this.emit(' ' + additionalDocTag);
-    }
-    this.emit(` @type {${this.typeToClosure(node)}} */`);
-  }
-
-  /**
-   * Convert a TypeScript ts.Type into the equivalent Closure type.
-   *
-   * @param context The ts.Node containing the type reference; used for resolving symbols
-   *     in context.
-   * @param type The type to translate; if not provided, the Node's type will be used.
-   * @param destructuring If true, insert a Closure "!" (not-null annotation) on all
-   *     object/array types.  This is a workaround specifically for destructuring
-   *     bind patterns.
-   */
-  private typeToClosure(context: ts.Node, type?: ts.Type, destructuring?: boolean): string {
-    if (this.options.untyped) {
-      return '?';
-    }
-
-    let typeChecker = this.program.getTypeChecker();
-    if (!type) {
-      type = typeChecker.getTypeAtLocation(context);
-    }
-    let translator = new TypeTranslator(typeChecker, context, this.options.typeBlackListPaths);
-    translator.warn = msg => this.debugWarn(context, msg);
-    return translator.translate(type, destructuring);
-  }
-
-  private visitTypeAlias(node: ts.TypeAliasDeclaration) {
-    if (this.options.untyped) return;
-    // Write a Closure typedef, which involves an unused "var" declaration.
-    this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
-    if (node.flags & ts.NodeFlags.Export) this.emit('export ');
-    this.emit(`var ${node.name.getText()}: void;\n`);
-  }
-
-  /** Processes an EnumDeclaration or returns false for ordinary processing. */
-  private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
-    if (node.flags & ts.NodeFlags.Const) {
-      // const enums disappear after TS compilation and consequently need no
-      // help from tsickle.
-      return false;
-    }
-
-    // Gather the members of enum, saving the constant value or
-    // initializer expression in the case of a non-constant value.
-    let members: {[name: string]: number | ts.Node} = {};
-    let i = 0;
-    for (let member of node.members) {
-      let memberName = member.name.getText();
-      if (member.initializer) {
-        let enumConstValue = this.program.getTypeChecker().getConstantValue(member);
-        if (enumConstValue !== undefined) {
-          members[memberName] = enumConstValue;
-          i = enumConstValue + 1;
-        } else {
-          // Non-constant enum value.  Save the initializer expression for
-          // emitting as-is.
-          // Note: if the member's initializer expression refers to another
-          // value within the enum (e.g. something like
-          //   enum Foo {
-          //     Field1,
-          //     Field2 = Field1 + something(),
-          //   }
-          // Then when we emit the initializer we produce invalid code because
-          // on the Closure side it has to be written "Foo.Field1 + something()".
-          // Hopefully this doesn't come up often -- if the enum instead has
-          // something like
-          //     Field2 = Field1 + 3,
-          // then it's still a constant expression and we inline the constant
-          // value in the above branch of this "if" statement.
-          members[memberName] = member.initializer;
-        }
-      } else {
-        members[memberName] = i;
-        i++;
-      }
-    }
-
-    // Emit the enum declaration, which looks like:
-    //   type Foo = number;
-    //   let Foo: any = {};
-    // We use an "any" here rather than a more specific type because
-    // we think TypeScript has already checked types for us, and it's
-    // a bit difficult to provide a type that matches all the interfaces
-    // expected of an enum (in particular, it is keyable both by
-    // string and number).
-    // We don't emit a specific Closure type for the enum because it's
-    // also difficult to make work: for example, we can't make the name
-    // both a typedef and an indexable object if we export it.
-    this.emit('\n');
-    let name = node.name.getText();
-    if (node.flags & ts.NodeFlags.Export) {
-      this.emit('export ');
-    }
-    this.emit(`type ${name} = number;\n`);
-    if (node.flags & ts.NodeFlags.Export) {
-      this.emit('export ');
-    }
-    this.emit(`let ${name}: any = {};\n`);
-
-    // Emit foo.BAR = 0; lines.
-    for (let member of Object.keys(members)) {
-      if (!this.options.untyped) this.emit(`/** @type {number} */\n`);
-      this.emit(`${name}.${member} = `);
-      let value = members[member];
-      if (typeof value === 'number') {
-        this.emit(value.toString());
-      } else {
-        this.visit(value);
-      }
-      this.emit(';\n');
-    }
-
-    // Emit foo[foo.BAR] = 'BAR'; lines.
-    for (let member of Object.keys(members)) {
-      this.emit(`${name}[${name}.${member}] = "${member}";\n`);
-    }
-
-    return true;
-  }
-
-  /**
-   * debug logs a debug warning.  These should only be used for cases
-   * where tsickle is making a questionable judgement about what to do.
-   * By default, tsickle does not report any warnings to the caller,
-   * and warnings are hidden behind a debug flag, as warnings are only
-   * for tsickle to debug itself.
-   */
-  private debugWarn(node: ts.Node, messageText: string) {
-    if (!this.options.logWarning) return;
-    // Use a ts.Diagnosic so that the warning includes context and file offets.
-    let diagnostic: ts.Diagnostic = {
-      file: this.file,
-      start: node.getStart(),
-      length: node.getEnd() - node.getStart(), messageText,
-      category: ts.DiagnosticCategory.Warning,
-      code: 0,
-    };
-    this.options.logWarning(diagnostic);
   }
 }
 
