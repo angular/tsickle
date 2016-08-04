@@ -10,7 +10,6 @@ import * as tsickle from '../src/tsickle';
 const compilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES6,
   skipDefaultLibCheck: true,
-  noEmitOnError: true,
   experimentalDecorators: true,
   emitDecoratorMetadata: true,
   noEmitHelpers: true,
@@ -28,7 +27,7 @@ const {cachedLibPath, cachedLib} = (function() {
   return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
 })();
 
-/** Creates a ts.Program from a set of input files.  Throws an exception on errors. */
+/** Creates a ts.Program from a set of input files. */
 export function createProgram(sources: {[fileName: string]: string}): ts.Program {
   let host = ts.createCompilerHost(compilerOptions);
 
@@ -53,23 +52,17 @@ export function createProgram(sources: {[fileName: string]: string}): ts.Program
     throw new Error('unexpected file read of ' + fileName + ' not in ' + Object.keys(sources));
   };
 
-  let program = ts.createProgram(Object.keys(sources), compilerOptions, host);
-  let diagnostics = ts.getPreEmitDiagnostics(program);
-  if (diagnostics.length) {
-    throw new Error(tsickle.formatDiagnostics(diagnostics));
-  }
-
-  return program;
+  return ts.createProgram(Object.keys(sources), compilerOptions, host);
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
-export function emit(program: ts.Program): {[fileName: string]: string} {
+export function emit(program: ts.Program, checkErrors = true): {[fileName: string]: string} {
   let transformed: {[fileName: string]: string} = {};
   let emitRes = program.emit(undefined, (fileName: string, data: string) => {
     transformed[fileName] =
         tsickle.convertCommonJsToGoogModule(fileName, data, cliSupport.pathToModuleName).output;
   });
-  if (emitRes.diagnostics.length) {
+  if (checkErrors && emitRes.diagnostics.length) {
     throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
   }
   return transformed;

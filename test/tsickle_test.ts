@@ -138,7 +138,7 @@ describe('golden tests', () => {
       // Run tsickled TypeScript through TypeScript compiler
       // and compare against goldens.
       program = testSupport.createProgram(tsickleSources);
-      let jsSources = testSupport.emit(program);
+      let jsSources = testSupport.emit(program, /* ignore errors */ false);
       for (let jsPath of Object.keys(jsSources)) {
         compareAgainstGolden(jsSources[jsPath], jsPath);
       }
