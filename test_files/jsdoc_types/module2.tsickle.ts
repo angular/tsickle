@@ -1,10 +1,9 @@
 export class ClassOne {}
 export class ClassTwo {}
 /** @record */
-function Interface() {}
+export function Interface() {}
  /** @type {number} */
 Interface.prototype.x;
-export {Interface};
 
 export interface Interface { x: number }
 export class ClassWithParams<T> {}

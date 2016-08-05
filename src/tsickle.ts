@@ -582,6 +582,7 @@ class Annotator extends ClosureRewriter {
     if (sym.flags & ts.SymbolFlags.Value) return;
 
     this.emit(`\n/** @record */\n`);
+    if (iface.flags & ts.NodeFlags.Export) this.emit('export ');
     let name = getIdentifierText(iface.name);
     this.emit(`function ${name}() {}\n`);
     if (iface.typeParameters) {
@@ -594,10 +595,6 @@ class Annotator extends ClosureRewriter {
     const memberNamespace = [name, 'prototype'];
     for (let elem of iface.members) {
       this.visitProperty(memberNamespace, elem);
-    }
-
-    if (iface.flags & ts.NodeFlags.Export) {
-      this.emit(`export {${name}};\n`);
     }
   }
 

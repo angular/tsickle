@@ -4,10 +4,9 @@ export {export4} from './export_helper_2';
 export let /** @type {number} */ export1 = 3;
 export let /** @type {number} */ export2 = 3;
 /** @record */
-function Bar() {}
+export function Bar() {}
  /** @type {number} */
 Bar.prototype.barField;
-export {Bar};
 
 
 export interface Bar { barField: number; }
