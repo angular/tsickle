@@ -235,7 +235,9 @@ export class TypeTranslator {
 
       if (type.symbol.flags === ts.SymbolFlags.TypeLiteral) {
         return notNullPrefix + this.translateTypeLiteral(type);
-      } else if (type.symbol.flags === ts.SymbolFlags.Function) {
+      } else if (
+          type.symbol.flags === ts.SymbolFlags.Function ||
+          type.symbol.flags === ts.SymbolFlags.Method) {
         let sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);

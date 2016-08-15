@@ -99,6 +99,11 @@ class ClosureRewriter extends Rewriter {
       newDoc.push(tag);
     }
 
+    // Abstract
+    if ((fnDecl.flags & ts.NodeFlags.Abstract)) {
+      newDoc.push({tagName: 'abstract'});
+    }
+
     // Parameters.
     if (sig.parameters.length) {
       // Iterate through both the AST parameter list and the type's parameter
@@ -376,6 +381,16 @@ class Annotator extends ClosureRewriter {
         let fnDecl = <ts.FunctionLikeDeclaration>node;
 
         if (!fnDecl.body) {
+          if ((fnDecl.flags & ts.NodeFlags.Abstract) !== 0) {
+            this.emitFunctionType(fnDecl);
+            let end = fnDecl.parameters.end;
+            if (fnDecl.type) {
+              end = fnDecl.type.end;
+            }
+            this.writeRange(fnDecl.getStart(), end);
+            this.emit('{}');
+            return true;
+          }
           // Functions are allowed to not have bodies in the presence
           // of overloads.  It's not clear how to translate these overloads
           // into Closure types, so skip them for now.
