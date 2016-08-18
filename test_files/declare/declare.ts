@@ -45,3 +45,9 @@ declare class MultipleConstructors {
   constructor();
   constructor(a: number);
 }
+
+// Add to an existing interface; we shouldn't redeclare Object
+// itself, but we still should declare the method.
+declare interface Object {
+  myMethod();
+}

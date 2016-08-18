@@ -798,9 +798,6 @@ class Annotator extends ClosureRewriter {
 
 /** ExternsWriter generates Closure externs from TypeScript source. */
 class ExternsWriter extends ClosureRewriter {
-  /** The set of namespaces that have already been emitted (through classes or modules). */
-  private emittedNamespaces: ts.Map<boolean> = {};
-
   /** visit is the main entry point.  It generates externs from a ts.Node. */
   public visit(node: ts.Node, namespace: string[] = []) {
     switch (node.kind) {
@@ -823,8 +820,7 @@ class ExternsWriter extends ClosureRewriter {
             }
             if (name === undefined) break;
             namespace = namespace.concat(name);
-            let nsName = namespace.join('.');
-            if (!this.emittedNamespaces.hasOwnProperty(nsName)) {
+            if (this.isFirstDeclaration(decl)) {
               this.emit('/** @const */\n');
               if (namespace.length > 1) {
                 this.emit(`${namespace.join('.')} = {};\n`);
@@ -832,7 +828,6 @@ class ExternsWriter extends ClosureRewriter {
                 this.emit(`var ${namespace} = {};\n`);
               }
             }
-            this.emittedNamespaces[nsName] = true;
             if (decl.body) this.visit(decl.body, namespace);
             break;
           case ts.SyntaxKind.StringLiteral:
@@ -878,6 +873,21 @@ class ExternsWriter extends ClosureRewriter {
     }
   }
 
+  /**
+   * isFirstDeclaration returns true if decl is the first declaration
+   * of its symbol.  E.g. imagine
+   *   interface Foo { x: number; }
+   *   interface Foo { y: number; }
+   * we only want to emit the "@record" for Foo on the first one.
+   */
+  private isFirstDeclaration(decl: ts.DeclarationStatement): boolean {
+    if (!decl.name) return true;
+    const typeChecker = this.program.getTypeChecker();
+    const sym = typeChecker.getSymbolAtLocation(decl.name);
+    if (!sym.declarations || sym.declarations.length < 2) return true;
+    return decl === sym.declarations[0];
+  }
+
   private writeExternsType(decl: ts.InterfaceDeclaration|ts.ClassDeclaration, namespace: string[]) {
     const name = decl.name;
     if (!name) {
@@ -885,32 +895,31 @@ class ExternsWriter extends ClosureRewriter {
       return;
     }
     let typeName = namespace.concat([name.getText()]).join('.');
-    this.emittedNamespaces[typeName] = true;
     if (closureExternsBlacklist.indexOf(typeName) >= 0) return;
-    this.emittedNamespaces[typeName] = true;
 
-    let paramNames = '';
-    if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
-      let ctors =
-          (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
-      if (ctors.length) {
-        if (ctors.length > 1) {
-          // TODO: unify the multiple constructors as overloads.
-          // For now, we just drop all but the first.
-          // See https://github.com/angular/tsickle/issues/180 .
-          this.debugWarn(ctors[1], 'multiple constructor signatures in declarations');
+    if (this.isFirstDeclaration(decl)) {
+      let paramNames = '';
+      if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
+        let ctors =
+            (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
+        if (ctors.length) {
+          if (ctors.length > 1) {
+            // TODO: unify the multiple constructors as overloads.
+            // For now, we just drop all but the first.
+            // See https://github.com/angular/tsickle/issues/180 .
+            this.debugWarn(ctors[1], 'multiple constructor signatures in declarations');
+          }
+          let ctor = <ts.ConstructorDeclaration>ctors[0];
+          this.emitFunctionType(ctor, [{tagName: 'constructor'}, {tagName: 'struct'}]);
+          paramNames = ctor.parameters.map((p) => p.name.getText()).join(', ');
+        } else {
+          this.emit('/** @constructor @struct */\n');
         }
-        let ctor = <ts.ConstructorDeclaration>ctors[0];
-        this.emitFunctionType(ctor, [{tagName: 'constructor'}, {tagName: 'struct'}]);
-        paramNames = ctor.parameters.map((p) => p.name.getText()).join(', ');
       } else {
-        this.emit('/** @constructor @struct */\n');
+        this.emit('/** @record @struct */\n');
       }
-    } else {
-      this.emit('/** @record @struct */\n');
+      this.writeExternsFunction(name.getText(), paramNames, namespace);
     }
-
-    this.writeExternsFunction(name.getText(), paramNames, namespace);
 
     for (let member of decl.members) {
       switch (member.kind) {

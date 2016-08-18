@@ -59,3 +59,8 @@ DeclareTestInterface.prototype.foo;
  * @struct
  */
 function MultipleConstructors() {}
+
+/**
+ * @return {?}
+ */
+Object.prototype.myMethod = function() {};
