@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 
-import {Rewriter, getIdentifierText} from './rewriter';
+import {getIdentifierText, Rewriter} from './rewriter';
+
 
 /**
  * ES5Processor postprocesses TypeScript compilation output JS, to rewrite commonjs require()s into

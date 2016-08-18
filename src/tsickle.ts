@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
-import {Rewriter, getIdentifierText, unescapeName} from './rewriter';
-import {TypeTranslator, assertTypeChecked} from './type-translator';
+import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
+import {assertTypeChecked, TypeTranslator} from './type-translator';
 
 export {convertDecorators} from './decorator-annotator';
 export {processES5 as convertCommonJsToGoogModule} from './es5processor';

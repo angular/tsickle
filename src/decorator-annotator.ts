@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 
 import {Rewriter} from './rewriter';
-import {TypeTranslator, assertTypeChecked} from './type-translator';
+import {assertTypeChecked, TypeTranslator} from './type-translator';
 
 export const ANNOTATION_SUPPORT_CODE = `
 interface DecoratorInvocation {
@@ -92,7 +92,7 @@ class ClassRewriter extends Rewriter {
    * constructor, and emits nothing.
    */
   private gatherConstructor(ctor: ts.ConstructorDeclaration) {
-    let ctorParameters: ([string | undefined, ts.Decorator[] | undefined] | null)[] = [];
+    let ctorParameters: ([string | undefined, ts.Decorator[] | undefined]|null)[] = [];
     let hasDecoratedParam = false;
     for (let param of ctor.parameters) {
       let paramCtor: string|undefined;
