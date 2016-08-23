@@ -1,4 +1,4 @@
-goog.module('test_files.type.type');var module = module || {id: 'test_files/type/type.js'};let /** @type {?} */ typeAny;
+goog.module('test_files.type.type');var module = module || {};if (!module.id) module.id = 'test_files/type/type.js';let /** @type {?} */ typeAny;
 let /** @type {Array<?>} */ typeArr = null;
 let /** @type {Array<?>} */ typeArr2 = null;
 let /** @type {Array<Array<{a: ?}>>} */ typeNestedArr = null;

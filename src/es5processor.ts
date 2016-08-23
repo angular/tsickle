@@ -48,7 +48,11 @@ class ES5Processor extends Rewriter {
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
-    this.emit(`var module = module || {id: '${this.file.fileName}'};`);
+    // The following pattern ensures closure doesn't throw an error in advanced
+    // optimizations mode.
+    this.emit(
+        `var module = module || {};` +
+        `if (!module.id) module.id = '${this.file.fileName}';`);
 
     let pos = 0;
     for (let stmt of this.file.statements) {
