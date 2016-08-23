@@ -68,20 +68,6 @@ class ClosureRewriter extends Rewriter {
     super(file);
   }
 
-  /**
-   * @return The ts.Symbol if an identifier's symbol points at a type.
-   */
-  getTypeSymbol(ident: ts.Identifier): ts.Symbol|null {
-    const typeChecker = this.program.getTypeChecker();
-    const sym = typeChecker.getSymbolAtLocation(ident);
-    const isType = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Type) !== 0;
-    if (isType) {
-      return sym;
-    } else {
-      return null;
-    }
-  }
-
   emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: jsdoc.Tag[] = []) {
     let typeChecker = this.program.getTypeChecker();
     let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
@@ -508,82 +494,29 @@ class Annotator extends ClosureRewriter {
       //   import a from ...;
       // namedBindings being NamedImports implies
       //   import {a as b} from ...;
-      // In both cases, if a is a type, rewrite it to something like:
-      //   import {a as tsickle_b} from ...;
-      //   const b = tsickle_b;
-      //   type b = tsickle_b;
-      // This is because in the generated ES5, the variable chosen in the import statement
-      // (here, "tsickle_b") will instead get a generated name like module_import.tsickle_b.
-      // But in our JSDoc we still refer to it as just "b".  Importing under a different
-      // name and then making a local alias evades this.
-      // (TS uses the namespace-qualified name so that updates to the
-      // module are reflected in the aliases.  We only do this to types, which can't
-      // change, so the namespace qualification is not needed.)
-      const typeChecker = this.program.getTypeChecker();
-      this.writeRange(decl.getFullStart(), decl.getStart());
+      //
+      // Both of these forms create a local name "a", which after
+      // TypeScript CommonJS compilation will become some renamed
+      // variable like "module_1.a".  But a user might still use plain
+      // "a" in some JSDoc comment, so gather up these local names for
+      // imports and make an alias for each for JSDoc purposes.
 
-      // Emit the "import" part, with rewritten binding names for types.
-      this.emit('import ');
-      let renamed: ts.Symbol[] = [];
+      let localNames: string[];
       if (importClause.name) {
         // import a from ...;
-        const name = getIdentifierText(importClause.name);
-        const renameSym = this.getTypeSymbol(importClause.name);
-        if (renameSym) {
-          renamed.push(renameSym);
-          this.emit(`tsickle_${name}`);
-        } else {
-          this.emit(name);
-        }
+        localNames = [getIdentifierText(importClause.name)];
       } else {
         // import {a as b} from ...;
-        this.emit('{');
         const namedImports = importClause.namedBindings as ts.NamedImports;
-        for (const imp of namedImports.elements) {
-          // imp.propertyName is the name of the property in the module we're importing from,
-          // while imp.name is the local name.  propertyName is undefined in the case where
-          // it's not being renamed as it's imported.
-          this.emit(getIdentifierText(imp.propertyName || imp.name));
-
-          let name = getIdentifierText(imp.name);
-          let renameSym = this.getTypeSymbol(imp.name);
-          if (renameSym) {
-            renamed.push(renameSym);
-            this.emit(` as tsickle_${name}`);
-          } else if (imp.propertyName) {
-            this.emit(` as ${name}`);
-          }
-          this.emit(',');
-        }
-        this.emit('}');
+        localNames = namedImports.elements.map(imp => getIdentifierText(imp.name));
       }
-      this.emit(' from');
-      this.writeNode(decl.moduleSpecifier);
-      this.emit(';\n');
 
-      // Emit aliases that bring the renamed names back to the local names.
-      for (const sym of renamed) {
-        let name = unescapeName(sym.name);
-        // Note that tsickle_foo types are eventually always both values and types, because
-        // post-tsickle processing (in Closure-land), all types are also values.
-        const isValue = (typeChecker.getAliasedSymbol(sym).flags & ts.SymbolFlags.Value) !== 0;
-        if (!isValue) {
-          // Once tsickle processes the other module, it will create a var for it.
-          // But until then we just hack this symbol in to the value namespace.
-          this.emit(`declare var tsickle_${name}: any;\n`);
-        }
-        this.emit(`const ${name} = tsickle_${name};\n`);
-
-        const type = typeChecker.getDeclaredTypeOfSymbol(sym);
-        // If it's a parameterized type (e.g. Foo<T>), gather a type parameter list.
-        let typeParams = '';
-        if (type.flags & ts.TypeFlags.Reference) {
-          const typeRef = type as ts.TypeReference;
-          if (typeRef.typeArguments) {
-            typeParams = '<' + typeRef.typeArguments.map((_, i) => `T${i}`).join(',') + '>';
-          }
-        }
-        this.emit(`type ${name}${typeParams} = tsickle_${name}${typeParams};\n`);
+      this.writeNode(decl);
+      for (let name of localNames) {
+        // This may look like a self-reference but TypeScript will rename the
+        // right-hand side!
+        this.emit(
+            `\nconst ${name}: NeverTypeCheckMe = ${name};  /* local alias for Closure JSDoc */`);
       }
       return true;
     } else if (

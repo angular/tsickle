@@ -4,36 +4,21 @@
  */
 
 import * as module1 from './module1';
-import {ClassOne as tsickle_ClassOne,value,} from './module2';
-const ClassOne = tsickle_ClassOne;
-type ClassOne = tsickle_ClassOne;
-
-import {ClassOne as tsickle_RenamedClassOne,} from './module2';
-const RenamedClassOne = tsickle_RenamedClassOne;
-type RenamedClassOne = tsickle_RenamedClassOne;
-
-import {ClassTwo as tsickle_RenamedClassTwo,} from './module2';
-const RenamedClassTwo = tsickle_RenamedClassTwo;
-type RenamedClassTwo = tsickle_RenamedClassTwo;
-
-import {Interface as tsickle_Interface,} from './module2';
-declare var tsickle_Interface: any;
-const Interface = tsickle_Interface;
-type Interface = tsickle_Interface;
-
-import {ClassWithParams as tsickle_ClassWithParams,} from './module2';
-const ClassWithParams = tsickle_ClassWithParams;
-type ClassWithParams<T0> = tsickle_ClassWithParams<T0>;
-
-import tsickle_DefaultClass from './default';
-const DefaultClass = tsickle_DefaultClass;
-type DefaultClass = tsickle_DefaultClass;
-
-import {NeverTyped as tsickle_NeverTyped,} from './nevertyped';
-declare var tsickle_NeverTyped: any;
-const NeverTyped = tsickle_NeverTyped;
-type NeverTyped = tsickle_NeverTyped;
-
+import {ClassOne, value} from './module2';
+const ClassOne: NeverTypeCheckMe = ClassOne;  /* local alias for Closure JSDoc */
+const value: NeverTypeCheckMe = value;  /* local alias for Closure JSDoc */
+import {ClassOne as RenamedClassOne} from './module2';
+const RenamedClassOne: NeverTypeCheckMe = RenamedClassOne;  /* local alias for Closure JSDoc */
+import {ClassTwo as RenamedClassTwo} from './module2';
+const RenamedClassTwo: NeverTypeCheckMe = RenamedClassTwo;  /* local alias for Closure JSDoc */
+import {Interface} from './module2';
+const Interface: NeverTypeCheckMe = Interface;  /* local alias for Closure JSDoc */
+import {ClassWithParams} from './module2';
+const ClassWithParams: NeverTypeCheckMe = ClassWithParams;  /* local alias for Closure JSDoc */
+import DefaultClass from './default';
+const DefaultClass: NeverTypeCheckMe = DefaultClass;  /* local alias for Closure JSDoc */
+import {NeverTyped} from './nevertyped';
+const NeverTyped: NeverTypeCheckMe = NeverTyped;  /* local alias for Closure JSDoc */
 
 // Check that imported types get the proper names in JSDoc.
 let /** @type {module1.Class} */ useNamespacedClass = new module1.Class();
