@@ -1,4 +1,4 @@
-goog.module('test_files.export.export_helper');var module = module || {id: 'test_files/export/export_helper.js'};
+goog.module('test_files.export.export_helper');var module = module || {};if (!module.id) module.id = 'test_files/export/export_helper.js';
 // This file isn't itself a test case, but it is imported by the
 // export.in.ts test case.
 var export_helper_2_1 = goog.require('test_files.export.export_helper_2');
