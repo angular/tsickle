@@ -56,14 +56,14 @@ export function createProgram(sources: {[fileName: string]: string}): ts.Program
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
-export function emit(program: ts.Program, checkErrors = true): {[fileName: string]: string} {
+export function emit(program: ts.Program): {[fileName: string]: string} {
   let transformed: {[fileName: string]: string} = {};
-  let emitRes = program.emit(undefined, (fileName: string, data: string) => {
+  let {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
     transformed[fileName] =
         tsickle.convertCommonJsToGoogModule(fileName, data, cliSupport.pathToModuleName).output;
   });
-  if (checkErrors && emitRes.diagnostics.length) {
-    throw new Error(tsickle.formatDiagnostics(emitRes.diagnostics));
+  if (diagnostics.length > 0) {
+    throw new Error(tsickle.formatDiagnostics(diagnostics));
   }
   return transformed;
 }

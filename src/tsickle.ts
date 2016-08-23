@@ -383,12 +383,21 @@ class Annotator extends ClosureRewriter {
         if (!fnDecl.body) {
           if ((fnDecl.flags & ts.NodeFlags.Abstract) !== 0) {
             this.emitFunctionType(fnDecl);
-            let end = fnDecl.parameters.end;
-            if (fnDecl.type) {
-              end = fnDecl.type.end;
+            // Abstract functions look like
+            //   abstract foo();
+            // Emit the function as normal, except:
+            // - remove the "abstract"
+            // - change the return type to "void"
+            // - replace the trailing semicolon with an empty block {}
+            // To do so, skip all modifiers before the function name, and
+            // emit up to the end of the parameter list / return type.
+            if (!fnDecl.name) {
+              // Can you even have an unnamed abstract function?
+              this.error(fnDecl, 'anonymous abstract function');
+              return false;
             }
-            this.writeRange(fnDecl.getStart(), end);
-            this.emit('{}');
+            this.writeRange(fnDecl.name.getStart(), fnDecl.parameters.end);
+            this.emit(') {}');
             return true;
           }
           // Functions are allowed to not have bodies in the presence

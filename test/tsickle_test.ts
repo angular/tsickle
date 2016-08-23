@@ -79,6 +79,12 @@ describe('golden tests', () => {
         tsSources[tsPath] = tsSource;
       }
       let program = testSupport.createProgram(tsSources);
+      {
+        let diagnostics = ts.getPreEmitDiagnostics(program);
+        if (diagnostics.length) {
+          throw new Error(tsickle.formatDiagnostics(diagnostics));
+        }
+      }
 
       // Run TypeScript through the decorator annotator and emit goldens if
       // it changed anything.
@@ -138,7 +144,7 @@ describe('golden tests', () => {
       // Run tsickled TypeScript through TypeScript compiler
       // and compare against goldens.
       program = testSupport.createProgram(tsickleSources);
-      let jsSources = testSupport.emit(program, /* ignore errors */ false);
+      let jsSources = testSupport.emit(program);
       for (let jsPath of Object.keys(jsSources)) {
         compareAgainstGolden(jsSources[jsPath], jsPath);
       }
