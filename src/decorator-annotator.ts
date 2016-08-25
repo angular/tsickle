@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 
 import {Rewriter} from './rewriter';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
+import {toArray} from './util';
 
 export const ANNOTATION_SUPPORT_CODE = `
 interface DecoratorInvocation {
@@ -19,7 +20,7 @@ class ClassRewriter extends Rewriter {
   /** The constructor parameter list and decorators on each param. */
   ctorParameters: ([string | undefined, ts.Decorator[]|undefined]|null)[];
   /** Per-method decorators. */
-  propDecorators: {[key: string]: ts.Decorator[]};
+  propDecorators: Map<string, ts.Decorator[]>;
 
   constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) { super(sourceFile); }
 
@@ -137,8 +138,8 @@ class ClassRewriter extends Rewriter {
     let name = (method.name as ts.Identifier).text;
     let decorators: ts.Decorator[] = this.decoratorsToLower(method);
     if (decorators.length === 0) return;
-    if (!this.propDecorators) this.propDecorators = {};
-    this.propDecorators[name] = decorators;
+    if (!this.propDecorators) this.propDecorators = new Map<string, ts.Decorator[]>();
+    this.propDecorators.set(name, decorators);
   }
 
   /**
@@ -218,9 +219,10 @@ class ClassRewriter extends Rewriter {
     if (this.propDecorators) {
       this.emit(`/** @nocollapse */\n`);
       this.emit('static propDecorators: {[key: string]: DecoratorInvocation[]} = {\n');
-      for (let name of Object.keys(this.propDecorators)) {
+      for (let name of toArray(this.propDecorators.keys())) {
         this.emit(`'${name}': [`);
-        for (let decorator of this.propDecorators[name]) {
+
+        for (let decorator of this.propDecorators.get(name)!) {
           this.emitDecorator(decorator);
           this.emit(',');
         }

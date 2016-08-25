@@ -21,6 +21,12 @@ var TSC_OPTIONS = {
   declarationFiles: true,
   noEmitOnError: true,
   target: 'es5',
+  lib: [
+    'es5',
+    'es2015.collection',
+    'es2015.iterable',
+    'dom',
+  ],
   // Specify the TypeScript version we're using.
   typescript: typescript,
   strictNullChecks: true,

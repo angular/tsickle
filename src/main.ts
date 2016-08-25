@@ -8,6 +8,7 @@ import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
+import {toArray} from './util';
 
 /** Tsickle settings passed on the command line. */
 interface Settings {
@@ -122,7 +123,7 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
  * @param substituteSource A map of source file name -> overlay source text.
  */
 function createSourceReplacingCompilerHost(
-    substituteSource: ts.Map<string>, delegate: ts.CompilerHost): ts.CompilerHost {
+    substituteSource: Map<string, string>, delegate: ts.CompilerHost): ts.CompilerHost {
   return {
     getSourceFile,
     getCancellationToken: delegate.getCancellationToken,
@@ -141,10 +142,9 @@ function createSourceReplacingCompilerHost(
   function getSourceFile(
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void): ts.SourceFile {
-    let sourceText: string;
     let path: string = ts.sys.resolvePath(fileName);
-    if (substituteSource.hasOwnProperty(path)) {
-      sourceText = substituteSource[path];
+    let sourceText = substituteSource.get(path);
+    if (sourceText) {
       return ts.createSourceFile(path, sourceText, languageVersion);
     }
     return delegate.getSourceFile(path, languageVersion, onError);
@@ -157,8 +157,7 @@ function createSourceReplacingCompilerHost(
  */
 function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[]): {jsFiles: {[fileName: string]: string}, externs: string}|
-    null {
+    allDiagnostics: ts.Diagnostic[]): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
@@ -180,7 +179,7 @@ function toClosureJS(
   };
 
   // Process each input file with tsickle and save the output.
-  let tsickleOutput: ts.Map<string> = {};
+  const tsickleOutput = new Map<string, string>();
   let tsickleExterns = '';
   for (let fileName of fileNames) {
     let {output, externs, diagnostics} =
@@ -189,7 +188,7 @@ function toClosureJS(
       allDiagnostics.push(...diagnostics);
       return null;
     }
-    tsickleOutput[ts.sys.resolvePath(fileName)] = output;
+    tsickleOutput.set(ts.sys.resolvePath(fileName), output);
     if (externs) {
       tsickleExterns += externs;
     }
@@ -206,19 +205,19 @@ function toClosureJS(
   }
 
   // Emit, creating a map of fileName => generated JS source.
-  let jsFiles: {[fileName: string]: string} = {};
-  function writeFile(fileName: string, data: string): void { jsFiles[fileName] = data; }
+  const jsFiles = new Map<string, string>();
+  function writeFile(fileName: string, data: string): void { jsFiles.set(fileName, data); }
   ({diagnostics} = program.emit(undefined, writeFile));
   if (diagnostics.length > 0) {
     allDiagnostics.push(...diagnostics);
     return null;
   }
 
-  for (let fileName of Object.keys(jsFiles)) {
+  for (let fileName of toArray(jsFiles.keys())) {
     if (path.extname(fileName) !== '.map') {
       let {output} = tsickle.convertCommonJsToGoogModule(
-          fileName, jsFiles[fileName], cliSupport.pathToModuleName);
-      jsFiles[fileName] = output;
+          fileName, jsFiles.get(fileName)!, cliSupport.pathToModuleName);
+      jsFiles.set(fileName, output);
     }
   }
 
@@ -241,9 +240,9 @@ function main(args: string[]): number {
     return 1;
   }
 
-  for (let fileName of Object.keys(closure.jsFiles)) {
+  for (let fileName of toArray(closure.jsFiles.keys())) {
     mkdirp.sync(path.dirname(fileName));
-    fs.writeFileSync(fileName, closure.jsFiles[fileName]);
+    fs.writeFileSync(fileName, closure.jsFiles.get(fileName));
   }
 
   if (settings.externsPath) {

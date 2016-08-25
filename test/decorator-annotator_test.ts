@@ -8,11 +8,12 @@ import * as testSupport from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 
-function sources(sourceText: string): {[fileName: string]: string} {
-  return {
-    [testCaseFileName]: sourceText,
-    'bar.d.ts': 'declare module "bar" { export class BarService {} }'
-  };
+function sources(sourceText: string): Map<string, string> {
+  const sources = new Map<string, string>([
+    [testCaseFileName, sourceText],
+    ['bar.d.ts', 'declare module "bar" { export class BarService {} }']
+  ]);
+  return sources;
 }
 
 function verifyCompiles(sourceText: string) {

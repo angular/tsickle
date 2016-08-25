@@ -5,6 +5,7 @@ import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
+import {toArray} from '../src/util';
 
 /** The TypeScript compiler options used by the test suite. */
 const compilerOptions: ts.CompilerOptions = {
@@ -28,7 +29,7 @@ const {cachedLibPath, cachedLib} = (function() {
 })();
 
 /** Creates a ts.Program from a set of input files. */
-export function createProgram(sources: {[fileName: string]: string}): ts.Program {
+export function createProgram(sources: Map<string, string>): ts.Program {
   let host = ts.createCompilerHost(compilerOptions);
 
   // Fake out host.directoryExists so that it doesn't read through node_modules/@types.
@@ -46,13 +47,14 @@ export function createProgram(sources: {[fileName: string]: string}): ts.Program
                            onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
-    if (sources.hasOwnProperty(fileName)) {
-      return ts.createSourceFile(fileName, sources[fileName], ts.ScriptTarget.Latest, true);
+    let file = sources.get(fileName);
+    if (file) {
+      return ts.createSourceFile(fileName, file, ts.ScriptTarget.Latest, true);
     }
-    throw new Error('unexpected file read of ' + fileName + ' not in ' + Object.keys(sources));
+    throw new Error('unexpected file read of ' + fileName + ' not in ' + toArray(sources.keys()));
   };
 
-  return ts.createProgram(Object.keys(sources), compilerOptions, host);
+  return ts.createProgram(toArray(sources.keys()), compilerOptions, host);
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */

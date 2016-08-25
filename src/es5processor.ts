@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 
 import {getIdentifierText, Rewriter} from './rewriter';
+import {toArray} from './util';
 
 
 /**
@@ -19,13 +20,13 @@ class ES5Processor extends Rewriter {
    * After this step, namespaceImports['foo'] is true.
    * (This is used to rewrite 'foo.default' into just 'foo'.)
    */
-  namespaceImports: {[varName: string]: boolean} = {};
+  namespaceImports = new Set<string>();
 
   /**
    * moduleVariables maps from module names to the variables they're assigned to.
    * Continuing the above example, moduleVariables['goog.bar'] = 'foo'.
    */
-  moduleVariables: {[moduleName: string]: string} = {};
+  moduleVariables = new Map<string, string>();
 
   /** strippedStrict is true once we've stripped a "use strict"; from the input. */
   strippedStrict: boolean = false;
@@ -62,7 +63,7 @@ class ES5Processor extends Rewriter {
     }
     this.writeRange(pos, this.file.getEnd());
 
-    let referencedModules = Object.keys(this.moduleVariables);
+    let referencedModules = toArray(this.moduleVariables.keys());
     // Note: don't sort referencedModules, as the keys are in the same order
     // they occur in the source file.
     let {output} = this.getOutput();
@@ -201,10 +202,11 @@ class ES5Processor extends Rewriter {
     }
 
     if (!varName) {
-      if (this.moduleVariables.hasOwnProperty(modName)) {
+      let mv = this.moduleVariables.get(modName);
+      if (mv) {
         // Caller didn't request a specific variable name and we've already
         // imported the module, so just return the name we already have for this module.
-        return this.moduleVariables[modName];
+        return mv;
       }
 
       // Note: we always introduce a variable for any import, regardless of whether
@@ -212,12 +214,12 @@ class ES5Processor extends Rewriter {
       varName = this.generateFreshVariableName();
     }
 
-    if (isNamespaceImport) this.namespaceImports[varName] = true;
-    if (this.moduleVariables.hasOwnProperty(modName)) {
-      this.emit(`var ${varName} = ${this.moduleVariables[modName]};`);
+    if (isNamespaceImport) this.namespaceImports.add(varName);
+    if (this.moduleVariables.has(modName)) {
+      this.emit(`var ${varName} = ${this.moduleVariables.get(modName)};`);
     } else {
       this.emit(`var ${varName} = goog.require('${modName}');`);
-      this.moduleVariables[modName] = varName;
+      this.moduleVariables.set(modName, varName);
     }
     return varName;
   }
@@ -270,7 +272,7 @@ class ES5Processor extends Rewriter {
         if (getIdentifierText(propAccess.name) !== 'default') break;
         if (propAccess.expression.kind !== ts.SyntaxKind.Identifier) break;
         let lhs = getIdentifierText(propAccess.expression as ts.Identifier);
-        if (!this.namespaceImports.hasOwnProperty(lhs)) break;
+        if (!this.namespaceImports.has(lhs)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
         this.writeRange(node.getFullStart(), node.getStart());

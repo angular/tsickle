@@ -101,7 +101,7 @@ export class TypeTranslator {
    */
   constructor(
       private typeChecker: ts.TypeChecker, private node: ts.Node,
-      private pathBlackList?: {[fileName: string]: boolean}) {}
+      private pathBlackList?: Set<string>) {}
 
   /**
    * Converts a ts.Symbol to a string.
@@ -358,7 +358,7 @@ export class TypeTranslator {
     }
     return symbol.declarations.every(n => {
       const path = n.getSourceFile().fileName;
-      return pathBlackList.hasOwnProperty(path);
+      return pathBlackList.has(path);
     });
   }
 }

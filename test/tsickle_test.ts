@@ -5,6 +5,7 @@ import * as ts from 'typescript';
 
 import {ANNOTATION_SUPPORT_CODE} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
+import {toArray} from '../src/util';
 
 import * as testSupport from './test_support';
 
@@ -65,18 +66,18 @@ describe('golden tests', () => {
     }
     let options: tsickle.Options = {
       // See test_files/jsdoc_types/nevertyped.ts.
-      typeBlackListPaths: {'test_files/jsdoc_types/nevertyped.ts': true},
+      typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts'])
     };
     if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
     }
     it(test.name, () => {
       // Read all the inputs into a map, and create a ts.Program from them.
-      let tsSources: {[fileName: string]: string} = {};
+      let tsSources = new Map<string, string>();
       for (let tsFile of test.tsFiles) {
         let tsPath = path.join(test.path, tsFile);
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
-        tsSources[tsPath] = tsSource;
+        tsSources.set(tsPath, tsSource);
       }
       let program = testSupport.createProgram(tsSources);
       {
@@ -89,18 +90,18 @@ describe('golden tests', () => {
       // Run TypeScript through the decorator annotator and emit goldens if
       // it changed anything.
       let convertDecoratorsMadeChange = false;
-      for (let tsPath of Object.keys(tsSources)) {
+      for (let tsPath of toArray(tsSources.keys())) {
         // Run TypeScript through the decorator annotator and emit goldens if
         // it changed anything.
         let {output, diagnostics} =
             tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
         expect(diagnostics).to.be.empty;
-        if (output !== tsSources[tsPath]) {
+        if (output !== tsSources.get(tsPath)) {
           output += ANNOTATION_SUPPORT_CODE;
           let decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
           expect(decoratedPath).to.not.equal(tsPath);
           compareAgainstGolden(output, decoratedPath);
-          tsSources[tsPath] = output;
+          tsSources.set(tsPath, output);
           convertDecoratorsMadeChange = true;
         }
       }
@@ -112,8 +113,8 @@ describe('golden tests', () => {
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
       // generated externs and tsickle-processed sources.
       let allExterns: string|null = null;
-      let tsickleSources: {[fileName: string]: string} = {};
-      for (let tsPath of Object.keys(tsSources)) {
+      let tsickleSources = new Map<string, string>();
+      for (let tsPath of toArray(tsSources.keys())) {
         let warnings: ts.Diagnostic[] = [];
         options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
         // Run TypeScript through tsickle and compare against goldens.
@@ -137,7 +138,7 @@ describe('golden tests', () => {
         let tsicklePath = tsPath.replace(/.ts(x)?$/, '.tsickle.ts$1');
         expect(tsicklePath).to.not.equal(tsPath);
         compareAgainstGolden(fileOutput, tsicklePath);
-        tsickleSources[tsPath] = output;
+        tsickleSources.set(tsPath, output);
       }
       compareAgainstGolden(allExterns, test.externsPath);
 
