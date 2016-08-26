@@ -1,4 +1,4 @@
-goog.module('test_files.default.default');var module = module || {};if (!module.id) module.id = 'test_files/default/default.js';/**
+goog.module('test_files.default.default');var module = module || {id: 'test_files/default/default.js'};/**
  * @param {number} x
  * @param {string=} y
  * @return {void}
