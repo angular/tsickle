@@ -1,4 +1,4 @@
-goog.module('test_files.interface.interface');var module = module || {};if (!module.id) module.id = 'test_files/interface/interface.js';/** @record */
+goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};/** @record */
 function Point() { }
 /** @type {number} */
 Point.prototype.x;

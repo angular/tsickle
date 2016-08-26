@@ -1,4 +1,4 @@
-goog.module('test_files.jsx.jsx');var module = module || {};if (!module.id) module.id = 'test_files/jsx/jsx.js';let /** @type {JSX.Element} */ simple = React.createElement("div", null);
+goog.module('test_files.jsx.jsx');var module = module || {id: 'test_files/jsx/jsx.js'};let /** @type {JSX.Element} */ simple = React.createElement("div", null);
 let /** @type {string} */ hello = 'hello';
 let /** @type {JSX.Element} */ helloDiv = React.createElement("div", null, 
     hello, 

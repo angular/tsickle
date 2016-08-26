@@ -1,4 +1,4 @@
-goog.module('test_files.functions.untyped.functions');var module = module || {};if (!module.id) module.id = 'test_files/functions.untyped/functions.js';/**
+goog.module('test_files.functions.untyped.functions');var module = module || {id: 'test_files/functions.untyped/functions.js'};/**
  * @param {?} a
  * @return {?}
  */

@@ -6,7 +6,8 @@ import {toArray} from './util';
 
 /**
  * ES5Processor postprocesses TypeScript compilation output JS, to rewrite commonjs require()s into
- * goog.require().
+ * goog.require(). Contrary to it's name it handles converting the modules in both ES5 and ES6
+ * outputs.
  */
 class ES5Processor extends Rewriter {
   /**
@@ -35,8 +36,8 @@ class ES5Processor extends Rewriter {
   unusedIndex: number = 0;
 
   constructor(
-      file: ts.SourceFile,
-      private pathToModuleName: (context: string, fileName: string) => string) {
+      file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
+      private isES5: boolean) {
     super(file);
   }
 
@@ -51,9 +52,12 @@ class ES5Processor extends Rewriter {
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
     // The following pattern ensures closure doesn't throw an error in advanced
     // optimizations mode.
-    this.emit(
-        `var module = module || {};` +
-        `if (!module.id) module.id = '${this.file.fileName}';`);
+    if (this.isES5) {
+      this.emit(`var module = module || {id: '${this.file.fileName}'};`);
+    } else {
+      this.emit(`var module = {id: '${this.file.fileName}'};`);
+    }
+
 
     let pos = 0;
     for (let stmt of this.file.statements) {
@@ -299,8 +303,9 @@ class ES5Processor extends Rewriter {
  *     imports with relative paths like "import * as foo from '../foo';".
  */
 export function processES5(
-    fileName: string, content: string, pathToModuleName: (context: string, fileName: string) =>
-                                           string): {output: string, referencedModules: string[]} {
+    fileName: string, content: string,
+    pathToModuleName: (context: string, fileName: string) => string,
+    isES5 = true): {output: string, referencedModules: string[]} {
   let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new ES5Processor(file, pathToModuleName).process();
+  return new ES5Processor(file, pathToModuleName, isES5).process();
 }

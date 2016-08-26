@@ -1,4 +1,4 @@
-goog.module('test_files.coerce.coerce');var module = module || {};if (!module.id) module.id = 'test_files/coerce/coerce.js';/**
+goog.module('test_files.coerce.coerce');var module = module || {id: 'test_files/coerce/coerce.js'};/**
  * @param {string} arg
  * @return {string}
  */

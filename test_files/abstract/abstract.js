@@ -1,4 +1,4 @@
-goog.module('test_files.abstract.abstract');var module = module || {};if (!module.id) module.id = 'test_files/abstract/abstract.js';class Base {
+goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};class Base {
     /**
      * @abstract
      * @return {void}
