@@ -16,14 +16,12 @@ class DecoratorTest {
   @decorator
 private x: number;
 private y: number;
-/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'y': [{ type: annotationDecorator },],
 };
 
   static _tsickle_typeAnnotationsHelper() {
- /** @nocollapse
- @type {Object<string,Array<DecoratorInvocation>>} */
+ /** @type {Object<string,Array<DecoratorInvocation>>} */
 DecoratorTest.propDecorators;
  /** @type {number} */
 DecoratorTest.prototype.x;

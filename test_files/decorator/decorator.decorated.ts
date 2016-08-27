@@ -9,7 +9,6 @@ class DecoratorTest {
 
   
   private y: number;
-/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'y': [{ type: annotationDecorator },],
 };
