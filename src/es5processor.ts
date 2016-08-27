@@ -6,7 +6,7 @@ import {toArray} from './util';
 
 /**
  * ES5Processor postprocesses TypeScript compilation output JS, to rewrite commonjs require()s into
- * goog.require(). Contrary to it's name it handles converting the modules in both ES5 and ES6
+ * goog.require(). Contrary to its name it handles converting the modules in both ES5 and ES6
  * outputs.
  */
 class ES5Processor extends Rewriter {
