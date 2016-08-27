@@ -75,7 +75,6 @@ let param: any;
 
 class Foo {
   field: string;
-/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 { type: Test2, args: [param, ] },
@@ -109,7 +108,6 @@ let param: any;
 
 
 class Foo {
-/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1, args: [{name: 'percentPipe'}, class ZZZ {}, ] },
 { type: Test2 },
@@ -131,7 +129,6 @@ export class Foo {
 /** @Annotation */ let Test1: Function;
 
 export class Foo {
-/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
@@ -159,8 +156,7 @@ export class Foo {
 export class Foo {
   foo() {
     \n    class Bar {
-    /** @nocollapse */
-static decorators: DecoratorInvocation[] = [
+    static decorators: DecoratorInvocation[] = [
 { type: Test2 },
 ];
 /** @nocollapse */
@@ -168,7 +164,6 @@ static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] 
 ];
 }
   }
-/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
@@ -227,7 +222,6 @@ import {BarService} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
   }
-/** @nocollapse */
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 ];
@@ -340,7 +334,6 @@ class Foo {
 /** @Annotation */ let Test1: Function;
 class Foo {
   \n  bar() {}
-/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'bar': [{ type: Test1, args: ['somename', ] },],
 };
@@ -363,7 +356,6 @@ class ClassWithDecorators {
   b;
 
   \n  set c(value) {}
-/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
 'c': [{ type: PropDecorator, args: ["p3", ] },],
@@ -397,7 +389,6 @@ class Foo {
 class Foo {
   missingSemi = () => {}
    other: number;
-/** @nocollapse */
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'other': [{ type: PropDecorator },],
 };

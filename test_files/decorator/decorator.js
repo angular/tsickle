@@ -12,8 +12,7 @@ function decorator(a, b) { }
 function annotationDecorator(a, b) { }
 class DecoratorTest {
     static _tsickle_typeAnnotationsHelper() {
-        /** @nocollapse
-        @type {Object<string,Array<DecoratorInvocation>>} */
+        /** @type {Object<string,Array<DecoratorInvocation>>} */
         DecoratorTest.propDecorators;
         /** @type {number} */
         DecoratorTest.prototype.x;
@@ -21,7 +20,6 @@ class DecoratorTest {
         DecoratorTest.prototype.y;
     }
 }
-/** @nocollapse */
 DecoratorTest.propDecorators = {
     'y': [{ type: annotationDecorator },],
 };
