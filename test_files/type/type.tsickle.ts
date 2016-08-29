@@ -1,6 +1,6 @@
 Warning at test_files/type/type.ts:13:5: unhandled type literal
-Warning at test_files/type/type.ts:28:1: unhandled type {type flags:0x200 TypeParameter symbol.name:"T"}
-Warning at test_files/type/type.ts:28:1: unhandled type {type flags:0x200 TypeParameter symbol.name:"T"}
+Warning at test_files/type/type.ts:28:1: unhandled type {type flags:0x4000 TypeParameter symbol.name:"T"}
+Warning at test_files/type/type.ts:28:1: unhandled type {type flags:0x4000 TypeParameter symbol.name:"T"}
 ====
 // Ensure we still understand what Array is, even when it has been
 // monkeypatched -- issue #170.
@@ -17,8 +17,8 @@ let /** @type {Object<string,number>} */ typeObject2: {[key:string]: number} = n
 let /** @type {?} */ typeObject3: {a:number, [key:string]: number} = null;
 let /** @type {Object} */ typeObjectEmpty: {} = null;
 
-let /** @type {(string|boolean)} */ typeUnion: string|boolean = false;
-let /** @type {(string|boolean)} */ typeUnion2: (string|boolean) = false;
+let /** @type {(string|boolean)} */ typeUnion: string|boolean = Math.random() > 0.5 ? false : '';
+let /** @type {(string|boolean)} */ typeUnion2: (string|boolean) = Math.random() > 0.5 ? false : '';
 let /** @type {{optional: (boolean|undefined)}} */ typeOptionalField: {optional?: boolean} = {};
 let /** @type {{optional: ((string|boolean)|undefined)}} */ typeOptionalUnion: {optional?: string|boolean} = {};
 

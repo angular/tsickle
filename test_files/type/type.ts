@@ -13,8 +13,8 @@ let typeObject2: {[key:string]: number} = null;
 let typeObject3: {a:number, [key:string]: number} = null;
 let typeObjectEmpty: {} = null;
 
-let typeUnion: string|boolean = false;
-let typeUnion2: (string|boolean) = false;
+let typeUnion: string|boolean = Math.random() > 0.5 ? false : '';
+let typeUnion2: (string|boolean) = Math.random() > 0.5 ? false : '';
 let typeOptionalField: {optional?: boolean} = {};
 let typeOptionalUnion: {optional?: string|boolean} = {};
 

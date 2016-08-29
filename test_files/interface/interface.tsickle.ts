@@ -31,7 +31,7 @@ TrickyInterface.prototype.foo;
 (x: number): __ yuck __
     number;
 */
- /** @type {(string|string)} */
+ /** @type {string} */
 TrickyInterface.prototype.foobar;
 
 

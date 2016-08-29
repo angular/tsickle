@@ -37,8 +37,8 @@ function Destructuring({ a, b }) { }
  */
 function Destructuring2([a, b], [[c]]) { }
 /**
- * @param {?} __0
- * @param {?} __1
+ * @param {!Array<?, ?>} __0
+ * @param {!Array<!Array<?>>} __1
  * @return {void}
  */
 function Destructuring3([a, b], [[c]]) { }

@@ -1,5 +1,7 @@
-Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x2000 Tuple features:ObjectType,StructuredType}
-Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x2000 Tuple features:ObjectType,StructuredType}
+Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
 ====
 
 /**
@@ -44,8 +46,8 @@ function Destructuring({a, b}: {a: number, b: number}) {}
  */
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
 /**
- * @param {?} __0
- * @param {?} __1
+ * @param {!Array<?, ?>} __0
+ * @param {!Array<!Array<?>>} __1
  * @return {void}
  */
 function Destructuring3([a, b], [[c]]) {}

@@ -27,27 +27,18 @@ function isClosureProvidedType(symbol: ts.Symbol): boolean {
 
 export function typeToDebugString(type: ts.Type): string {
   const basicTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.Any,
-    ts.TypeFlags.String,
-    ts.TypeFlags.Number,
-    ts.TypeFlags.Boolean,
-    ts.TypeFlags.Void,
-    ts.TypeFlags.Undefined,
-    ts.TypeFlags.Null,
-    ts.TypeFlags.Enum,
-    ts.TypeFlags.StringLiteral,
-    ts.TypeFlags.TypeParameter,
-    ts.TypeFlags.Class,
-    ts.TypeFlags.Interface,
-    ts.TypeFlags.Reference,
-    ts.TypeFlags.Tuple,
-    ts.TypeFlags.Union,
-    ts.TypeFlags.Intersection,
-    ts.TypeFlags.Anonymous,
-    ts.TypeFlags.Instantiated,
-    ts.TypeFlags.ESSymbol,
-    ts.TypeFlags.ThisType,
-    ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
+    ts.TypeFlags.Any,           ts.TypeFlags.String,
+    ts.TypeFlags.Number,        ts.TypeFlags.Boolean,
+    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,
+    ts.TypeFlags.Null,          ts.TypeFlags.Enum,
+    ts.TypeFlags.StringLiteral, ts.TypeFlags.BooleanLiteral,
+    ts.TypeFlags.NumberLiteral, ts.TypeFlags.EnumLiteral,
+    ts.TypeFlags.TypeParameter, ts.TypeFlags.Class,
+    ts.TypeFlags.Interface,     ts.TypeFlags.Reference,
+    ts.TypeFlags.Tuple,         ts.TypeFlags.Union,
+    ts.TypeFlags.Intersection,  ts.TypeFlags.Anonymous,
+    ts.TypeFlags.Instantiated,  ts.TypeFlags.ESSymbol,
+    ts.TypeFlags.ThisType,      ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
   ];
   let names: string[] = [];
   for (let flag of basicTypes) {
@@ -175,10 +166,15 @@ export class TypeTranslator {
         return 'undefined';
       case ts.TypeFlags.Null:
         return 'null';
+      case ts.TypeFlags.EnumLiteral:
       case ts.TypeFlags.Enum:
         return 'number';
       case ts.TypeFlags.StringLiteral:
         return 'string';
+      case ts.TypeFlags.BooleanLiteral:
+        return 'boolean';
+      case ts.TypeFlags.NumberLiteral:
+        return 'number';
       default:
         // Continue on to more complex tests below.
         break;
@@ -220,17 +216,26 @@ export class TypeTranslator {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
       let referenceType = type as ts.TypeReference;
-      if (referenceType.target === referenceType) {
-        // We get into an infinite loop here if the inner reference is
-        // the same as the outer; this can occur when this function
-        // fails to translate a more specific type before getting to
-        // this point.
-        throw new Error(`reference loop in ${typeToDebugString(referenceType)}`);
+
+      let typeStr = '';
+      let isTuple = (referenceType.flags & ts.TypeFlags.Tuple) > 0;
+      // For unknown reasons, tuple types can be reference types containing a
+      // reference loop. see Destructuring3 in functions.ts.
+      // TODO(rado): handle tuples in their own branch.
+      if (!isTuple) {
+        if (referenceType.target === referenceType) {
+          // We get into an infinite loop here if the inner reference is
+          // the same as the outer; this can occur when this function
+          // fails to translate a more specific type before getting to
+          // this point.
+          throw new Error(
+              `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
+        }
+        typeStr += notNullPrefix + this.translate(referenceType.target);
       }
-      let typeStr = notNullPrefix + this.translate(referenceType.target);
       if (referenceType.typeArguments) {
         let params = referenceType.typeArguments.map(t => this.translate(t, notNull));
-        typeStr += `<${params.join(', ')}>`;
+        typeStr += isTuple ? `Array` : `<${params.join(', ')}>`;
       }
       return typeStr;
     } else if (type.flags & ts.TypeFlags.Anonymous) {
@@ -258,7 +263,12 @@ export class TypeTranslator {
     } else if (type.flags & ts.TypeFlags.Union) {
       let unionType = type as ts.UnionType;
       let parts = unionType.types.map(t => this.translate(t));
-      return `(${parts.join('|')})`;
+      // In union types that include boolean literal and other literals can
+      // end up repeating the same closure type. For example: true | boolean
+      // will be translated to boolean | boolean. Remove duplicates to produce
+      // types that read better.
+      parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
+      return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
     }
     this.warn(`unhandled type ${typeToDebugString(type)}`);
     return '?';
