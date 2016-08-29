@@ -749,18 +749,7 @@ class ExternsWriter extends ClosureRewriter {
         switch (decl.name.kind) {
           case ts.SyntaxKind.Identifier:
             // E.g. "declare namespace foo {"
-            let name: string|undefined;
-            switch (decl.name.kind) {
-              case ts.SyntaxKind.Identifier:
-                name = getIdentifierText(decl.name as ts.Identifier);
-                break;
-              case ts.SyntaxKind.StringLiteral:
-                name = (decl.name as ts.StringLiteral).text;
-                break;
-              default:
-                this.errorUnimplementedKind(decl.name, 'namespace name');
-                break;
-            }
+            let name = getIdentifierText(decl.name as ts.Identifier);
             if (name === undefined) break;
             namespace = namespace.concat(name);
             if (this.isFirstDeclaration(decl)) {

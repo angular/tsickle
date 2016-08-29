@@ -27,17 +27,27 @@ function isClosureProvidedType(symbol: ts.Symbol): boolean {
 
 export function typeToDebugString(type: ts.Type): string {
   const basicTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.Any,           ts.TypeFlags.String,
-    ts.TypeFlags.Number,        ts.TypeFlags.Boolean,
-    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,
-    ts.TypeFlags.Null,          ts.TypeFlags.Enum,
-    ts.TypeFlags.StringLiteral, ts.TypeFlags.TypeParameter,
-    ts.TypeFlags.Class,         ts.TypeFlags.Interface,
-    ts.TypeFlags.Reference,     ts.TypeFlags.Tuple,
-    ts.TypeFlags.Union,         ts.TypeFlags.Intersection,
-    ts.TypeFlags.Anonymous,     ts.TypeFlags.Instantiated,
-    ts.TypeFlags.ObjectLiteral, ts.TypeFlags.ESSymbol,
-    ts.TypeFlags.ThisType,      ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
+    ts.TypeFlags.Any,
+    ts.TypeFlags.String,
+    ts.TypeFlags.Number,
+    ts.TypeFlags.Boolean,
+    ts.TypeFlags.Void,
+    ts.TypeFlags.Undefined,
+    ts.TypeFlags.Null,
+    ts.TypeFlags.Enum,
+    ts.TypeFlags.StringLiteral,
+    ts.TypeFlags.TypeParameter,
+    ts.TypeFlags.Class,
+    ts.TypeFlags.Interface,
+    ts.TypeFlags.Reference,
+    ts.TypeFlags.Tuple,
+    ts.TypeFlags.Union,
+    ts.TypeFlags.Intersection,
+    ts.TypeFlags.Anonymous,
+    ts.TypeFlags.Instantiated,
+    ts.TypeFlags.ESSymbol,
+    ts.TypeFlags.ThisType,
+    ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
   ];
   let names: string[] = [];
   for (let flag of basicTypes) {

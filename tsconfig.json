@@ -10,7 +10,6 @@
     "strictNullChecks": true
   },
   "files": [
-    "node_modules/typescript/lib/lib.es2015.collection.d.ts",
     "src/decorator-annotator.ts",
     "src/es5processor.ts",
     "src/main.ts",

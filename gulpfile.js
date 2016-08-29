@@ -41,8 +41,8 @@ gulp.task('test.check-format', function() {
 
 gulp.task('test.check-lint', function() {
   return gulp.src(['src/**/*.ts', 'test/**/*.ts'])
-      .pipe(tslint())
-      .pipe(tslint.report('verbose'))
+      .pipe(tslint({formatter: 'verbose'}))
+      .pipe(tslint.report())
       .on('warning', onError);
 });
 
