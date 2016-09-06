@@ -188,6 +188,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
 
 /** Serializes a Comment out to a string usable in source code. */
 export function toString(tags: Tag[]): string {
+  if (tags.length === 0) return '';
   let out = '';
   out += '/**\n';
   for (let tag of tags) {

@@ -1,6 +1,4 @@
 class SuperTestBaseNoArg {
-/**
- */
 constructor() {}
 }
 
@@ -36,8 +34,6 @@ SuperTestDerivedParamProps.prototype.y;
 // A ctor with an initialized property.
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
   y: string = 'foo';
-/**
- */
 constructor() {
     super(3);
   }
@@ -51,8 +47,6 @@ SuperTestDerivedInitializedProps.prototype.y;
 
 // A ctor with a super() but none of the above two details.
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
-/**
- */
 constructor() {
     super(3);
   }

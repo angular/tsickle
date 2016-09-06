@@ -317,19 +317,7 @@ class Annotator extends ClosureRewriter {
         return false;
       case ts.SyntaxKind.ClassDeclaration:
         let classNode = <ts.ClassDeclaration>node;
-        if (classNode.members.length > 0) {
-          // We must visit all members individually, to strip out any
-          // /** @export */ annotations that show up in the constructor
-          // and to annotate methods.
-          this.writeRange(classNode.getFullStart(), classNode.members[0].getFullStart());
-          for (let member of classNode.members) {
-            this.visit(member);
-          }
-        } else {
-          this.writeRange(classNode.getFullStart(), classNode.getLastToken().getFullStart());
-        }
-        this.emitTypeAnnotationsHelper(classNode);
-        this.writeNode(classNode.getLastToken());
+        this.visitClassDeclaration(classNode);
         return true;
       case ts.SyntaxKind.PublicKeyword:
       case ts.SyntaxKind.PrivateKeyword:
@@ -529,6 +517,29 @@ class Annotator extends ClosureRewriter {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
       return false;  // Use default processing.
     }
+  }
+
+  private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
+    let jsDoc = this.getJSDoc(classDecl) || [];
+    if ((classDecl.flags & ts.NodeFlags.Abstract) !== 0) {
+      jsDoc.push({tagName: 'abstract'});
+    }
+    this.writeRange(classDecl.getFullStart(), classDecl.getStart());
+    this.emit(jsdoc.toString(jsDoc));
+    if (classDecl.members.length > 0) {
+      // We must visit all members individually, to strip out any
+      // /** @export */ annotations that show up in the constructor
+      // and to annotate methods.
+      this.writeRange(classDecl.getStart(), classDecl.members[0].getFullStart());
+      for (let member of classDecl.members) {
+        this.visit(member);
+      }
+    } else {
+      this.writeRange(classDecl.getStart(), classDecl.getLastToken().getFullStart());
+    }
+    this.emitTypeAnnotationsHelper(classDecl);
+    this.writeNode(classDecl.getLastToken());
+    return true;
   }
 
   private emitInterface(iface: ts.InterfaceDeclaration) {

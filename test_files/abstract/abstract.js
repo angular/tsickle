@@ -1,4 +1,7 @@
-goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};class Base {
+goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};/**
+ * @abstract
+ */
+class Base {
     /**
      * @abstract
      * @return {void}
@@ -37,8 +40,6 @@ goog.module('test_files.abstract.abstract');var module = module || {id: 'test_fi
     }
 }
 class Derived extends Base {
-    /**
-     */
     constructor() {
         super();
     }

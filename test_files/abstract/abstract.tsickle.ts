@@ -1,3 +1,6 @@
+/**
+ * @abstract
+ */
 abstract class Base {
 /**
  * @abstract
@@ -38,8 +41,6 @@ bar() {
 }
 
 class Derived extends Base {
-/**
- */
 constructor() {
     super();
   }
