@@ -15,6 +15,7 @@ export function checkClosureCompile(
     'js': jsFiles,
     'externs': externsFiles,
     'language_in': 'ECMASCRIPT6_STRICT',
+    'language_out': 'ECMASCRIPT5',
   };
 
   let compiler = new closure.compiler(CLOSURE_COMPILER_OPTS);

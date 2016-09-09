@@ -353,6 +353,8 @@ class Annotator extends ClosureRewriter {
         return false;
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.MethodDeclaration:
+      case ts.SyntaxKind.GetAccessor:
+      case ts.SyntaxKind.SetAccessor:
         let fnDecl = <ts.FunctionLikeDeclaration>node;
 
         if (!fnDecl.body) {
