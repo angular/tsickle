@@ -15,7 +15,7 @@
     "mkdirp": "^0.5.1"
   },
   "peerDependencies": {
-    "typescript": "^2.0.0 || ^2.1.0-dev"
+    "typescript": "2.1.0-dev.20160827"
   },
   "devDependencies": {
     "chai": "^2.1.1",
@@ -33,7 +33,7 @@
     "temp": "^0.8.1",
     "tsd": "^0.6.0",
     "tslint": "3.15.0-dev.0",
-    "typescript": "^2.1.0-dev.20160827"
+    "typescript": "2.1.0-dev.20160827"
   },
   "scripts": {
     "prepublish": "npm install tsd@^0.6.0 && tsd reinstall --overwrite && gulp compile",
