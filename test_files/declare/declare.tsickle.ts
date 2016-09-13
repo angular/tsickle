@@ -58,3 +58,12 @@ declare class MultipleConstructors {
 declare interface Object {
   myMethod();
 }
+
+// An overloaded function that is also used as a namespace.
+declare function CodeMirror(x: string): CodeMirror.Editor;
+declare function CodeMirror(y: number, x: string): CodeMirror.Editor;
+declare module CodeMirror {
+  interface Editor {
+    name: string;
+  }
+}
