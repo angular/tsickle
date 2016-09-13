@@ -1,4 +1,4 @@
-Warning at test_files/declare/declare.ts:46:3: multiple constructor signatures in declarations
+Warning at test_files/declare/declare.ts:51:3: multiple constructor signatures in declarations
 ====
 declare namespace DeclareTestModule {
   namespace inner {
@@ -23,6 +23,11 @@ declare namespace DeclareTestModule {
   enum Enumeration {
     Value1 = 2,
     Value3
+  }
+
+  enum StringEnum {
+    'foo',
+    '.tricky.invalid name',
   }
 }
 

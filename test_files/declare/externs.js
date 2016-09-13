@@ -41,6 +41,13 @@ DeclareTestModule.Enumeration = {};
 DeclareTestModule.Enumeration.Value1;
 /** @const {number} */
 DeclareTestModule.Enumeration.Value3;
+
+/** @const */
+DeclareTestModule.StringEnum = {};
+/** @const {number} */
+DeclareTestModule.StringEnum.foo;
+
+/* TODO: StringLiteral: '.tricky.invalid name' */
  /** @type {number} */
 var declareGlobalVar;
 

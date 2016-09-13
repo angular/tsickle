@@ -22,6 +22,11 @@ declare namespace DeclareTestModule {
     Value1 = 2,
     Value3
   }
+
+  enum StringEnum {
+    'foo',
+    '.tricky.invalid name',
+  }
 }
 
 // This module is quoted, so it shouldn't show up in externs.js.

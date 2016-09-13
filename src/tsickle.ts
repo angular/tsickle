@@ -56,6 +56,25 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
+/**
+ * TypeScript allows you to write identifiers quoted, like:
+ *   interface Foo {
+ *     'bar': string;
+ *     'complex name': string;
+ *   }
+ *   Foo.bar;  // ok
+ *   Foo['bar']  // ok
+ *   Foo['complex name']  // ok
+ *
+ * In Closure-land, we want identify that the legal name 'bar' can become an
+ * ordinary field, but we need to skip strings like 'complex name'.
+ */
+function isValidClosurePropertyName(name: string): boolean {
+  // In local experimentation, it appears that reserved words like 'var' and
+  // 'if' are legal JS and still accepted by Closure.
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+}
+
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -934,7 +953,22 @@ class ExternsWriter extends ClosureRewriter {
     this.emit('\n/** @const */\n');
     this.emit(`${namespace.join('.')} = {};\n`);
     for (let member of decl.members) {
-      let memberName = member.name.getText();
+      let memberName: string|undefined;
+      switch (member.name.kind) {
+        case ts.SyntaxKind.Identifier:
+          memberName = getIdentifierText(member.name as ts.Identifier);
+          break;
+        case ts.SyntaxKind.StringLiteral:
+          let text = (member.name as ts.StringLiteral).text;
+          if (isValidClosurePropertyName(text)) memberName = text;
+          break;
+        default:
+          break;
+      }
+      if (!memberName) {
+        this.emit(`\n/* TODO: ${ts.SyntaxKind[member.name.kind]}: ${member.name.getText()} */\n`);
+        continue;
+      }
       let name = namespace.concat([memberName]).join('.');
       this.emit('/** @const {number} */\n');
       this.emit(`${name};\n`);
