@@ -6,13 +6,3 @@ before_script:
   - npm install
 script:
   - npm test
-
-env:
-  global:
-  # Token for tsd to increase github rate limit
-  # See https://github.com/DefinitelyTyped/tsd#tsdrc
-  # This does not use http://docs.travis-ci.com/user/environment-variables/#Secure-Variables
-  # because those are not visible for pull requests, and those should also be reliable.
-  # This SSO token belongs to github account angular-github-ratelimit-token which has no access
-  # (password is in Valentine)
-  - TSD_GITHUB_TOKEN=ef474500309daea53d5991b3079159a29520a40b

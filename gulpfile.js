@@ -12,26 +12,10 @@ var ts = require('gulp-typescript');
 var tslint = require('gulp-tslint');
 var typescript = require('typescript');
 
-var TSC_OPTIONS = {
-  module: 'commonjs',
-  // allow pulling in files from node_modules until TS 1.5 is in tsd / DefinitelyTyped (the
-  // alternative is to include node_modules paths in the src arrays below for compilation)
-  noExternalResolve: false,
-  noImplicitAny: true,
-  declarationFiles: true,
-  noEmitOnError: true,
-  target: 'es5',
-  lib: [
-    'es5',
-    'es2015.collection',
-    'es2015.iterable',
-    'dom',
-  ],
+var tsProject = ts.createProject('tsconfig.json', {
   // Specify the TypeScript version we're using.
   typescript: typescript,
-  strictNullChecks: true,
-};
-var tsProject = ts.createProject(TSC_OPTIONS);
+});
 
 gulp.task('test.check-format', function() {
   return gulp.src(['*.js', 'src/**/*.ts', 'test/**/*.ts'])
@@ -51,7 +35,6 @@ var failOnError = true;
 
 var onError = function(err) {
   hasError = true;
-  gutil.log(err.message);
   if (failOnError) {
     process.exit(1);
   }
@@ -59,10 +42,8 @@ var onError = function(err) {
 
 gulp.task('compile', function() {
   hasError = false;
-  var tsResult = gulp.src(['src/**/*.ts', 'typings/**/*.d.ts'])
-                     .pipe(sourcemaps.init())
-                     .pipe(ts(tsProject))
-                     .on('error', onError);
+  var tsResult =
+      gulp.src(['src/**/*.ts']).pipe(sourcemaps.init()).pipe(ts(tsProject)).on('error', onError);
   return merge([
     tsResult.dts.pipe(gulp.dest('build/definitions')),
     // Write external sourcemap next to the js file
@@ -77,7 +58,7 @@ gulp.task('test.compile', ['compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['test/*.ts', 'typings/**/*.d.ts'], {base: '.'})
+  return gulp.src(['test/*.ts'], {base: '.'})
       .pipe(sourcemaps.init())
       .pipe(ts(tsProject))
       .on('error', onError)

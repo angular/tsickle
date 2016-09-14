@@ -3,5 +3,3 @@
 .idea
 .travis.yml
 build/test
-tsd.json
-typings
