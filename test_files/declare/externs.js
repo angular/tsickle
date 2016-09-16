@@ -51,6 +51,9 @@ DeclareTestModule.StringEnum = {};
 DeclareTestModule.StringEnum.foo;
 
 /* TODO: StringLiteral: '.tricky.invalid name' */
+
+/** @typedef {(string|number)} */
+DeclareTestModule.TypeAlias;
  /** @type {number} */
 var declareGlobalVar;
 
