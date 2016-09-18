@@ -866,6 +866,36 @@ class ExternsWriter extends ClosureRewriter {
       this.writeExternsFunction(name.getText(), paramNames, namespace);
     }
 
+    // Handle method declarations/signatures first, since we need to deal with overloads.
+    // TODO: Build a collection of the remaining members
+    let methods: {[id: string]: ts.MethodDeclaration[];} = {};
+    for (let member of decl.members) {
+      if (member.kind === ts.SyntaxKind.MethodSignature ||
+          member.kind === ts.SyntaxKind.MethodDeclaration) {
+        let m = <ts.MethodDeclaration>member;
+        let overloaded = methods[m.name.getText()];
+        if (overloaded) {
+          methods[m.name.getText()].push(m);
+        } else {
+          methods[m.name.getText()] = [m];
+        }
+      }
+    }
+    for (let methodName in methods) {
+      if (methods.hasOwnProperty(methodName)) {
+        let method: ts.MethodDeclaration[] = methods[methodName];
+        let rootMethod = method[0];
+        if (method.length > 1) {
+          this.debugWarn(method[0], 'overloaded method signatures found');
+        }
+        // TODO: Pass to overload rendering parameter builder
+        this.emitFunctionType(rootMethod);
+        this.emit(
+            `${typeName}.prototype.${rootMethod.name.getText()} = ` +
+            `function(${rootMethod.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+      }
+    }
+
     for (let member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
@@ -881,12 +911,6 @@ class ExternsWriter extends ClosureRewriter {
           break;
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
-          let m = <ts.MethodDeclaration>member;
-          this.emitFunctionType(m);
-          this.emit(
-              `${typeName}.prototype.${m.name.getText()} = ` +
-              `function(${m.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
-          continue;
         case ts.SyntaxKind.Constructor:
           continue;  // Handled above.
         default:
