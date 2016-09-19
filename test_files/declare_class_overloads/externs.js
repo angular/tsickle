@@ -56,22 +56,7 @@ function OverloadSimpleArgs() {}
  * @param {string} a
  * @return {void}
  */
-OverloadSimpleArgs.prototype.o = function(a) {};
-
-/**
- * @param {string} a
- * @param {boolean} b
- * @return {void}
- */
-OverloadSimpleArgs.prototype.o = function(a, b) {};
-
-/**
- * @param {string} a
- * @param {boolean} b
- * @param {number} c
- * @return {void}
- */
-OverloadSimpleArgs.prototype.o = function(a, b, c) {};
+OverloadSimpleArgs.prototype.overloaded = function(a) {};
 /** @constructor @struct */
 function OverloadNameVariants() {}
 
@@ -79,19 +64,7 @@ function OverloadNameVariants() {}
  * @param {string} a
  * @return {void}
  */
-OverloadNameVariants.prototype.o = function(a) {};
-
-/**
- * @param {boolean} b
- * @return {void}
- */
-OverloadNameVariants.prototype.o = function(b) {};
-
-/**
- * @param {number} c
- * @return {void}
- */
-OverloadNameVariants.prototype.o = function(c) {};
+OverloadNameVariants.prototype.overloaded = function(a) {};
 /** @constructor @struct */
 function OverloadReturnTypesNoVoid() {}
 
@@ -100,15 +73,7 @@ function OverloadReturnTypesNoVoid() {}
  * @param {boolean} b
  * @return {boolean}
  */
-OverloadReturnTypesNoVoid.prototype.o = function(a, b) {};
-
-/**
- * @param {string} a
- * @param {boolean} b
- * @param {number} c
- * @return {number}
- */
-OverloadReturnTypesNoVoid.prototype.o = function(a, b, c) {};
+OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b) {};
 /** @constructor @struct */
 function OverloadReturnTypesWithVoid() {}
 
@@ -116,22 +81,7 @@ function OverloadReturnTypesWithVoid() {}
  * @param {string} a
  * @return {void}
  */
-OverloadReturnTypesWithVoid.prototype.o = function(a) {};
-
-/**
- * @param {string} a
- * @param {boolean} b
- * @return {boolean}
- */
-OverloadReturnTypesWithVoid.prototype.o = function(a, b) {};
-
-/**
- * @param {string} a
- * @param {boolean} b
- * @param {number} c
- * @return {number}
- */
-OverloadReturnTypesWithVoid.prototype.o = function(a, b, c) {};
+OverloadReturnTypesWithVoid.prototype.overloaded = function(a) {};
 /** @constructor @struct */
 function OverloadBigMix() {}
 
@@ -139,30 +89,4 @@ function OverloadBigMix() {}
  * @param {string} a
  * @return {void}
  */
-OverloadBigMix.prototype.o = function(a) {};
-
-/**
- * @param {string} a
- * @param {number} b
- * @return {number}
- */
-OverloadBigMix.prototype.o = function(a, b) {};
-
-/**
- * @param {number} c
- * @param {number} b
- * @return {number}
- */
-OverloadBigMix.prototype.o = function(c, b) {};
-
-/**
- * @param {Array<OverloadBigMix>} e
- * @return {boolean}
- */
-OverloadBigMix.prototype.o = function(e) {};
-
-/**
- * @param {...OverloadBigMix} f
- * @return {number}
- */
-OverloadBigMix.prototype.o = function(f) {};
+OverloadBigMix.prototype.overloaded = function(a) {};

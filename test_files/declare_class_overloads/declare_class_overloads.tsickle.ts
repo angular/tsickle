@@ -4,6 +4,11 @@ Warning at test_files/declare_class_overloads/declare_class_overloads.ts:16:3: m
 Warning at test_files/declare_class_overloads/declare_class_overloads.ts:23:3: multiple constructor signatures in declarations
 Warning at test_files/declare_class_overloads/declare_class_overloads.ts:34:3: multiple constructor signatures in declarations
 Warning at test_files/declare_class_overloads/declare_class_overloads.ts:39:3: multiple constructor signatures in declarations
+Warning at test_files/declare_class_overloads/declare_class_overloads.ts:46:3: overloaded method signatures found
+Warning at test_files/declare_class_overloads/declare_class_overloads.ts:53:3: overloaded method signatures found
+Warning at test_files/declare_class_overloads/declare_class_overloads.ts:60:3: overloaded method signatures found
+Warning at test_files/declare_class_overloads/declare_class_overloads.ts:66:3: overloaded method signatures found
+Warning at test_files/declare_class_overloads/declare_class_overloads.ts:73:3: overloaded method signatures found
 ====
 // A class with an overloaded constructor where constructor args are optional.
 declare class MultipleConstructorsOptional {
@@ -50,36 +55,36 @@ declare class MultipleConstructorsVariadicNames {
 
 // Methods with a simple overload pattern. 
 declare class OverloadSimpleArgs {
-  o(a: string): void;
-  o(a: string, b: boolean): void;
-  o(a: string, b: boolean, c: number): void;
+  overloaded(a: string): void;
+  overloaded(a: string, b: boolean): void;
+  overloaded(a: string, b: boolean, c: number): void;
 }
 
 // Methods with name variants at the same ordinal parameter
 declare class OverloadNameVariants {
-  o(a: string): void;
-  o(b: boolean): void;
-  o(c: number): void;
+  overloaded(a: string): void;
+  overloaded(b: boolean): void;
+  overloaded(c: number): void;
 }
 
 // Methods that return diffent types, but never void.
 declare class OverloadReturnTypesNoVoid {
-  o(a: string, b: boolean): boolean;
-  o(a: string, b: boolean, c: number): number;
+  overloaded(a: string, b: boolean): boolean;
+  overloaded(a: string, b: boolean, c: number): number;
 }
 
 // Methods that return diffent types, including void.
 declare class OverloadReturnTypesWithVoid {
-  o(a: string): void;
-  o(a: string, b: boolean): boolean;
-  o(a: string, b: boolean, c: number): number;
+  overloaded(a: string): void;
+  overloaded(a: string, b: boolean): boolean;
+  overloaded(a: string, b: boolean, c: number): number;
 }
 
 // A mix of types and names at the same indicies, and varying param counts (optional params)
 declare class OverloadBigMix {
-  o(a: string): void;
-  o(a: string, b: number): number;
-  o(c: number, b: number): number;
-  o(e: Array<OverloadBigMix>) : boolean;
-  o(...f: OverloadBigMix[]): number;
+  overloaded(a: string): void;
+  overloaded(a: string, b: number): number;
+  overloaded(c: number, b: number): number;
+  overloaded(e: Array<OverloadBigMix>): boolean;
+  overloaded(...f: OverloadBigMix[]): number;
 }
