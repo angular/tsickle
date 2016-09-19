@@ -27,6 +27,8 @@ declare namespace DeclareTestModule {
     'foo',
     '.tricky.invalid name',
   }
+
+  type TypeAlias = string | number;
 }
 
 // This module is quoted, so it shouldn't show up in externs.js.

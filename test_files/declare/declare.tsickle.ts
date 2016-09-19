@@ -1,4 +1,4 @@
-Warning at test_files/declare/declare.ts:51:3: multiple constructor signatures in declarations
+Warning at test_files/declare/declare.ts:53:3: multiple constructor signatures in declarations
 ====
 declare namespace DeclareTestModule {
   namespace inner {
@@ -29,6 +29,8 @@ declare namespace DeclareTestModule {
     'foo',
     '.tricky.invalid name',
   }
+
+  type TypeAlias = string | number;
 }
 
 // This module is quoted, so it shouldn't show up in externs.js.

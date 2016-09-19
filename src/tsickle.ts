@@ -828,11 +828,14 @@ class ExternsWriter extends ClosureRewriter {
         break;
       case ts.SyntaxKind.VariableStatement:
         for (let decl of (<ts.VariableStatement>node).declarationList.declarations) {
-          this.writeExternsVariable(decl, namespace);
+          this.writeExternsVariableDecl(decl, namespace);
         }
         break;
       case ts.SyntaxKind.EnumDeclaration:
         this.writeExternsEnum(node as ts.EnumDeclaration, namespace);
+        break;
+      case ts.SyntaxKind.TypeAliasDeclaration:
+        this.writeExternsTypeAlias(node as ts.TypeAliasDeclaration, namespace);
         break;
       default:
         this.emit(`\n/* TODO: ${ts.SyntaxKind[node.kind]} in ${namespace.join('.')} */\n`);
@@ -926,20 +929,22 @@ class ExternsWriter extends ClosureRewriter {
     }
   }
 
-  private writeExternsVariable(decl: ts.VariableDeclaration, namespace: string[]) {
+  private writeExternsVariableDecl(decl: ts.VariableDeclaration, namespace: string[]) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
-      let identifier = <ts.Identifier>decl.name;
-      let qualifiedName = namespace.concat([getIdentifierText(identifier)]).join('.');
-      if (closureExternsBlacklist.indexOf(qualifiedName) >= 0) return;
+      let name = getIdentifierText(decl.name as ts.Identifier);
+      if (closureExternsBlacklist.indexOf(name) >= 0) return;
       this.emitJSDocType(decl);
-      if (namespace.length > 0) {
-        this.emit(`\n${qualifiedName};\n`);
-      } else {
-        this.emit(`\nvar ${qualifiedName};\n`);
-      }
+      this.emit('\n');
+      this.writeExternsVariable(name, namespace);
     } else {
       this.errorUnimplementedKind(decl.name, 'externs for variable');
     }
+  }
+
+  private writeExternsVariable(name: string, namespace: string[]) {
+    let qualifiedName = namespace.concat([name]).join('.');
+    if (namespace.length === 0) this.emit(`var `);
+    this.emit(`${qualifiedName};\n`);
   }
 
   private writeExternsFunction(name: string, params: string, namespace: string[]) {
@@ -976,6 +981,11 @@ class ExternsWriter extends ClosureRewriter {
       this.emit('/** @const {number} */\n');
       this.emit(`${name};\n`);
     }
+  }
+
+  private writeExternsTypeAlias(decl: ts.TypeAliasDeclaration, namespace: string[]) {
+    this.emit(`\n/** @typedef {${this.typeToClosure(decl)}} */\n`);
+    this.writeExternsVariable(getIdentifierText(decl.name), namespace);
   }
 }
 
