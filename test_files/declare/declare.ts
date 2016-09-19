@@ -22,6 +22,11 @@ declare namespace DeclareTestModule {
     Value1 = 2,
     Value3
   }
+
+  enum StringEnum {
+    'foo',
+    '.tricky.invalid name',
+  }
 }
 
 // This module is quoted, so it shouldn't show up in externs.js.
@@ -44,4 +49,13 @@ declare interface exports {}
 // itself, but we still should declare the method.
 declare interface Object {
   myMethod();
+}
+
+// An overloaded function that is also used as a namespace.
+declare function CodeMirror(x: string): CodeMirror.Editor;
+declare function CodeMirror(y: number, x: string): CodeMirror.Editor;
+declare module CodeMirror {
+  interface Editor {
+    name: string;
+  }
 }

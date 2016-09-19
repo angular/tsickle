@@ -18,6 +18,15 @@
     "typescript": "2.1.0-dev.20160827"
   },
   "devDependencies": {
+    "@types/chai": "^3.4.32",
+    "@types/glob": "^5.0.29",
+    "@types/google-closure-compiler": "0.0.17",
+    "@types/minimatch": "^2.0.28",
+    "@types/minimist": "^1.1.28",
+    "@types/mkdirp": "^0.3.28",
+    "@types/mocha": "^2.2.31",
+    "@types/node": "^6.0.38",
+    "@types/source-map-support": "^0.2.27",
     "chai": "^2.1.1",
     "clang-format": "^1.0.43",
     "glob": "^7.0.0",
@@ -31,12 +40,11 @@
     "gulp-util": "^3.0.4",
     "merge2": "^0.3.1",
     "temp": "^0.8.1",
-    "tsd": "^0.6.0",
     "tslint": "3.15.0-dev.0",
     "typescript": "2.1.0-dev.20160827"
   },
   "scripts": {
-    "prepublish": "npm install tsd@^0.6.0 && tsd reinstall --overwrite && gulp compile",
+    "prepublish": "gulp compile",
     "test": "gulp test"
   },
   "repository": {
