@@ -135,7 +135,7 @@ describe('golden tests', () => {
           }
           fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
         }
-        let tsicklePath = tsPath.replace(/.ts(x)?$/, '.tsickle.ts$1');
+        let tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
         expect(tsicklePath).to.not.equal(tsPath);
         compareAgainstGolden(fileOutput, tsicklePath);
         tsickleSources.set(tsPath, output);

@@ -1,4 +1,4 @@
-Warning at test_files/declare/declare.ts:53:3: multiple constructor signatures in declarations
+Warning at test_files/declare/declare.d.ts:53:3: multiple constructor signatures in declarations
 ====
 declare namespace DeclareTestModule {
   namespace inner {
