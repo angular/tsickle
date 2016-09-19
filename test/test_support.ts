@@ -73,7 +73,7 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
 export class GoldenFileTest {
   // Path to directory containing test files.
   path: string;
-  // Input .ts/.tsx file names.
+  // Input .ts/.tsx/.d.ts file names.
   tsFiles: string[];
 
   constructor(path: string, tsFiles: string[]) {
@@ -88,7 +88,8 @@ export class GoldenFileTest {
   get tsPaths(): string[] { return this.tsFiles.map(f => path.join(this.path, f)); }
 
   get jsPaths(): string[] {
-    return this.tsFiles.map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
+    return this.tsFiles.filter(f => !/\.d\.ts/.test(f))
+        .map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
   }
 
   public static tsPathToJs(tsPath: string): string { return tsPath.replace(/\.tsx?$/, '.js'); }
