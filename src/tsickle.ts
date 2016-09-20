@@ -889,7 +889,7 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Process everything except (MethodSignature|MethodDeclaration|Constructor)
-    let methodMembers: Array<ts.MethodDeclaration> = new Array<ts.MethodDeclaration>();
+    let methods: {[methodName: string]: ts.MethodDeclaration[]} = {};
     for (let member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
@@ -905,7 +905,13 @@ class ExternsWriter extends ClosureRewriter {
           break;
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
-          methodMembers.push(<ts.MethodDeclaration>member);
+          let method = <ts.MethodDeclaration>member;
+          let overloaded = methods[method.name.getText()];
+          if (overloaded) {
+            methods[method.name.getText()].push(method);
+          } else {
+            methods[method.name.getText()] = [method];
+          }
           continue;
         case ts.SyntaxKind.Constructor:
           continue;  // Handled above.
@@ -924,15 +930,6 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
-    let methods: {[methodName: string]: ts.MethodDeclaration[]} = {};
-    for (let member of methodMembers) {
-      let overloaded = methods[member.name.getText()];
-      if (overloaded) {
-        methods[member.name.getText()].push(member);
-      } else {
-        methods[member.name.getText()] = [member];
-      }
-    }
     for (let methodName in methods) {
       if (methods.hasOwnProperty(methodName)) {
         let method: ts.MethodDeclaration[] = methods[methodName];
