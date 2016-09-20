@@ -924,16 +924,13 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
-    let methods: {[id: string]: ts.MethodDeclaration[];} = {};
+    let methods: {[methodName: string]: ts.MethodDeclaration[]} = {};
     for (let member of methodMembers) {
-      if (member.kind === ts.SyntaxKind.MethodSignature ||
-          member.kind === ts.SyntaxKind.MethodDeclaration) {
-        let overloaded = methods[member.name.getText()];
-        if (overloaded) {
-          methods[member.name.getText()].push(member);
-        } else {
-          methods[member.name.getText()] = [member];
-        }
+      let overloaded = methods[member.name.getText()];
+      if (overloaded) {
+        methods[member.name.getText()].push(member);
+      } else {
+        methods[member.name.getText()] = [member];
       }
     }
     for (let methodName in methods) {
