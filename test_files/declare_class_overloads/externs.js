@@ -56,6 +56,7 @@ function OverloadSimpleArgs() {}
  * @param {string} a
  * @return {void}
  */
+/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
 OverloadSimpleArgs.prototype.overloaded = function(a) {};
 /** @constructor @struct */
 function OverloadNameVariants() {}
@@ -64,6 +65,7 @@ function OverloadNameVariants() {}
  * @param {string} a
  * @return {void}
  */
+/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
 OverloadNameVariants.prototype.overloaded = function(a) {};
 /** @constructor @struct */
 function OverloadReturnTypesNoVoid() {}
@@ -73,6 +75,7 @@ function OverloadReturnTypesNoVoid() {}
  * @param {boolean} b
  * @return {boolean}
  */
+/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
 OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b) {};
 /** @constructor @struct */
 function OverloadReturnTypesWithVoid() {}
@@ -81,6 +84,7 @@ function OverloadReturnTypesWithVoid() {}
  * @param {string} a
  * @return {void}
  */
+/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
 OverloadReturnTypesWithVoid.prototype.overloaded = function(a) {};
 /** @constructor @struct */
 function OverloadBigMix() {}
@@ -89,4 +93,5 @@ function OverloadBigMix() {}
  * @param {string} a
  * @return {void}
  */
+/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
 OverloadBigMix.prototype.overloaded = function(a) {};

@@ -871,7 +871,7 @@ class ExternsWriter extends ClosureRewriter {
             (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
           if (ctors.length > 1) {
-            // TODO: unify the multiple constructors as overloads.
+            // TODO: Pass to overload rendering parameter builder
             // For now, we just drop all but the first.
             // See https://github.com/angular/tsickle/issues/180 .
             this.debugWarn(ctors[1], 'multiple constructor signatures in declarations');
@@ -888,36 +888,8 @@ class ExternsWriter extends ClosureRewriter {
       this.writeExternsFunction(name.getText(), paramNames, namespace);
     }
 
-    // Handle method declarations/signatures first, since we need to deal with overloads.
-    // TODO: Build a collection of the remaining members
-    let methods: {[id: string]: ts.MethodDeclaration[];} = {};
-    for (let member of decl.members) {
-      if (member.kind === ts.SyntaxKind.MethodSignature ||
-          member.kind === ts.SyntaxKind.MethodDeclaration) {
-        let m = <ts.MethodDeclaration>member;
-        let overloaded = methods[m.name.getText()];
-        if (overloaded) {
-          methods[m.name.getText()].push(m);
-        } else {
-          methods[m.name.getText()] = [m];
-        }
-      }
-    }
-    for (let methodName in methods) {
-      if (methods.hasOwnProperty(methodName)) {
-        let method: ts.MethodDeclaration[] = methods[methodName];
-        let rootMethod = method[0];
-        if (method.length > 1) {
-          this.debugWarn(method[0], 'overloaded method signatures found');
-        }
-        // TODO: Pass to overload rendering parameter builder
-        this.emitFunctionType(rootMethod);
-        this.emit(
-            `${typeName}.prototype.${rootMethod.name.getText()} = ` +
-            `function(${rootMethod.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
-      }
-    }
-
+    // Process everything except (MethodSignature|MethodDeclaration|Constructor)
+    let methodMembers: Array<ts.MethodDeclaration> = new Array<ts.MethodDeclaration>();
     for (let member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
@@ -933,6 +905,8 @@ class ExternsWriter extends ClosureRewriter {
           break;
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
+          methodMembers.push(<ts.MethodDeclaration>member);
+          continue;
         case ts.SyntaxKind.Constructor:
           continue;  // Handled above.
         default:
@@ -947,6 +921,37 @@ class ExternsWriter extends ClosureRewriter {
         memberName = memberName.concat([member.name.getText()]);
       }
       this.emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]}: ${memberName.join('.')} */\n`);
+    }
+
+    // Handle method declarations/signatures separately, since we need to deal with overloads.
+    let methods: {[id: string]: ts.MethodDeclaration[];} = {};
+    for (let member of methodMembers) {
+      if (member.kind === ts.SyntaxKind.MethodSignature ||
+          member.kind === ts.SyntaxKind.MethodDeclaration) {
+        let overloaded = methods[member.name.getText()];
+        if (overloaded) {
+          methods[member.name.getText()].push(member);
+        } else {
+          methods[member.name.getText()] = [member];
+        }
+      }
+    }
+    for (let methodName in methods) {
+      if (methods.hasOwnProperty(methodName)) {
+        let method: ts.MethodDeclaration[] = methods[methodName];
+        let rootMethod = method[0];
+        this.emitFunctionType(rootMethod);
+        if (method.length > 1) {
+          // TODO: Pass to overload rendering parameter builder
+          // For now, we just drop all but the first.
+          // See https://github.com/angular/tsickle/issues/180 .
+          this.debugWarn(method[0], 'overloaded method signatures found');
+          this.emit(`/* TODO(tsickle:#180): Method overloaded; only adding first signature. */\n`);
+        }
+        this.emit(
+            `${typeName}.prototype.${rootMethod.name.getText()} = ` +
+            `function(${rootMethod.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+      }
     }
   }
 

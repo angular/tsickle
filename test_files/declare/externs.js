@@ -11,14 +11,14 @@ DeclareTestModule.inner = {};
 DeclareTestModule.inner.someBool;
 /** @record @struct */
 DeclareTestModule.Foo = function() {};
+ /** @type {string} */
+DeclareTestModule.Foo.prototype.field;
 
 /**
  * @param {string} a
  * @return {number}
  */
 DeclareTestModule.Foo.prototype.method = function(a) {};
- /** @type {string} */
-DeclareTestModule.Foo.prototype.field;
 
 /**
  * @constructor
