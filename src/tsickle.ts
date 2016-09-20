@@ -75,6 +75,10 @@ function isValidClosurePropertyName(name: string): boolean {
   return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 }
 
+function isDtsFileName(fileName: string): boolean {
+  return /\.d\.ts$/.test(fileName);
+}
+
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -300,7 +304,7 @@ class Annotator extends ClosureRewriter {
    *     emit it as is and visit its children.
    */
   maybeProcess(node: ts.Node): boolean {
-    if (node.flags & ts.NodeFlags.Ambient) {
+    if ((node.flags & ts.NodeFlags.Ambient) || isDtsFileName(this.file.fileName)) {
       this.externsWriter.visit(node);
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
@@ -779,6 +783,12 @@ class ExternsWriter extends ClosureRewriter {
   /** visit is the main entry point.  It generates externs from a ts.Node. */
   public visit(node: ts.Node, namespace: string[] = []) {
     switch (node.kind) {
+      case ts.SyntaxKind.SourceFile:
+        let sourceFile = node as ts.SourceFile;
+        for (let stmt of sourceFile.statements) {
+          this.visit(stmt, namespace);
+        }
+        break;
       case ts.SyntaxKind.ModuleDeclaration:
         let decl = <ts.ModuleDeclaration>node;
         switch (decl.name.kind) {

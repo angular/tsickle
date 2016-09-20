@@ -94,3 +94,7 @@ function CodeMirror(y, x) {}
 CodeMirror.Editor = function() {};
  /** @type {string} */
 CodeMirror.Editor.prototype.name;
+/** @record @struct */
+function BareInterface() {}
+ /** @type {string} */
+BareInterface.prototype.name;
