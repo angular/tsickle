@@ -95,3 +95,10 @@ function OverloadBigMix() {}
  */
 /* TODO(tsickle:#180): Method overloaded; only adding first signature. */
 OverloadBigMix.prototype.overloaded = function(a) {};
+/** @constructor @struct */
+function OverloadValueOf() {}
+
+/**
+ * @return {string}
+ */
+OverloadValueOf.prototype.valueOf = function() {};
