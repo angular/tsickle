@@ -75,6 +75,19 @@ function isValidClosurePropertyName(name: string): boolean {
   return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 }
 
+/**
+ * TypeScript allows parameters named "arguments", but Closure
+ * disallows this, even in externs.
+ */
+function makeLegalExternsParam(name: string): string {
+  switch (name) {
+    case 'arguments':
+      return 'tsickle_arguments';
+    default:
+      return name;
+  }
+}
+
 function isDtsFileName(fileName: string): boolean {
   return /\.d\.ts$/.test(fileName);
 }
@@ -126,7 +139,7 @@ class ClosureRewriter extends Rewriter {
         let newTag: jsdoc.Tag = {
           tagName: 'param',
           optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-          parameterName: unescapeName(paramSym.getName()),
+          parameterName: makeLegalExternsParam(unescapeName(paramSym.getName())),
         };
 
         let destructuring =
@@ -834,7 +847,7 @@ class ExternsWriter extends ClosureRewriter {
         }
         this.emitFunctionType(f);
         const params = f.parameters.map((p) => p.name.getText());
-        this.writeExternsFunction(name.getText(), params.join(', '), namespace);
+        this.writeExternsFunction(name.getText(), params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
         for (let decl of (<ts.VariableStatement>node).declarationList.declarations) {
@@ -878,7 +891,7 @@ class ExternsWriter extends ClosureRewriter {
     if (closureExternsBlacklist.indexOf(typeName) >= 0) return;
 
     if (this.isFirstDeclaration(decl)) {
-      let paramNames = '';
+      let paramNames: string[] = [];
       if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
         let ctors =
             (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
@@ -891,7 +904,7 @@ class ExternsWriter extends ClosureRewriter {
           }
           let ctor = <ts.ConstructorDeclaration>ctors[0];
           this.emitFunctionType(ctor, [{tagName: 'constructor'}, {tagName: 'struct'}]);
-          paramNames = ctor.parameters.map((p) => p.name.getText()).join(', ');
+          paramNames = ctor.parameters.map((p) => p.name.getText());
         } else {
           this.emit('/** @constructor @struct */\n');
         }
@@ -943,6 +956,7 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
+    namespace = namespace.concat([name.getText(), 'prototype']);
     for (const method of Array.from(methods.values())) {
       let rootMethod = method[0];
       this.emitFunctionType(rootMethod);
@@ -953,9 +967,8 @@ class ExternsWriter extends ClosureRewriter {
         this.debugWarn(method[0], 'overloaded method signatures found');
         this.emit(`/* TODO(tsickle:#180): Method overloaded; only adding first signature. */\n`);
       }
-      this.emit(
-          `${typeName}.prototype.${rootMethod.name.getText()} = ` +
-          `function(${rootMethod.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+      this.writeExternsFunction(
+          rootMethod.name.getText(), rootMethod.parameters.map(p => p.name.getText()), namespace);
     }
   }
 
@@ -977,12 +990,13 @@ class ExternsWriter extends ClosureRewriter {
     this.emit(`${qualifiedName};\n`);
   }
 
-  private writeExternsFunction(name: string, params: string, namespace: string[]) {
+  private writeExternsFunction(name: string, params: string[], namespace: string[]) {
+    let paramsStr = params.map(makeLegalExternsParam).join(', ');
     if (namespace.length > 0) {
       name = namespace.concat([name]).join('.');
-      this.emit(`${name} = function(${params}) {};\n`);
+      this.emit(`${name} = function(${paramsStr}) {};\n`);
     } else {
-      this.emit(`function ${name}(${params}) {}\n`);
+      this.emit(`function ${name}(${paramsStr}) {}\n`);
     }
   }
 
