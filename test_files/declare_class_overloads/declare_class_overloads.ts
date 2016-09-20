@@ -1,0 +1,78 @@
+// A class with an overloaded constructor where constructor args are optional.
+declare class MultipleConstructorsOptional {
+  constructor();
+  constructor(a: number);
+}
+
+// A class with an overloaded constructor with different types for the same parameter name.
+declare class MultipleConstructorsTypes { 
+  constructor(a: boolean);
+  constructor(a: number);
+}
+
+// A class with an overloaded constructor with different types and different param names.
+declare class MultipleConstructorsNamesAndTypes { 
+  constructor(a: boolean);
+  constructor(b: number);
+}
+
+// A class with a mixed matrix of name and types.
+declare class MultipleConstructorsComplexMatrix {
+  constructor(a: number, b: number, c: number,
+      normal?: string, color?: boolean, materialIndex?: number);
+  constructor(a: number, b: number, c: number,
+      normal?: string, vertexColors?: boolean[], materialIndex?: number);
+  constructor(a: number, b: number, c: number,
+      vertexNormals?: string[], color?: boolean, materialIndex?: number);
+  constructor(a: number, b: number, c: number,
+      vertexNormals?: string[], vertexColors?: boolean[], materialIndex?: number);
+}
+
+// A class with a variadic and explicit array constructor
+declare class MultipleConstructorsVariadic {
+  constructor(...a: number[]);
+  constructor(a: number[]);
+}
+
+declare class MultipleConstructorsVariadicNames {
+  constructor(points: string[]);
+  constructor(points: number[]);
+  constructor(...points: string[]);
+  constructor(...points: number[]);
+}
+
+// Methods with a simple overload pattern. 
+declare class OverloadSimpleArgs {
+  overloaded(a: string): void;
+  overloaded(a: string, b: boolean): void;
+  overloaded(a: string, b: boolean, c: number): void;
+}
+
+// Methods with name variants at the same ordinal parameter
+declare class OverloadNameVariants {
+  overloaded(a: string): void;
+  overloaded(b: boolean): void;
+  overloaded(c: number): void;
+}
+
+// Methods that return diffent types, but never void.
+declare class OverloadReturnTypesNoVoid {
+  overloaded(a: string, b: boolean): boolean;
+  overloaded(a: string, b: boolean, c: number): number;
+}
+
+// Methods that return diffent types, including void.
+declare class OverloadReturnTypesWithVoid {
+  overloaded(a: string): void;
+  overloaded(a: string, b: boolean): boolean;
+  overloaded(a: string, b: boolean, c: number): number;
+}
+
+// A mix of types and names at the same indicies, and varying param counts (optional params)
+declare class OverloadBigMix {
+  overloaded(a: string): void;
+  overloaded(a: string, b: number): number;
+  overloaded(c: number, b: number): number;
+  overloaded(e: Array<OverloadBigMix>): boolean;
+  overloaded(...f: OverloadBigMix[]): number;
+}

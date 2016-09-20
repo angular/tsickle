@@ -874,7 +874,7 @@ class ExternsWriter extends ClosureRewriter {
             (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
           if (ctors.length > 1) {
-            // TODO: unify the multiple constructors as overloads.
+            // TODO: Pass to overload rendering parameter builder
             // For now, we just drop all but the first.
             // See https://github.com/angular/tsickle/issues/180 .
             this.debugWarn(ctors[1], 'multiple constructor signatures in declarations');
@@ -891,6 +891,8 @@ class ExternsWriter extends ClosureRewriter {
       this.writeExternsFunction(name.getText(), paramNames, namespace);
     }
 
+    // Process everything except (MethodSignature|MethodDeclaration|Constructor)
+    let methods: {[methodName: string]: ts.MethodDeclaration[]} = {};
     for (let member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
@@ -906,11 +908,13 @@ class ExternsWriter extends ClosureRewriter {
           break;
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
-          let m = <ts.MethodDeclaration>member;
-          this.emitFunctionType(m);
-          this.emit(
-              `${typeName}.prototype.${m.name.getText()} = ` +
-              `function(${m.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+          let method = <ts.MethodDeclaration>member;
+          let overloaded = methods[method.name.getText()];
+          if (overloaded) {
+            methods[method.name.getText()].push(method);
+          } else {
+            methods[method.name.getText()] = [method];
+          }
           continue;
         case ts.SyntaxKind.Constructor:
           continue;  // Handled above.
@@ -926,6 +930,25 @@ class ExternsWriter extends ClosureRewriter {
         memberName = memberName.concat([member.name.getText()]);
       }
       this.emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]}: ${memberName.join('.')} */\n`);
+    }
+
+    // Handle method declarations/signatures separately, since we need to deal with overloads.
+    for (let methodName in methods) {
+      if (methods.hasOwnProperty(methodName)) {
+        let method: ts.MethodDeclaration[] = methods[methodName];
+        let rootMethod = method[0];
+        this.emitFunctionType(rootMethod);
+        if (method.length > 1) {
+          // TODO: Pass to overload rendering parameter builder
+          // For now, we just drop all but the first.
+          // See https://github.com/angular/tsickle/issues/180 .
+          this.debugWarn(method[0], 'overloaded method signatures found');
+          this.emit(`/* TODO(tsickle:#180): Method overloaded; only adding first signature. */\n`);
+        }
+        this.emit(
+            `${typeName}.prototype.${rootMethod.name.getText()} = ` +
+            `function(${rootMethod.parameters.map((p) => p.name.getText()).join(', ')}) {};\n`);
+      }
     }
   }
 
