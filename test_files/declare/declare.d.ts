@@ -73,3 +73,6 @@ declare module CodeMirror {
 interface BareInterface {
   name: string;
 }
+
+// Don't use a parameter named "arguments"; it's illegal in Closure.
+declare function usesArguments(arguments: string);

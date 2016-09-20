@@ -98,3 +98,9 @@ CodeMirror.Editor.prototype.name;
 function BareInterface() {}
  /** @type {string} */
 BareInterface.prototype.name;
+
+/**
+ * @param {string} tsickle_arguments
+ * @return {?}
+ */
+function usesArguments(tsickle_arguments) {}
