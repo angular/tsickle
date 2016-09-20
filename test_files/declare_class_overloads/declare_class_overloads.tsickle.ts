@@ -88,3 +88,8 @@ declare class OverloadBigMix {
   overloaded(e: Array<OverloadBigMix>): boolean;
   overloaded(...f: OverloadBigMix[]): number;
 }
+
+// Use a builtin JS name.
+declare class OverloadValueOf {
+  valueOf(): string;
+}
