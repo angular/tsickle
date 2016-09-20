@@ -67,3 +67,9 @@ declare module CodeMirror {
     name: string;
   }
 }
+
+// An interface that is not tagged with "declare", but exists in a
+// d.ts file so it should show up in the externs anyway.
+interface BareInterface {
+  name: string;
+}
