@@ -119,6 +119,7 @@ class ClosureRewriter extends Rewriter {
     let minCount = 9999;
     let maxCount = 0;
     let newDoc = extraTags;
+    let paramNamesToReturn: string[] = [];
     const abstract = {tagName: 'abstract'};
     const isOverloaded = fnDecls.length > 1;
     const isConstructor = fnDecls[0].kind === ts.SyntaxKind.Constructor;
@@ -132,8 +133,8 @@ class ClosureRewriter extends Rewriter {
       }
     }
     let paramData = {
-      names: new Array<string>(maxCount),
-      types: new Array<string>(maxCount),
+      names: new Array<Array<string>>(maxCount),
+      types: new Array<Array<string>>(maxCount),
       returns: ''
     };
 
@@ -201,20 +202,17 @@ class ClosureRewriter extends Rewriter {
             // merge parameter names at this index if required
             if (newTag.parameterName) {
               if (!paramData.names[i]) {
-                paramData.names[i] = newTag.parameterName;
+                paramData.names[i] = [newTag.parameterName];
               } else if (paramData.names[i].indexOf(newTag.parameterName) === -1) {
-                paramData.names[i] += '_or_' + newTag.parameterName;
-              }
-              if (i >= minCount && paramData.names[i].indexOf('opt_') !== 0) {
-                paramData.names[i] = 'opt_' + paramData.names[i];
+                paramData.names[i].push(newTag.parameterName);
               }
             }
             // merget type names at this index if required
             if (newTag.type) {
               if (!paramData.types[i]) {
-                paramData.types[i] = newTag.type;
+                paramData.types[i] = [newTag.type];
               } else if (paramData.types[i].indexOf(newTag.type) === -1) {
-                paramData.types[i] += '|' + newTag.type;
+                paramData.types[i].push(newTag.type);
               }
             }
           }
@@ -222,7 +220,7 @@ class ClosureRewriter extends Rewriter {
       }
       // If this method is not overloaded, we set the list of names to those in the only declaration
       if (!isOverloaded) {
-        paramData.names = fnDecl.parameters.map(p => p.name.getText());
+        paramNamesToReturn = fnDecl.parameters.map(p => p.name.getText());
       }
 
       // Return type.
@@ -257,10 +255,15 @@ class ClosureRewriter extends Rewriter {
     if (isOverloaded) {
       // Build actual JSDoc tags for the merged param names/types and return types
       for (let i = 0; i < maxCount; i++) {
+        paramNamesToReturn.push(paramData.names[i].join('_or_'));
+        if (i >= minCount) {
+          paramNamesToReturn[i] = 'opt_' + paramNamesToReturn[i];
+        }
+        let concatenatedTypes = paramData.types[i].join('|');
         newDoc.push({
           tagName: 'param',
-          parameterName: paramData.names[i],
-          type: paramData.types[i],
+          parameterName: paramNamesToReturn[i],
+          type: concatenatedTypes,
         });
       }
       if (!isConstructor) {
@@ -271,7 +274,7 @@ class ClosureRewriter extends Rewriter {
       }
     }
     this.emit('\n' + jsdoc.toString(newDoc));
-    return paramData.names;
+    return paramNamesToReturn;
   }
 
   /**
@@ -1047,9 +1050,6 @@ class ExternsWriter extends ClosureRewriter {
         parameterNames = this.emitFunctionType(methodVariants);
       } else {
         parameterNames = this.emitFunctionType([firstMethodVariant]);
-        // this.writeExternsFunction(
-        // firstMethodVariant.name.getText(), firstMethodVariant.parameters.map(p =>
-        // p.name.getText()), namespace);
       }
       this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, namespace);
     }

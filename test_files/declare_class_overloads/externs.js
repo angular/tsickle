@@ -47,7 +47,7 @@ function MultipleConstructorsVariadic(a) {}
 /**
  * @constructor
  * @struct
- * @param {Array<string>|Array<number>} points
+ * @param {Array<string>|Array<number>|string|number} points
  */
 function MultipleConstructorsVariadicNames(points) {}
 
@@ -97,7 +97,7 @@ OverloadReturnTypesWithVoid.prototype.overloaded = function(a, opt_b, opt_c) {};
 function OverloadBigMix() {}
 
 /**
- * @param {string|number|Array<OverloadBigMix>} a_or_c_or_e_or_f
+ * @param {string|number|Array<OverloadBigMix>|OverloadBigMix} a_or_c_or_e_or_f
  * @param {number} opt_b
  * @return {void|number|boolean}
  */
