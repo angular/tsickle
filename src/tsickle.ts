@@ -105,89 +105,173 @@ class ClosureRewriter extends Rewriter {
     super(file);
   }
 
-  emitFunctionType(fnDecl: ts.SignatureDeclaration, extraTags: jsdoc.Tag[] = []) {
+  /**
+   * Handles emittng the jsdoc for methods, including overloads.
+   * If overloaded, merges the signatures in the list of SignatureDeclarations into a single jsdoc.
+   * - Total number of parameters will be the maximum count found across all variants.
+   * - Any parameters beyond the minimum count found across all variants; prefix: "opt_"
+   * - Different names at the same parameter index will be joined with "_or_"
+   * - Variable args (...type[] in TypeScript) will be output as "...type",
+   *    except if found at the same index as another argument.
+   */
+  emitFunctionType(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): string[] {
     let typeChecker = this.program.getTypeChecker();
-    let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
-
-    // Construct the JSDoc comment by reading the existing JSDoc, if
-    // any, and merging it with the known types of the function
-    // parameters and return type.
-    let jsDoc = this.getJSDoc(fnDecl) || [];
+    let minCount = 9999;
+    let maxCount = 0;
     let newDoc = extraTags;
+    const abstract = {tagName: 'abstract'};
+    const isOverloaded = fnDecls.length > 1;
+    const isConstructor = fnDecls[0].kind === ts.SyntaxKind.Constructor;
 
-    // Copy all the tags other than @param/@return into the new
-    // comment without any change; @param/@return are handled later.
-    for (let tag of jsDoc) {
-      if (tag.tagName === 'param' || tag.tagName === 'return') continue;
-      newDoc.push(tag);
+    for (let fnDecl of fnDecls) {
+      if (fnDecl.parameters.length < minCount) {
+        minCount = fnDecl.parameters.length;
+      }
+      if (fnDecl.parameters.length > maxCount) {
+        maxCount = fnDecl.parameters.length;
+      }
     }
+    let paramData = {
+      names: new Array<string>(maxCount),
+      types: new Array<string>(maxCount),
+      returns: ''
+    };
 
-    // Abstract
-    if ((fnDecl.flags & ts.NodeFlags.Abstract)) {
-      newDoc.push({tagName: 'abstract'});
-    }
+    for (let fnDecl of fnDecls) {
+      // Construct the JSDoc comment by reading the existing JSDoc, if
+      // any, and merging it with the known types of the function
+      // parameters and return type.
+      let jsDoc = this.getJSDoc(fnDecl) || [];
 
-    // Parameters.
-    if (sig.parameters.length) {
-      // Iterate through both the AST parameter list and the type's parameter
-      // list, as some information is only available in the former.
-      for (let i = 0; i < sig.parameters.length; i++) {
-        let paramNode = fnDecl.parameters[i];
-        let paramSym = sig.parameters[i];
-        let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
+      // Copy all the tags other than @param/@return into the new
+      // comment without any change; @param/@return are handled later.
+      for (let tag of jsDoc) {
+        if (tag.tagName === 'param' || tag.tagName === 'return') continue;
+        newDoc.push(tag);
+      }
 
-        let newTag: jsdoc.Tag = {
-          tagName: 'param',
-          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-          parameterName: makeLegalExternsParam(unescapeName(paramSym.getName())),
-        };
+      // Abstract
+      if ((fnDecl.flags & ts.NodeFlags.Abstract) && (newDoc.indexOf(abstract) === -1)) {
+        newDoc.push(abstract);
+      }
+      // Merge the parameters into a single list of merged names and list of types
+      let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
+      // Parameters.
+      if (sig.parameters.length) {
+        // Iterate through both the AST parameter list and the type's parameter
+        // list, as some information is only available in the former.
+        for (let i = 0, l = sig.parameters.length; i < l; i++) {
+          let paramNode = fnDecl.parameters[i];
+          let paramSym = sig.parameters[i];
+          let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
 
-        let destructuring =
-            (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
-             paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
+          let newTag: jsdoc.Tag = {
+            tagName: 'param',
+            optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
+            parameterName: makeLegalExternsParam(unescapeName(paramSym.getName())),
+          };
 
-        if (paramNode.dotDotDotToken !== undefined) {
-          newTag.restParam = true;
-          // In TypeScript you write "...x: number[]", but in Closure
-          // you don't write the array: "@param {...number} x".  Unwrap
-          // the Array<> wrapper.
-          type = (type as ts.TypeReference).typeArguments[0];
-        }
+          let destructuring =
+              (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
+               paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
 
-        newTag.type = this.typeToClosure(fnDecl, type, destructuring);
+          if (paramNode.dotDotDotToken !== undefined) {
+            newTag.restParam = true;
+            // In TypeScript you write "...x: number[]", but in Closure
+            // you don't write the array: "@param {...number} x".  Unwrap
+            // the Array<> wrapper.
+            type = (type as ts.TypeReference).typeArguments[0];
+          }
 
-        // Search for this parameter in the JSDoc @params.
-        for (let {tagName, parameterName, text} of jsDoc) {
-          if (tagName === 'param' && parameterName === newTag.parameterName) {
-            newTag.text = text;
-            break;
+          newTag.type = this.typeToClosure(fnDecl, type, destructuring);
+
+          if (!isOverloaded) {
+            // Search for this parameter in the JSDoc @params.
+            // TODO: Consider adding text from existing JSDoc into overloads
+            for (let {tagName, parameterName, text} of jsDoc) {
+              if (tagName === 'param' && parameterName === newTag.parameterName) {
+                newTag.text = text;
+                break;
+              }
+            }
+            // push to the newDoc for rendering the single function
+            newDoc.push(newTag);
+          } else {
+            // either add an entry at this index, or update the existing name and/or type as needed
+            // merge parameter names at this index if required
+            if (newTag.parameterName) {
+              if (!paramData.names[i]) {
+                paramData.names[i] = newTag.parameterName;
+              } else if (paramData.names[i].indexOf(newTag.parameterName) === -1) {
+                paramData.names[i] += '_or_' + newTag.parameterName;
+              }
+              if (i >= minCount && paramData.names[i].indexOf('opt_') !== 0) {
+                paramData.names[i] = 'opt_' + paramData.names[i];
+              }
+            }
+            // merget type names at this index if required
+            if (newTag.type) {
+              if (!paramData.types[i]) {
+                paramData.types[i] = newTag.type;
+              } else if (paramData.types[i].indexOf(newTag.type) === -1) {
+                paramData.types[i] += '|' + newTag.type;
+              }
+            }
           }
         }
-        newDoc.push(newTag);
       }
-    }
+      // If this method is not overloaded, we set the list of names to those in the only declaration
+      if (!isOverloaded) {
+        paramData.names = fnDecl.parameters.map(p => p.name.getText());
+      }
 
-    // Return type.
-    if (fnDecl.kind !== ts.SyntaxKind.Constructor) {
-      let retType = typeChecker.getReturnTypeOfSignature(sig);
-      let returnDoc: string|undefined;
-      for (let {tagName, text} of jsDoc) {
-        if (tagName === 'return') {
-          returnDoc = text;
-          break;
+      // Return type.
+      if (!isConstructor) {
+        let retType = typeChecker.getReturnTypeOfSignature(sig);
+        let retTypeString: string = this.typeToClosure(fnDecl, retType);
+        if (!isOverloaded) {
+          // TODO: Consider adding text from existing JSDoc into overloads
+          let returnDoc: string|undefined;
+          for (let {tagName, text} of jsDoc) {
+            if (tagName === 'return') {
+              returnDoc = text;
+              break;
+            }
+          }
+          newDoc.push({
+            tagName: 'return',
+            type: retTypeString,
+            text: returnDoc,
+          });
+        } else {
+          if (retTypeString) {
+            if (!paramData.returns) {
+              paramData.returns = retTypeString;
+            } else if (paramData.returns.indexOf(retTypeString) === -1) {
+              paramData.returns += '|' + retTypeString;
+            }
+          }
         }
       }
-      newDoc.push({
-        tagName: 'return',
-        type: this.typeToClosure(fnDecl, retType),
-        text: returnDoc,
-      });
     }
-
-    // The first \n makes the output sometimes uglier than necessary,
-    // but it's needed to work around
-    // https://github.com/Microsoft/TypeScript/issues/6982
+    if (isOverloaded) {
+      // Build actual JSDoc tags for the merged param names/types and return types
+      for (let i = 0; i < maxCount; i++) {
+        newDoc.push({
+          tagName: 'param',
+          parameterName: paramData.names[i],
+          type: paramData.types[i],
+        });
+      }
+      if (!isConstructor) {
+        newDoc.push({
+          tagName: 'return',
+          type: paramData.returns,
+        });
+      }
+    }
     this.emit('\n' + jsdoc.toString(newDoc));
+    return paramData.names;
   }
 
   /**
@@ -372,7 +456,7 @@ class Annotator extends ClosureRewriter {
         return true;
       case ts.SyntaxKind.Constructor:
         let ctor = <ts.ConstructorDeclaration>node;
-        this.emitFunctionType(ctor);
+        this.emitFunctionType([ctor]);
         // Write the "constructor(...) {" bit, but iterate through any
         // parameters if given so that we can examine them more closely.
         let offset = ctor.getStart();
@@ -398,7 +482,7 @@ class Annotator extends ClosureRewriter {
 
         if (!fnDecl.body) {
           if ((fnDecl.flags & ts.NodeFlags.Abstract) !== 0) {
-            this.emitFunctionType(fnDecl);
+            this.emitFunctionType([fnDecl]);
             // Abstract functions look like
             //   abstract foo();
             // Emit the function as normal, except:
@@ -422,7 +506,7 @@ class Annotator extends ClosureRewriter {
           return false;
         }
 
-        this.emitFunctionType(fnDecl);
+        this.emitFunctionType([fnDecl]);
         this.writeRange(fnDecl.getStart(), fnDecl.body.getFullStart());
         this.visit(fnDecl.body);
         return true;
@@ -845,7 +929,7 @@ class ExternsWriter extends ClosureRewriter {
           this.error(f, 'anonymous function in externs');
           break;
         }
-        this.emitFunctionType(f);
+        this.emitFunctionType([f]);
         const params = f.parameters.map((p) => p.name.getText());
         this.writeExternsFunction(name.getText(), params, namespace);
         break;
@@ -896,20 +980,19 @@ class ExternsWriter extends ClosureRewriter {
         let ctors =
             (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
+          let firstCtor: ts.ConstructorDeclaration = <ts.ConstructorDeclaration>ctors[0];
           if (ctors.length > 1) {
-            // TODO: Pass to overload rendering parameter builder
-            // For now, we just drop all but the first.
-            // See https://github.com/angular/tsickle/issues/180 .
-            this.debugWarn(ctors[1], 'multiple constructor signatures in declarations');
+            paramNames = this.emitFunctionType(
+                ctors as ts.ConstructorDeclaration[],
+                [{tagName: 'constructor'}, {tagName: 'struct'}]);
+          } else {
+            paramNames = this.emitFunctionType([firstCtor]);
           }
-          let ctor = <ts.ConstructorDeclaration>ctors[0];
-          this.emitFunctionType(ctor, [{tagName: 'constructor'}, {tagName: 'struct'}]);
-          paramNames = ctor.parameters.map((p) => p.name.getText());
         } else {
-          this.emit('/** @constructor @struct */\n');
+          this.emit('\n/** @constructor @struct */\n');
         }
       } else {
-        this.emit('/** @record @struct */\n');
+        this.emit('\n/** @record @struct */\n');
       }
       this.writeExternsFunction(name.getText(), paramNames, namespace);
     }
@@ -957,18 +1040,18 @@ class ExternsWriter extends ClosureRewriter {
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
     namespace = namespace.concat([name.getText(), 'prototype']);
-    for (const method of Array.from(methods.values())) {
-      let rootMethod = method[0];
-      this.emitFunctionType(rootMethod);
-      if (method.length > 1) {
-        // TODO: Pass to overload rendering parameter builder
-        // For now, we just drop all but the first.
-        // See https://github.com/angular/tsickle/issues/180 .
-        this.debugWarn(method[0], 'overloaded method signatures found');
-        this.emit(`/* TODO(tsickle:#180): Method overloaded; only adding first signature. */\n`);
+    for (const methodVariants of Array.from(methods.values())) {
+      let firstMethodVariant = methodVariants[0];
+      let parameterNames: string[];
+      if (methodVariants.length > 1) {
+        parameterNames = this.emitFunctionType(methodVariants);
+      } else {
+        parameterNames = this.emitFunctionType([firstMethodVariant]);
+        // this.writeExternsFunction(
+        // firstMethodVariant.name.getText(), firstMethodVariant.parameters.map(p =>
+        // p.name.getText()), namespace);
       }
-      this.writeExternsFunction(
-          rootMethod.name.getText(), rootMethod.parameters.map(p => p.name.getText()), namespace);
+      this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, namespace);
     }
   }
 
