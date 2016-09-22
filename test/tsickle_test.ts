@@ -116,7 +116,9 @@ describe('golden tests', () => {
       let tsickleSources = new Map<string, string>();
       for (let tsPath of toArray(tsSources.keys())) {
         let warnings: ts.Diagnostic[] = [];
-        options.logWarning = (diag: ts.Diagnostic) => { warnings.push(diag); };
+        options.logWarning = (diag: ts.Diagnostic) => {
+          warnings.push(diag);
+        };
         // Run TypeScript through tsickle and compare against goldens.
         let {output, externs, diagnostics} =
             tsickle.annotate(program, program.getSourceFile(tsPath), options);

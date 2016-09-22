@@ -81,18 +81,26 @@ export class GoldenFileTest {
     this.tsFiles = tsFiles;
   }
 
-  get name(): string { return path.basename(this.path); }
+  get name(): string {
+    return path.basename(this.path);
+  }
 
-  get externsPath(): string { return path.join(this.path, 'externs.js'); }
+  get externsPath(): string {
+    return path.join(this.path, 'externs.js');
+  }
 
-  get tsPaths(): string[] { return this.tsFiles.map(f => path.join(this.path, f)); }
+  get tsPaths(): string[] {
+    return this.tsFiles.map(f => path.join(this.path, f));
+  }
 
   get jsPaths(): string[] {
     return this.tsFiles.filter(f => !/\.d\.ts/.test(f))
         .map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
   }
 
-  public static tsPathToJs(tsPath: string): string { return tsPath.replace(/\.tsx?$/, '.js'); }
+  public static tsPathToJs(tsPath: string): string {
+    return tsPath.replace(/\.tsx?$/, '.js');
+  }
 }
 
 export function goldenTests(): GoldenFileTest[] {

@@ -174,7 +174,9 @@ function toClosureJS(
   const tsickleOptions: tsickle.Options = {
     untyped: settings.isUntyped,
     logWarning: settings.verbose ?
-        (warning: ts.Diagnostic) => { console.error(tsickle.formatDiagnostics([warning])); } :
+        (warning: ts.Diagnostic) => {
+          console.error(tsickle.formatDiagnostics([warning]));
+        } :
         undefined,
   };
 
@@ -206,7 +208,9 @@ function toClosureJS(
 
   // Emit, creating a map of fileName => generated JS source.
   const jsFiles = new Map<string, string>();
-  function writeFile(fileName: string, data: string): void { jsFiles.set(fileName, data); }
+  function writeFile(fileName: string, data: string): void {
+    jsFiles.set(fileName, data);
+  }
   ({diagnostics} = program.emit(undefined, writeFile));
   if (diagnostics.length > 0) {
     allDiagnostics.push(...diagnostics);

@@ -47,7 +47,9 @@ describe(
       });
 
       describe('class decorator rewriter', () => {
-        it('leaves plain classes alone', () => { expectUnchanged(`class Foo {}`); });
+        it('leaves plain classes alone', () => {
+          expectUnchanged(`class Foo {}`);
+        });
 
         it('leaves un-marked decorators alone', () => {
           expectUnchanged(`
