@@ -158,7 +158,7 @@ class ClosureRewriter extends Rewriter {
       // Parameters.
       // Iterate through both the AST parameter list and the type's parameter
       // list, as some information is only available in the former.
-      for (let i = 0, l = sig.parameters.length; i < l; i++) {
+      for (let i = 0; i < sig.parameters.length; i++) {
         let paramNode = fnDecl.parameters[i];
         let paramSym = sig.parameters[i];
         let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
