@@ -289,7 +289,9 @@ class ES5Processor extends Rewriter {
   }
 
   /** Generates a new variable name inside the tsickle_ namespace. */
-  generateFreshVariableName(): string { return `tsickle_module_${this.unusedIndex++}_`; }
+  generateFreshVariableName(): string {
+    return `tsickle_module_${this.unusedIndex++}_`;
+  }
 }
 
 /**

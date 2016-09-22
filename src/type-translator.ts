@@ -115,7 +115,9 @@ export class TypeTranslator {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
     let writeText = (text: string) => str += text;
-    let doNothing = () => { return; };
+    let doNothing = () => {
+      return;
+    };
 
     let builder = this.typeChecker.getSymbolDisplayBuilder();
     let writer: ts.SymbolWriter = {

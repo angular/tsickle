@@ -22,7 +22,9 @@ class ClassRewriter extends Rewriter {
   /** Per-method decorators. */
   propDecorators: Map<string, ts.Decorator[]>;
 
-  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) { super(sourceFile); }
+  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) {
+    super(sourceFile);
+  }
 
   /**
    * Determines whether the given decorator should be re-written as an annotation.
@@ -260,7 +262,9 @@ class ClassRewriter extends Rewriter {
 }
 
 class DecoratorRewriter extends Rewriter {
-  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) { super(sourceFile); }
+  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) {
+    super(sourceFile);
+  }
 
   process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.visit(this.file);

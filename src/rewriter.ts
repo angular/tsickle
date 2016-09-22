@@ -42,7 +42,9 @@ export abstract class Rewriter {
    * @return True if the node has been handled and doesn't need to be traversed;
    *    false to have the node written and its children recursively visited.
    */
-  protected maybeProcess(node: ts.Node): boolean { return false; }
+  protected maybeProcess(node: ts.Node): boolean {
+    return false;
+  }
 
   /** writeNode writes a ts.Node, calling this.visit() on its children. */
   writeNode(node: ts.Node, skipComments = false) {
@@ -78,7 +80,9 @@ export abstract class Rewriter {
     if (text) this.emit(text);
   }
 
-  emit(str: string) { this.output.push(str); }
+  emit(str: string) {
+    this.output.push(str);
+  }
 
   /** Removes comment metacharacters from a string, to make it safe to embed in a comment. */
   escapeForComment(str: string): string {
