@@ -147,7 +147,8 @@ class ClosureRewriter extends Rewriter {
       // Copy all the tags other than @param/@return into the new
       // comment without any change; @param/@return are handled later.
       for (let tag of jsDoc) {
-        if (tag.tagName === 'param' || tag.tagName === 'return') continue;
+        if (tag.tagName === 'param' || tag.tagName === 'return' ||
+            newDoc.indexOf(tag) !== -1) continue;
         newDoc.push(tag);
       }
 
