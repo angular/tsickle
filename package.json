@@ -28,7 +28,7 @@
     "@types/node": "^6.0.38",
     "@types/source-map-support": "^0.2.27",
     "chai": "^2.1.1",
-    "clang-format": "^1.0.43",
+    "clang-format": "^1.0.45",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20160315.2.0",
     "gulp": "^3.8.11",
