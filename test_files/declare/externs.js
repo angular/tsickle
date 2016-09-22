@@ -22,6 +22,8 @@ DeclareTestModule.Foo.prototype.field;
 DeclareTestModule.Foo.prototype.method = function(a) {};
 
 /**
+ * @constructor
+ * @struct
  * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};

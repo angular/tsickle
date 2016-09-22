@@ -113,28 +113,24 @@ class ClosureRewriter extends Rewriter {
    * - Different names at the same parameter index will be joined with "_or_"
    * - Variable args (...type[] in TypeScript) will be output as "...type",
    *    except if found at the same index as another argument.
+   * @param {Array<ts.SignatureDeclaration>} fnDecls Pass > 1 declaration for overloads of same name
+   * @param {Array<jsdoc.Tag>} extraTags 
+   * @return {Array<string>} The list of parameter names that should be used to emit the actual
+   *    function statement; for overloads, name will have been merged.
    */
   emitFunctionType(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): string[] {
     let typeChecker = this.program.getTypeChecker();
-    let minCount = 9999;
-    let maxCount = 0;
     let newDoc = extraTags;
     let paramNamesToReturn: string[] = [];
     const abstract = {tagName: 'abstract'};
+    let lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
+    const minCount = Math.min(...lens);
+    const maxCount = Math.max(...lens);
     const isOverloaded = fnDecls.length > 1;
     const isConstructor = fnDecls[0].kind === ts.SyntaxKind.Constructor;
-
-    for (let fnDecl of fnDecls) {
-      if (fnDecl.parameters.length < minCount) {
-        minCount = fnDecl.parameters.length;
-      }
-      if (fnDecl.parameters.length > maxCount) {
-        maxCount = fnDecl.parameters.length;
-      }
-    }
     let paramData = {
-      names: new Array<Array<string>>(maxCount),
-      types: new Array<Array<string>>(maxCount),
+      names: new Array<Set<string>>(maxCount),
+      types: new Array<Set<string>>(maxCount),
       returns: ''
     };
 
@@ -146,9 +142,11 @@ class ClosureRewriter extends Rewriter {
 
       // Copy all the tags other than @param/@return into the new
       // comment without any change; @param/@return are handled later.
+      // TODO: handle for overloads. indexOf on the array doesn't match instances of the Tag type,
+      // so another matching strategy is needed to avoid dupes. Also, there may be problems if
+      // an annotation doesn't apply to all overloads.
       for (let tag of jsDoc) {
-        if (tag.tagName === 'param' || tag.tagName === 'return' ||
-            newDoc.indexOf(tag) !== -1) continue;
+        if (tag.tagName === 'param' || tag.tagName === 'return' || isOverloaded) continue;
         newDoc.push(tag);
       }
 
@@ -159,63 +157,58 @@ class ClosureRewriter extends Rewriter {
       // Merge the parameters into a single list of merged names and list of types
       let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
       // Parameters.
-      if (sig.parameters.length) {
-        // Iterate through both the AST parameter list and the type's parameter
-        // list, as some information is only available in the former.
-        for (let i = 0, l = sig.parameters.length; i < l; i++) {
-          let paramNode = fnDecl.parameters[i];
-          let paramSym = sig.parameters[i];
-          let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
+      // Iterate through both the AST parameter list and the type's parameter
+      // list, as some information is only available in the former.
+      for (let i = 0, l = sig.parameters.length; i < l; i++) {
+        let paramNode = fnDecl.parameters[i];
+        let paramSym = sig.parameters[i];
+        let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
 
-          let newTag: jsdoc.Tag = {
-            tagName: 'param',
-            optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-            parameterName: makeLegalExternsParam(unescapeName(paramSym.getName())),
-          };
+        let newTag: jsdoc.Tag = {
+          tagName: 'param',
+          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
+          parameterName: makeLegalExternsParam(unescapeName(paramSym.getName())),
+        };
 
-          let destructuring =
-              (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
-               paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
+        let destructuring =
+            (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
+             paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
 
-          if (paramNode.dotDotDotToken !== undefined) {
-            newTag.restParam = true;
-            // In TypeScript you write "...x: number[]", but in Closure
-            // you don't write the array: "@param {...number} x".  Unwrap
-            // the Array<> wrapper.
-            type = (type as ts.TypeReference).typeArguments[0];
+        if (paramNode.dotDotDotToken !== undefined) {
+          newTag.restParam = true;
+          // In TypeScript you write "...x: number[]", but in Closure
+          // you don't write the array: "@param {...number} x".  Unwrap
+          // the Array<> wrapper.
+          type = (type as ts.TypeReference).typeArguments[0];
+        }
+
+        newTag.type = this.typeToClosure(fnDecl, type, destructuring);
+
+        if (!isOverloaded) {
+          // Search for this parameter in the JSDoc @params.
+          // TODO: Consider adding text from existing JSDoc into overloads
+          for (let {tagName, parameterName, text} of jsDoc) {
+            if (tagName === 'param' && parameterName === newTag.parameterName) {
+              newTag.text = text;
+              break;
+            }
           }
-
-          newTag.type = this.typeToClosure(fnDecl, type, destructuring);
-
-          if (!isOverloaded) {
-            // Search for this parameter in the JSDoc @params.
-            // TODO: Consider adding text from existing JSDoc into overloads
-            for (let {tagName, parameterName, text} of jsDoc) {
-              if (tagName === 'param' && parameterName === newTag.parameterName) {
-                newTag.text = text;
-                break;
-              }
+          // push to the newDoc for rendering the single function
+          newDoc.push(newTag);
+        } else {
+          // build set of param names at this index
+          if (newTag.parameterName) {
+            if (!paramData.names[i]) {
+              paramData.names[i] = new Set<string>();
             }
-            // push to the newDoc for rendering the single function
-            newDoc.push(newTag);
-          } else {
-            // either add an entry at this index, or update the existing name and/or type as needed
-            // merge parameter names at this index if required
-            if (newTag.parameterName) {
-              if (!paramData.names[i]) {
-                paramData.names[i] = [newTag.parameterName];
-              } else if (paramData.names[i].indexOf(newTag.parameterName) === -1) {
-                paramData.names[i].push(newTag.parameterName);
-              }
+            paramData.names[i].add(newTag.parameterName);
+          }
+          // build set of type names at this index
+          if (newTag.type) {
+            if (!paramData.types[i]) {
+              paramData.types[i] = new Set<string>();
             }
-            // merget type names at this index if required
-            if (newTag.type) {
-              if (!paramData.types[i]) {
-                paramData.types[i] = [newTag.type];
-              } else if (paramData.types[i].indexOf(newTag.type) === -1) {
-                paramData.types[i].push(newTag.type);
-              }
-            }
+            paramData.types[i].add(newTag.type);
           }
         }
       }
@@ -256,11 +249,11 @@ class ClosureRewriter extends Rewriter {
     if (isOverloaded) {
       // Build actual JSDoc tags for the merged param names/types and return types
       for (let i = 0; i < maxCount; i++) {
-        paramNamesToReturn.push(paramData.names[i].join('_or_'));
+        paramNamesToReturn.push(Array.from(paramData.names[i].values()).join('_or_'));
         if (i >= minCount) {
           paramNamesToReturn[i] = 'opt_' + paramNamesToReturn[i];
         }
-        let concatenatedTypes = paramData.types[i].join('|');
+        let concatenatedTypes = Array.from(paramData.types[i].values()).join('|');
         newDoc.push({
           tagName: 'param',
           parameterName: paramNamesToReturn[i],
@@ -985,12 +978,11 @@ class ExternsWriter extends ClosureRewriter {
             (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
           let firstCtor: ts.ConstructorDeclaration = <ts.ConstructorDeclaration>ctors[0];
+          const ctorTags = [{tagName: 'constructor'}, {tagName: 'struct'}];
           if (ctors.length > 1) {
-            paramNames = this.emitFunctionType(
-                ctors as ts.ConstructorDeclaration[],
-                [{tagName: 'constructor'}, {tagName: 'struct'}]);
+            paramNames = this.emitFunctionType(ctors as ts.ConstructorDeclaration[], ctorTags);
           } else {
-            paramNames = this.emitFunctionType([firstCtor]);
+            paramNames = this.emitFunctionType([firstCtor], ctorTags);
           }
         } else {
           this.emit('\n/** @constructor @struct */\n');
