@@ -113,9 +113,8 @@ class ClosureRewriter extends Rewriter {
    * - Different names at the same parameter index will be joined with "_or_"
    * - Variable args (...type[] in TypeScript) will be output as "...type",
    *    except if found at the same index as another argument.
-   * @param {Array<ts.SignatureDeclaration>} fnDecls Pass > 1 declaration for overloads of same name
-   * @param {Array<jsdoc.Tag>} extraTags 
-   * @return {Array<string>} The list of parameter names that should be used to emit the actual
+   * @param  fnDecls Pass > 1 declaration for overloads of same name
+   * @return The list of parameter names that should be used to emit the actual
    *    function statement; for overloads, name will have been merged.
    */
   emitFunctionType(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): string[] {
@@ -123,7 +122,7 @@ class ClosureRewriter extends Rewriter {
     let newDoc = extraTags;
     let paramNamesToReturn: string[] = [];
     const abstract = {tagName: 'abstract'};
-    let lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
+    const lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
     const minCount = Math.min(...lens);
     const maxCount = Math.max(...lens);
     const isOverloaded = fnDecls.length > 1;
