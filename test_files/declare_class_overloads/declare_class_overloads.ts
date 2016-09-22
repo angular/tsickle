@@ -44,9 +44,10 @@ declare class MultipleConstructorsVariadicNames {
 // Methods with a simple overload pattern. 
 declare class OverloadSimpleArgs {
   overloaded(a: string): void;
-  overloaded(a: string, b: boolean): void;
+  overloaded(a: number, b: boolean): void;
   overloaded(a: string, b: boolean, c: number): void;
 }
+
 
 // Methods with name variants at the same ordinal parameter
 declare class OverloadNameVariants {
@@ -80,4 +81,11 @@ declare class OverloadBigMix {
 // Use a builtin JS name.
 declare class OverloadValueOf {
   valueOf(): string;
+}
+
+declare class Merged {
+  overloaded(
+      a_or_c_or_e_or_f: string|number|Array<OverloadBigMix>|OverloadBigMix[],
+      opt_b: number) : void|number|boolean;
+  variadic(...test: number[]): void;
 }

@@ -9,6 +9,7 @@ var DeclareTestModule = {};
 DeclareTestModule.inner = {};
  /** @type {boolean} */
 DeclareTestModule.inner.someBool;
+
 /** @record @struct */
 DeclareTestModule.Foo = function() {};
  /** @type {string} */
@@ -33,6 +34,7 @@ DeclareTestModule.Clazz = function(a) {};
  * @return {number}
  */
 DeclareTestModule.Clazz.prototype.method = function(a) {};
+
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};
 
@@ -62,6 +64,7 @@ var declareGlobalVar;
  * @return {number}
  */
 function declareGlobalFunction(x) {}
+
 /** @record @struct */
 function DeclareTestInterface() {}
  /** @type {string} */
@@ -70,8 +73,9 @@ DeclareTestInterface.prototype.foo;
 /**
  * @constructor
  * @struct
+ * @param {number} opt_a
  */
-function MultipleConstructors() {}
+function MultipleConstructors(opt_a) {}
 
 /**
  * @return {?}
@@ -90,10 +94,12 @@ function CodeMirror(x) {}
  * @return {CodeMirror.Editor}
  */
 function CodeMirror(y, x) {}
+
 /** @record @struct */
 CodeMirror.Editor = function() {};
  /** @type {string} */
 CodeMirror.Editor.prototype.name;
+
 /** @record @struct */
 function BareInterface() {}
  /** @type {string} */

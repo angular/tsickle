@@ -7,22 +7,23 @@
 /**
  * @constructor
  * @struct
+ * @param {number} opt_a
  */
-function MultipleConstructorsOptional() {}
+function MultipleConstructorsOptional(opt_a) {}
 
 /**
  * @constructor
  * @struct
- * @param {boolean} a
+ * @param {boolean|number} a
  */
 function MultipleConstructorsTypes(a) {}
 
 /**
  * @constructor
  * @struct
- * @param {boolean} a
+ * @param {boolean|number} a_or_b
  */
-function MultipleConstructorsNamesAndTypes(a) {}
+function MultipleConstructorsNamesAndTypes(a_or_b) {}
 
 /**
  * @constructor
@@ -30,71 +31,78 @@ function MultipleConstructorsNamesAndTypes(a) {}
  * @param {number} a
  * @param {number} b
  * @param {number} c
- * @param {string=} normal
- * @param {boolean=} color
- * @param {number=} materialIndex
+ * @param {string|Array<string>} normal_or_vertexNormals
+ * @param {boolean|Array<boolean>} color_or_vertexColors
+ * @param {number} materialIndex
  */
-function MultipleConstructorsComplexMatrix(a, b, c, normal, color, materialIndex) {}
+function MultipleConstructorsComplexMatrix(a, b, c, normal_or_vertexNormals, color_or_vertexColors, materialIndex) {}
 
 /**
  * @constructor
  * @struct
- * @param {...number} a
+ * @param {number|Array<number>} a
  */
 function MultipleConstructorsVariadic(a) {}
 
 /**
  * @constructor
  * @struct
- * @param {Array<string>} points
+ * @param {Array<string>|Array<number>|string|number} points
  */
 function MultipleConstructorsVariadicNames(points) {}
+
 /** @constructor @struct */
 function OverloadSimpleArgs() {}
 
 /**
- * @param {string} a
+ * @param {string|number} a
+ * @param {boolean} opt_b
+ * @param {number} opt_c
  * @return {void}
  */
-/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
-OverloadSimpleArgs.prototype.overloaded = function(a) {};
+OverloadSimpleArgs.prototype.overloaded = function(a, opt_b, opt_c) {};
+
 /** @constructor @struct */
 function OverloadNameVariants() {}
 
 /**
- * @param {string} a
+ * @param {string|boolean|number} a_or_b_or_c
  * @return {void}
  */
-/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
-OverloadNameVariants.prototype.overloaded = function(a) {};
+OverloadNameVariants.prototype.overloaded = function(a_or_b_or_c) {};
+
 /** @constructor @struct */
 function OverloadReturnTypesNoVoid() {}
 
 /**
  * @param {string} a
  * @param {boolean} b
- * @return {boolean}
+ * @param {number} opt_c
+ * @return {boolean|number}
  */
-/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
-OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b) {};
+OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b, opt_c) {};
+
 /** @constructor @struct */
 function OverloadReturnTypesWithVoid() {}
 
 /**
  * @param {string} a
- * @return {void}
+ * @param {boolean} opt_b
+ * @param {number} opt_c
+ * @return {void|boolean|number}
  */
-/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
-OverloadReturnTypesWithVoid.prototype.overloaded = function(a) {};
+OverloadReturnTypesWithVoid.prototype.overloaded = function(a, opt_b, opt_c) {};
+
 /** @constructor @struct */
 function OverloadBigMix() {}
 
 /**
- * @param {string} a
- * @return {void}
+ * @param {string|number|Array<OverloadBigMix>|OverloadBigMix} a_or_c_or_e_or_f
+ * @param {number} opt_b
+ * @return {void|number|boolean}
  */
-/* TODO(tsickle:#180): Method overloaded; only adding first signature. */
-OverloadBigMix.prototype.overloaded = function(a) {};
+OverloadBigMix.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
+
 /** @constructor @struct */
 function OverloadValueOf() {}
 
@@ -102,3 +110,19 @@ function OverloadValueOf() {}
  * @return {string}
  */
 OverloadValueOf.prototype.valueOf = function() {};
+
+/** @constructor @struct */
+function Merged() {}
+
+/**
+ * @param {(string|number|Array<OverloadBigMix>)} a_or_c_or_e_or_f
+ * @param {number} opt_b
+ * @return {(number|boolean|void)}
+ */
+Merged.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
+
+/**
+ * @param {...number} test
+ * @return {void}
+ */
+Merged.prototype.variadic = function(test) {};

@@ -1,5 +1,3 @@
-Warning at test_files/declare/declare.d.ts:53:3: multiple constructor signatures in declarations
-====
 declare namespace DeclareTestModule {
   namespace inner {
     var someBool: boolean;
