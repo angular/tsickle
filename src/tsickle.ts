@@ -131,7 +131,7 @@ class ClosureRewriter extends Rewriter {
     let paramData = {
       names: new Array<Set<string>>(maxCount),
       types: new Array<Set<string>>(maxCount),
-      returns: ''
+      returns: new Set<string>()
     };
 
     for (let fnDecl of fnDecls) {
@@ -237,11 +237,7 @@ class ClosureRewriter extends Rewriter {
           });
         } else {
           if (retTypeString) {
-            if (!paramData.returns) {
-              paramData.returns = retTypeString;
-            } else if (paramData.returns.indexOf(retTypeString) === -1) {
-              paramData.returns += '|' + retTypeString;
-            }
+            paramData.returns.add(retTypeString);
           }
         }
       }
@@ -263,7 +259,7 @@ class ClosureRewriter extends Rewriter {
       if (!isConstructor) {
         newDoc.push({
           tagName: 'return',
-          type: paramData.returns,
+          type: Array.from(paramData.returns.values()).join('|'),
         });
       }
     }
