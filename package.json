@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "minimist": "^1.2.0",
-    "source-map": "^0.4.2",
-    "source-map-support": "^0.3.1",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "source-map": "^0.5.6",
+    "source-map-support": "^0.4.2"
   },
   "peerDependencies": {
     "typescript": "2.1.0-dev.20160827"
@@ -20,27 +20,27 @@
   "devDependencies": {
     "@types/chai": "^3.4.32",
     "@types/glob": "^5.0.29",
-    "@types/google-closure-compiler": "0.0.17",
+    "@types/google-closure-compiler": "0.0.18",
     "@types/minimatch": "^2.0.28",
     "@types/minimist": "^1.1.28",
     "@types/mkdirp": "^0.3.28",
     "@types/mocha": "^2.2.31",
     "@types/node": "^6.0.38",
     "@types/source-map-support": "^0.2.27",
-    "chai": "^2.1.1",
+    "chai": "^3.5.0",
     "clang-format": "^1.0.45",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20160315.2.0",
     "gulp": "^3.8.11",
     "gulp-clang-format": "^1.0.22",
-    "gulp-mocha": "^2.0.0",
+    "gulp-mocha": "^3.0.1",
     "gulp-sourcemaps": "^1.5.0",
     "gulp-tslint": "^6.1.1",
-    "gulp-typescript": "^2.7.6",
+    "gulp-typescript": "^3.0.0",
     "gulp-util": "^3.0.4",
-    "merge2": "^0.3.1",
+    "merge2": "^1.0.2",
     "temp": "^0.8.1",
-    "tslint": "3.15.0-dev.0",
+    "tslint": "^3.15.1",
     "typescript": "2.1.0-dev.20160827"
   },
   "scripts": {
