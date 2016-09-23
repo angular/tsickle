@@ -43,7 +43,7 @@ var onError = function(err) {
 gulp.task('compile', function() {
   hasError = false;
   var tsResult =
-      gulp.src(['src/**/*.ts']).pipe(sourcemaps.init()).pipe(ts(tsProject)).on('error', onError);
+      gulp.src(['src/**/*.ts']).pipe(sourcemaps.init()).pipe(tsProject()).on('error', onError);
   return merge([
     tsResult.dts.pipe(gulp.dest('build/definitions')),
     // Write external sourcemap next to the js file
@@ -60,7 +60,7 @@ gulp.task('test.compile', ['compile'], function(done) {
   }
   return gulp.src(['test/*.ts'], {base: '.'})
       .pipe(sourcemaps.init())
-      .pipe(ts(tsProject))
+      .pipe(tsProject())
       .on('error', onError)
       .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../..'}))
       .pipe(gulp.dest('build/'));  // '/test/' comes from base above.
