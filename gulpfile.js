@@ -79,7 +79,7 @@ gulp.task('test.e2e', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 20000}));
+  return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 25000}));
 });
 
 gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format', 'test.check-lint']);
