@@ -53,7 +53,10 @@ class ClassRewriter extends Rewriter {
   }
 
   private decoratorsToLower(n: ts.Node): ts.Decorator[] {
-    return (n.decorators as ts.NodeArray<ts.Decorator>|| []).filter(d => this.shouldLower(d));
+    if (n.decorators) {
+      return n.decorators.filter((d) => this.shouldLower(d));
+    }
+    return [];
   }
 
   /**
