@@ -1,3 +1,4 @@
+import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 /**
@@ -6,22 +7,36 @@ import * as ts from 'typescript';
  * along the way by implementing maybeProcess().
  */
 export abstract class Rewriter {
-  protected output: string[] = [];
+  private output: string[] = [];
   /** Errors found while examining the code. */
   protected diagnostics: ts.Diagnostic[] = [];
+  /** The source map that's generated while rewriting this file. */
+  private sourceMap = new SourceMapGenerator();
+  /** Current position in the output. */
+  private position = {line: 1, column: 1};
   /**
    * The current level of recursion through TypeScript Nodes.  Used in formatting internal debug
    * print statements.
    */
   private indent: number = 0;
 
-  constructor(protected file: ts.SourceFile) {}
+  constructor(protected file: ts.SourceFile) {
+    this.sourceMap.addMapping({
+      original: this.position,
+      generated: this.position,
+      source: file.fileName,
+    });
+  }
 
-  getOutput(): {output: string, diagnostics: ts.Diagnostic[]} {
+  getOutput(): {output: string, diagnostics: ts.Diagnostic[], sourceMap: SourceMapGenerator} {
     if (this.indent !== 0) {
       throw new Error('visit() failed to track nesting');
     }
-    return {output: this.output.join(''), diagnostics: this.diagnostics};
+    return {
+      output: this.output.join(''),
+      diagnostics: this.diagnostics,
+      sourceMap: this.sourceMap,
+    };
   }
 
   /**
@@ -77,11 +92,32 @@ export abstract class Rewriter {
     // preceding that node.  Semantically these ranges are just offsets
     // into the original source file text, so slice from that.
     let text = this.file.text.slice(from, to);
-    if (text) this.emit(text);
+    if (text) {
+      // Add a source mapping. writeRange(from, to) always corresponds to
+      // original source code, so add a mapping at the current location that
+      // points back to the location at `from`. The additional code generated
+      // by tsickle will then be considered part of the last mapped code
+      // section preceding it. That's arguably incorrect (e.g. for the fake
+      // methods defining properties), but is good enough for stack traces.
+      const pos = this.file.getLineAndCharacterOfPosition(from);
+      this.sourceMap.addMapping({
+        original: {line: pos.line + 1, column: pos.character + 1},
+        generated: this.position,
+        source: this.file.fileName,
+      });
+      this.emit(text);
+    }
   }
 
   emit(str: string) {
     this.output.push(str);
+    for (const c of str) {
+      this.position.column++;
+      if (c === '\n') {
+        this.position.line++;
+        this.position.column = 1;
+      }
+    }
   }
 
   /** Removes comment metacharacters from a string, to make it safe to embed in a comment. */

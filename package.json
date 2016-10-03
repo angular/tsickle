@@ -26,6 +26,7 @@
     "@types/mkdirp": "^0.3.28",
     "@types/mocha": "^2.2.31",
     "@types/node": "^6.0.38",
+    "@types/source-map": "^0.1.27",
     "@types/source-map-support": "^0.2.27",
     "chai": "^3.5.0",
     "clang-format": "^1.0.45",
