@@ -24,6 +24,7 @@
     "test/e2e_test.ts",
     "test/es5processor_test.ts",
     "test/jsdoc_test.ts",
+    "test/source_map_test.ts",
     "test/test_support.ts",
     "test/tsickle_test.ts",
     "test/type-translator_test.ts"

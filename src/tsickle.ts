@@ -1,3 +1,4 @@
+import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
@@ -9,24 +10,30 @@ export {convertDecorators} from './decorator-annotator';
 export {processES5 as convertCommonJsToGoogModule} from './es5processor';
 
 export interface Options {
-  // If true, convert every type to the Closure {?} type, which means
-  // "don't check types".
+  /**
+   * If true, convert every type to the Closure {?} type, which means
+   * "don't check types".
+   */
   untyped?: boolean;
-  // If provided a function that logs an internal warning.
-  // These warnings are not actionable by an end user and should be hidden
-  // by default.
+  /**
+   * If provided a function that logs an internal warning.
+   * These warnings are not actionable by an end user and should be hidden
+   * by default.
+   */
   logWarning?: (warning: ts.Diagnostic) => void;
-  // If provided, a set of paths whose types should always generate as {?}.
+  /** If provided, a set of paths whose types should always generate as {?}. */
   typeBlackListPaths?: Set<string>;
 }
 
 export interface Output {
-  // The TypeScript source with Closure annotations inserted.
+  /** The TypeScript source with Closure annotations inserted. */
   output: string;
-  // Generated externs declarations, if any.
+  /** Generated externs declarations, if any. */
   externs: string|null;
-  // Error messages, if any.
+  /** Error messages, if any. */
   diagnostics: ts.Diagnostic[];
+  /** A source map mapping back into the original sources. */
+  sourceMap: SourceMapGenerator;
 }
 
 /**
@@ -384,6 +391,7 @@ class Annotator extends ClosureRewriter {
       output: annotated.output,
       externs: externsSource,
       diagnostics: externs.diagnostics.concat(annotated.diagnostics),
+      sourceMap: annotated.sourceMap,
     };
   }
   /**
