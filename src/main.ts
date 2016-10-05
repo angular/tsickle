@@ -208,18 +208,14 @@ function toClosureJS(
   // place of the original source.
   let host = createSourceReplacingCompilerHost(tsickleOutput, ts.createCompilerHost(options));
   program = ts.createProgram(fileNames, options, host);
-  let diagnostics = ts.getPreEmitDiagnostics(program);
-  if (diagnostics.length > 0) {
-    allDiagnostics.push(...diagnostics);
-    return null;
-  }
 
   // Emit, creating a map of fileName => generated JS source.
   const jsFiles = new Map<string, string>();
   function writeFile(fileName: string, data: string): void {
     jsFiles.set(fileName, data);
   }
-  ({diagnostics} = program.emit(undefined, writeFile));
+
+  let {diagnostics} = program.emit(undefined, writeFile);
   if (diagnostics.length > 0) {
     allDiagnostics.push(...diagnostics);
     return null;
