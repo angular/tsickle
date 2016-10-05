@@ -219,8 +219,9 @@ function toClosureJS(
 
   for (let fileName of toArray(jsFiles.keys())) {
     if (path.extname(fileName) !== '.map') {
-      let {output} = tsickle.convertCommonJsToGoogModule(
-          fileName, jsFiles.get(fileName)!, cliSupport.pathToModuleName);
+      const moduleId = fileName;  // TODO: does anyone use this?
+      let {output} = tsickle.processES5(
+          fileName, moduleId, jsFiles.get(fileName)!, cliSupport.pathToModuleName);
       jsFiles.set(fileName, output);
     }
   }

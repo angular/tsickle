@@ -36,12 +36,12 @@ class ES5Processor extends Rewriter {
   unusedIndex: number = 0;
 
   constructor(
-      file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
-      private isES5: boolean) {
+      file: ts.SourceFile,
+      private pathToModuleName: (context: string, fileName: string) => string) {
     super(file);
   }
 
-  process(): {output: string, referencedModules: string[]} {
+  process(moduleId: string, isES5: boolean): {output: string, referencedModules: string[]} {
     // TODO(evanm): only emit the goog.module *after* the first comment,
     // so that @suppress statements work.
     const moduleName = this.pathToModuleName('', this.file.fileName);
@@ -52,12 +52,11 @@ class ES5Processor extends Rewriter {
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
     // The following pattern ensures closure doesn't throw an error in advanced
     // optimizations mode.
-    if (this.isES5) {
-      this.emit(`var module = module || {id: '${this.file.fileName}'};`);
+    if (isES5) {
+      this.emit(`var module = module || {id: '${moduleId}'};`);
     } else {
-      this.emit(`var module = {id: '${this.file.fileName}'};`);
+      this.emit(`var module = {id: '${moduleId}'};`);
     }
-
 
     let pos = 0;
     for (let stmt of this.file.statements) {
@@ -298,16 +297,18 @@ class ES5Processor extends Rewriter {
  * Converts TypeScript's JS+CommonJS output to Closure goog.module etc.
  * For use as a postprocessing step *after* TypeScript emits JavaScript.
  *
- * @param fileName The source file name, without an extension.
+ * @param fileName The source file name.
+ * @param moduleId The "module id", a module-identifying string that is
+ *     the value module.id in the scope of the module.
  * @param pathToModuleName A function that maps a filesystem .ts path to a
  *     Closure module name, as found in a goog.require('...') statement.
  *     The context parameter is the referencing file, used for resolving
  *     imports with relative paths like "import * as foo from '../foo';".
  */
 export function processES5(
-    fileName: string, content: string,
+    fileName: string, moduleId: string, content: string,
     pathToModuleName: (context: string, fileName: string) => string,
     isES5 = true): {output: string, referencedModules: string[]} {
   let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new ES5Processor(file, pathToModuleName, isES5).process();
+  return new ES5Processor(file, pathToModuleName).process(moduleId, isES5);
 }

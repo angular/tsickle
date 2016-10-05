@@ -6,7 +6,8 @@ import * as es5processor from '../src/es5processor';
 describe('convertCommonJsToGoogModule', () => {
   function expectCommonJs(fileName: string, content: string, isES5 = true) {
     return expect(
-        es5processor.processES5(fileName, content, cliSupport.pathToModuleName, isES5).output);
+        es5processor.processES5(fileName, fileName, content, cliSupport.pathToModuleName, isES5)
+            .output);
   }
 
   it('adds a goog.module call', () => {
@@ -160,7 +161,7 @@ foo_1.A, foo_2.B, foo_2        , foo_3.default;
 
   it('gathers referenced modules', () => {
     let {referencedModules} = es5processor.processES5(
-        'a/b', `
+        'a/b', 'a/b', `
 require('../foo/bare_require');
 var googRequire = require('goog:foo.bar');
 var es6RelativeRequire = require('./relative');
