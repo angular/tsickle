@@ -1,4 +1,12 @@
 /**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+
+/**
  * TypeScript has an API for JSDoc already, but it's not exposed.
  * https://github.com/Microsoft/TypeScript/issues/7393
  * For now we create types that are similar to theirs so that migrating
