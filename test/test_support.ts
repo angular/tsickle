@@ -61,8 +61,9 @@ export function createProgram(sources: Map<string, string>): ts.Program {
 export function emit(program: ts.Program): {[fileName: string]: string} {
   let transformed: {[fileName: string]: string} = {};
   let {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
+    const moduleId = fileName.replace(/^\.\//, '');
     transformed[fileName] =
-        tsickle.convertCommonJsToGoogModule(fileName, data, cliSupport.pathToModuleName).output;
+        tsickle.processES5(fileName, moduleId, data, cliSupport.pathToModuleName).output;
   });
   if (diagnostics.length > 0) {
     throw new Error(tsickle.formatDiagnostics(diagnostics));

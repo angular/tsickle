@@ -7,7 +7,7 @@ import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
-export {processES5 as convertCommonJsToGoogModule} from './es5processor';
+export {processES5} from './es5processor';
 
 export interface Options {
   /**
