@@ -97,7 +97,7 @@ var tsickle_module_0_ = goog.require('req.mod');`);
 var mod2 = require('req/mod');`)
           .to.equal(
               `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('req.mod');__export(tsickle_module_0_);
-var mod2 = tsickle_module_0_;`);
+var mod2 = goog.require('req.mod');`);
     });
     it('reuses an existing imported variable name', () => {
       expectCommonJs('a.js', `var mod = require('req/mod');
@@ -162,7 +162,7 @@ var foo = bar;
 var foo_2 = require('goog:foo');
 foo_1.A, foo_2.B, foo_2.default, foo_3.default;
 `).to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};var foo_1 = goog.require('foo');
-var foo_2 = foo_1;
+var foo_2 = goog.require('foo');
 foo_1.A, foo_2.B, foo_2        , foo_3.default;
 `);
   });
