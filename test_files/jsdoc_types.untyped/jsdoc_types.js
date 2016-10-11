@@ -5,8 +5,8 @@ goog.module('test_files.jsdoc_types.untyped.jsdoc_types');var module = module ||
 
 var module1 = goog.require('test_files.jsdoc_types.untyped.module1');
 var module2_1 = goog.require('test_files.jsdoc_types.untyped.module2');
-var module2_2 = module2_1;
-var module2_3 = module2_1;
+var module2_2 = goog.require('test_files.jsdoc_types.untyped.module2');
+var module2_3 = goog.require('test_files.jsdoc_types.untyped.module2');
 var default_1 = goog.require('test_files.jsdoc_types.untyped.default');
 // Check that imported types get the proper names in JSDoc.
 let /** @type {?} */ useNamespacedClass = new module1.Class();
