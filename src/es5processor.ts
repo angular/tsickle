@@ -226,8 +226,10 @@ class ES5Processor extends Rewriter {
     }
 
     if (isNamespaceImport) this.namespaceImports.add(varName);
-    this.emit(`var ${varName} = goog.require('${modName}');`);
-    if (!this.moduleVariables.has(modName)) {
+    if (this.moduleVariables.has(modName)) {
+      this.emit(`var ${varName} = ${this.moduleVariables.get(modName)};`);
+    } else {
+      this.emit(`var ${varName} = goog.require('${modName}');`);
       this.moduleVariables.set(modName, varName);
     }
     return varName;
