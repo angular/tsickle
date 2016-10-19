@@ -1,5 +1,5 @@
 type MyType = number;
-var y: MyType = 3;
+var /** @type {?} */ y: MyType = 3;
 
 type Recursive = {value: number, next: Recursive};
 

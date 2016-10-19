@@ -4,3 +4,5 @@ var MyType;
 var /** @type {number} */ y = 3;
 /** @typedef {{value: number, next: ?}} */
 var Recursive;
+/** @typedef {string} */
+exports.ExportedType;
