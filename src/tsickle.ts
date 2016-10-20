@@ -791,9 +791,17 @@ class Annotator extends ClosureRewriter {
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
     if (this.options.untyped) return;
     // Write a Closure typedef, which involves an unused "var" declaration.
+    // Note: in the case of an export, we cannot emit a literal "var" because
+    // TypeScript drops exports that are never assigned to (and Closure
+    // requires us to not assign to typedef exports).  Instead, emit the
+    // "exports.foo;" line directly in that case.
     this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
-    if (node.flags & ts.NodeFlags.Export) this.emit('export ');
-    this.emit(`var ${node.name.getText()}: void;\n`);
+    if (node.flags & ts.NodeFlags.Export) {
+      this.emit('exports.');
+    } else {
+      this.emit('var ');
+    }
+    this.emit(`${node.name.getText()};\n`);
   }
 
   /** Processes an EnumDeclaration or returns false for ordinary processing. */
