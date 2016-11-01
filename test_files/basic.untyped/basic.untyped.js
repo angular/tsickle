@@ -5,6 +5,9 @@ goog.module('test_files.basic.untyped.basic.untyped');var module = module || {id
 function func(arg1) {
     return [3];
 }
+/**
+ * @unrestricted
+ */
 class Foo {
     /**
      * @param {?} ctorArg

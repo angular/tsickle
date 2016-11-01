@@ -12,6 +12,9 @@ function decorator(a: Object, b: string) {}
  */
 function annotationDecorator(a: Object, b: string) {}
 
+/**
+ * @unrestricted
+ */
 class DecoratorTest {
   @decorator
 private x: number;

@@ -6,6 +6,9 @@ goog.module('test_files.optional.optional');var module = module || {id: 'test_fi
 function optionalArgument(x, y) {
 }
 optionalArgument(1);
+/**
+ * @unrestricted
+ */
 class OptionalTest {
     /**
      * @param {string} a

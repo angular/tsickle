@@ -5,6 +5,9 @@ export {__test} from './export_underscore';
 
 let /** @type {number} */ __foo = 3;
 export {__foo as __bar};
+/**
+ * @unrestricted
+ */
 class __Class {
   __member: string;
 /**

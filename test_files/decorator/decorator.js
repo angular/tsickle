@@ -10,6 +10,9 @@ function decorator(a, b) { }
  * @return {void}
  */
 function annotationDecorator(a, b) { }
+/**
+ * @unrestricted
+ */
 class DecoratorTest {
     static _tsickle_typeAnnotationsHelper() {
         /** @type {Object<string,Array<DecoratorInvocation>>} */

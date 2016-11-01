@@ -1,5 +1,8 @@
 Warning at test_files/fields/fields.ts:22:5: unhandled anonymous type
 ====
+/**
+ * @unrestricted
+ */
 class FieldsTest {
   field1: string;
   field2: number;

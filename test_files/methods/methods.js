@@ -1,4 +1,7 @@
-goog.module('test_files.methods.methods');var module = module || {id: 'test_files/methods/methods.js'};class HasMethods {
+goog.module('test_files.methods.methods');var module = module || {id: 'test_files/methods/methods.js'};/**
+ * @unrestricted
+ */
+class HasMethods {
     /**
      * @return {void}
      */

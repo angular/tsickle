@@ -23,6 +23,9 @@ function returnsTest(): string {
  */
 function jsDocTestBadDoc(foo: string) {}
 
+/**
+ * @unrestricted
+ */
 class JSDocTest {
   /** @export */
   exported: string;
