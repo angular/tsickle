@@ -1,5 +1,8 @@
 goog.module('test_files.structural.untyped.structural.untyped');var module = module || {id: 'test_files/structural.untyped/structural.untyped.js'};// Ensure that a class is structurally equivalent to an object literal
 // with the same fields.
+/**
+ * @unrestricted
+ */
 class StructuralTest {
     /**
      * @return {?}

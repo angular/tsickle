@@ -1,3 +1,6 @@
+/**
+ * @unrestricted
+ */
 class ParamProps {
 /**
  * @param {string} bar

@@ -8,6 +8,9 @@ function optionalArgument(x: number, y?: string) {
 }
 optionalArgument(1);
 
+/**
+ * @unrestricted
+ */
 class OptionalTest {
 /**
  * @param {string} a

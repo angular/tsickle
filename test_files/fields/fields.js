@@ -1,4 +1,7 @@
-goog.module('test_files.fields.fields');var module = module || {id: 'test_files/fields/fields.js'};class FieldsTest {
+goog.module('test_files.fields.fields');var module = module || {id: 'test_files/fields/fields.js'};/**
+ * @unrestricted
+ */
+class FieldsTest {
     /**
      * @param {number} field3
      */

@@ -1,3 +1,6 @@
+/**
+ * @unrestricted
+ */
 class Comments {
   /** @export */
   export1: string;

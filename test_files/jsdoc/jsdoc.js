@@ -17,6 +17,9 @@ function returnsTest() {
  * @return {void}
  */
 function jsDocTestBadDoc(foo) { }
+/**
+ * @unrestricted
+ */
 class JSDocTest {
     static _tsickle_typeAnnotationsHelper() {
         /** @export

@@ -1,4 +1,7 @@
-goog.module('test_files.comments.comments');var module = module || {id: 'test_files/comments/comments.js'};class Comments {
+goog.module('test_files.comments.comments');var module = module || {id: 'test_files/comments/comments.js'};/**
+ * @unrestricted
+ */
+class Comments {
     static _tsickle_typeAnnotationsHelper() {
         /** @export
         @type {string} */

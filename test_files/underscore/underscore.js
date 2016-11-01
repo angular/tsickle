@@ -5,6 +5,9 @@ var export_underscore_1 = goog.require('test_files.underscore.export_underscore'
 exports.__test = export_underscore_1.__test;
 let /** @type {number} */ __foo = 3;
 exports.__bar = __foo;
+/**
+ * @unrestricted
+ */
 class __Class {
     /**
      * @param {string} __arg is __underscored
