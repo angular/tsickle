@@ -1,5 +1,4 @@
 goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};/**
- * @unrestricted
  * @abstract
  */
 class Base {
@@ -40,9 +39,6 @@ class Base {
         this.hasReturnType();
     }
 }
-/**
- * @unrestricted
- */
 class Derived extends Base {
     constructor() {
         super();

@@ -3,9 +3,6 @@
 export interface TypeAndValue { z: number }
 export var /** @type {number} */ TypeAndValue = 3;
 
-/**
- * @unrestricted
- */
 export class Class { z: number
 
   static _tsickle_typeAnnotationsHelper() {

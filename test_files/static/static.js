@@ -1,7 +1,4 @@
-goog.module('test_files.static.static');var module = module || {id: 'test_files/static/static.js'};/**
- * @unrestricted
- */
-class Static {
+goog.module('test_files.static.static');var module = module || {id: 'test_files/static/static.js'};class Static {
     static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         Static.bar;

@@ -1,13 +1,7 @@
-/**
- * @unrestricted
- */
 class SuperTestBaseNoArg {
 constructor() {}
 }
 
-/**
- * @unrestricted
- */
 class SuperTestBaseOneArg {
 /**
  * @param {number} x
@@ -22,9 +16,6 @@ SuperTestBaseOneArg.prototype.x;
 }
 
 // A ctor with a parameter property.
-/**
- * @unrestricted
- */
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
 /**
  * @param {string} y
@@ -41,9 +32,6 @@ SuperTestDerivedParamProps.prototype.y;
 }
 
 // A ctor with an initialized property.
-/**
- * @unrestricted
- */
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
   y: string = 'foo';
 constructor() {
@@ -58,9 +46,6 @@ SuperTestDerivedInitializedProps.prototype.y;
 }
 
 // A ctor with a super() but none of the above two details.
-/**
- * @unrestricted
- */
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
 constructor() {
     super(3);
@@ -68,16 +53,10 @@ constructor() {
 }
 
 // A class without a ctor, extending a one-arg ctor parent.
-/**
- * @unrestricted
- */
 class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {
 }
 
 // A class without a ctor, extending a no-arg ctor parent.
-/**
- * @unrestricted
- */
 class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
   // NOTE: if this has any properties, we fail to generate it
   // properly because we generate a constructor that doesn't know
@@ -94,9 +73,6 @@ interface SuperTestInterface {
 }
 
 // A class implementing an interface.
-/**
- * @unrestricted
- */
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
 
@@ -107,9 +83,6 @@ SuperTestDerivedInterface.prototype.foo;
 
 }
 
-/**
- * @unrestricted
- */
 class SuperTestStaticProp extends SuperTestBaseOneArg {
   static foo = 3;
 
