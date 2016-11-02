@@ -1,6 +1,3 @@
-/**
- * @unrestricted
- */
 export class Class {}
 /** @record */
 export function Interface() {}

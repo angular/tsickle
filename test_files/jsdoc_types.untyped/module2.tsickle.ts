@@ -1,15 +1,6 @@
-/**
- * @unrestricted
- */
 export class ClassOne {}
-/**
- * @unrestricted
- */
 export class ClassTwo {}
 export interface Interface { x: number }
-/**
- * @unrestricted
- */
 export class ClassWithParams<T> {}
 
 // TODO(evanm):

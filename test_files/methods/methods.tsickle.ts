@@ -1,6 +1,3 @@
-/**
- * @unrestricted
- */
 class HasMethods {
   _f: number;
 /**

@@ -7,9 +7,6 @@ function func(arg1: string): number[] {
   return [3];
 }
 
-/**
- * @unrestricted
- */
 class Foo {
   field: string;
 /**

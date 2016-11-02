@@ -654,10 +654,6 @@ class Annotator extends ClosureRewriter {
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
     let jsDoc = this.getJSDoc(classDecl) || [];
-    // Always include @unrestricted so that Closure compiler does not complain if some class fields
-    // are not assigned in the constructor but declared (which tsickle always does in
-    // _tsickle_typeAnnotationsHelper).
-    jsDoc.push({tagName: 'unrestricted'});
     if ((classDecl.flags & ts.NodeFlags.Abstract) !== 0) {
       jsDoc.push({tagName: 'abstract'});
     }

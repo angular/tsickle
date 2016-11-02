@@ -1,13 +1,7 @@
-goog.module('test_files.super.super');var module = module || {id: 'test_files/super/super.js'};/**
- * @unrestricted
- */
-class SuperTestBaseNoArg {
+goog.module('test_files.super.super');var module = module || {id: 'test_files/super/super.js'};class SuperTestBaseNoArg {
     constructor() {
     }
 }
-/**
- * @unrestricted
- */
 class SuperTestBaseOneArg {
     /**
      * @param {number} x
@@ -21,9 +15,6 @@ class SuperTestBaseOneArg {
     }
 }
 // A ctor with a parameter property.
-/**
- * @unrestricted
- */
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
      * @param {string} y
@@ -38,9 +29,6 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     }
 }
 // A ctor with an initialized property.
-/**
- * @unrestricted
- */
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     constructor() {
         super(3);
@@ -52,24 +40,15 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     }
 }
 // A ctor with a super() but none of the above two details.
-/**
- * @unrestricted
- */
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
     constructor() {
         super(3);
     }
 }
 // A class without a ctor, extending a one-arg ctor parent.
-/**
- * @unrestricted
- */
 class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {
 }
 // A class without a ctor, extending a no-arg ctor parent.
-/**
- * @unrestricted
- */
 class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 }
 /** @record */
@@ -77,18 +56,12 @@ function SuperTestInterface() { }
 /** @type {number} */
 SuperTestInterface.prototype.foo;
 // A class implementing an interface.
-/**
- * @unrestricted
- */
 class SuperTestDerivedInterface {
     static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */
         SuperTestDerivedInterface.prototype.foo;
     }
 }
-/**
- * @unrestricted
- */
 class SuperTestStaticProp extends SuperTestBaseOneArg {
     static _tsickle_typeAnnotationsHelper() {
         /** @type {number} */

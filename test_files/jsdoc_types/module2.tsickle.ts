@@ -1,10 +1,4 @@
-/**
- * @unrestricted
- */
 export class ClassOne {}
-/**
- * @unrestricted
- */
 export class ClassTwo {}
 /** @record */
 export function Interface() {}
@@ -12,9 +6,6 @@ export function Interface() {}
 Interface.prototype.x;
 
 export interface Interface { x: number }
-/**
- * @unrestricted
- */
 export class ClassWithParams<T> {}
 
 // TODO(evanm):

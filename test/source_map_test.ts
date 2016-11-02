@@ -25,9 +25,9 @@ describe('source maps', () => {
     const consumer = new SourceMapConsumer(rawMap);
     // Uncomment to debug contents:
     // annotated.output.split('\n').forEach((v, i) => console.log(i + 1, v));
-    expect(consumer.originalPositionFor({line: 5, column: 20}).line)
+    expect(consumer.originalPositionFor({line: 2, column: 20}).line)
         .to.equal(2, 'first class definition');
-    expect(consumer.originalPositionFor({line: 15, column: 20}).line)
+    expect(consumer.originalPositionFor({line: 9, column: 20}).line)
         .to.equal(3, 'second class definition');
   });
 });
