@@ -673,13 +673,12 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-google-closure-compiler@^20160315.2.0:
-  version "20160315.2.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler/-/google-closure-compiler-20160315.2.0.tgz#dda58ff7540d2fd15205a56c27410c930bfa29e6"
+google-closure-compiler@^20161024.1.0:
+  version "20161024.1.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler/-/google-closure-compiler-20161024.1.0.tgz#a8906fded624c5e466e0cf01f7eb5efecd8b7aee"
   dependencies:
     chalk "^1.0.0"
     gulp-util "^3.0.7"
-    source-map "^0.5.3"
     vinyl-fs "^2.2.1"
     vinyl-sourcemaps-apply "^0.2.0"
 
