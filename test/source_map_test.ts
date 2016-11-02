@@ -23,11 +23,15 @@ describe('source maps', () => {
     const annotated = annotate(program, program.getSourceFile('input.ts'));
     const rawMap = (annotated.sourceMap as any).toJSON();
     const consumer = new SourceMapConsumer(rawMap);
+    const lines = annotated.output.split('\n');
     // Uncomment to debug contents:
-    // annotated.output.split('\n').forEach((v, i) => console.log(i + 1, v));
-    expect(consumer.originalPositionFor({line: 2, column: 20}).line)
+    // lines.forEach((v, i) => console.log(i + 1, v));
+    // Find class X and class Y in the output to make the test robust against code changes.
+    const firstClassLine = lines.findIndex(l => l.indexOf('class X') !== -1) + 1;
+    const secondClassLine = lines.findIndex(l => l.indexOf('class Y') !== -1) + 1;
+    expect(consumer.originalPositionFor({line: firstClassLine, column: 20}).line)
         .to.equal(2, 'first class definition');
-    expect(consumer.originalPositionFor({line: 9, column: 20}).line)
+    expect(consumer.originalPositionFor({line: secondClassLine, column: 20}).line)
         .to.equal(3, 'second class definition');
   });
 });
