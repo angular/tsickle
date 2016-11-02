@@ -21,6 +21,28 @@
       "console": "internalConsole",
       "sourceMaps": true,
       "outDir": "${workspaceRoot}/build"
+    },
+    {
+      "name": "Run file based tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
+      "args": [
+        "--colors",
+        "--timeout=0",
+        "./build/test/tsickle_test.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "internalConsole",
+      "sourceMaps": true,
+      "outDir": "${workspaceRoot}/build"
     }
+
   ]
 }
