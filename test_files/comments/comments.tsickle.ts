@@ -18,8 +18,9 @@ class Comments {
    * type annotation.
    */
   jsdoc2: number;
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @export
  @type {string} */
 Comments.prototype.export1;
@@ -37,6 +38,4 @@ Comments.prototype.jsdoc1;
  /** multi-line jsdoc comment without type annotation.
  @type {number} */
 Comments.prototype.jsdoc2;
-  }
 
-}

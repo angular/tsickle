@@ -7,13 +7,12 @@ class SuperTestBaseOneArg {
  * @param {number} x
  */
 constructor(public x: number) {}
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {number} */
 SuperTestBaseOneArg.prototype.x;
-  }
 
-}
 
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
@@ -23,13 +22,12 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
 constructor(public y: string) {
     super(3);
   }
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {string} */
 SuperTestDerivedParamProps.prototype.y;
-  }
 
-}
 
 // A ctor with an initialized property.
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
@@ -37,13 +35,12 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
 constructor() {
     super(3);
   }
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {string} */
 SuperTestDerivedInitializedProps.prototype.y;
-  }
 
-}
 
 // A ctor with a super() but none of the above two details.
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
@@ -75,20 +72,18 @@ interface SuperTestInterface {
 // A class implementing an interface.
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {number} */
 SuperTestDerivedInterface.prototype.foo;
-  }
 
-}
 
 class SuperTestStaticProp extends SuperTestBaseOneArg {
   static foo = 3;
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {number} */
 SuperTestStaticProp.foo;
-  }
 
-}

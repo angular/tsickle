@@ -15,17 +15,16 @@ goog.module('test_files.fields.fields');var module = module || {id: 'test_files/
         // This access prints a warning without a generated field stub declaration.
         return this.field1;
     }
-    static _tsickle_typeAnnotationsHelper() {
-        /** @type {string} */
-        FieldsTest.prototype.field1;
-        /** @type {number} */
-        FieldsTest.prototype.field2;
-        /** @type {string} */
-        FieldsTest.prototype.field4;
-        /** @type {number} */
-        FieldsTest.prototype.field3;
-    }
 }
+// tsickle -> Closure type declarations
+/** @type {string} */
+FieldsTest.prototype.field1;
+/** @type {number} */
+FieldsTest.prototype.field2;
+/** @type {string} */
+FieldsTest.prototype.field4;
+/** @type {number} */
+FieldsTest.prototype.field3;
 let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';

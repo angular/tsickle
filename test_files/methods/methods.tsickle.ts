@@ -18,10 +18,9 @@ get f(): number { return this._f + 1; }
  * @return {void}
  */
 set f(n: number) { this._f = n - 1; }
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {number} */
 HasMethods.prototype._f;
-  }
 
-}

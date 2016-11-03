@@ -7,11 +7,10 @@ goog.module('test_files.parameter_properties.parameter_properties');var module =
         this.bar = bar;
         this.bar2 = bar2;
     }
-    static _tsickle_typeAnnotationsHelper() {
-        /** @export
-        @type {string} */
-        ParamProps.prototype.bar;
-        /** @type {string} */
-        ParamProps.prototype.bar2;
-    }
 }
+// tsickle -> Closure type declarations
+/** @export
+@type {string} */
+ParamProps.prototype.bar;
+/** @type {string} */
+ParamProps.prototype.bar2;

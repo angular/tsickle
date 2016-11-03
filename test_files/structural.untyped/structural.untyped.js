@@ -5,11 +5,10 @@ class StructuralTest {
      * @return {?}
      */
     method() { return this.field1; }
-    static _tsickle_typeAnnotationsHelper() {
-        /** @type {?} */
-        StructuralTest.prototype.field1;
-    }
 }
+// tsickle -> Closure type declarations
+/** @type {?} */
+StructuralTest.prototype.field1;
 /**
  * @param {?} st
  * @return {?}

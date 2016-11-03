@@ -4,11 +4,7 @@
  */
 
 import * as module1 from './module1';
-import {ClassOne, value} from './module2';
-import {ClassOne as RenamedClassOne} from './module2';
-import {ClassTwo as RenamedClassTwo} from './module2';
-import {Interface} from './module2';
-import {ClassWithParams} from './module2';
+import {ClassOne, value, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTwo, Interface, ClassWithParams} from './module2';
 import DefaultClass from './default';
 import {NeverTyped} from './nevertyped';
 

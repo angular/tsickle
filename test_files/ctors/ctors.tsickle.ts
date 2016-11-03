@@ -6,7 +6,7 @@ class X {
 constructor(private a: number) {}
 }
 
-// tsickle type annotations
+// tsickle -> Closure type declarations
  /** @type {number} */
 X.prototype.a;
 

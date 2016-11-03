@@ -34,8 +34,9 @@ class JSDocTest {
 
   /** @type {badType} */
   typedThing: number;
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @export
  @type {string} */
 JSDocTest.prototype.exported;
@@ -45,9 +46,7 @@ JSDocTest.prototype.badExport;
 JSDocTest.prototype.stringWithoutJSDoc;
  /** @type {number} */
 JSDocTest.prototype.typedThing;
-  }
 
-}
 /**
  * @see This tag will be kept, because Closure allows it.
  * @return {void}

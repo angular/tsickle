@@ -7,7 +7,7 @@ class X {
         this.a = a;
     }
 }
-// tsickle type annotations
+// tsickle -> Closure type declarations
 /** @type {number} */
 X.prototype.a;
 let /** @type {function(new: X, number): ?} */ y = X;

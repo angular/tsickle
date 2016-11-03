@@ -17,8 +17,7 @@ goog.module('test_files.methods.methods');var module = module || {id: 'test_file
      * @return {void}
      */
     set f(n) { this._f = n - 1; }
-    static _tsickle_typeAnnotationsHelper() {
-        /** @type {number} */
-        HasMethods.prototype._f;
-    }
 }
+// tsickle -> Closure type declarations
+/** @type {number} */
+HasMethods.prototype._f;
