@@ -4,16 +4,12 @@
  */
 
 import * as module1 from './module1';
-import {ClassOne, value} from './module2';
+import {ClassOne, value, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTwo, Interface, ClassWithParams} from './module2';
 const ClassOne: NeverTypeCheckMe = ClassOne;  /* local alias for Closure JSDoc */
 const value: NeverTypeCheckMe = value;  /* local alias for Closure JSDoc */
-import {ClassOne as RenamedClassOne} from './module2';
 const RenamedClassOne: NeverTypeCheckMe = RenamedClassOne;  /* local alias for Closure JSDoc */
-import {ClassTwo as RenamedClassTwo} from './module2';
 const RenamedClassTwo: NeverTypeCheckMe = RenamedClassTwo;  /* local alias for Closure JSDoc */
-import {Interface} from './module2';
 const Interface: NeverTypeCheckMe = Interface;  /* local alias for Closure JSDoc */
-import {ClassWithParams} from './module2';
 const ClassWithParams: NeverTypeCheckMe = ClassWithParams;  /* local alias for Closure JSDoc */
 import DefaultClass from './default';
 const DefaultClass: NeverTypeCheckMe = DefaultClass;  /* local alias for Closure JSDoc */

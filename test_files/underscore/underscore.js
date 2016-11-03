@@ -13,10 +13,9 @@ class __Class {
     __method(__arg) {
         return this.__member;
     }
-    static _tsickle_typeAnnotationsHelper() {
-        /** @type {string} */
-        __Class.prototype.__member;
-    }
 }
+// tsickle -> Closure type declarations
+/** @type {string} */
+__Class.prototype.__member;
 /** @record */
 function __Interface() { }

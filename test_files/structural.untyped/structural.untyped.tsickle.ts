@@ -6,13 +6,12 @@ class StructuralTest {
  * @return {?}
  */
 method(): string { return this.field1; }
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {?} */
 StructuralTest.prototype.field1;
-  }
 
-}
 /**
  * @param {?} st
  * @return {?}

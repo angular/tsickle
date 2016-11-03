@@ -15,15 +15,14 @@ class Foo {
 constructor(private ctorArg: string) {
     this.field = 'hello';
   }
+}
 
-  static _tsickle_typeAnnotationsHelper() {
+// tsickle -> Closure type declarations
  /** @type {?} */
 Foo.prototype.field;
  /** @type {?} */
 Foo.prototype.ctorArg;
-  }
 
-}
 
 // These two declarations should not have a @type annotation,
 // regardless of untyped.
