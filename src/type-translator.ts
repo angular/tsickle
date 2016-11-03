@@ -300,6 +300,17 @@ export class TypeTranslator {
       this.warn('type literal has no symbol');
       return '?';
     }
+
+    // special-case construct signatures.
+    const ctors = type.getConstructSignatures();
+    if (ctors.length) {
+      // TODO(martinprobst): this does not support additional properties defined on constructors
+      // (not expressible in Closure), nor multiple constructors (same).
+      const params = this.convertParams(ctors[0]);
+      const paramsStr = params.length ? (', ' + params.join(', ')) : '';
+      return `function(new: ${this.translate(ctors[0].getReturnType())}${paramsStr}): ?`;
+    }
+
     for (let field of Object.keys(type.symbol.members)) {
       switch (field) {
         case '__call':
@@ -359,10 +370,7 @@ export class TypeTranslator {
 
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
-    let params: string[] = [];
-    for (let param of sig.parameters) {
-      params.push(this.translate(this.typeChecker.getTypeOfSymbolAtLocation(param, this.node)));
-    }
+    let params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
     let retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
@@ -371,6 +379,11 @@ export class TypeTranslator {
     }
 
     return typeStr;
+  }
+
+  private convertParams(sig: ts.Signature): string[] {
+    return sig.parameters.map(
+        param => this.translate(this.typeChecker.getTypeOfSymbolAtLocation(param, this.node)));
   }
 
   warn(msg: string) {
