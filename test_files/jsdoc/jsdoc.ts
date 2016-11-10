@@ -18,6 +18,10 @@ function returnsTest(): string {
  */
 function jsDocTestBadDoc(foo: string) {}
 
+/**
+ * Test JS doc on class.
+ * @madeUpTag This tag will be stripped, because Closure disallows it.
+ */
 class JSDocTest {
   /** @export */
   exported: string;

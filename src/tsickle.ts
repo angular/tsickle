@@ -657,8 +657,12 @@ class Annotator extends ClosureRewriter {
     if ((classDecl.flags & ts.NodeFlags.Abstract) !== 0) {
       jsDoc.push({tagName: 'abstract'});
     }
-    this.writeRange(classDecl.getFullStart(), classDecl.getStart());
-    this.emit(jsdoc.toString(jsDoc));
+    if (jsDoc.length === 0) {
+      this.writeRange(classDecl.getFullStart(), classDecl.getStart());
+    } else {
+      this.emit('\n');
+      this.emit(jsdoc.toString(jsDoc));
+    }
     if (classDecl.members.length > 0) {
       // We must visit all members individually, to strip out any
       // /** @export */ annotations that show up in the constructor
