@@ -10,6 +10,6 @@ Bar.prototype.barField;
 
 
 export interface Bar { barField: number; }
-export var /** @type {Bar} */ export3: Bar = null;
+export var /** @type {Bar} */ export3: Bar;
 
 export let /** @type {number} */ export5 = 3;

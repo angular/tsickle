@@ -5,6 +5,6 @@ export let export1 = 3;
 export let export2 = 3;
 
 export interface Bar { barField: number; }
-export var export3: Bar = null;
+export var export3: Bar;
 
 export let export5 = 3;

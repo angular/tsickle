@@ -4,13 +4,13 @@ import * as conflict from './module';
 
 // Use a browser built-in as both a type and a value.
 let useBuiltInAsValue = Document;
-let useBuiltInAsType: Document = null;
+let useBuiltInAsType: Document;
 
 // Use a user-defined class as both a type and a value.
 let useUserClassAsValue = conflict.Class;
-let useUserClassAsType: conflict.Class = null;
+let useUserClassAsType: conflict.Class;
 
 // Use a user-defined interface/value pair as both a type and a value.
 let useAsValue = conflict.TypeAndValue;
 // Note: because of the conflict, we currently just use the type {?} here.
-let useAsType: conflict.TypeAndValue = null;
+let useAsType: conflict.TypeAndValue;

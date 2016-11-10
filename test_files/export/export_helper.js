@@ -10,5 +10,4 @@ function Bar() { }
 exports.Bar = Bar;
 /** @type {number} */
 Bar.prototype.barField;
-exports.export3 = null;
 exports.export5 = 3;

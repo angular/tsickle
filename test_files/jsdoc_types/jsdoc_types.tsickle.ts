@@ -18,24 +18,24 @@ const NeverTyped: NeverTypeCheckMe = NeverTyped;  /* local alias for Closure JSD
 
 // Check that imported types get the proper names in JSDoc.
 let /** @type {module1.Class} */ useNamespacedClass = new module1.Class();
-let /** @type {module1.Class} */ useNamespacedClassAsType: module1.Class = null;
-let /** @type {module1.Interface} */ useNamespacedType: module1.Interface = null;
+let /** @type {module1.Class} */ useNamespacedClassAsType: module1.Class;
+let /** @type {module1.Interface} */ useNamespacedType: module1.Interface;
 
 // Should be references to the symbols in module2, perhaps via locals.
 let /** @type {ClassOne} */ useLocalClass = new ClassOne();
 let /** @type {ClassOne} */ useLocalClassRenamed = new RenamedClassOne();
 let /** @type {RenamedClassTwo} */ useLocalClassRenamedTwo = new RenamedClassTwo();
-let /** @type {ClassOne} */ useLocalClassAsTypeRenamed: RenamedClassOne = null;
-let /** @type {Interface} */ useLocalInterface: Interface = null;
-let /** @type {ClassWithParams<number>} */ useClassWithParams: ClassWithParams<number> = null;
+let /** @type {ClassOne} */ useLocalClassAsTypeRenamed: RenamedClassOne;
+let /** @type {Interface} */ useLocalInterface: Interface;
+let /** @type {ClassWithParams<number>} */ useClassWithParams: ClassWithParams<number>;
 
 // This is purely a value; it doesn't need renaming.
 let /** @type {number} */ useLocalValue = value;
 
 // Check a default import.
 let /** @type {DefaultClass} */ useDefaultClass = new DefaultClass();
-let /** @type {DefaultClass} */ useDefaultClassAsType: DefaultClass = null;
+let /** @type {DefaultClass} */ useDefaultClassAsType: DefaultClass;
 
 // NeverTyped should be {?}, even in typed mode.
-let /** @type {?} */ useNeverTyped: NeverTyped = null;
-let /** @type {(string|?)} */ useNeverTyped2: string|NeverTyped = null;
+let /** @type {?} */ useNeverTyped: NeverTyped;
+let /** @type {(string|?)} */ useNeverTyped2: string|NeverTyped;

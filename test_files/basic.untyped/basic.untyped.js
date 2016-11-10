@@ -24,7 +24,7 @@ function Foo_tsickle_Closure_declarations() {
 // regardless of untyped.
 (function () {
     // With a type annotation:
-    let { a, b } = { a: null, b: null };
+    let { a, b } = { a: '', b: 0 };
 })();
 (function () {
     // Without a type annotation:

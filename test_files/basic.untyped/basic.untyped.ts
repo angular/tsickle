@@ -16,9 +16,9 @@ class Foo {
 // regardless of untyped.
 (function() {
   // With a type annotation:
-  let {a, b}: {a:string, b:number} = {a:null, b:null};
+  let {a, b}: {a: string, b: number} = {a: '', b: 0};
 })();
 (function() {
   // Without a type annotation:
-  let {a, b} = {a:null, b:null};
+  let {a, b} = {a: null, b: null};
 })();

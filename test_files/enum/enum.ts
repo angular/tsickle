@@ -7,8 +7,8 @@ enum EnumTest1 {XYZ, PI = 3.14159}
 // index into the enum with all the various ways allowed of enums.
 let enumTestValue: EnumTest1 = EnumTest1.XYZ;
 let enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
-let enumNumIndex: string = EnumTest1[null as number];
-let enumStrIndex: number = EnumTest1[null as string];
+let enumNumIndex: string = EnumTest1[null as any as number];
+let enumStrIndex: number = EnumTest1[null as any as string];
 
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
