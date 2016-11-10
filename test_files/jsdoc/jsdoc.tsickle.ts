@@ -1,6 +1,6 @@
 Warning at test_files/jsdoc/jsdoc.ts:16:1: type annotations (using {...}) are redundant with TypeScript types
-Warning at test_files/jsdoc/jsdoc.ts:25:3: type annotations (using {...}) are redundant with TypeScript types
-Warning at test_files/jsdoc/jsdoc.ts:30:3: @type annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:29:3: type annotations (using {...}) are redundant with TypeScript types
+Warning at test_files/jsdoc/jsdoc.ts:34:3: @type annotations are redundant with TypeScript equivalents
 ====
 
 /**
@@ -22,7 +22,9 @@ function returnsTest(): string {
  * @return {void}
  */
 function jsDocTestBadDoc(foo: string) {}
-
+/**
+ *  Test JS doc on class.
+ */
 class JSDocTest {
   /** @export */
   exported: string;

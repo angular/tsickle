@@ -17,6 +17,9 @@ function returnsTest() {
  * @return {void}
  */
 function jsDocTestBadDoc(foo) { }
+/**
+ *  Test JS doc on class.
+ */
 class JSDocTest {
 }
 // tsickle -> Closure type declarations
