@@ -19,16 +19,17 @@ function returnsTest() {
 function jsDocTestBadDoc(foo) { }
 class JSDocTest {
 }
-// tsickle -> Closure type declarations
-/** @export
-@type {string} */
-JSDocTest.prototype.exported;
-/** @type {string} */
-JSDocTest.prototype.badExport;
-/** @type {string} */
-JSDocTest.prototype.stringWithoutJSDoc;
-/** @type {number} */
-JSDocTest.prototype.typedThing;
+function JSDocTest_tsickle_Closure_declarations() {
+    /** @export
+    @type {string} */
+    JSDocTest.prototype.exported;
+    /** @type {string} */
+    JSDocTest.prototype.badExport;
+    /** @type {string} */
+    JSDocTest.prototype.stringWithoutJSDoc;
+    /** @type {number} */
+    JSDocTest.prototype.typedThing;
+}
 /**
  * @see This tag will be kept, because Closure allows it.
  * @return {void}

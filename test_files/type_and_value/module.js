@@ -3,6 +3,7 @@ exports.TypeAndValue = 3;
 class Class {
 }
 exports.Class = Class;
-// tsickle -> Closure type declarations
-/** @type {number} */
-Class.prototype.z;
+function Class_tsickle_Closure_declarations() {
+    /** @type {number} */
+    Class.prototype.z;
+}

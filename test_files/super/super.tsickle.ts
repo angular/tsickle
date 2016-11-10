@@ -9,9 +9,10 @@ class SuperTestBaseOneArg {
 constructor(public x: number) {}
 }
 
-// tsickle -> Closure type declarations
+function SuperTestBaseOneArg_tsickle_Closure_declarations() {
  /** @type {number} */
 SuperTestBaseOneArg.prototype.x;
+}
 
 
 // A ctor with a parameter property.
@@ -24,9 +25,10 @@ constructor(public y: string) {
   }
 }
 
-// tsickle -> Closure type declarations
+function SuperTestDerivedParamProps_tsickle_Closure_declarations() {
  /** @type {string} */
 SuperTestDerivedParamProps.prototype.y;
+}
 
 
 // A ctor with an initialized property.
@@ -37,9 +39,10 @@ constructor() {
   }
 }
 
-// tsickle -> Closure type declarations
+function SuperTestDerivedInitializedProps_tsickle_Closure_declarations() {
  /** @type {string} */
 SuperTestDerivedInitializedProps.prototype.y;
+}
 
 
 // A ctor with a super() but none of the above two details.
@@ -74,16 +77,18 @@ class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
 }
 
-// tsickle -> Closure type declarations
+function SuperTestDerivedInterface_tsickle_Closure_declarations() {
  /** @type {number} */
 SuperTestDerivedInterface.prototype.foo;
+}
 
 
 class SuperTestStaticProp extends SuperTestBaseOneArg {
   static foo = 3;
 }
 
-// tsickle -> Closure type declarations
+function SuperTestStaticProp_tsickle_Closure_declarations() {
  /** @type {number} */
 SuperTestStaticProp.foo;
+}
 

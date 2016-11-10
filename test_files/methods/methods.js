@@ -18,6 +18,7 @@ goog.module('test_files.methods.methods');var module = module || {id: 'test_file
      */
     set f(n) { this._f = n - 1; }
 }
-// tsickle -> Closure type declarations
-/** @type {number} */
-HasMethods.prototype._f;
+function HasMethods_tsickle_Closure_declarations() {
+    /** @type {number} */
+    HasMethods.prototype._f;
+}

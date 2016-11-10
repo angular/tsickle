@@ -8,9 +8,10 @@ goog.module('test_files.parameter_properties.parameter_properties');var module =
         this.bar2 = bar2;
     }
 }
-// tsickle -> Closure type declarations
-/** @export
-@type {string} */
-ParamProps.prototype.bar;
-/** @type {string} */
-ParamProps.prototype.bar2;
+function ParamProps_tsickle_Closure_declarations() {
+    /** @export
+    @type {string} */
+    ParamProps.prototype.bar;
+    /** @type {string} */
+    ParamProps.prototype.bar2;
+}

@@ -8,9 +8,10 @@ class StructuralTest {
 method(): string { return this.field1; }
 }
 
-// tsickle -> Closure type declarations
+function StructuralTest_tsickle_Closure_declarations() {
  /** @type {?} */
 StructuralTest.prototype.field1;
+}
 
 /**
  * @param {?} st

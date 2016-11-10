@@ -8,10 +8,11 @@ public bar: string,
 public bar2: string) {}
 }
 
-// tsickle -> Closure type declarations
+function ParamProps_tsickle_Closure_declarations() {
  /** @export
  @type {string} */
 ParamProps.prototype.bar;
  /** @type {string} */
 ParamProps.prototype.bar2;
+}
 

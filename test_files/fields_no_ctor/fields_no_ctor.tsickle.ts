@@ -2,7 +2,8 @@ class NoCtor {
   field1: number;
 }
 
-// tsickle -> Closure type declarations
+function NoCtor_tsickle_Closure_declarations() {
  /** @type {number} */
 NoCtor.prototype.field1;
+}
 
