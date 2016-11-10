@@ -1,4 +1,4 @@
-goog.module('test_files.decorator.decorator');var module = module || {id: 'test_files/decorator/decorator.js'};/**
+goog.module('test_files.decorator.decorator'); exports = {}; var module = module || {id: 'test_files/decorator/decorator.js'};/**
  * @param {Object} a
  * @param {string} b
  * @return {void}

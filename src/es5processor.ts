@@ -54,7 +54,7 @@ class ES5Processor extends Rewriter {
     // so that @suppress statements work.
     const moduleName = this.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
-    this.emit(`goog.module('${moduleName}');`);
+    this.emit(`goog.module('${moduleName}'); exports = {}; `);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
