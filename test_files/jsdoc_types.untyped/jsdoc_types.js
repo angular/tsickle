@@ -10,20 +10,20 @@ var module2_3 = module2_1;
 var default_1 = goog.require('test_files.jsdoc_types.untyped.default');
 // Check that imported types get the proper names in JSDoc.
 let /** @type {?} */ useNamespacedClass = new module1.Class();
-let /** @type {?} */ useNamespacedClassAsType = null;
-let /** @type {?} */ useNamespacedType = null;
+let /** @type {?} */ useNamespacedClassAsType;
+let /** @type {?} */ useNamespacedType;
 // Should be references to the symbols in module2, perhaps via locals.
 let /** @type {?} */ useLocalClass = new module2_1.ClassOne();
 let /** @type {?} */ useLocalClassRenamed = new module2_2.ClassOne();
 let /** @type {?} */ useLocalClassRenamedTwo = new module2_3.ClassTwo();
-let /** @type {?} */ useLocalClassAsTypeRenamed = null;
-let /** @type {?} */ useLocalInterface = null;
-let /** @type {?} */ useClassWithParams = null;
+let /** @type {?} */ useLocalClassAsTypeRenamed;
+let /** @type {?} */ useLocalInterface;
+let /** @type {?} */ useClassWithParams;
 // This is purely a value; it doesn't need renaming.
 let /** @type {?} */ useLocalValue = module2_1.value;
 // Check a default import.
 let /** @type {?} */ useDefaultClass = new default_1.default();
-let /** @type {?} */ useDefaultClassAsType = null;
+let /** @type {?} */ useDefaultClassAsType;
 // NeverTyped should be {?}, even in typed mode.
-let /** @type {?} */ useNeverTyped = null;
-let /** @type {?} */ useNeverTyped2 = null;
+let /** @type {?} */ useNeverTyped;
+let /** @type {?} */ useNeverTyped2;

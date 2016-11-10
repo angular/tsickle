@@ -1,6 +1,6 @@
 goog.module('test_files.optional.optional'); exports = {}; var module = module || {id: 'test_files/optional/optional.js'};/**
  * @param {number} x
- * @param {string=} y
+ * @param {(undefined|string)=} y
  * @return {void}
  */
 function optionalArgument(x, y) {
@@ -9,7 +9,7 @@ optionalArgument(1);
 class OptionalTest {
     /**
      * @param {string} a
-     * @param {string=} b
+     * @param {(undefined|string)=} b
      */
     constructor(a, b) {
     }

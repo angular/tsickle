@@ -1,3 +1,5 @@
+Warning at test_files/enum/enum.ts:2:7: unhandled type {type flags:0x2000 }
+====
 // Line with a missing semicolon should not break the following enum.
 const /** @type {Array<?>} */ EnumTestMissingSemi = []
 type EnumTest1 = number;
@@ -15,8 +17,8 @@ EnumTest1[EnumTest1.PI] = "PI";
 // index into the enum with all the various ways allowed of enums.
 let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
 let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
-let /** @type {string} */ enumNumIndex: string = EnumTest1[ /** @type {number} */((null as number))];
-let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} */((null as string))];
+let /** @type {string} */ enumNumIndex: string = EnumTest1[ /** @type {number} */(( /** @type {?} */((null as any)) as number))];
+let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} */(( /** @type {?} */((null as any)) as string))];
 /**
  * @param {number} val
  * @return {void}

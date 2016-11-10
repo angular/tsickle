@@ -14,24 +14,24 @@ import {NeverTyped} from './nevertyped';
 
 // Check that imported types get the proper names in JSDoc.
 let /** @type {?} */ useNamespacedClass = new module1.Class();
-let /** @type {?} */ useNamespacedClassAsType: module1.Class = null;
-let /** @type {?} */ useNamespacedType: module1.Interface = null;
+let /** @type {?} */ useNamespacedClassAsType: module1.Class;
+let /** @type {?} */ useNamespacedType: module1.Interface;
 
 // Should be references to the symbols in module2, perhaps via locals.
 let /** @type {?} */ useLocalClass = new ClassOne();
 let /** @type {?} */ useLocalClassRenamed = new RenamedClassOne();
 let /** @type {?} */ useLocalClassRenamedTwo = new RenamedClassTwo();
-let /** @type {?} */ useLocalClassAsTypeRenamed: RenamedClassOne = null;
-let /** @type {?} */ useLocalInterface: Interface = null;
-let /** @type {?} */ useClassWithParams: ClassWithParams<number> = null;
+let /** @type {?} */ useLocalClassAsTypeRenamed: RenamedClassOne;
+let /** @type {?} */ useLocalInterface: Interface;
+let /** @type {?} */ useClassWithParams: ClassWithParams<number>;
 
 // This is purely a value; it doesn't need renaming.
 let /** @type {?} */ useLocalValue = value;
 
 // Check a default import.
 let /** @type {?} */ useDefaultClass = new DefaultClass();
-let /** @type {?} */ useDefaultClassAsType: DefaultClass = null;
+let /** @type {?} */ useDefaultClassAsType: DefaultClass;
 
 // NeverTyped should be {?}, even in typed mode.
-let /** @type {?} */ useNeverTyped: NeverTyped = null;
-let /** @type {?} */ useNeverTyped2: string|NeverTyped = null;
+let /** @type {?} */ useNeverTyped: NeverTyped;
+let /** @type {?} */ useNeverTyped2: string|NeverTyped;
