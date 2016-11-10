@@ -9,13 +9,13 @@ interface Array<T> {
 }
 
 let /** @type {?} */ typeAny: any;
-let /** @type {Array<?>} */ typeArr: Array<any>;
-let /** @type {Array<?>} */ typeArr2: any[];
-let /** @type {Array<Array<{a: ?}>>} */ typeNestedArr: {a:any}[][];
+let /** @type {!Array<?>} */ typeArr: Array<any>;
+let /** @type {!Array<?>} */ typeArr2: any[];
+let /** @type {!Array<!Array<{a: ?}>>} */ typeNestedArr: {a:any}[][];
 let /** @type {{a: number, b: string}} */ typeObject: {a:number, b:string} = {a:3, b:'b'};
-let /** @type {Object<string,number>} */ typeObject2: {[key:string]: number};
+let /** @type {!Object<string,number>} */ typeObject2: {[key:string]: number};
 let /** @type {?} */ typeObject3: {a:number, [key:string]: number};
-let /** @type {Object} */ typeObjectEmpty: {};
+let /** @type {!Object} */ typeObjectEmpty: {};
 
 let /** @type {(string|boolean)} */ typeUnion: string|boolean = Math.random() > 0.5 ? false : '';
 let /** @type {(string|boolean)} */ typeUnion2: (string|boolean) = Math.random() > 0.5 ? false : '';

@@ -15,7 +15,7 @@ simple() {}
 publicAbstract() {}
 /**
  * @abstract
- * @param {Array<number>} x
+ * @param {!Array<number>} x
  * @return {void}
  */
 params(x: number[]) {}
@@ -54,7 +54,7 @@ simple() {}
  */
 publicAbstract() {}
 /**
- * @param {Array<number>} x
+ * @param {!Array<number>} x
  * @return {void}
  */
 params(x: number[]): void { }
@@ -68,4 +68,4 @@ noReturnType() {}
 hasReturnType(): number { return 3; }
 }
 
-let /** @type {Base} */ x: Base = new Derived();
+let /** @type {!Base} */ x: Base = new Derived();

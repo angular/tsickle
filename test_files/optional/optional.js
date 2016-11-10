@@ -19,5 +19,5 @@ class OptionalTest {
      */
     method(c = 'hi') { }
 }
-let /** @type {OptionalTest} */ optionalTest = new OptionalTest('a');
+let /** @type {!OptionalTest} */ optionalTest = new OptionalTest('a');
 optionalTest.method();

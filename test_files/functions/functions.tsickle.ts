@@ -35,7 +35,7 @@ function Test4(a: any): string {
   return "a";
 }
 /**
- * @param {!{a: number, b: number}} __0
+ * @param {{a: number, b: number}} __0
  * @return {void}
  */
 function Destructuring({a, b}: {a: number, b: number}) {}

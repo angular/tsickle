@@ -153,7 +153,7 @@ export class TypeTranslator {
    * @param notNull When true, insert a ! before any type references.  This
    *    is to work around the difference between TS and Closure destructuring.
    */
-  translate(type: ts.Type, notNull = false): string {
+  translate(type: ts.Type, notNull: boolean): string {
     // See the function `buildTypeDisplay` in the TypeScript compiler source
     // for guidance on a similar operation.
 
@@ -199,7 +199,7 @@ export class TypeTranslator {
         this.warn('class has no symbol');
         return '?';
       }
-      return this.symbolToString(type.symbol);
+      return notNullPrefix + this.symbolToString(type.symbol);
     } else if (type.flags & ts.TypeFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
@@ -221,7 +221,7 @@ export class TypeTranslator {
           return '?';
         }
       }
-      return this.symbolToString(type.symbol);
+      return notNullPrefix + this.symbolToString(type.symbol);
     } else if (type.flags & ts.TypeFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
@@ -241,11 +241,11 @@ export class TypeTranslator {
           throw new Error(
               `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
         }
-        typeStr += notNullPrefix + this.translate(referenceType.target);
+        typeStr += this.translate(referenceType.target, notNull);
       }
       if (referenceType.typeArguments) {
-        let params = referenceType.typeArguments.map(t => this.translate(t, notNull));
-        typeStr += isTuple ? `Array` : `<${params.join(', ')}>`;
+        let params = referenceType.typeArguments.map(t => this.translate(t, true));
+        typeStr += isTuple ? notNullPrefix + `Array` : `<${params.join(', ')}>`;
       }
       return typeStr;
     } else if (type.flags & ts.TypeFlags.Anonymous) {
@@ -259,7 +259,7 @@ export class TypeTranslator {
       }
 
       if (type.symbol.flags === ts.SymbolFlags.TypeLiteral) {
-        return notNullPrefix + this.translateTypeLiteral(type);
+        return this.translateTypeLiteral(type, notNull);
       } else if (
           type.symbol.flags === ts.SymbolFlags.Function ||
           type.symbol.flags === ts.SymbolFlags.Method) {
@@ -272,7 +272,7 @@ export class TypeTranslator {
       return '?';
     } else if (type.flags & ts.TypeFlags.Union) {
       let unionType = type as ts.UnionType;
-      let parts = unionType.types.map(t => this.translate(t));
+      let parts = unionType.types.map(t => this.translate(t, notNull));
       // In union types that include boolean literal and other literals can
       // end up repeating the same closure type. For example: true | boolean
       // will be translated to boolean | boolean. Remove duplicates to produce
@@ -284,7 +284,8 @@ export class TypeTranslator {
     return '?';
   }
 
-  private translateTypeLiteral(type: ts.Type): string {
+  private translateTypeLiteral(type: ts.Type, notNull: boolean): string {
+    const notNullPrefix = notNull ? '!' : '';
     // Avoid infinite loops on recursive types.
     // It would be nice to just emit the name of the recursive type here,
     // but type.symbol doesn't seem to have the name here (perhaps something
@@ -308,7 +309,8 @@ export class TypeTranslator {
       // (not expressible in Closure), nor multiple constructors (same).
       const params = this.convertParams(ctors[0]);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
-      return `function(new: ${this.translate(ctors[0].getReturnType())}${paramsStr}): ?`;
+      const constructedType = this.translate(ctors[0].getReturnType(), false);
+      return `function(new: ${constructedType}${paramsStr}): ?`;
     }
 
     for (let field of Object.keys(type.symbol.members)) {
@@ -323,7 +325,7 @@ export class TypeTranslator {
           let member = type.symbol.members[field];
           let isOptional = member.flags & ts.SymbolFlags.Optional;
           let memberType =
-              this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
+              this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node), true);
           if (isOptional) {
             memberType = `(${memberType}|undefined)`;
           }
@@ -349,13 +351,13 @@ export class TypeTranslator {
         }
         if (!valType) {
           this.warn('unknown index key type');
-          return `Object<?,?>`;
+          return notNullPrefix + `Object<?,?>`;
         }
-        return `Object<${keyType},${this.translate(valType)}>`;
+        return notNullPrefix + `Object<${keyType},${this.translate(valType, true)}>`;
       } else if (!callable && !indexable) {
         // Special-case the empty object {} because Closure doesn't like it.
         // TODO(evanm): revisit this if it is a problem.
-        return 'Object';
+        return notNullPrefix + 'Object';
       }
     }
 
@@ -373,7 +375,7 @@ export class TypeTranslator {
     let params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
-    let retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
+    let retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig), true);
     if (retType) {
       typeStr += `: ${retType}`;
     }
@@ -382,8 +384,10 @@ export class TypeTranslator {
   }
 
   private convertParams(sig: ts.Signature): string[] {
-    return sig.parameters.map(
-        param => this.translate(this.typeChecker.getTypeOfSymbolAtLocation(param, this.node)));
+    return sig.parameters.map(param => {
+      let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      return this.translate(paramType, true);
+    });
   }
 
   warn(msg: string) {

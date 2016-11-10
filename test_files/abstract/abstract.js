@@ -14,7 +14,7 @@ class Base {
     publicAbstract() { }
     /**
      * @abstract
-     * @param {Array<number>} x
+     * @param {!Array<number>} x
      * @return {void}
      */
     params(x) { }
@@ -52,7 +52,7 @@ class Derived extends Base {
      */
     publicAbstract() { }
     /**
-     * @param {Array<number>} x
+     * @param {!Array<number>} x
      * @return {void}
      */
     params(x) { }
@@ -65,4 +65,4 @@ class Derived extends Base {
      */
     hasReturnType() { return 3; }
 }
-let /** @type {Base} */ x = new Derived();
+let /** @type {!Base} */ x = new Derived();

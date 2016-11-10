@@ -84,14 +84,14 @@ Object.prototype.myMethod = function() {};
 
 /**
  * @param {string} x
- * @return {CodeMirror.Editor}
+ * @return {!CodeMirror.Editor}
  */
 function CodeMirror(x) {}
 
 /**
  * @param {number} y
  * @param {string} x
- * @return {CodeMirror.Editor}
+ * @return {!CodeMirror.Editor}
  */
 function CodeMirror(y, x) {}
 

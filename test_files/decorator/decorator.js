@@ -1,11 +1,11 @@
 goog.module('test_files.decorator.decorator'); exports = {}; var module = module || {id: 'test_files/decorator/decorator.js'};/**
- * @param {Object} a
+ * @param {!Object} a
  * @param {string} b
  * @return {void}
  */
 function decorator(a, b) { }
 /**
- * @param {Object} a
+ * @param {!Object} a
  * @param {string} b
  * @return {void}
  */
@@ -31,16 +31,16 @@ DecoratorTest.propDecorators = {
     'y': [{ type: annotationDecorator },],
 };
 __decorate([
-    decorator, 
+    decorator,
     __metadata('design:type', Number)
 ], DecoratorTest.prototype, "x", void 0);
 function DecoratorTest_tsickle_Closure_declarations() {
-    /** @type {Array<DecoratorInvocation>} */
+    /** @type {!Array<!DecoratorInvocation>} */
     DecoratorTest.decorators;
     /** @nocollapse
-    @type {Array<{type: ?, decorators: (Array<DecoratorInvocation>|undefined)}>} */
+    @type {!Array<(null|{type: ?, decorators: ((undefined|!Array<!DecoratorInvocation>)|undefined)})>} */
     DecoratorTest.ctorParameters;
-    /** @type {Object<string,Array<DecoratorInvocation>>} */
+    /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
     DecoratorTest.propDecorators;
     /** @type {number} */
     DecoratorTest.prototype.x;
@@ -50,7 +50,7 @@ function DecoratorTest_tsickle_Closure_declarations() {
 let DecoratedClass = class DecoratedClass {
 };
 DecoratedClass = __decorate([
-    classDecorator, 
+    classDecorator,
     __metadata('design:paramtypes', [])
 ], DecoratedClass);
 function DecoratedClass_tsickle_Closure_declarations() {
@@ -59,7 +59,7 @@ function DecoratedClass_tsickle_Closure_declarations() {
 }
 /** @record */
 function DecoratorInvocation() { }
-/** @type {Function} */
+/** @type {!Function} */
 DecoratorInvocation.prototype.type;
-/** @type {Array<?>} */
+/** @type {(undefined|!Array<?>)} */
 DecoratorInvocation.prototype.args;

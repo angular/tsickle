@@ -21,5 +21,5 @@ constructor(a: string, b?: string) {}
 method(c: string = 'hi') {}
 }
 
-let /** @type {OptionalTest} */ optionalTest = new OptionalTest('a');
+let /** @type {!OptionalTest} */ optionalTest = new OptionalTest('a');
 optionalTest.method();

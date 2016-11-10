@@ -328,7 +328,7 @@ class ClosureRewriter extends Rewriter {
    *     object/array types.  This is a workaround specifically for destructuring
    *     bind patterns.
    */
-  typeToClosure(context: ts.Node, type?: ts.Type, destructuring?: boolean): string {
+  typeToClosure(context: ts.Node, type?: ts.Type, destructuring = false): string {
     if (this.options.untyped) {
       return '?';
     }
@@ -339,7 +339,7 @@ class ClosureRewriter extends Rewriter {
     }
     let translator = new TypeTranslator(typeChecker, context, this.options.typeBlackListPaths);
     translator.warn = msg => this.debugWarn(context, msg);
-    return translator.translate(type, destructuring);
+    return translator.translate(type, true);
   }
 
   /**

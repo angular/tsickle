@@ -1,7 +1,7 @@
 Warning at test_files/enum/enum.ts:2:7: unhandled type {type flags:0x2000 }
 ====
 // Line with a missing semicolon should not break the following enum.
-const /** @type {Array<?>} */ EnumTestMissingSemi = []
+const /** @type {!Array<?>} */ EnumTestMissingSemi = []
 type EnumTest1 = number;
 let EnumTest1: any = {};
 /** @type {number} */

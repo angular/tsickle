@@ -10,14 +10,14 @@ interface Point {
   y: number;
 }
 /**
- * @param {Point} p
+ * @param {!Point} p
  * @return {number}
  */
 function usePoint(p: Point): number {
   return p.x + p.y;
 }
 
-let /** @type {Point} */ p: Point = {x:1, y:1};
+let /** @type {!Point} */ p: Point = {x:1, y:1};
 usePoint(p);
 usePoint({x:1, y:1});
 /** @record */

@@ -5,13 +5,13 @@ Point.prototype.x;
 /** @type {number} */
 Point.prototype.y;
 /**
- * @param {Point} p
+ * @param {!Point} p
  * @return {number}
  */
 function usePoint(p) {
     return p.x + p.y;
 }
-let /** @type {Point} */ p = { x: 1, y: 1 };
+let /** @type {!Point} */ p = { x: 1, y: 1 };
 usePoint(p);
 usePoint({ x: 1, y: 1 });
 /** @record */
