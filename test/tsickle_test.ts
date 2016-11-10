@@ -17,8 +17,8 @@ import {toArray} from '../src/util';
 
 import * as testSupport from './test_support';
 
-let RUN_TESTS_MATCHING: RegExp|null = null;
-// RUN_TESTS_MATCHING = /fields/;
+const TEST_FILTER: RegExp|null =
+    process.env.TEST_FILTER ? new RegExp(process.env.TEST_FILTER) : null;
 
 // If true, update all the golden .js files to be whatever tsickle
 // produces from the .ts source. Do not change this code but run as:
@@ -66,9 +66,12 @@ function compareAgainstGolden(output: string|null, path: string) {
   }
 }
 
-describe('golden tests', () => {
+// Only run golden tests if we filter for a specific one.
+const testFn = TEST_FILTER ? describe.only : describe;
+
+testFn('golden tests', () => {
   testSupport.goldenTests().forEach((test) => {
-    if (RUN_TESTS_MATCHING && !RUN_TESTS_MATCHING.exec(test.name)) {
+    if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
       return;
     }
