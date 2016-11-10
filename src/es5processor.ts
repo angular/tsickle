@@ -54,6 +54,9 @@ class ES5Processor extends Rewriter {
     // so that @suppress statements work.
     const moduleName = this.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
+    // The `exports = {}` serves as a default export to disable Closure Compiler's error checking
+    // for mutable exports. That's OK because TS compiler makes sure that consuming code always
+    // accesses exports through the module object, so mutable exports work.
     this.emit(`goog.module('${moduleName}'); exports = {}; `);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
