@@ -6,7 +6,7 @@ class Primitives {
   optional?: string;
 }
 
-// tsickle -> Closure type declarations
+function Primitives_tsickle_Closure_declarations() {
  /** @type {(null|string)} */
 Primitives.prototype.nullable;
  /** @type {(undefined|number)} */
@@ -15,6 +15,7 @@ Primitives.prototype.undefinable;
 Primitives.prototype.nullableUndefinable;
  /** @type {(undefined|string)} */
 Primitives.prototype.optional;
+}
 
 
 class NonPrimitive {}
@@ -27,15 +28,16 @@ class NonPrimitives {
   optional?: NonPrimitive;
 }
 
-// tsickle -> Closure type declarations
- /** @type {NonPrimitive} */
+function NonPrimitives_tsickle_Closure_declarations() {
+ /** @type {!NonPrimitive} */
 NonPrimitives.prototype.nonNull;
- /** @type {(null|NonPrimitive)} */
+ /** @type {(null|!NonPrimitive)} */
 NonPrimitives.prototype.nullable;
- /** @type {(undefined|NonPrimitive)} */
+ /** @type {(undefined|!NonPrimitive)} */
 NonPrimitives.prototype.undefinable;
- /** @type {(undefined|null|NonPrimitive)} */
+ /** @type {(undefined|null|!NonPrimitive)} */
 NonPrimitives.prototype.nullableUndefinable;
- /** @type {(undefined|NonPrimitive)} */
+ /** @type {(undefined|!NonPrimitive)} */
 NonPrimitives.prototype.optional;
+}
 

@@ -1,11 +1,11 @@
 goog.module('test_files.type.type'); exports = {}; var module = module || {id: 'test_files/type/type.js'};let /** @type {?} */ typeAny;
-let /** @type {Array<?>} */ typeArr;
-let /** @type {Array<?>} */ typeArr2;
-let /** @type {Array<Array<{a: ?}>>} */ typeNestedArr;
+let /** @type {!Array<?>} */ typeArr;
+let /** @type {!Array<?>} */ typeArr2;
+let /** @type {!Array<!Array<{a: ?}>>} */ typeNestedArr;
 let /** @type {{a: number, b: string}} */ typeObject = { a: 3, b: 'b' };
-let /** @type {Object<string,number>} */ typeObject2;
+let /** @type {!Object<string,number>} */ typeObject2;
 let /** @type {?} */ typeObject3;
-let /** @type {Object} */ typeObjectEmpty;
+let /** @type {!Object} */ typeObjectEmpty;
 let /** @type {(string|boolean)} */ typeUnion = Math.random() > 0.5 ? false : '';
 let /** @type {(string|boolean)} */ typeUnion2 = Math.random() > 0.5 ? false : '';
 let /** @type {{optional: ((undefined|boolean)|undefined)}} */ typeOptionalField = {};

@@ -20,13 +20,13 @@ var React = {};
 
 /**
  * @param {...?} args
- * @return {Element}
+ * @return {!Element}
  */
 React.createElement = function(args) {};
 
 /**
- * @param {JSX.Element} element
- * @param {HTMLElement} node
+ * @param {!JSX.Element} element
+ * @param {!HTMLElement} node
  * @return {void}
  */
 React.render = function(element, node) {};

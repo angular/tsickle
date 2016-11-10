@@ -26,7 +26,7 @@ function Test4(a) {
     return "a";
 }
 /**
- * @param {!{a: number, b: number}} __0
+ * @param {{a: number, b: number}} __0
  * @return {void}
  */
 function Destructuring({ a, b }) { }

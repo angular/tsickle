@@ -33,7 +33,7 @@ FieldsTest.prototype.field3;
 }
 
 
-let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);
+let /** @type {!FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';
 

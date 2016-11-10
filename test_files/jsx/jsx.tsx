@@ -26,5 +26,5 @@ let helloDiv = <div>
   <Component/>
 </div>;
 
-React.render(helloDiv, document.body);
+React.render(helloDiv, document.body!);
 

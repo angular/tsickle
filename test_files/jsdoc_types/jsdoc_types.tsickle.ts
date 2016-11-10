@@ -17,24 +17,24 @@ import {NeverTyped} from './nevertyped';
 const NeverTyped: NeverTypeCheckMe = NeverTyped;  /* local alias for Closure JSDoc */
 
 // Check that imported types get the proper names in JSDoc.
-let /** @type {module1.Class} */ useNamespacedClass = new module1.Class();
-let /** @type {module1.Class} */ useNamespacedClassAsType: module1.Class;
-let /** @type {module1.Interface} */ useNamespacedType: module1.Interface;
+let /** @type {!module1.Class} */ useNamespacedClass = new module1.Class();
+let /** @type {!module1.Class} */ useNamespacedClassAsType: module1.Class;
+let /** @type {!module1.Interface} */ useNamespacedType: module1.Interface;
 
 // Should be references to the symbols in module2, perhaps via locals.
-let /** @type {ClassOne} */ useLocalClass = new ClassOne();
-let /** @type {ClassOne} */ useLocalClassRenamed = new RenamedClassOne();
-let /** @type {RenamedClassTwo} */ useLocalClassRenamedTwo = new RenamedClassTwo();
-let /** @type {ClassOne} */ useLocalClassAsTypeRenamed: RenamedClassOne;
-let /** @type {Interface} */ useLocalInterface: Interface;
-let /** @type {ClassWithParams<number>} */ useClassWithParams: ClassWithParams<number>;
+let /** @type {!ClassOne} */ useLocalClass = new ClassOne();
+let /** @type {!ClassOne} */ useLocalClassRenamed = new RenamedClassOne();
+let /** @type {!RenamedClassTwo} */ useLocalClassRenamedTwo = new RenamedClassTwo();
+let /** @type {!ClassOne} */ useLocalClassAsTypeRenamed: RenamedClassOne;
+let /** @type {!Interface} */ useLocalInterface: Interface;
+let /** @type {!ClassWithParams<number>} */ useClassWithParams: ClassWithParams<number>;
 
 // This is purely a value; it doesn't need renaming.
 let /** @type {number} */ useLocalValue = value;
 
 // Check a default import.
-let /** @type {DefaultClass} */ useDefaultClass = new DefaultClass();
-let /** @type {DefaultClass} */ useDefaultClassAsType: DefaultClass;
+let /** @type {!DefaultClass} */ useDefaultClass = new DefaultClass();
+let /** @type {!DefaultClass} */ useDefaultClassAsType: DefaultClass;
 
 // NeverTyped should be {?}, even in typed mode.
 let /** @type {?} */ useNeverTyped: NeverTyped;
