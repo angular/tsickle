@@ -4,9 +4,10 @@ class Static {
 private static baz: number = 3;
 }
 
-// tsickle -> Closure type declarations
+function Static_tsickle_Closure_declarations() {
  /** @type {number} */
 Static.bar;
  /** @type {number} */
 Static.baz;
+}
 

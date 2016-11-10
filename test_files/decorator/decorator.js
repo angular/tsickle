@@ -34,27 +34,29 @@ __decorate([
     decorator, 
     __metadata('design:type', Number)
 ], DecoratorTest.prototype, "x", void 0);
-// tsickle -> Closure type declarations
-/** @type {Array<DecoratorInvocation>} */
-DecoratorTest.decorators;
-/** @nocollapse
-@type {Array<{type: ?, decorators: (Array<DecoratorInvocation>|undefined)}>} */
-DecoratorTest.ctorParameters;
-/** @type {Object<string,Array<DecoratorInvocation>>} */
-DecoratorTest.propDecorators;
-/** @type {number} */
-DecoratorTest.prototype.x;
-/** @type {number} */
-DecoratorTest.prototype.y;
+function DecoratorTest_tsickle_Closure_declarations() {
+    /** @type {Array<DecoratorInvocation>} */
+    DecoratorTest.decorators;
+    /** @nocollapse
+    @type {Array<{type: ?, decorators: (Array<DecoratorInvocation>|undefined)}>} */
+    DecoratorTest.ctorParameters;
+    /** @type {Object<string,Array<DecoratorInvocation>>} */
+    DecoratorTest.propDecorators;
+    /** @type {number} */
+    DecoratorTest.prototype.x;
+    /** @type {number} */
+    DecoratorTest.prototype.y;
+}
 let DecoratedClass = class DecoratedClass {
 };
 DecoratedClass = __decorate([
     classDecorator, 
     __metadata('design:paramtypes', [])
 ], DecoratedClass);
-// tsickle -> Closure type declarations
-/** @type {string} */
-DecoratedClass.prototype.z;
+function DecoratedClass_tsickle_Closure_declarations() {
+    /** @type {string} */
+    DecoratedClass.prototype.z;
+}
 /** @record */
 function DecoratorInvocation() { }
 /** @type {Function} */

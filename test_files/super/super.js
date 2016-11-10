@@ -10,9 +10,10 @@ class SuperTestBaseOneArg {
         this.x = x;
     }
 }
-// tsickle -> Closure type declarations
-/** @type {number} */
-SuperTestBaseOneArg.prototype.x;
+function SuperTestBaseOneArg_tsickle_Closure_declarations() {
+    /** @type {number} */
+    SuperTestBaseOneArg.prototype.x;
+}
 // A ctor with a parameter property.
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
@@ -23,9 +24,10 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
         this.y = y;
     }
 }
-// tsickle -> Closure type declarations
-/** @type {string} */
-SuperTestDerivedParamProps.prototype.y;
+function SuperTestDerivedParamProps_tsickle_Closure_declarations() {
+    /** @type {string} */
+    SuperTestDerivedParamProps.prototype.y;
+}
 // A ctor with an initialized property.
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     constructor() {
@@ -33,9 +35,10 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
         this.y = 'foo';
     }
 }
-// tsickle -> Closure type declarations
-/** @type {string} */
-SuperTestDerivedInitializedProps.prototype.y;
+function SuperTestDerivedInitializedProps_tsickle_Closure_declarations() {
+    /** @type {string} */
+    SuperTestDerivedInitializedProps.prototype.y;
+}
 // A ctor with a super() but none of the above two details.
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
     constructor() {
@@ -55,12 +58,14 @@ SuperTestInterface.prototype.foo;
 // A class implementing an interface.
 class SuperTestDerivedInterface {
 }
-// tsickle -> Closure type declarations
-/** @type {number} */
-SuperTestDerivedInterface.prototype.foo;
+function SuperTestDerivedInterface_tsickle_Closure_declarations() {
+    /** @type {number} */
+    SuperTestDerivedInterface.prototype.foo;
+}
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
-// tsickle -> Closure type declarations
-/** @type {number} */
-SuperTestStaticProp.foo;
+function SuperTestStaticProp_tsickle_Closure_declarations() {
+    /** @type {number} */
+    SuperTestStaticProp.foo;
+}

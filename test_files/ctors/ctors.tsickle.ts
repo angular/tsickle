@@ -6,8 +6,9 @@ class X {
 constructor(private a: number) {}
 }
 
-// tsickle -> Closure type declarations
+function X_tsickle_Closure_declarations() {
  /** @type {number} */
 X.prototype.a;
+}
 
 let /** @type {function(new: X, number): ?} */ y: {new (a: number): X} = X;

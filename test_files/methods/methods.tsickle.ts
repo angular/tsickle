@@ -20,7 +20,8 @@ get f(): number { return this._f + 1; }
 set f(n: number) { this._f = n - 1; }
 }
 
-// tsickle -> Closure type declarations
+function HasMethods_tsickle_Closure_declarations() {
  /** @type {number} */
 HasMethods.prototype._f;
+}
 

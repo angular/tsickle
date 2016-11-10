@@ -16,9 +16,10 @@ __method(__arg: string): string {
   }
 }
 
-// tsickle -> Closure type declarations
+function __Class_tsickle_Closure_declarations() {
  /** @type {string} */
 __Class.prototype.__member;
+}
 
 /** @record */
 function __Interface() {}

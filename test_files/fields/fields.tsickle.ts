@@ -21,7 +21,7 @@ getF1() {
   }
 }
 
-// tsickle -> Closure type declarations
+function FieldsTest_tsickle_Closure_declarations() {
  /** @type {string} */
 FieldsTest.prototype.field1;
  /** @type {number} */
@@ -30,6 +30,7 @@ FieldsTest.prototype.field2;
 FieldsTest.prototype.field4;
  /** @type {number} */
 FieldsTest.prototype.field3;
+}
 
 
 let /** @type {FieldsTest} */ fieldsTest = new FieldsTest(3);

@@ -744,11 +744,12 @@ class Annotator extends ClosureRewriter {
     if (!classDecl.name) return;
     let className = getIdentifierText(classDecl.name);
 
-    this.emit('\n\n// tsickle -> Closure type declarations\n');
+    this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
     staticProps.forEach(p => this.visitProperty([className], p));
     let memberNamespace = [className, 'prototype'];
     nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));
     paramProps.forEach((p) => this.visitProperty(memberNamespace, p));
+    this.emit(`}\n`);
   }
 
   private propertyName(prop: ts.Declaration): string|null {

@@ -5,6 +5,7 @@ export var /** @type {number} */ TypeAndValue = 3;
 
 export class Class { z: number }
 
-// tsickle -> Closure type declarations
+function Class_tsickle_Closure_declarations() {
  /** @type {number} */
 Class.prototype.z;
+}

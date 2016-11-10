@@ -38,7 +38,7 @@ class JSDocTest {
   typedThing: number;
 }
 
-// tsickle -> Closure type declarations
+function JSDocTest_tsickle_Closure_declarations() {
  /** @export
  @type {string} */
 JSDocTest.prototype.exported;
@@ -48,6 +48,7 @@ JSDocTest.prototype.badExport;
 JSDocTest.prototype.stringWithoutJSDoc;
  /** @type {number} */
 JSDocTest.prototype.typedThing;
+}
 
 /**
  * @see This tag will be kept, because Closure allows it.
