@@ -19,8 +19,8 @@ let /** @type {!Object} */ typeObjectEmpty: {};
 
 let /** @type {(string|boolean)} */ typeUnion: string|boolean = Math.random() > 0.5 ? false : '';
 let /** @type {(string|boolean)} */ typeUnion2: (string|boolean) = Math.random() > 0.5 ? false : '';
-let /** @type {{optional: ((undefined|boolean)|undefined)}} */ typeOptionalField: {optional?: boolean} = {};
-let /** @type {{optional: ((undefined|string|boolean)|undefined)}} */ typeOptionalUnion: {optional?: string|boolean} = {};
+let /** @type {{optional: (undefined|boolean)}} */ typeOptionalField: {optional?: boolean} = {};
+let /** @type {{optional: (undefined|string|boolean)}} */ typeOptionalUnion: {optional?: string|boolean} = {};
 
 let /** @type {function(): void} */ typeFunc: () => void = function() {};
 let /** @type {function(number, ?): string} */ typeFunc2: (a: number, b: any) => string = function(a, b) { return ''; };
