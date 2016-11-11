@@ -26,5 +26,5 @@ let /** @type {!JSX.Element} */ helloDiv = <div>
   <Component/>
 </div>;
 
-React.render(helloDiv, document.body!);
+React.render(helloDiv, /** @type {!HTMLElement} */(( document.body)));
 

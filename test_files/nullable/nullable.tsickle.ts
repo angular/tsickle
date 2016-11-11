@@ -41,3 +41,11 @@ NonPrimitives.prototype.nullableUndefinable;
 NonPrimitives.prototype.optional;
 }
 
+/**
+ * @param {(string|number)} val
+ * @return {void}
+ */
+function takesNonNullable(val: string|number) {}
+
+let /** @type {{field: (null|string|number)}} */ x: {field: string | null | number} = {field: null};
+takesNonNullable( /** @type {(string|number)} */((x.field)));

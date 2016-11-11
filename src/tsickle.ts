@@ -310,12 +310,12 @@ class ClosureRewriter extends Rewriter {
   }
 
   /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
-  emitJSDocType(node: ts.Node, additionalDocTag?: string) {
+  emitJSDocType(node: ts.Node, additionalDocTag?: string, type?: ts.Type) {
     this.emit(' /**');
     if (additionalDocTag) {
       this.emit(' ' + additionalDocTag);
     }
-    this.emit(` @type {${this.typeToClosure(node)}} */`);
+    this.emit(` @type {${this.typeToClosure(node, type)}} */`);
   }
 
   /**
@@ -532,8 +532,28 @@ class Annotator extends ClosureRewriter {
         // When TypeScript emits JS, it removes one layer of "redundant"
         // parens, but we need them for the Closure type assertion.  Work
         // around this by using two parens.  See test_files/coerce.*.
+        // TODO: the comment is currently dropped from pure assignments due to
+        //   https://github.com/Microsoft/TypeScript/issues/9873
         this.emit('((');
         this.writeNode(node);
+        this.emit('))');
+        return true;
+      case ts.SyntaxKind.NonNullExpression:
+        const nnexpr = node as ts.NonNullExpression;
+        let type = this.program.getTypeChecker().getTypeAtLocation(nnexpr.expression);
+        if (type.flags & ts.TypeFlags.Union) {
+          const nonNullUnion =
+              (type as ts.UnionType)
+                  .types.filter(
+                      t => (t.flags & (ts.TypeFlags.Null | ts.TypeFlags.Undefined)) === 0);
+          const typeCopy = Object.assign({}, type as ts.UnionType);
+          typeCopy.types = nonNullUnion;
+          type = typeCopy;
+        }
+        this.emitJSDocType(nnexpr, undefined, type);
+        // See comment above.
+        this.emit('((');
+        this.writeNode(nnexpr.expression);
         this.emit('))');
         return true;
       default:
