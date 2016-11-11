@@ -1,4 +1,4 @@
-goog.module('test_files.export.export');var module = module || {id: 'test_files/export/export.js'};
+goog.module('test_files.export.export'); exports = {}; var module = module || {id: 'test_files/export/export.js'};
 var export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export2 = export_helper_1.export2;
 exports.Bar = export_helper_1.Bar;
