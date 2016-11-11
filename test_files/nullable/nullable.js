@@ -1,4 +1,4 @@
-goog.module('test_files.nullable.nullable');var module = module || {id: 'test_files/nullable/nullable.js'};class Primitives {
+goog.module('test_files.nullable.nullable'); exports = {}; var module = module || {id: 'test_files/nullable/nullable.js'};class Primitives {
 }
 function Primitives_tsickle_Closure_declarations() {
     /** @type {(null|string)} */
@@ -26,3 +26,10 @@ function NonPrimitives_tsickle_Closure_declarations() {
     /** @type {(undefined|!NonPrimitive)} */
     NonPrimitives.prototype.optional;
 }
+/**
+ * @param {(string|number)} val
+ * @return {void}
+ */
+function takesNonNullable(val) { }
+let /** @type {{field: (null|string|number)}} */ x = { field: null };
+takesNonNullable(/** @type {(string|number)} */ ((x.field)));

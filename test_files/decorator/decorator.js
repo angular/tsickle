@@ -31,7 +31,7 @@ DecoratorTest.propDecorators = {
     'y': [{ type: annotationDecorator },],
 };
 __decorate([
-    decorator,
+    decorator, 
     __metadata('design:type', Number)
 ], DecoratorTest.prototype, "x", void 0);
 function DecoratorTest_tsickle_Closure_declarations() {
@@ -50,7 +50,7 @@ function DecoratorTest_tsickle_Closure_declarations() {
 let DecoratedClass = class DecoratedClass {
 };
 DecoratedClass = __decorate([
-    classDecorator,
+    classDecorator, 
     __metadata('design:paramtypes', [])
 ], DecoratedClass);
 function DecoratedClass_tsickle_Closure_declarations() {

@@ -15,3 +15,8 @@ class NonPrimitives {
   nullableUndefinable: NonPrimitive|null|undefined;
   optional?: NonPrimitive;
 }
+
+function takesNonNullable(val: string|number) {}
+
+let x: {field: string | null | number} = {field: null};
+takesNonNullable(x.field!);

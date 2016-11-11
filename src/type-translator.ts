@@ -272,7 +272,7 @@ export class TypeTranslator {
       return '?';
     } else if (type.flags & ts.TypeFlags.Union) {
       let unionType = type as ts.UnionType;
-      let parts = unionType.types.map(t => this.translate(t, notNull));
+      let parts = unionType.types.map(t => this.translate(t, true));
       // In union types that include boolean literal and other literals can
       // end up repeating the same closure type. For example: true | boolean
       // will be translated to boolean | boolean. Remove duplicates to produce
