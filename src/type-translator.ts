@@ -323,12 +323,9 @@ export class TypeTranslator {
           break;
         default:
           let member = type.symbol.members[field];
-          let isOptional = member.flags & ts.SymbolFlags.Optional;
+          // optional members are handled by the type including |undefined in a union type.
           let memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node), true);
-          if (isOptional) {
-            memberType = `(${memberType}|undefined)`;
-          }
           fields.push(`${field}: ${memberType}`);
       }
     }
