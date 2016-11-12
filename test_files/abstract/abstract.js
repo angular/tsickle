@@ -1,4 +1,4 @@
-goog.module('test_files.abstract.abstract'); exports = {}; var module = module || {id: 'test_files/abstract/abstract.js'};/**
+goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};/**
  * @abstract
  */
 class Base {
