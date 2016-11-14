@@ -1,4 +1,4 @@
-goog.module('test_files.basic.untyped.basic.untyped'); exports = {}; var module = module || {id: 'test_files/basic.untyped/basic.untyped.js'};/**
+goog.module('test_files.basic.untyped.basic.untyped');var module = module || {id: 'test_files/basic.untyped/basic.untyped.js'};/**
  * @param {?} arg1
  * @return {?}
  */

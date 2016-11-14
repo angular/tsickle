@@ -1,4 +1,4 @@
-goog.module('test_files.jsdoc.jsdoc'); exports = {}; var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
+goog.module('test_files.jsdoc.jsdoc');var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.

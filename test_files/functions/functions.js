@@ -1,4 +1,4 @@
-goog.module('test_files.functions.functions'); exports = {}; var module = module || {id: 'test_files/functions/functions.js'};/**
+goog.module('test_files.functions.functions');var module = module || {id: 'test_files/functions/functions.js'};/**
  * @param {number} a
  * @return {number}
  */
