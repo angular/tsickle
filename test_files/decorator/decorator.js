@@ -26,7 +26,7 @@ DecoratorTest.decorators = [
     { type: classAnnotation },
 ];
 /** @nocollapse */
-DecoratorTest.ctorParameters = [];
+DecoratorTest.ctorParameters = () => [];
 DecoratorTest.propDecorators = {
     'y': [{ type: annotationDecorator },],
 };
@@ -38,7 +38,7 @@ function DecoratorTest_tsickle_Closure_declarations() {
     /** @type {!Array<!DecoratorInvocation>} */
     DecoratorTest.decorators;
     /** @nocollapse
-    @type {!Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>} */
+    @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>} */
     DecoratorTest.ctorParameters;
     /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
     DecoratorTest.propDecorators;
