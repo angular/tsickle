@@ -19,7 +19,7 @@ static decorators: DecoratorInvocation[] = [
 { type: classAnnotation },
 ];
 /** @nocollapse */
-static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [
+static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
 ];
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 'y': [{ type: annotationDecorator },],

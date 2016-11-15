@@ -206,8 +206,10 @@ class ClassRewriter extends Rewriter {
 
     if (this.decorators || this.ctorParameters) {
       this.emit(`/** @nocollapse */\n`);
+      // ctorParameters may contain forward references in the type: field, so wrap in a function
+      // closure
       this.emit(
-          `static ctorParameters: ({type: any, decorators?: DecoratorInvocation[]}|null)[] = [\n`);
+          `static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [\n`);
       for (let param of this.ctorParameters || []) {
         if (!param) {
           this.emit('null,\n');
