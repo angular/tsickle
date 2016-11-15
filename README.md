@@ -69,5 +69,10 @@ pure TypeScript.)
   `clang-format`,
 - `gulp test` runs unit tests, e2e tests and checks the source code formatting.
 
+### Environment variables
+
 Export the environment variable `UPDATE_GOLDENS=1` to have the test suite
 rewrite the golden files when you run it.
+
+Export the environment variable `TEST_FILTER`, a regex, to limit the end-to-end
+tests (found in `test_files/...`) run tests with a name matching the regex.
