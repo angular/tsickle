@@ -1,4 +1,4 @@
-Warning at test_files/enum/enum.ts:2:7: unhandled type {type flags:0x2000 }
+Warning at test_files/enum/enum.ts:2:7: unhandled type {type flags:0x2000 Never}
 ====
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = []
