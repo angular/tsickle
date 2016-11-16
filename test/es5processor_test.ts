@@ -28,7 +28,9 @@ describe('convertCommonJsToGoogModule', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `console.log('hello');`, false)
         .to.equal(
-            `goog.module('a'); exports = {}; var module = {id: 'a.js'};console.log('hello');`);
+            `goog.module('a'); ` +
+            `exports = {}; var module = {id: 'a.js', exports: exports};` +
+            `console.log('hello');`);
   });
 
   it('adds a goog.module call to empty files', () => {
