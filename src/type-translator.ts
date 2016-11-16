@@ -34,47 +34,39 @@ function isClosureProvidedType(symbol: ts.Symbol): boolean {
 }
 
 export function typeToDebugString(type: ts.Type): string {
+  let debugString = `flags:0x${type.flags.toString(16)}`;
+
   const basicTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.Any,           ts.TypeFlags.String,
-    ts.TypeFlags.Number,        ts.TypeFlags.Boolean,
-    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,
-    ts.TypeFlags.Null,          ts.TypeFlags.Enum,
-    ts.TypeFlags.StringLiteral, ts.TypeFlags.BooleanLiteral,
-    ts.TypeFlags.NumberLiteral, ts.TypeFlags.EnumLiteral,
-    ts.TypeFlags.TypeParameter, ts.TypeFlags.Class,
-    ts.TypeFlags.Interface,     ts.TypeFlags.Reference,
-    ts.TypeFlags.Tuple,         ts.TypeFlags.Union,
-    ts.TypeFlags.Intersection,  ts.TypeFlags.Anonymous,
-    ts.TypeFlags.Instantiated,  ts.TypeFlags.ESSymbol,
-    ts.TypeFlags.ThisType,      ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
+    ts.TypeFlags.Any,
+    ts.TypeFlags.String,
+    ts.TypeFlags.Number,
+    ts.TypeFlags.Boolean,
+    ts.TypeFlags.Enum,
+    ts.TypeFlags.StringLiteral,
+    ts.TypeFlags.NumberLiteral,
+    ts.TypeFlags.BooleanLiteral,
+    ts.TypeFlags.EnumLiteral,
+    ts.TypeFlags.ESSymbol,
+    ts.TypeFlags.Void,
+    ts.TypeFlags.Undefined,
+    ts.TypeFlags.Null,
+    ts.TypeFlags.Never,
+    ts.TypeFlags.TypeParameter,
+    ts.TypeFlags.Class,
+    ts.TypeFlags.Interface,
+    ts.TypeFlags.Reference,
+    ts.TypeFlags.Tuple,
+    ts.TypeFlags.Union,
+    ts.TypeFlags.Intersection,
+    ts.TypeFlags.Anonymous,
+    ts.TypeFlags.Instantiated,
+    ts.TypeFlags.ThisType,
+    ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
   ];
-  let names: string[] = [];
   for (let flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
-      names.push(ts.TypeFlags[flag]);
+      debugString += ` ${ts.TypeFlags[flag]}`;
     }
-  }
-
-  // combinedTypes are TypeFlags that represent combined values.
-  // For example, NumberLike = Number|Enum.
-  const combinedTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.StringLike,
-    ts.TypeFlags.NumberLike,
-    ts.TypeFlags.ObjectType,
-    ts.TypeFlags.UnionOrIntersection,
-    ts.TypeFlags.StructuredType,
-  ];
-  let features: string[] = [];
-  for (let flag of combinedTypes) {
-    if ((type.flags & flag) !== 0) {
-      features.push(ts.TypeFlags[flag]);
-    }
-  }
-
-  let debugString = `flags:0x${type.flags.toString(16)}`;
-  debugString += ' ' + names.join(' ');
-  if (features.length > 0) {
-    debugString += ` features:${features.join(',')}`;
   }
 
   if (type.symbol && type.symbol.name !== '__type') {
@@ -89,8 +81,48 @@ export function typeToDebugString(type: ts.Type): string {
 }
 
 export function symbolToDebugString(sym: ts.Symbol): string {
-  let debugString = `${JSON.stringify(sym.name)} ${sym.flags.toString(16)}`;
-  return `{sym: ${debugString}}`;
+  let debugString = `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
+
+  const symbolFlags = [
+    ts.SymbolFlags.FunctionScopedVariable,
+    ts.SymbolFlags.BlockScopedVariable,
+    ts.SymbolFlags.Property,
+    ts.SymbolFlags.EnumMember,
+    ts.SymbolFlags.Function,
+    ts.SymbolFlags.Class,
+    ts.SymbolFlags.Interface,
+    ts.SymbolFlags.ConstEnum,
+    ts.SymbolFlags.RegularEnum,
+    ts.SymbolFlags.ValueModule,
+    ts.SymbolFlags.NamespaceModule,
+    ts.SymbolFlags.TypeLiteral,
+    ts.SymbolFlags.ObjectLiteral,
+    ts.SymbolFlags.Method,
+    ts.SymbolFlags.Constructor,
+    ts.SymbolFlags.GetAccessor,
+    ts.SymbolFlags.SetAccessor,
+    ts.SymbolFlags.Signature,
+    ts.SymbolFlags.TypeParameter,
+    ts.SymbolFlags.TypeAlias,
+    ts.SymbolFlags.ExportValue,
+    ts.SymbolFlags.ExportType,
+    ts.SymbolFlags.ExportNamespace,
+    ts.SymbolFlags.Alias,
+    ts.SymbolFlags.Instantiated,
+    ts.SymbolFlags.Merged,
+    ts.SymbolFlags.Transient,
+    ts.SymbolFlags.Prototype,
+    ts.SymbolFlags.SyntheticProperty,
+    ts.SymbolFlags.Optional,
+    ts.SymbolFlags.ExportStar,
+  ];
+  for (const flag of symbolFlags) {
+    if ((sym.flags & flag) !== 0) {
+      debugString += ` ${ts.SymbolFlags[flag]}`;
+    }
+  }
+
+  return debugString;
 }
 
 /** TypeTranslator translates TypeScript types to Closure types. */
@@ -284,6 +316,11 @@ export class TypeTranslator {
     return '?';
   }
 
+  /**
+   * translateTypeLiteral translates a ts.SymbolFlags.TypeLiteral type, which
+   * is the anonymous type encountered in e.g.
+   *   let x: {a: number};
+   */
   private translateTypeLiteral(type: ts.Type, notNull: boolean): string {
     const notNullPrefix = notNull ? '!' : '';
     // Avoid infinite loops on recursive types.
