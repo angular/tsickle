@@ -30,7 +30,7 @@ describe('jsdoc.parse', () => {
     expect(jsdoc.parse(source)).to.deep.equal({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
-        {tagName: 'param', parameterName: 'bar', text: 'multiple line comment'},
+        {tagName: 'param', parameterName: 'bar', text: 'multiple\n line comment'},
         {tagName: 'return', text: 'foobar'},
         {tagName: 'nosideeffects'},
       ]

@@ -35,7 +35,8 @@ Comments.prototype.nodoc3;
  /** inline jsdoc comment without type annotation
  @type {number} */
 Comments.prototype.jsdoc1;
- /** multi-line jsdoc comment without type annotation.
+ /** multi-line jsdoc comment without
+ type annotation.
  @type {number} */
 Comments.prototype.jsdoc2;
 }
