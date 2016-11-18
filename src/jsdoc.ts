@@ -184,7 +184,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
       if (tags.length === 0) {
         tags.push({text: line.trim()});
       } else {
-        tags[tags.length - 1].text += '\n ' + line.trim();
+        tags[tags.length - 1].text += '\n  * ' + line.trim();
       }
     }
   }

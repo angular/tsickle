@@ -9,8 +9,10 @@ goog.module('test_files.parameter_properties.parameter_properties');var module =
     }
 }
 function ParamProps_tsickle_Closure_declarations() {
-    /** @export
-    @type {string} */
+    /**
+     * @export
+     * @type {string}
+     */
     ParamProps.prototype.bar;
     /** @type {string} */
     ParamProps.prototype.bar2;
