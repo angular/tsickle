@@ -41,8 +41,10 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 function DecoratorTest_tsickle_Closure_declarations() {
  /** @type {!Array<!DecoratorInvocation>} */
 DecoratorTest.decorators;
- /** @nocollapse
- @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>} */
+ /**
+  * @nocollapse
+  * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>}
+  */
 DecoratorTest.ctorParameters;
  /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
 DecoratorTest.propDecorators;

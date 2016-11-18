@@ -39,8 +39,10 @@ class JSDocTest {
 }
 
 function JSDocTest_tsickle_Closure_declarations() {
- /** @export
- @type {string} */
+ /**
+  * @export
+  * @type {string}
+  */
 JSDocTest.prototype.exported;
  /** @type {string} */
 JSDocTest.prototype.badExport;

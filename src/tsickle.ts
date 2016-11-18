@@ -805,9 +805,10 @@ class Annotator extends ClosureRewriter {
     }
     this.emit(' /**');
     if (existingAnnotation) {
-      this.emit(' ' + existingAnnotation);
+      this.emit('\n  * ' + existingAnnotation + '  *');
     }
-    this.emit(` @type {${this.typeToClosure(p)}} */\n`);
+    const endComment = existingAnnotation ? '\n  */\n' : ' */\n';
+    this.emit(` @type {${this.typeToClosure(p)}}${endComment}`);
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
   }
