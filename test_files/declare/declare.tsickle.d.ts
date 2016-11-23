@@ -1,3 +1,5 @@
+Warning at test_files/declare/declare.d.ts:81:1: anonymous type has no symbol
+====
 declare namespace DeclareTestModule {
   namespace inner {
     var someBool: boolean;
@@ -76,3 +78,6 @@ interface BareInterface {
 
 // Don't use a parameter named "arguments"; it's illegal in Closure.
 declare function usesArguments(arguments: string);
+
+// Avoid a Closure crash with destructuring.
+declare function destructures({a: number});

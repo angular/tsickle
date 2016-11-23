@@ -110,3 +110,9 @@ BareInterface.prototype.name;
  * @return {?}
  */
 function usesArguments(tsickle_arguments) {}
+
+/**
+ * @param {?} __0
+ * @return {?}
+ */
+function destructures(__0) {}

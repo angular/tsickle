@@ -76,3 +76,6 @@ interface BareInterface {
 
 // Don't use a parameter named "arguments"; it's illegal in Closure.
 declare function usesArguments(arguments: string);
+
+// Avoid a Closure crash with destructuring.
+declare function destructures({a: number});

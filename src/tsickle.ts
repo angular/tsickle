@@ -967,7 +967,21 @@ class ExternsWriter extends ClosureRewriter {
           break;
         }
         this.emitFunctionType([f]);
-        const params = f.parameters.map((p) => p.name.getText());
+        const params = f.parameters.map((p, i) => {
+          switch (p.name.kind) {
+            case ts.SyntaxKind.Identifier:
+              return (p.name as ts.Identifier).text;
+            case ts.SyntaxKind.ArrayBindingPattern:
+            case ts.SyntaxKind.ObjectBindingPattern:
+              // Closure crashes if you put a binding pattern in the externs.
+              // Avoid this by just generating an unused name; the name is
+              // ignored anyway.
+              return `__${i}`;
+            default:
+              this.errorUnimplementedKind(p.name, 'function parameter');
+              return `__${i}`;
+          }
+        });
         this.writeExternsFunction(name.getText(), params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
