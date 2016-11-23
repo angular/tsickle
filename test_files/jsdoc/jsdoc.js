@@ -41,3 +41,11 @@ function JSDocTest_tsickle_Closure_declarations() {
  */
 function x() { }
 ;
+/**
+ *  This class has JSDoc, but some of it should be stripped.
+ * @see Nothing.
+ */
+class RedundantJSDocShouldBeStripped {
+    constructor() {
+    }
+}

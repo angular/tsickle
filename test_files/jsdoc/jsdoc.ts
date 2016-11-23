@@ -40,3 +40,14 @@ class JSDocTest {
  * @see This tag will be kept, because Closure allows it.
  */
 function x() {};
+
+/**
+ * This class has JSDoc, but some of it should be stripped.
+ * @extends {IgnoreMe}
+ * @implements {IgnoreMeToo}
+ * @see Nothing.
+ */
+class RedundantJSDocShouldBeStripped {
+  /** @constructor */
+  constructor() {}
+}

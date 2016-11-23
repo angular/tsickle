@@ -7,7 +7,6 @@
 function optionalArgument(x: number, y?: string) {
 }
 optionalArgument(1);
-
 class OptionalTest {
 /**
  * @param {string} a

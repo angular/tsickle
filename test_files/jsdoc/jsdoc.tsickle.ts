@@ -1,6 +1,9 @@
 Warning at test_files/jsdoc/jsdoc.ts:16:1: type annotations (using {...}) are redundant with TypeScript types
 Warning at test_files/jsdoc/jsdoc.ts:29:3: type annotations (using {...}) are redundant with TypeScript types
 Warning at test_files/jsdoc/jsdoc.ts:34:3: @type annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:44:1: @extends annotations are redundant with TypeScript equivalents
+@implements annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:51:3: @constructor annotations are redundant with TypeScript equivalents
 ====
 
 /**
@@ -57,3 +60,10 @@ JSDocTest.prototype.typedThing;
  * @return {void}
  */
 function x() {};
+/**
+ *  This class has JSDoc, but some of it should be stripped.
+ * @see Nothing.
+ */
+class RedundantJSDocShouldBeStripped {
+constructor() {}
+}

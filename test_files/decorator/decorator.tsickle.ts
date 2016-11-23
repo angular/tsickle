@@ -21,8 +21,6 @@ function classDecorator(t: any) { return t; }
  * @return {?}
  */
 function classAnnotation(t: any) { return t; }
-
-
 class DecoratorTest {
   @decorator
 private x: number;
@@ -53,7 +51,6 @@ DecoratorTest.prototype.x;
  /** @type {number} */
 DecoratorTest.prototype.y;
 }
-
 
 @classDecorator
 class DecoratedClass {

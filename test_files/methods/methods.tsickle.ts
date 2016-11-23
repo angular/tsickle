@@ -1,3 +1,4 @@
+
 class HasMethods {
   _f: number;
 /**

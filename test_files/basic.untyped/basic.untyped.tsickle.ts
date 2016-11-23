@@ -6,7 +6,6 @@
 function func(arg1: string): number[] {
   return [3];
 }
-
 class Foo {
   field: string;
 /**
