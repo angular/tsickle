@@ -1,3 +1,4 @@
+
 export class Class {}
 /** @record */
 export function Interface() {}

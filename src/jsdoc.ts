@@ -117,7 +117,7 @@ const JSDOC_TAGS_WHITELIST = [
  * These are Closure tags that can be expressed in the TypeScript surface
  * syntax.
  */
-const JSDOC_TAGS_BLACKLIST = ['private', 'public', 'type'];
+const JSDOC_TAGS_BLACKLIST = ['constructor', 'extends', 'implements', 'private', 'public', 'type'];
 
 /** A list of JSDoc @tags that might include a {type} after them. */
 const JSDOC_TAGS_WITH_TYPES = ['export', 'param', 'return'];

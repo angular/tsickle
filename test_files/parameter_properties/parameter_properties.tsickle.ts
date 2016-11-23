@@ -1,3 +1,4 @@
+
 class ParamProps {
 /**
  * @param {string} bar

@@ -2,7 +2,6 @@
 // but disallowed in Closure.
 export interface TypeAndValue { z: number }
 export var /** @type {number} */ TypeAndValue = 3;
-
 export class Class { z: number }
 
 function Class_tsickle_Closure_declarations() {

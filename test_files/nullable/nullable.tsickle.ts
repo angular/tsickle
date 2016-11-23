@@ -17,9 +17,7 @@ Primitives.prototype.nullableUndefinable;
 Primitives.prototype.optional;
 }
 
-
 class NonPrimitive {}
-
 class NonPrimitives {
   nonNull: NonPrimitive;
   nullable: NonPrimitive|null;

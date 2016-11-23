@@ -40,7 +40,6 @@ bar() {
     this.hasReturnType();
   }
 }
-
 class Derived extends Base {
 constructor() {
     super();
