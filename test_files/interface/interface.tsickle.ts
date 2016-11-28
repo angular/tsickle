@@ -1,9 +1,9 @@
 
 /** @record */
 function Point() {}
- /** @type {number} */
+/** @type {number} */
 Point.prototype.x;
- /** @type {number} */
+/** @type {number} */
 Point.prototype.y;
 interface Point {
   x: number;
@@ -25,13 +25,13 @@ function TrickyInterface() {}
 /* TODO: handle strange member:
 [offset: number]: number;
 */
- /** @type {number} */
+/** @type {number} */
 TrickyInterface.prototype.foo;
 /* TODO: handle strange member:
 (x: number): __ yuck __
     number;
 */
- /** @type {(undefined|string)} */
+/** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
 
 

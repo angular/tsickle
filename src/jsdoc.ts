@@ -134,7 +134,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
   if (!match) return null;
   comment = match[1].trim();
   // Strip all the " * " bits from the front of each line.
-  comment = comment.replace(/^\s*\* /gm, '');
+  comment = comment.replace(/^\s*\*? /gm, '');
   let lines = comment.split('\n');
   let tags: Tag[] = [];
   let warnings: string[] = [];
@@ -182,9 +182,9 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
       // Text without a preceding @tag on it is either the plain text
       // documentation or a continuation of a previous tag.
       if (tags.length === 0) {
-        tags.push({text: line.trim()});
+        tags.push({text: line});
       } else {
-        tags[tags.length - 1].text += '\n  * ' + line.trim();
+        tags[tags.length - 1].text += '\n' + line;
       }
     }
   }
@@ -194,33 +194,54 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
   return {tags};
 }
 
+/**
+ * Serializes a Tag into a string usable in a comment.
+ * Returns a string like " @foo {bar} baz" (note the whitespace).
+ */
+function tagToString(tag: Tag): string {
+  let out = '';
+  if (tag.tagName) {
+    out += ` @${tag.tagName}`;
+  }
+  if (tag.type) {
+    out += ' {';
+    if (tag.restParam) {
+      out += '...';
+    }
+    out += tag.type;
+    if (tag.optional) {
+      out += '=';
+    }
+    out += '}';
+  }
+  if (tag.parameterName) {
+    out += ' ' + tag.parameterName;
+  }
+  if (tag.text) {
+    out += ' ' + tag.text;
+  }
+  return out;
+}
+
 /** Serializes a Comment out to a string usable in source code. */
 export function toString(tags: Tag[]): string {
   if (tags.length === 0) return '';
+  if (tags.length === 1) {
+    let tag = tags[0];
+    if (tag.tagName === 'type' && (!tag.text || !tag.text.match('\n'))) {
+      // Special-case one-liner "type" tags to fit on one line, e.g.
+      //   /** @type {foo} */
+      return '/**' + tagToString(tag) + ' */\n';
+    }
+    // Otherwise, fall through to the multi-line output.
+  }
+
   let out = '';
   out += '/**\n';
   for (let tag of tags) {
-    out += ' * ';
-    if (tag.tagName) {
-      out += `@${tag.tagName}`;
-    }
-    if (tag.type) {
-      out += ' {';
-      if (tag.restParam) {
-        out += '...';
-      }
-      out += tag.type;
-      if (tag.optional) {
-        out += '=';
-      }
-      out += '}';
-    }
-    if (tag.parameterName) {
-      out += ' ' + tag.parameterName;
-    }
-    if (tag.text) {
-      out += ' ' + tag.text;
-    }
+    out += ' *';
+    // If the tagToString is multi-line, insert " * " prefixes on subsequent lines.
+    out += tagToString(tag).split('\n').join('\n * ');
     out += '\n';
   }
   out += ' */\n';

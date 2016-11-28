@@ -18,7 +18,7 @@ function returnsTest() {
  */
 function jsDocTestBadDoc(foo) { }
 /**
- *  Test JS doc on class.
+ * Test JS doc on class.
  */
 class JSDocTest {
 }
@@ -42,7 +42,7 @@ function JSDocTest_tsickle_Closure_declarations() {
 function x() { }
 ;
 /**
- *  This class has JSDoc, but some of it should be stripped.
+ * This class has JSDoc, but some of it should be stripped.
  * @see Nothing.
  */
 class RedundantJSDocShouldBeStripped {

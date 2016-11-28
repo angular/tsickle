@@ -790,21 +790,17 @@ class Annotator extends ClosureRewriter {
       return;
     }
 
-    let jsDoc = this.getJSDoc(p) || [];
+    let tags = this.getJSDoc(p) || [];
     let existingAnnotation = '';
-    for (let {tagName, text} of jsDoc) {
+    for (let {tagName, text} of tags) {
       if (tagName) {
         existingAnnotation += `@${tagName}\n`;
       } else {
         existingAnnotation += `${text}\n`;
       }
     }
-    this.emit(' /**');
-    if (existingAnnotation) {
-      this.emit('\n  * ' + existingAnnotation + '  *');
-    }
-    const endComment = existingAnnotation ? '\n  */\n' : ' */\n';
-    this.emit(` @type {${this.typeToClosure(p)}}${endComment}`);
+    tags.push({tagName: 'type', type: this.typeToClosure(p)});
+    this.emit(jsdoc.toString(tags));
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
   }
