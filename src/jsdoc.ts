@@ -218,7 +218,7 @@ function tagToString(tag: Tag): string {
     out += ' ' + tag.parameterName;
   }
   if (tag.text) {
-    out += ' ' + tag.text;
+    out += ' ' + tag.text.replace(/@/, '\\@');
   }
   return out;
 }
