@@ -13,6 +13,10 @@ function Test4(a: any): string {
   return "a";
 }
 
+// Test a "this" param and a rest param in the same function.
+function TestThisAndRest(this: string, ...params: any[]) {}
+TestThisAndRest.call('foo', 'bar', 3);
+
 function Destructuring({a, b}: {a: number, b: number}) {}
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
 function Destructuring3([a, b], [[c]]) {}

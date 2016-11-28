@@ -1,7 +1,7 @@
-Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:18:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
 ====
 
 /**
@@ -34,6 +34,13 @@ function Test4(a: number): string;
 function Test4(a: any): string {
   return "a";
 }
+/**
+ * @this {string}
+ * @param {...?} params
+ * @return {void}
+ */
+function TestThisAndRest(this: string, ...params: any[]) {}
+TestThisAndRest.call('foo', 'bar', 3);
 /**
  * @param {{a: number, b: number}} __0
  * @return {void}

@@ -26,6 +26,13 @@ function Test4(a) {
     return "a";
 }
 /**
+ * @this {string}
+ * @param {...?} params
+ * @return {void}
+ */
+function TestThisAndRest(...params) { }
+TestThisAndRest.call('foo', 'bar', 3);
+/**
  * @param {{a: number, b: number}} __0
  * @return {void}
  */
