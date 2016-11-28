@@ -107,6 +107,23 @@ function isDtsFileName(fileName: string): boolean {
   return /\.d\.ts$/.test(fileName);
 }
 
+/** Returns the Closure name of a function parameter, special-casing destructuring. */
+function getParameterName(param: ts.ParameterDeclaration, index: number): string {
+  switch (param.name.kind) {
+    case ts.SyntaxKind.Identifier:
+      return getIdentifierText(param.name as ts.Identifier);
+    case ts.SyntaxKind.ArrayBindingPattern:
+    case ts.SyntaxKind.ObjectBindingPattern:
+      // Closure crashes if you put a binding pattern in the externs.
+      // Avoid this by just generating an unused name; the name is
+      // ignored anyway.
+      return `__${index}`;
+    default:
+      // The above list of kinds should be exhaustive.
+      throw new Error(`unhandled function parameter kind: ${ts.SyntaxKind[param.name.kind]}`);
+  }
+}
+
 const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
 
 /**
@@ -169,25 +186,23 @@ class ClosureRewriter extends Rewriter {
         newDoc.push(abstract);
       }
       // Merge the parameters into a single list of merged names and list of types
-      let sig = typeChecker.getSignatureFromDeclaration(fnDecl);
-      // Parameters.
-      // Iterate through both the AST parameter list and the type's parameter
-      // list, as some information is only available in the former.
-      for (let i = 0; i < sig.parameters.length; i++) {
-        let paramNode = fnDecl.parameters[i];
-        let paramSym = sig.parameters[i];
-        let type = typeChecker.getTypeOfSymbolAtLocation(paramSym, fnDecl);
+      const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
+      for (let i = 0; i < sig.declaration.parameters.length; i++) {
+        const paramNode = sig.declaration.parameters[i];
 
-        let newTag: jsdoc.Tag = {
-          tagName: 'param',
-          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-          parameterName: makeLegalExternsParam(unescapeName(paramSym.getName())),
-        };
-
-        let destructuring =
+        const destructuring =
             (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
              paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
+        const name = getParameterName(paramNode, i);
+        const isThisParam = name === 'this';
 
+        let newTag: jsdoc.Tag = {
+          tagName: isThisParam ? 'this' : 'param',
+          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
+          parameterName: isThisParam ? undefined : makeLegalExternsParam(name),
+        };
+
+        let type = typeChecker.getTypeAtLocation(paramNode);
         if (paramNode.dotDotDotToken !== undefined) {
           newTag.restParam = true;
           // In TypeScript you write "...x: number[]", but in Closure
@@ -195,7 +210,6 @@ class ClosureRewriter extends Rewriter {
           // the Array<> wrapper.
           type = (type as ts.TypeReference).typeArguments[0];
         }
-
         newTag.type = this.typeToClosure(fnDecl, type, destructuring);
 
         if (!isOverloaded) {
@@ -963,21 +977,7 @@ class ExternsWriter extends ClosureRewriter {
           break;
         }
         this.emitFunctionType([f]);
-        const params = f.parameters.map((p, i) => {
-          switch (p.name.kind) {
-            case ts.SyntaxKind.Identifier:
-              return (p.name as ts.Identifier).text;
-            case ts.SyntaxKind.ArrayBindingPattern:
-            case ts.SyntaxKind.ObjectBindingPattern:
-              // Closure crashes if you put a binding pattern in the externs.
-              // Avoid this by just generating an unused name; the name is
-              // ignored anyway.
-              return `__${i}`;
-            default:
-              this.errorUnimplementedKind(p.name, 'function parameter');
-              return `__${i}`;
-          }
-        });
+        const params = f.parameters.map(getParameterName);
         this.writeExternsFunction(name.getText(), params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:

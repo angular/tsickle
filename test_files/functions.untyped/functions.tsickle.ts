@@ -30,6 +30,13 @@ function Test4(a: any): string {
   return "a";
 }
 /**
+ * @this {?}
+ * @param {...?} params
+ * @return {?}
+ */
+function TestThisAndRest(this: string, ...params: any[]) {}
+TestThisAndRest.call('foo', 'bar', 3);
+/**
  * @param {?} __0
  * @return {?}
  */
