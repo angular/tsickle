@@ -10,7 +10,7 @@ constructor(public x: number) {}
 }
 
 function SuperTestBaseOneArg_tsickle_Closure_declarations() {
- /** @type {number} */
+/** @type {number} */
 SuperTestBaseOneArg.prototype.x;
 }
 
@@ -24,7 +24,7 @@ constructor(public y: string) {
 }
 
 function SuperTestDerivedParamProps_tsickle_Closure_declarations() {
- /** @type {string} */
+/** @type {string} */
 SuperTestDerivedParamProps.prototype.y;
 }
 
@@ -36,7 +36,7 @@ constructor() {
 }
 
 function SuperTestDerivedInitializedProps_tsickle_Closure_declarations() {
- /** @type {string} */
+/** @type {string} */
 SuperTestDerivedInitializedProps.prototype.y;
 }
 
@@ -54,7 +54,7 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 }
 /** @record */
 function SuperTestInterface() {}
- /** @type {number} */
+/** @type {number} */
 SuperTestInterface.prototype.foo;
 
 
@@ -66,7 +66,7 @@ class SuperTestDerivedInterface implements SuperTestInterface {
 }
 
 function SuperTestDerivedInterface_tsickle_Closure_declarations() {
- /** @type {number} */
+/** @type {number} */
 SuperTestDerivedInterface.prototype.foo;
 }
 
@@ -75,7 +75,7 @@ class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 
 function SuperTestStaticProp_tsickle_Closure_declarations() {
- /** @type {number} */
+/** @type {number} */
 SuperTestStaticProp.foo;
 }
 

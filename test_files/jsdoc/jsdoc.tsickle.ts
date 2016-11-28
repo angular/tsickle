@@ -26,7 +26,7 @@ function returnsTest(): string {
  */
 function jsDocTestBadDoc(foo: string) {}
 /**
- *  Test JS doc on class.
+ * Test JS doc on class.
  */
 class JSDocTest {
   /** @export */
@@ -42,16 +42,16 @@ class JSDocTest {
 }
 
 function JSDocTest_tsickle_Closure_declarations() {
- /**
-  * @export
-  * @type {string}
-  */
+/**
+ * @export
+ * @type {string}
+ */
 JSDocTest.prototype.exported;
- /** @type {string} */
+/** @type {string} */
 JSDocTest.prototype.badExport;
- /** @type {string} */
+/** @type {string} */
 JSDocTest.prototype.stringWithoutJSDoc;
- /** @type {number} */
+/** @type {number} */
 JSDocTest.prototype.typedThing;
 }
 
@@ -61,7 +61,7 @@ JSDocTest.prototype.typedThing;
  */
 function x() {};
 /**
- *  This class has JSDoc, but some of it should be stripped.
+ * This class has JSDoc, but some of it should be stripped.
  * @see Nothing.
  */
 class RedundantJSDocShouldBeStripped {

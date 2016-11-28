@@ -29,7 +29,7 @@ DeclareTestModule.Foo.prototype.method = function(a) {};
 DeclareTestModule.Clazz = function(a) {};
 
 /**
- *  Comment
+ * Comment
  * @param {string} a
  * @return {number}
  */

@@ -17,9 +17,9 @@ constructor(private ctorArg: string) {
 }
 
 function Foo_tsickle_Closure_declarations() {
- /** @type {?} */
+/** @type {?} */
 Foo.prototype.field;
- /** @type {?} */
+/** @type {?} */
 Foo.prototype.ctorArg;
 }
 
