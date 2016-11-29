@@ -69,8 +69,11 @@ constructor() {}
 }
 /**
  * This comment has code that needs to be escaped to pass Closure checking.
+ * 
  *   \@Reflect
  *   function example() {}
+ *   \@Reflect.metadata(foo, bar)
+ *   function example2() {}
  * @return {void}
  */
 function JSDocWithBadTag() {}

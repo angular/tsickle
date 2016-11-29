@@ -134,7 +134,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
   if (!match) return null;
   comment = match[1].trim();
   // Strip all the " * " bits from the front of each line.
-  comment = comment.replace(/^\s*\*? /gm, '');
+  comment = comment.replace(/^\s*\*? ?/gm, '');
   let lines = comment.split('\n');
   let tags: Tag[] = [];
   let warnings: string[] = [];
@@ -218,7 +218,7 @@ function tagToString(tag: Tag): string {
     out += ' ' + tag.parameterName;
   }
   if (tag.text) {
-    out += ' ' + tag.text.replace(/@/, '\\@');
+    out += ' ' + tag.text.replace(/@/g, '\\@');
   }
   return out;
 }
