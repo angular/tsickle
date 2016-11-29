@@ -54,7 +54,11 @@ class RedundantJSDocShouldBeStripped {
 
 /**
  * This comment has code that needs to be escaped to pass Closure checking.
+ * @example
+ *
  *   @Reflect
  *   function example() {}
+ *   @Reflect.metadata(foo, bar)
+ *   function example2() {}
  */
 function JSDocWithBadTag() {}
