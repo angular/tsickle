@@ -15,7 +15,7 @@ function jsDocTestFunction(foo: string, baz: string): string {
   return foo;
 }
 /**
- * @return {string} return comment in a "@returns" block.
+ * @return {string} return comment in a "\@returns" block.
  */
 function returnsTest(): string {
   return 'abc';
@@ -67,3 +67,10 @@ function x() {};
 class RedundantJSDocShouldBeStripped {
 constructor() {}
 }
+/**
+ * This comment has code that needs to be escaped to pass Closure checking.
+ *   \@Reflect
+ *   function example() {}
+ * @return {void}
+ */
+function JSDocWithBadTag() {}
