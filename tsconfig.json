@@ -2,6 +2,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "module": "commonjs",
+    "declaration": true,
     "noImplicitAny": true,
     "noEmitOnError": true,
     "target": "es5",

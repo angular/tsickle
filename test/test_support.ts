@@ -16,7 +16,7 @@ import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
 /** The TypeScript compiler options used by the test suite. */
-const compilerOptions: ts.CompilerOptions = {
+export const compilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES6,
   skipDefaultLibCheck: true,
   experimentalDecorators: true,
@@ -120,7 +120,7 @@ export function goldenTests(): GoldenFileTest[] {
   let tests = testNames.map(testName => {
     let testDir = path.join(basePath, testName);
     testDir = path.relative(process.cwd(), testDir);
-    let tsPaths = glob.sync(path.join(testDir, '*.ts'));
+    let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
     let tsFiles = tsPaths.map(f => path.relative(testDir, f));
