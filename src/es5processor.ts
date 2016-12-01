@@ -44,8 +44,8 @@ class ES5Processor extends Rewriter {
   unusedIndex: number = 0;
 
   constructor(
-      file: ts.SourceFile,
-      private pathToModuleName: (context: string, fileName: string) => string) {
+      file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
+      private prelude: string) {
     super(file);
   }
 
@@ -55,6 +55,7 @@ class ES5Processor extends Rewriter {
     const moduleName = this.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
+    if (this.prelude) this.emit(this.prelude);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
@@ -317,11 +318,13 @@ class ES5Processor extends Rewriter {
  *     Closure module name, as found in a goog.require('...') statement.
  *     The context parameter is the referencing file, used for resolving
  *     imports with relative paths like "import * as foo from '../foo';".
+ * @param prelude An additional prelude to insert after the `goog.module` call,
+ *     e.g. with additional imports or requires.
  */
 export function processES5(
     fileName: string, moduleId: string, content: string,
-    pathToModuleName: (context: string, fileName: string) => string,
-    isES5 = true): {output: string, referencedModules: string[]} {
+    pathToModuleName: (context: string, fileName: string) => string, isES5 = true,
+    prelude = ''): {output: string, referencedModules: string[]} {
   let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new ES5Processor(file, pathToModuleName).process(moduleId, isES5);
+  return new ES5Processor(file, pathToModuleName, prelude).process(moduleId, isES5);
 }

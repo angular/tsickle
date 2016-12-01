@@ -12,9 +12,10 @@ import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
 describe('convertCommonJsToGoogModule', () => {
-  function expectCommonJs(fileName: string, content: string, isES5 = true) {
+  function expectCommonJs(fileName: string, content: string, isES5 = true, prelude = '') {
     return expect(
-        es5processor.processES5(fileName, fileName, content, cliSupport.pathToModuleName, isES5)
+        es5processor
+            .processES5(fileName, fileName, content, cliSupport.pathToModuleName, isES5, prelude)
             .output);
   }
 
@@ -186,5 +187,13 @@ __export(require('./export_star');
       'non.relative',
       'a.export_star',
     ]);
+  });
+
+  it('inserts a prelude', () => {
+    expectCommonJs('a.js', `console.log('hello');`, false, `goog.require('tshelpers');`)
+        .to.equal(
+            `goog.module('a');goog.require('tshelpers'); ` +
+            `exports = {}; var module = {id: 'a.js'};` +
+            `console.log('hello');`);
   });
 });
