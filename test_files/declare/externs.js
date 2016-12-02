@@ -83,17 +83,11 @@ function MultipleConstructors(opt_a) {}
 Object.prototype.myMethod = function() {};
 
 /**
- * @param {string} x
+ * @param {string|number} x_or_y
+ * @param {string} opt_x
  * @return {!CodeMirror.Editor}
  */
-function CodeMirror(x) {}
-
-/**
- * @param {number} y
- * @param {string} x
- * @return {!CodeMirror.Editor}
- */
-function CodeMirror(y, x) {}
+function CodeMirror(x_or_y, opt_x) {}
 
 /** @record @struct */
 CodeMirror.Editor = function() {};
