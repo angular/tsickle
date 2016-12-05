@@ -90,19 +90,6 @@ function isValidClosurePropertyName(name: string): boolean {
   return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 }
 
-/**
- * TypeScript allows parameters named "arguments", but Closure
- * disallows this, even in externs.
- */
-function makeLegalExternsParam(name: string): string {
-  switch (name) {
-    case 'arguments':
-      return 'tsickle_arguments';
-    default:
-      return name;
-  }
-}
-
 function isDtsFileName(fileName: string): boolean {
   return /\.d\.ts$/.test(fileName);
 }
@@ -111,7 +98,11 @@ function isDtsFileName(fileName: string): boolean {
 function getParameterName(param: ts.ParameterDeclaration, index: number): string {
   switch (param.name.kind) {
     case ts.SyntaxKind.Identifier:
-      return getIdentifierText(param.name as ts.Identifier);
+      let name = getIdentifierText(param.name as ts.Identifier);
+      // TypeScript allows parameters named "arguments", but Closure
+      // disallows this, even in externs.
+      if (name === 'arguments') name = 'tsickle_arguments';
+      return name;
     case ts.SyntaxKind.ArrayBindingPattern:
     case ts.SyntaxKind.ObjectBindingPattern:
       // Closure crashes if you put a binding pattern in the externs.
@@ -199,7 +190,7 @@ class ClosureRewriter extends Rewriter {
         let newTag: jsdoc.Tag = {
           tagName: isThisParam ? 'this' : 'param',
           optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
-          parameterName: isThisParam ? undefined : makeLegalExternsParam(name),
+          parameterName: isThisParam ? undefined : name,
         };
 
         let type = typeChecker.getTypeAtLocation(paramNode);
@@ -242,7 +233,7 @@ class ClosureRewriter extends Rewriter {
       }
       // If this method is not overloaded, we set the list of names to those in the only declaration
       if (!isOverloaded) {
-        paramNamesToReturn = fnDecl.parameters.map(p => p.name.getText());
+        paramNamesToReturn = fnDecl.parameters.map(getParameterName);
       }
 
       // Return type.
@@ -970,14 +961,21 @@ class ExternsWriter extends ClosureRewriter {
         this.writeExternsType(<ts.InterfaceDeclaration|ts.ClassDeclaration>node, namespace);
         break;
       case ts.SyntaxKind.FunctionDeclaration:
-        const f = <ts.FunctionDeclaration>node;
-        const name = f.name;
+        const fnDecl = node as ts.FunctionDeclaration;
+        const name = fnDecl.name;
         if (!name) {
-          this.error(f, 'anonymous function in externs');
+          this.error(fnDecl, 'anonymous function in externs');
           break;
         }
-        this.emitFunctionType([f]);
-        const params = f.parameters.map(getParameterName);
+        // Gather up all overloads of this function.
+        const sym = this.program.getTypeChecker().getSymbolAtLocation(name);
+        const decls =
+            sym.declarations!.filter(
+                                 d => d.kind ===
+                                     ts.SyntaxKind.FunctionDeclaration) as ts.FunctionDeclaration[];
+        // Only emit the first declaration of each overloaded function.
+        if (fnDecl !== decls[0]) break;
+        const params = this.emitFunctionType(decls);
         this.writeExternsFunction(name.getText(), params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
@@ -1117,7 +1115,7 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsFunction(name: string, params: string[], namespace: string[]) {
-    let paramsStr = params.map(makeLegalExternsParam).join(', ');
+    let paramsStr = params.join(', ');
     if (namespace.length > 0) {
       name = namespace.concat([name]).join('.');
       this.emit(`${name} = function(${paramsStr}) {};\n`);
