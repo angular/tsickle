@@ -5,13 +5,13 @@ declare class MultipleConstructorsOptional {
 }
 
 // A class with an overloaded constructor with different types for the same parameter name.
-declare class MultipleConstructorsTypes { 
+declare class MultipleConstructorsTypes {
   constructor(a: boolean);
   constructor(a: number);
 }
 
 // A class with an overloaded constructor with different types and different param names.
-declare class MultipleConstructorsNamesAndTypes { 
+declare class MultipleConstructorsNamesAndTypes {
   constructor(a: boolean);
   constructor(b: number);
 }
@@ -41,7 +41,7 @@ declare class MultipleConstructorsVariadicNames {
   constructor(...points: number[]);
 }
 
-// Methods with a simple overload pattern. 
+// Methods with a simple overload pattern.
 declare class OverloadSimpleArgs {
   overloaded(a: string): void;
   overloaded(a: number, b: boolean): void;
@@ -75,7 +75,11 @@ declare class OverloadBigMix {
   overloaded(a: string, b: number): number;
   overloaded(c: number, b: number): number;
   overloaded(e: Array<OverloadBigMix>): boolean;
-  overloaded(...f: OverloadBigMix[]): number;
+  // Note: Closure doesn't allow rest params when they aren't the final
+  // param to the function, and the earlier overloads declare a second parameter.
+  // Not sure what to do with this function; perhaps just declare it as
+  // just a param of {...?}.  For now, just leave it out.
+  // overloaded(...f: OverloadBigMix[]): number;
 }
 
 // Use a builtin JS name.

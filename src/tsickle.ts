@@ -132,7 +132,6 @@ class ClosureRewriter extends Rewriter {
    * Handles emittng the jsdoc for methods, including overloads.
    * If overloaded, merges the signatures in the list of SignatureDeclarations into a single jsdoc.
    * - Total number of parameters will be the maximum count found across all variants.
-   * - Any parameters beyond the minimum count found across all variants; prefix: "opt_"
    * - Different names at the same parameter index will be joined with "_or_"
    * - Variable args (...type[] in TypeScript) will be output as "...type",
    *    except if found at the same index as another argument.
@@ -141,20 +140,19 @@ class ClosureRewriter extends Rewriter {
    *    function statement; for overloads, name will have been merged.
    */
   emitFunctionType(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): string[] {
-    let typeChecker = this.program.getTypeChecker();
+    const typeChecker = this.program.getTypeChecker();
     let newDoc = extraTags;
-    let paramNamesToReturn: string[] = [];
-    const abstract = {tagName: 'abstract'};
     const lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
-    const minCount = Math.min(...lens);
-    const maxCount = Math.max(...lens);
-    const isOverloaded = fnDecls.length > 1;
-    const isConstructor = fnDecls[0].kind === ts.SyntaxKind.Constructor;
-    let paramData = {
-      names: new Array<Set<string>>(maxCount),
-      types: new Array<Set<string>>(maxCount),
-      returns: new Set<string>()
-    };
+    const minArgsCount = Math.min(...lens);
+    const maxArgsCount = Math.max(...lens);
+    const isConstructor = fnDecls.find(d => d.kind === ts.SyntaxKind.Constructor) !== undefined;
+    // For each parameter index i, paramTags[i] is an array of parameters
+    // that can be found at index i.  E.g.
+    //    function foo(x: string)
+    //    function foo(y: number, z: string)
+    // then paramTags[0] = [info about x, info about y].
+    const paramTags: jsdoc.Tag[][] = [];
+    const returnTags: jsdoc.Tag[] = [];
 
     for (let fnDecl of fnDecls) {
       // Construct the JSDoc comment by reading the existing JSDoc, if
@@ -163,19 +161,19 @@ class ClosureRewriter extends Rewriter {
       let jsDoc = this.getJSDoc(fnDecl) || [];
 
       // Copy all the tags other than @param/@return into the new
-      // comment without any change; @param/@return are handled later.
-      // TODO: handle for overloads. indexOf on the array doesn't match instances of the Tag type,
-      // so another matching strategy is needed to avoid dupes. Also, there may be problems if
-      // an annotation doesn't apply to all overloads.
+      // JSDoc without any change; @param/@return are handled specially.
+      // TODO: there may be problems if an annotation doesn't apply to all overloads;
+      // is it worth checking for this and erroring?
       for (let tag of jsDoc) {
-        if (tag.tagName === 'param' || tag.tagName === 'return' || isOverloaded) continue;
+        if (tag.tagName === 'param' || tag.tagName === 'return') continue;
         newDoc.push(tag);
       }
 
-      // Abstract
-      if ((fnDecl.flags & ts.NodeFlags.Abstract) && (newDoc.indexOf(abstract) === -1)) {
-        newDoc.push(abstract);
+      // Add @abstract on "abstract" declarations.
+      if (fnDecl.flags & ts.NodeFlags.Abstract) {
+        newDoc.push({tagName: 'abstract'});
       }
+
       // Merge the parameters into a single list of merged names and list of types
       const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
       for (let i = 0; i < sig.declaration.parameters.length; i++) {
@@ -203,87 +201,59 @@ class ClosureRewriter extends Rewriter {
         }
         newTag.type = this.typeToClosure(fnDecl, type, destructuring);
 
-        if (!isOverloaded) {
-          // Search for this parameter in the JSDoc @params.
-          // TODO: Consider adding text from existing JSDoc into overloads
-          for (let {tagName, parameterName, text} of jsDoc) {
-            if (tagName === 'param' && parameterName === newTag.parameterName) {
-              newTag.text = text;
-              break;
-            }
-          }
-          // push to the newDoc for rendering the single function
-          newDoc.push(newTag);
-        } else {
-          // build set of param names at this index
-          if (newTag.parameterName) {
-            if (!paramData.names[i]) {
-              paramData.names[i] = new Set<string>();
-            }
-            paramData.names[i].add(newTag.parameterName);
-          }
-          // build set of type names at this index
-          if (newTag.type) {
-            if (!paramData.types[i]) {
-              paramData.types[i] = new Set<string>();
-            }
-            paramData.types[i].add(newTag.type);
+        for (let {tagName, parameterName, text} of jsDoc) {
+          if (tagName === 'param' && parameterName === newTag.parameterName) {
+            newTag.text = text;
+            break;
           }
         }
-      }
-      // If this method is not overloaded, we set the list of names to those in the only declaration
-      if (!isOverloaded) {
-        paramNamesToReturn = fnDecl.parameters.map(getParameterName);
+        if (!paramTags[i]) paramTags.push([]);
+        paramTags[i].push(newTag);
       }
 
       // Return type.
       if (!isConstructor) {
         let retType = typeChecker.getReturnTypeOfSignature(sig);
         let retTypeString: string = this.typeToClosure(fnDecl, retType);
-        if (!isOverloaded) {
-          // TODO: Consider adding text from existing JSDoc into overloads
-          let returnDoc: string|undefined;
-          for (let {tagName, text} of jsDoc) {
-            if (tagName === 'return') {
-              returnDoc = text;
-              break;
-            }
-          }
-          newDoc.push({
-            tagName: 'return',
-            type: retTypeString,
-            text: returnDoc,
-          });
-        } else {
-          if (retTypeString) {
-            paramData.returns.add(retTypeString);
+        let returnDoc: string|undefined;
+        for (let {tagName, text} of jsDoc) {
+          if (tagName === 'return') {
+            returnDoc = text;
+            break;
           }
         }
-      }
-    }
-    if (isOverloaded) {
-      // Build actual JSDoc tags for the merged param names/types and return types
-      for (let i = 0; i < maxCount; i++) {
-        paramNamesToReturn.push(Array.from(paramData.names[i].values()).join('_or_'));
-        if (i >= minCount) {
-          paramNamesToReturn[i] = 'opt_' + paramNamesToReturn[i];
-        }
-        let concatenatedTypes = Array.from(paramData.types[i].values()).join('|');
-        newDoc.push({
-          tagName: 'param',
-          parameterName: paramNamesToReturn[i],
-          type: concatenatedTypes,
-        });
-      }
-      if (!isConstructor) {
-        newDoc.push({
+        returnTags.push({
           tagName: 'return',
-          type: Array.from(paramData.returns.values()).join('|'),
+          type: retTypeString,
+          text: returnDoc,
         });
       }
     }
+
+    // Merge the JSDoc tags for each overloaded parameter.
+    for (let i = 0; i < maxArgsCount; i++) {
+      let paramTag = jsdoc.merge(paramTags[i]);
+      // If any overload marks this param optional, mark it optional in the
+      // merged output.
+      const optional = paramTags[i].find(t => t.optional === true) !== undefined;
+      if (optional || i >= minArgsCount) {
+        paramTag.type += '=';
+      }
+      // If any overload marks this param as a ..., mark it ... in the
+      // merged output.
+      if (paramTags[i].find(t => t.restParam === true) !== undefined) {
+        paramTag.restParam = true;
+      }
+      newDoc.push(paramTag);
+    }
+
+    // Merge the JSDoc tags for each overloaded return.
+    if (!isConstructor) {
+      newDoc.push(jsdoc.merge(returnTags));
+    }
+
     this.emit('\n' + jsdoc.toString(newDoc));
-    return paramNamesToReturn;
+    return newDoc.filter(t => t.tagName === 'param').map(t => t.parameterName!);
   }
 
   /**

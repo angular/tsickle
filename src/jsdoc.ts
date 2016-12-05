@@ -247,3 +247,27 @@ export function toString(tags: Tag[]): string {
   out += ' */\n';
   return out;
 }
+
+/** Merges multiple tags (of the same tagName type) into a single unified tag. */
+export function merge(tags: Tag[]): Tag {
+  let tagNames = new Set<string>();
+  let parameterNames = new Set<string>();
+  let types = new Set<string>();
+  let texts = new Set<string>();
+  for (const tag of tags) {
+    if (tag.tagName) tagNames.add(tag.tagName);
+    if (tag.parameterName) parameterNames.add(tag.parameterName);
+    if (tag.type) types.add(tag.type);
+    if (tag.text) texts.add(tag.text);
+  }
+
+  if (tagNames.size !== 1) {
+    throw new Error(`cannot merge differing tags: ${JSON.stringify(tags)}`);
+  }
+  const tagName = tagNames.values().next().value;
+  const parameterName =
+      parameterNames.size > 0 ? Array.from(parameterNames).join('_or_') : undefined;
+  const type = types.size > 0 ? Array.from(types).join('|') : undefined;
+  const text = texts.size > 0 ? Array.from(texts).join(' / ') : undefined;
+  return {tagName, parameterName, type, text};
+}
