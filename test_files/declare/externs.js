@@ -73,9 +73,9 @@ DeclareTestInterface.prototype.foo;
 /**
  * @constructor
  * @struct
- * @param {number} opt_a
+ * @param {number=} a
  */
-function MultipleConstructors(opt_a) {}
+function MultipleConstructors(a) {}
 
 /**
  * @return {?}
@@ -84,10 +84,10 @@ Object.prototype.myMethod = function() {};
 
 /**
  * @param {string|number} x_or_y
- * @param {string} opt_x
+ * @param {string=} x
  * @return {!CodeMirror.Editor}
  */
-function CodeMirror(x_or_y, opt_x) {}
+function CodeMirror(x_or_y, x) {}
 
 /** @record @struct */
 CodeMirror.Editor = function() {};

@@ -7,9 +7,9 @@
 /**
  * @constructor
  * @struct
- * @param {number} opt_a
+ * @param {number=} a
  */
-function MultipleConstructorsOptional(opt_a) {}
+function MultipleConstructorsOptional(a) {}
 
 /**
  * @constructor
@@ -31,23 +31,23 @@ function MultipleConstructorsNamesAndTypes(a_or_b) {}
  * @param {number} a
  * @param {number} b
  * @param {number} c
- * @param {(undefined|string)|(undefined|!Array<string>)} normal_or_vertexNormals
- * @param {(undefined|boolean)|(undefined|!Array<boolean>)} color_or_vertexColors
- * @param {(undefined|number)} materialIndex
+ * @param {(undefined|string)|(undefined|!Array<string>)=} normal_or_vertexNormals
+ * @param {(undefined|boolean)|(undefined|!Array<boolean>)=} color_or_vertexColors
+ * @param {(undefined|number)=} materialIndex
  */
 function MultipleConstructorsComplexMatrix(a, b, c, normal_or_vertexNormals, color_or_vertexColors, materialIndex) {}
 
 /**
  * @constructor
  * @struct
- * @param {number|!Array<number>} a
+ * @param {...number|!Array<number>} a
  */
 function MultipleConstructorsVariadic(a) {}
 
 /**
  * @constructor
  * @struct
- * @param {!Array<string>|!Array<number>|string|number} points
+ * @param {...!Array<string>|!Array<number>|string|number} points
  */
 function MultipleConstructorsVariadicNames(points) {}
 
@@ -56,11 +56,11 @@ function OverloadSimpleArgs() {}
 
 /**
  * @param {string|number} a
- * @param {boolean} opt_b
- * @param {number} opt_c
+ * @param {boolean=} b
+ * @param {number=} c
  * @return {void}
  */
-OverloadSimpleArgs.prototype.overloaded = function(a, opt_b, opt_c) {};
+OverloadSimpleArgs.prototype.overloaded = function(a, b, c) {};
 
 /** @constructor @struct */
 function OverloadNameVariants() {}
@@ -77,31 +77,31 @@ function OverloadReturnTypesNoVoid() {}
 /**
  * @param {string} a
  * @param {boolean} b
- * @param {number} opt_c
+ * @param {number=} c
  * @return {boolean|number}
  */
-OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b, opt_c) {};
+OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b, c) {};
 
 /** @constructor @struct */
 function OverloadReturnTypesWithVoid() {}
 
 /**
  * @param {string} a
- * @param {boolean} opt_b
- * @param {number} opt_c
+ * @param {boolean=} b
+ * @param {number=} c
  * @return {void|boolean|number}
  */
-OverloadReturnTypesWithVoid.prototype.overloaded = function(a, opt_b, opt_c) {};
+OverloadReturnTypesWithVoid.prototype.overloaded = function(a, b, c) {};
 
 /** @constructor @struct */
 function OverloadBigMix() {}
 
 /**
- * @param {string|number|!Array<!OverloadBigMix>|!OverloadBigMix} a_or_c_or_e_or_f
- * @param {number} opt_b
+ * @param {string|number|!Array<!OverloadBigMix>} a_or_c_or_e
+ * @param {number=} b
  * @return {void|number|boolean}
  */
-OverloadBigMix.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
+OverloadBigMix.prototype.overloaded = function(a_or_c_or_e, b) {};
 
 /** @constructor @struct */
 function OverloadValueOf() {}
