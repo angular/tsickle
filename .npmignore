@@ -2,4 +2,6 @@
 .gitignore
 .idea
 .travis.yml
-build/test
+.vscode
+test
+test_files
