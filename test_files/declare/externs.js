@@ -110,3 +110,10 @@ function usesArguments(tsickle_arguments) {}
  * @return {?}
  */
 function destructures(__0) {}
+
+/** @const */
+var ChartType = {};
+/** @const {number} */
+ChartType.line;
+/** @const {number} */
+ChartType.bar;

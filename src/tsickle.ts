@@ -1078,10 +1078,12 @@ class ExternsWriter extends ClosureRewriter {
     }
   }
 
-  private writeExternsVariable(name: string, namespace: string[]) {
+  private writeExternsVariable(name: string, namespace: string[], value?: string) {
     let qualifiedName = namespace.concat([name]).join('.');
     if (namespace.length === 0) this.emit(`var `);
-    this.emit(`${qualifiedName};\n`);
+    this.emit(qualifiedName);
+    if (value) this.emit(` = ${value}`);
+    this.emit(';\n');
   }
 
   private writeExternsFunction(name: string, params: string[], namespace: string[]) {
@@ -1095,9 +1097,10 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsEnum(decl: ts.EnumDeclaration, namespace: string[]) {
-    namespace = namespace.concat([getIdentifierText(decl.name)]);
+    const name = getIdentifierText(decl.name);
     this.emit('\n/** @const */\n');
-    this.emit(`${namespace.join('.')} = {};\n`);
+    this.writeExternsVariable(name, namespace, '{}');
+    namespace = namespace.concat([name]);
     for (let member of decl.members) {
       let memberName: string|undefined;
       switch (member.name.kind) {
@@ -1115,9 +1118,8 @@ class ExternsWriter extends ClosureRewriter {
         this.emit(`\n/* TODO: ${ts.SyntaxKind[member.name.kind]}: ${member.name.getText()} */\n`);
         continue;
       }
-      let name = namespace.concat([memberName]).join('.');
       this.emit('/** @const {number} */\n');
-      this.emit(`${name};\n`);
+      this.writeExternsVariable(memberName, namespace);
     }
   }
 

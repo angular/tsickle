@@ -79,3 +79,8 @@ declare function usesArguments(arguments: string);
 
 // Avoid a Closure crash with destructuring.
 declare function destructures({a: number});
+
+// Properly generate top-level enums.
+declare enum ChartType {
+    line, bar
+}
