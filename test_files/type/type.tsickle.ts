@@ -1,7 +1,3 @@
-Warning at test_files/type/type.ts:13:5: unhandled type literal
-Warning at test_files/type/type.ts:28:1: unhandled type {type flags:0x4000 TypeParameter symbol.name:"T"}
-Warning at test_files/type/type.ts:28:1: unhandled type {type flags:0x4000 TypeParameter symbol.name:"T"}
-====
 // Ensure we still understand what Array is, even when it has been
 // monkeypatched -- issue #170.
 interface Array<T> {

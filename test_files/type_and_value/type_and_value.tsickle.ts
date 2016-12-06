@@ -1,6 +1,3 @@
-Warning at test_files/type_and_value/type_and_value.ts:10:5: unhandled anonymous type
-Warning at test_files/type_and_value/type_and_value.ts:16:5: type/symbol conflict for TypeAndValue, using {?} for now
-====
 import * as conflict from './module';
 
 // This test deals with symbols that are simultaneously types and values.

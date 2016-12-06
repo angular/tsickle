@@ -1,9 +1,3 @@
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-====
-
 /**
  * @param {number} a
  * @return {number}
