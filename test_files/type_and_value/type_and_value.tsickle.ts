@@ -6,7 +6,7 @@ import * as conflict from './module';
 // This test deals with symbols that are simultaneously types and values.
 
 // Use a browser built-in as both a type and a value.
-let /** @type {function(new: Document): ?} */ useBuiltInAsValue = Document;
+let /** @type {function(new: (!Document)): ?} */ useBuiltInAsValue = Document;
 let /** @type {!Document} */ useBuiltInAsType: Document;
 
 // Use a user-defined class as both a type and a value.
