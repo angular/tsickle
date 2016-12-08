@@ -304,7 +304,15 @@ class ClosureRewriter extends Rewriter {
    *     bind patterns.
    */
   typeToClosure(context: ts.Node, type?: ts.Type, destructuring = false): string {
-    if (this.options.untyped) {
+    if (this.options.untyped && !destructuring) {
+      // Note: even in untyped mode, it's important we provide a type signature
+      // for destructured types, because of the case like:
+      //   function foo({bar}: {bar:number})
+      // we need "bar" to appear in the JSDoc.
+      // Rather than special-case destructuring in untyped mode, the above logic
+      // just always provides full types for destructured cases; we'd like
+      // to eliminate untyped mode anyway and hopefully there aren't enough
+      // cases of destructuring where typed mode will fall down.
       return '?';
     }
 

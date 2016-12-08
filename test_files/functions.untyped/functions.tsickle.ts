@@ -1,3 +1,8 @@
+Warning at test_files/functions.untyped/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions.untyped/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions.untyped/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+Warning at test_files/functions.untyped/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
+====
 
 /**
  * @param {?} a
@@ -37,19 +42,19 @@ function Test4(a: any): string {
 function TestThisAndRest(this: string, ...params: any[]) {}
 TestThisAndRest.call('foo', 'bar', 3);
 /**
- * @param {?} __0
+ * @param {{a: number, b: number}} __0
  * @return {?}
  */
 function Destructuring({a, b}: {a: number, b: number}) {}
 /**
- * @param {?} __0
- * @param {?} __1
+ * @param {!Array<number>} __0
+ * @param {!Array<!Array<string>>} __1
  * @return {?}
  */
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
 /**
- * @param {?} __0
- * @param {?} __1
+ * @param {!Array<?, ?>} __0
+ * @param {!Array<!Array<?>>} __1
  * @return {?}
  */
 function Destructuring3([a, b], [[c]]) {}
