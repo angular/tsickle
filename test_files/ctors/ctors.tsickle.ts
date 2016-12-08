@@ -1,4 +1,4 @@
-let /** @type {function(new: Document): ?} */ x = Document;
+let /** @type {function(new: (!Document)): ?} */ x = Document;
 class X {
 /**
  * @param {number} a
@@ -11,4 +11,4 @@ function X_tsickle_Closure_declarations() {
 X.prototype.a;
 }
 
-let /** @type {function(new: X, number): ?} */ y: {new (a: number): X} = X;
+let /** @type {function(new: (!X), number): ?} */ y: {new (a: number): X} = X;
