@@ -4,6 +4,7 @@ class NoCtor {
 }
 
 function NoCtor_tsickle_Closure_declarations() {
+
 /** @type {number} */
 NoCtor.prototype.field1;
 }

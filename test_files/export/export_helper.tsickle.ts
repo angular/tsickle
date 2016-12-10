@@ -5,6 +5,7 @@ export let /** @type {number} */ export1 = 3;
 export let /** @type {number} */ export2 = 3;
 /** @record */
 export function Bar() {}
+
 /** @type {number} */
 Bar.prototype.barField;
 

@@ -3,6 +3,7 @@ export class ClassOne {}
 export class ClassTwo {}
 /** @record */
 export function Interface() {}
+
 /** @type {number} */
 Interface.prototype.x;
 

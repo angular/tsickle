@@ -1,8 +1,10 @@
 
 /** @record */
 function Point() {}
+
 /** @type {number} */
 Point.prototype.x;
+
 /** @type {number} */
 Point.prototype.y;
 interface Point {
@@ -25,12 +27,14 @@ function TrickyInterface() {}
 /* TODO: handle strange member:
 [offset: number]: number;
 */
+
 /** @type {number} */
 TrickyInterface.prototype.foo;
 /* TODO: handle strange member:
 (x: number): __ yuck __
     number;
 */
+
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
 
@@ -52,4 +56,24 @@ interface TrickyInterface {
     number;
   // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
+}
+/** @record */
+function Reopened() {}
+
+/** @type {number} */
+Reopened.prototype.x;
+
+
+// Reopen an interface with a redundant declaration and a useful one.
+interface Reopened {
+  x: number;
+}
+interface Reopened {
+  x: number;
+}
+/** @type {string} */
+Reopened.prototype.y;
+
+interface Reopened {
+  y: string;
 }
