@@ -77,7 +77,8 @@ testFn('golden tests', () => {
     }
     let options: tsickle.Options = {
       // See test_files/jsdoc_types/nevertyped.ts.
-      typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts'])
+      typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
+      convertIndexImportShorthand: true,
     };
     if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
@@ -131,8 +132,12 @@ testFn('golden tests', () => {
           warnings.push(diag);
         };
         // Run TypeScript through tsickle and compare against goldens.
-        let {output, externs, diagnostics} =
-            tsickle.annotate(program, program.getSourceFile(tsPath), options);
+        let {output, externs, diagnostics} = tsickle.annotate(
+            program, program.getSourceFile(tsPath), options, {
+              fileExists: ts.sys.fileExists,
+              readFile: ts.sys.readFile,
+            },
+            testSupport.compilerOptions);
         if (externs) allExterns = externs;
 
         // If there were any diagnostics, convert them into strings for
