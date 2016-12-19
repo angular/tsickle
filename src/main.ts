@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
@@ -19,7 +20,7 @@ import * as tsickle from './tsickle';
 import {toArray} from './util';
 
 /** Tsickle settings passed on the command line. */
-interface Settings {
+export interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
 
@@ -163,14 +164,14 @@ function createSourceReplacingCompilerHost(
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
-function toClosureJS(
+export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[]): {jsFiles: Map<string, string>, externs: string}|null {
+    allDiagnostics: ts.Diagnostic[], files?: Map<string, string>): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  let program = ts.createProgram(fileNames, options);
+  let program = files === undefined ? ts.createProgram(fileNames, options) : ts.createProgram(fileNames, options, createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
   {  // Scope for the "diagnostics" variable so we can use the name again later.
     let diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length > 0) {
@@ -190,15 +191,17 @@ function toClosureJS(
 
   // Process each input file with tsickle and save the output.
   const tsickleOutput = new Map<string, string>();
+  const tsickleSourceMaps = new Map<string, SourceMapGenerator>();
   let tsickleExterns = '';
   for (let fileName of fileNames) {
-    let {output, externs, diagnostics} =
+    let {output, externs, diagnostics, sourceMap} =
         tsickle.annotate(program, program.getSourceFile(fileName), tsickleOptions);
     if (diagnostics.length > 0) {
       allDiagnostics.push(...diagnostics);
       return null;
     }
     tsickleOutput.set(ts.sys.resolvePath(fileName), output);
+    tsickleSourceMaps.set(ts.sys.resolvePath(fileName), sourceMap);
     if (externs) {
       tsickleExterns += externs;
     }
@@ -227,6 +230,20 @@ function toClosureJS(
       let {output} = tsickle.processES5(
           fileName, moduleId, jsFiles.get(fileName)!, cliSupport.pathToModuleName);
       jsFiles.set(fileName, output);
+    }
+    else {
+      const tscSourceMapJson : any = jsFiles.get(fileName);
+      const tscSourceMap = SourceMapGenerator.fromSourceMap(new SourceMapConsumer(tscSourceMapJson));
+      const sourceFileName = ts.sys.resolvePath((new SourceMapConsumer(tscSourceMapJson) as any).sources[0]);
+      const tsickleSourceMap = tsickleSourceMaps.get(sourceFileName);
+      if (!tsickleSourceMap) {
+        console.log('couldn\'t find a souce map for: ' + sourceFileName);
+        return null;
+      }
+
+      tscSourceMap.applySourceMap(new SourceMapConsumer(tsickleSourceMap.toJSON()), (new SourceMapConsumer(tscSourceMapJson) as any).sources[0]);
+
+      jsFiles.set(fileName, tscSourceMap.toString());
     }
   }
 
