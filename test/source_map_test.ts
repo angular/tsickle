@@ -6,20 +6,16 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect, assert} from 'chai';
+import {assert, expect} from 'chai';
+import * as path from 'path';
 import {SourceMapConsumer} from 'source-map';
-
-import {annotate} from '../src/tsickle';
-
-import {createProgram} from './test_support';
-
-import {toClosureJS, Settings} from '../src/main';
-
 import * as ts from 'typescript';
 
+import {Settings, toClosureJS} from '../src/main';
+import {annotate} from '../src/tsickle';
 import {toArray} from '../src/util';
 
-import * as path from 'path';
+import {createProgram} from './test_support';
 
 describe('source maps', () => {
   it('generates a source map', () => {
@@ -42,50 +38,4 @@ describe('source maps', () => {
     expect(consumer.originalPositionFor({line: secondClassLine, column: 20}).line)
         .to.equal(3, 'second class definition');
   });
-
-  it('composes source maps with tsc', function() {
-    this.timeout(3000);
-
-    const diagnostics: ts.Diagnostic[] = [];
-
-    const sources = new Map<string, string>();
-    sources.set(ts.sys.resolvePath('input.ts'), `
-      class X { field: number; }
-      let x : string = 'a string';
-      let y : string = 'another string';
-      let z : string = x + y;`);
-
-    // Run tsickle+TSC to convert inputs to Closure JS files.
-    const closure = toClosureJS({sourceMap: true} as ts.CompilerOptions, ['input.ts'], {isUntyped: false} as Settings, diagnostics, sources);
-
-    if (!closure) {
-      assert.fail();
-      return;
-    }
-
-    const compiledJS = getFileWithName('input.js', closure.jsFiles);
-
-    if (!compiledJS) {
-      assert.fail();
-      return;
-    }
-
-    const lines = compiledJS.split('\n');
-    const stringXLine = lines.findIndex(l => l.indexOf('a string') !== -1) + 1;
-    const stringXColumn = lines[stringXLine - 1].indexOf('a string') + 1;
-
-    const sourceMapJson : any = getFileWithName('input.js.map', closure.jsFiles);
-    const sourceMap = new SourceMapConsumer(sourceMapJson);
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
-        .to.equal(3, 'first string definition');
-  });
 });
-
-
-function getFileWithName(filename: string, files: Map<string, string>): string | undefined {
-  for (let filepath of toArray(files.keys())) {
-    if (path.parse(filepath).base === filename) {
-      return files.get(filepath);
-    }
-  }
-}
