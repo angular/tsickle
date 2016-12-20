@@ -16,40 +16,18 @@ import {toArray} from '../src/util';
 
 describe('source maps', () => {
   it('composes source maps with tsc', function() {
-    const diagnostics: ts.Diagnostic[] = [];
-
     const sources = new Map<string, string>();
-    sources.set(ts.sys.resolvePath('input.ts'), `
+    sources.set('input.ts', `
       class X { field: number; }
       let x : string = 'a string';
       let y : string = 'another string';
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const closure = toClosureJS(
-        {sourceMap: true} as ts.CompilerOptions, ['input.ts'], {isUntyped: false} as Settings,
-        diagnostics, sources);
+    const {compiledJS, sourceMap} = compile(sources);
 
-    if (!closure) {
-      assert.fail();
-      return;
-    }
-
-    const compiledJS = getFileWithName('input.js', closure.jsFiles);
-
-    if (!compiledJS) {
-      assert.fail();
-      return;
-    }
-
-    const lines = compiledJS.split('\n');
-    const stringXLine = lines.findIndex(l => l.indexOf('a string') !== -1) + 1;
-    const stringXColumn = lines[stringXLine - 1].indexOf('a string') + 1;
-    const stringYLine = lines.findIndex(l => l.indexOf('another string') !== -1) + 1;
-    const stringYColumn = lines[stringYLine - 1].indexOf('another string') + 1;
-
-    const sourceMapJson: any = getFileWithName('input.js.map', closure.jsFiles);
-    const sourceMap = new SourceMapConsumer(sourceMapJson);
+    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
+    const {line: stringYLine, column: stringYColumn} = getLineAndColumn(compiledJS, 'another string');
 
     expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
         .to.equal(3, 'first string definition');
@@ -62,47 +40,25 @@ describe('source maps', () => {
   });
 
   it('composes sources maps with multiple input files', function() {
-    const diagnostics: ts.Diagnostic[] = [];
-
     const sources = new Map<string, string>();
-    sources.set(ts.sys.resolvePath('input1.ts'), `
+    sources.set('input1.ts', `
       class X { field: number; }
       let x : string = 'a string';
       let y : string = 'another string';
       let z : string = x + y;`);
 
-    sources.set(ts.sys.resolvePath('input2.ts'), `
+    sources.set('input2.ts', `
       class A { field: number; }
       let a : string = 'third string';
       let b : string = 'fourth rate';
       let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const closure = toClosureJS(
-        {sourceMap: true, outFile: 'output.js'} as ts.CompilerOptions, ['input1.ts', 'input2.ts'],
-        {isUntyped: false} as Settings, diagnostics, sources);
+    const {compiledJS, sourceMap} = compile(sources);
 
-    if (!closure) {
-      assert.fail();
-      return;
-    }
+    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
+    const {line: stringBLine, column: stringBColumn} = getLineAndColumn(compiledJS, 'fourth rate');
 
-    const compiledJS = getFileWithName('output.js', closure.jsFiles);
-
-    if (!compiledJS) {
-      assert.fail();
-      return;
-    }
-
-    const lines = compiledJS.split('\n');
-    const stringXLine = lines.findIndex(l => l.indexOf('a string') !== -1) + 1;
-    const stringXColumn = lines[stringXLine - 1].indexOf('a string') + 1;
-    const stringBLine = lines.findIndex(l => l.indexOf('fourth rate') !== -1) + 1;
-    ;
-    const stringBColumn = lines[stringBLine - 1].indexOf('fourth rate') + 1;
-
-    const sourceMapJson: any = getFileWithName('output.js.map', closure.jsFiles);
-    const sourceMap = new SourceMapConsumer(sourceMapJson);
     expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
         .to.equal(3, 'first string definition');
     expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
@@ -114,6 +70,43 @@ describe('source maps', () => {
   });
 });
 
+function getLineAndColumn(source: string, token: string): {line: number, column: number} {
+  const lines = source.split('\n');
+  const line = lines.findIndex(l => l.indexOf(token) !== -1) + 1;
+  const column = lines[line - 1].indexOf(token) + 1;
+  return {line, column};
+}
+
+function compile(sources: Map<string, string>): {compiledJS: string, sourceMap: SourceMapConsumer} {
+  const resolvedSources = new Map<string, string>();
+  for (const fileName of toArray(sources.keys())) {
+    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
+  }
+
+  const diagnostics: ts.Diagnostic[] = [];
+
+  const closure = toClosureJS(
+      {sourceMap: true, outFile: 'output.js'} as ts.CompilerOptions, toArray(sources.keys()),
+      {isUntyped: false} as Settings, diagnostics, resolvedSources);
+
+  if (!closure) {
+    diagnostics.forEach(v => console.log(JSON.stringify(v)));
+    assert.fail();
+    return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
+  }
+
+  const compiledJS = getFileWithName('output.js', closure.jsFiles);
+
+  if (!compiledJS) {
+    assert.fail();
+    return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
+  }
+
+  const sourceMapJson: any = getFileWithName('output.js.map', closure.jsFiles);
+  const sourceMap = new SourceMapConsumer(sourceMapJson);
+
+  return {compiledJS, sourceMap};
+}
 
 function getFileWithName(filename: string, files: Map<string, string>): string|undefined {
   for (let filepath of toArray(files.keys())) {
