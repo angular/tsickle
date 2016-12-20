@@ -12,10 +12,7 @@ import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import {Settings, toClosureJS} from '../src/main';
-import {annotate} from '../src/tsickle';
 import {toArray} from '../src/util';
-
-import {createProgram} from './test_support';
 
 describe('source maps', () => {
   it('composes source maps with tsc', function() {

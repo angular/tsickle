@@ -6,14 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {assert, expect} from 'chai';
-import * as path from 'path';
+import {expect} from 'chai';
 import {SourceMapConsumer} from 'source-map';
-import * as ts from 'typescript';
 
-import {Settings, toClosureJS} from '../src/main';
 import {annotate} from '../src/tsickle';
-import {toArray} from '../src/util';
 
 import {createProgram} from './test_support';
 
