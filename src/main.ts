@@ -163,6 +163,8 @@ function createSourceReplacingCompilerHost(
 /**
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
+ * Pass in a files param to programmatically specify input instead of
+ * looking for the files on disk.
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
