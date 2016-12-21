@@ -27,7 +27,8 @@ describe('source maps', () => {
     const {compiledJS, sourceMap} = compile(sources);
 
     const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
-    const {line: stringYLine, column: stringYColumn} = getLineAndColumn(compiledJS, 'another string');
+    const {line: stringYLine, column: stringYColumn} =
+        getLineAndColumn(compiledJS, 'another string');
 
     expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
         .to.equal(3, 'first string definition');
@@ -68,6 +69,24 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
         .to.equal('input2.ts', 'second input file');
   });
+
+  it('handles decorators correctly', function() {
+    const sources = new Map<string, string>();
+    sources.set('input.ts', `/** @Annotation */
+    function classAnnotation(t: any) { return t; }
+
+    @classAnnotation
+    class DecoratorTest {
+      public x(s: string): string { return s; }
+    }`);
+
+    const {compiledJS, sourceMap} = compile(sources);
+
+    const xPosition = getLineAndColumn(compiledJS, 'x');
+
+    expect(sourceMap.originalPositionFor(xPosition).line).to.equal(6, 'method X position');
+
+  });
 });
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
@@ -86,8 +105,8 @@ function compile(sources: Map<string, string>): {compiledJS: string, sourceMap: 
   const diagnostics: ts.Diagnostic[] = [];
 
   const closure = toClosureJS(
-      {sourceMap: true, outFile: 'output.js'} as ts.CompilerOptions, toArray(sources.keys()),
-      {isUntyped: false} as Settings, diagnostics, resolvedSources);
+      {sourceMap: true, outFile: 'output.js', experimentalDecorators: true} as ts.CompilerOptions,
+      toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics, resolvedSources);
 
   if (!closure) {
     diagnostics.forEach(v => console.log(JSON.stringify(v)));
