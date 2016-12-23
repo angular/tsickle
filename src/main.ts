@@ -18,6 +18,7 @@ import * as ts from 'typescript';
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
 import {toArray} from './util';
+import {TsickleCompilerHost} from './tsickle_compiler_host'
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
@@ -196,71 +197,16 @@ export function toClosureJS(
         undefined,
   };
 
-  // Process each input file with tsickle and save the output.
-  const tsickleOutput = new Map<string, string>();
-  const tsickleSourceMaps = new Map<string, SourceMapGenerator>();
-  let tsickleExterns = '';
-  for (let fileName of fileNames) {
-    let {output, externs, diagnostics, sourceMap} =
-        tsickle.annotate(program, program.getSourceFile(fileName), tsickleOptions);
-    if (diagnostics.length > 0) {
-      allDiagnostics.push(...diagnostics);
-      return null;
-    }
-    tsickleOutput.set(ts.sys.resolvePath(fileName), output);
-    tsickleSourceMaps.set(fileName, sourceMap);
-    if (externs) {
-      tsickleExterns += externs;
-    }
-  }
-
-  // Reparse and reload the program, inserting the tsickle output in
-  // place of the original source.
-  let host = createSourceReplacingCompilerHost(tsickleOutput, ts.createCompilerHost(options));
+  const host = new TsickleCompilerHost(ts.createCompilerHost(options), program, tsickleOptions);
   program = ts.createProgram(fileNames, options, host);
 
-  // Emit, creating a map of fileName => generated JS source.
-  const jsFiles = new Map<string, string>();
-  function writeFile(fileName: string, data: string): void {
-    jsFiles.set(fileName, data);
-  }
-
-  let {diagnostics} = program.emit(undefined, writeFile);
+  let {diagnostics} = program.emit(undefined);
   if (diagnostics.length > 0) {
     allDiagnostics.push(...diagnostics);
     return null;
   }
 
-  for (let fileName of toArray(jsFiles.keys())) {
-    if (path.extname(fileName) !== '.map') {
-      const moduleId = fileName;  // TODO: does anyone use this?
-      let {output} = tsickle.processES5(
-          fileName, moduleId, jsFiles.get(fileName)!, cliSupport.pathToModuleName);
-      jsFiles.set(fileName, output);
-    } else {
-      const tscSourceMapJson: any = jsFiles.get(fileName);
-      const tscSourceMap = new SourceMapConsumer(tscSourceMapJson);
-      const tscSourceMapGenerator = SourceMapGenerator.fromSourceMap(tscSourceMap);
-
-      for (const sourceFileName of (new SourceMapConsumer(tscSourceMapJson) as any).sources) {
-        const tsickleSourceMapGenerator = tsickleSourceMaps.get(sourceFileName);
-        if (!tsickleSourceMapGenerator) {
-          console.log('couldn\'t find a souce map for: ' + sourceFileName);
-          return null;
-        }
-        const tsickleRawSourceMap = tsickleSourceMapGenerator.toJSON();
-        tsickleRawSourceMap.sources[0] = sourceFileName;
-        tsickleRawSourceMap.file = sourceFileName;
-
-        const tsickleSourceMap = new SourceMapConsumer(tsickleRawSourceMap);
-
-        tscSourceMapGenerator.applySourceMap(tsickleSourceMap);
-      }
-      jsFiles.set(fileName, tscSourceMapGenerator.toString());
-    }
-  }
-
-  return {jsFiles, externs: tsickleExterns};
+  return {jsFiles: host.getOutputFiles(), externs: host.getExterns()};
 }
 
 function main(args: string[]): number {
