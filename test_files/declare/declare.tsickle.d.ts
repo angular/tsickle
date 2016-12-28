@@ -86,3 +86,8 @@ declare function destructures({a: number});
 declare enum ChartType {
     line, bar
 }
+
+// Should be dropped; redundant with Closure builtins.
+interface ErrorConstructor {
+  foo(): void;
+}
