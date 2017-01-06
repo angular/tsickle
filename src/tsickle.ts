@@ -84,6 +84,11 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
+/** @return true if node has the specified modifier flag set. */
+function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean {
+  return (ts.getCombinedModifierFlags(node) & flag) !== 0;
+}
+
 /**
  * TypeScript allows you to write identifiers quoted, like:
  *   interface Foo {
@@ -123,12 +128,14 @@ function getParameterName(param: ts.ParameterDeclaration, index: number): string
       // ignored anyway.
       return `__${index}`;
     default:
-      // The above list of kinds should be exhaustive.
-      throw new Error(`unhandled function parameter kind: ${ts.SyntaxKind[param.name.kind]}`);
+      // The above list of kinds is exhaustive.  param.name is 'never' at this point.
+      let paramName = param.name as ts.Node;
+      throw new Error(`unhandled function parameter kind: ${ts.SyntaxKind[paramName.kind]}`);
   }
 }
 
-const VISIBILITY_FLAGS = ts.NodeFlags.Private | ts.NodeFlags.Protected | ts.NodeFlags.Public;
+const VISIBILITY_FLAGS: ts.ModifierFlags =
+    ts.ModifierFlags.Private | ts.ModifierFlags.Protected | ts.ModifierFlags.Public;
 
 /**
  * A Rewriter subclass that adds Tsickle-specific (Closure translation) functionality.
@@ -183,7 +190,7 @@ class ClosureRewriter extends Rewriter {
       }
 
       // Add @abstract on "abstract" declarations.
-      if (fnDecl.flags & ts.NodeFlags.Abstract) {
+      if (hasModifierFlag(fnDecl, ts.ModifierFlags.Abstract)) {
         newDoc.push({tagName: 'abstract'});
       }
 
@@ -399,7 +406,7 @@ class Annotator extends ClosureRewriter {
    *     emit it as is and visit its children.
    */
   maybeProcess(node: ts.Node): boolean {
-    if ((node.flags & ts.NodeFlags.Ambient) || isDtsFileName(this.file.fileName)) {
+    if ((hasModifierFlag(node, ts.ModifierFlags.Ambient)) || isDtsFileName(this.file.fileName)) {
       this.externsWriter.visit(node);
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
@@ -485,7 +492,7 @@ class Annotator extends ClosureRewriter {
         let fnDecl = <ts.FunctionLikeDeclaration>node;
 
         if (!fnDecl.body) {
-          if ((fnDecl.flags & ts.NodeFlags.Abstract) !== 0) {
+          if (hasModifierFlag(fnDecl, ts.ModifierFlags.Abstract)) {
             this.emitFunctionType([fnDecl]);
             // Abstract functions look like
             //   abstract foo();
@@ -712,7 +719,7 @@ class Annotator extends ClosureRewriter {
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
     let jsDoc = this.getJSDoc(classDecl) || [];
-    if ((classDecl.flags & ts.NodeFlags.Abstract) !== 0) {
+    if (hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
       jsDoc.push({tagName: 'abstract'});
     }
     this.emit('\n');
@@ -742,7 +749,7 @@ class Annotator extends ClosureRewriter {
     if (sym.flags & ts.SymbolFlags.Value) return;
 
     this.emit(`\n/** @record */\n`);
-    if (iface.flags & ts.NodeFlags.Export) this.emit('export ');
+    if (hasModifierFlag(iface, ts.ModifierFlags.Export)) this.emit('export ');
     let name = getIdentifierText(iface.name);
     this.emit(`function ${name}() {}\n`);
     if (iface.typeParameters) {
@@ -775,7 +782,7 @@ class Annotator extends ClosureRewriter {
         ctors.push(member as ts.ConstructorDeclaration);
       } else if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
         let prop = member as ts.PropertyDeclaration;
-        let isStatic = (prop.flags & ts.NodeFlags.Static) !== 0;
+        let isStatic = hasModifierFlag(prop, ts.ModifierFlags.Static);
         if (isStatic) {
           staticProps.push(prop);
         } else {
@@ -786,7 +793,7 @@ class Annotator extends ClosureRewriter {
 
     if (ctors.length > 0) {
       let ctor = ctors[0];
-      paramProps = ctor.parameters.filter((p) => !!(p.flags & VISIBILITY_FLAGS));
+      paramProps = ctor.parameters.filter(p => hasModifierFlag(p, VISIBILITY_FLAGS));
     }
 
     if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0) {
@@ -851,7 +858,7 @@ class Annotator extends ClosureRewriter {
     // requires us to not assign to typedef exports).  Instead, emit the
     // "exports.foo;" line directly in that case.
     this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
-    if (node.flags & ts.NodeFlags.Export) {
+    if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
       this.emit('exports.');
     } else {
       this.emit('var ');
@@ -861,7 +868,7 @@ class Annotator extends ClosureRewriter {
 
   /** Processes an EnumDeclaration or returns false for ordinary processing. */
   private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
-    if (node.flags & ts.NodeFlags.Const) {
+    if (hasModifierFlag(node, ts.ModifierFlags.Const)) {
       // const enums disappear after TS compilation and consequently need no
       // help from tsickle.
       return false;
@@ -915,13 +922,10 @@ class Annotator extends ClosureRewriter {
     // both a typedef and an indexable object if we export it.
     this.emit('\n');
     let name = node.name.getText();
-    if (node.flags & ts.NodeFlags.Export) {
-      this.emit('export ');
-    }
+    const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
+    if (isExported) this.emit('export ');
     this.emit(`type ${name} = number;\n`);
-    if (node.flags & ts.NodeFlags.Export) {
-      this.emit('export ');
-    }
+    if (isExported) this.emit('export ');
     this.emit(`let ${name}: any = {};\n`);
 
     // Emit foo.BAR = 0; lines.

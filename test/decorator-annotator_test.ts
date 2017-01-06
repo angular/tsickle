@@ -50,7 +50,7 @@ describe(
         let goodSourceFile = program.getSourceFile(testCaseFileName);
         expect(() => convertDecorators(program.getTypeChecker(), goodSourceFile)).to.not.throw();
         let badSourceFile =
-            ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES6, true);
+            ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES2015, true);
         expect(() => convertDecorators(program.getTypeChecker(), badSourceFile)).to.throw();
       });
 

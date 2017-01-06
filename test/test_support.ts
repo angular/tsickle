@@ -17,7 +17,7 @@ import {toArray} from '../src/util';
 
 /** The TypeScript compiler options used by the test suite. */
 export const compilerOptions: ts.CompilerOptions = {
-  target: ts.ScriptTarget.ES6,
+  target: ts.ScriptTarget.ES2015,
   skipDefaultLibCheck: true,
   experimentalDecorators: true,
   emitDecoratorMetadata: true,
@@ -34,7 +34,7 @@ const {cachedLibPath, cachedLib} = (function() {
   let host = ts.createCompilerHost(compilerOptions);
   let fn = host.getDefaultLibFileName(compilerOptions);
   let p = ts.getDefaultLibFilePath(compilerOptions);
-  return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES6)};
+  return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)};
 })();
 
 /** Creates a ts.Program from a set of input files. */

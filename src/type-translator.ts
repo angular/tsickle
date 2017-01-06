@@ -37,31 +37,13 @@ export function typeToDebugString(type: ts.Type): string {
   let debugString = `flags:0x${type.flags.toString(16)}`;
 
   const basicTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.Any,
-    ts.TypeFlags.String,
-    ts.TypeFlags.Number,
-    ts.TypeFlags.Boolean,
-    ts.TypeFlags.Enum,
-    ts.TypeFlags.StringLiteral,
-    ts.TypeFlags.NumberLiteral,
-    ts.TypeFlags.BooleanLiteral,
-    ts.TypeFlags.EnumLiteral,
-    ts.TypeFlags.ESSymbol,
-    ts.TypeFlags.Void,
-    ts.TypeFlags.Undefined,
-    ts.TypeFlags.Null,
-    ts.TypeFlags.Never,
-    ts.TypeFlags.TypeParameter,
-    ts.TypeFlags.Class,
-    ts.TypeFlags.Interface,
-    ts.TypeFlags.Reference,
-    ts.TypeFlags.Tuple,
-    ts.TypeFlags.Union,
-    ts.TypeFlags.Intersection,
-    ts.TypeFlags.Anonymous,
-    ts.TypeFlags.Instantiated,
-    ts.TypeFlags.ThisType,
-    ts.TypeFlags.ObjectLiteralPatternWithComputedProperties,
+    ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
+    ts.TypeFlags.Boolean,       ts.TypeFlags.Enum,           ts.TypeFlags.StringLiteral,
+    ts.TypeFlags.NumberLiteral, ts.TypeFlags.BooleanLiteral, ts.TypeFlags.EnumLiteral,
+    ts.TypeFlags.ESSymbol,      ts.TypeFlags.Void,           ts.TypeFlags.Undefined,
+    ts.TypeFlags.Null,          ts.TypeFlags.Never,          ts.TypeFlags.TypeParameter,
+    ts.TypeFlags.Object,        ts.TypeFlags.Union,          ts.TypeFlags.Intersection,
+    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,
   ];
   for (let flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
@@ -220,13 +202,13 @@ export class TypeTranslator {
 
     if (type.symbol && this.isBlackListed(type.symbol)) return '?';
 
-    if (type.flags & ts.TypeFlags.Class) {
+    if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Class */ 1 === 1) {
       if (!type.symbol) {
         this.warn('class has no symbol');
         return '?';
       }
       return '!' + this.symbolToString(type.symbol);
-    } else if (type.flags & ts.TypeFlags.Interface) {
+    } else if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Interface */ 1 === 1) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
       // when it's used, and should not be transformed to the output.
@@ -248,13 +230,14 @@ export class TypeTranslator {
         }
       }
       return '!' + this.symbolToString(type.symbol);
-    } else if (type.flags & ts.TypeFlags.Reference) {
+    } else if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Reference */ 1 === 1) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
       let referenceType = type as ts.TypeReference;
 
       let typeStr = '';
-      let isTuple = (referenceType.flags & ts.TypeFlags.Tuple) > 0;
+      // TODO(ts2.1): let isTuple = (referenceType.flags & ts.TypeFlags.Tuple) > 0;
+      let isTuple = true;
       // For unknown reasons, tuple types can be reference types containing a
       // reference loop. see Destructuring3 in functions.ts.
       // TODO(rado): handle tuples in their own branch.
@@ -274,7 +257,7 @@ export class TypeTranslator {
         typeStr += isTuple ? `!Array` : `<${params.join(', ')}>`;
       }
       return typeStr;
-    } else if (type.flags & ts.TypeFlags.Anonymous) {
+    } else if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Anonymous */ 1 === 1) {
       if (!type.symbol) {
         // This comes up when generating code for an arrow function as passed
         // to a generic function.  The passed-in type is tagged as anonymous
