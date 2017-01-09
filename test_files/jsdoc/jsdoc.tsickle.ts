@@ -1,11 +1,3 @@
-Warning at test_files/jsdoc/jsdoc.ts:16:1: type annotations (using {...}) are redundant with TypeScript types
-Warning at test_files/jsdoc/jsdoc.ts:29:3: type annotations (using {...}) are redundant with TypeScript types
-Warning at test_files/jsdoc/jsdoc.ts:34:3: @type annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:44:1: @extends annotations are redundant with TypeScript equivalents
-@implements annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:51:3: @constructor annotations are redundant with TypeScript equivalents
-====
-
 /**
  * @param {string} foo a string.
  * @param {string} baz
@@ -69,7 +61,7 @@ constructor() {}
 }
 /**
  * This comment has code that needs to be escaped to pass Closure checking.
- * 
+ *
  *   \@Reflect
  *   function example() {}
  *   \@Reflect.metadata(foo, bar)

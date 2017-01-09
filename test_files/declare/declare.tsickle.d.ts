@@ -1,5 +1,3 @@
-Warning at test_files/declare/declare.d.ts:81:1: anonymous type has no symbol
-====
 declare namespace DeclareTestModule {
   namespace inner {
     var someBool: boolean;
