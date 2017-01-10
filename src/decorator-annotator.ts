@@ -57,7 +57,19 @@ class ClassRewriter extends Rewriter {
     if (decSym.flags & ts.SymbolFlags.Alias) {
       decSym = this.typeChecker.getAliasedSymbol(decSym);
     }
-    return decSym.getDocumentationComment().some(c => c.text.indexOf('@Annotation') >= 0);
+    for (let d of decSym.getDeclarations()) {
+      // Switch to the TS JSDoc parser in the future to avoid false positives here.
+      // For example using '@Annotation' in a true comment.
+      // However, a new TS API would be needed, track at
+      // https://github.com/Microsoft/TypeScript/issues/7393.
+      let range = ts.getLeadingCommentRanges(d.getFullText(), 0);
+      if (!range) return;
+      for (let {pos, end} of range) {
+        let jsDocText = d.getFullText().substring(pos, end);
+        if (jsDocText.includes('@Annotation')) return true;
+      }
+    }
+    return false;
   }
 
   private decoratorsToLower(n: ts.Node): ts.Decorator[] {
