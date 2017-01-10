@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {Rewriter} from './rewriter';
@@ -279,7 +280,7 @@ class DecoratorRewriter extends Rewriter {
     super(sourceFile);
   }
 
-  process(): {output: string, diagnostics: ts.Diagnostic[]} {
+  process(): {output: string, diagnostics: ts.Diagnostic[], sourceMap: SourceMapGenerator} {
     this.visit(this.file);
     return this.getOutput();
   }
@@ -299,7 +300,7 @@ class DecoratorRewriter extends Rewriter {
 }
 
 export function convertDecorators(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile):
-    {output: string, diagnostics: ts.Diagnostic[]} {
+    {output: string, diagnostics: ts.Diagnostic[], sourceMap: SourceMapGenerator} {
   assertTypeChecked(sourceFile);
   return new DecoratorRewriter(typeChecker, sourceFile).process();
 }
