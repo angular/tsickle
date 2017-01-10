@@ -29,3 +29,14 @@ interface TrickyInterface {
   // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
 }
+
+// Reopen an interface with a redundant declaration and a useful one.
+interface Reopened {
+  x: number;
+}
+interface Reopened {
+  x: number;
+}
+interface Reopened {
+  y: string;
+}

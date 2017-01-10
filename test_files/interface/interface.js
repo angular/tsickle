@@ -27,3 +27,9 @@ TrickyInterface.prototype.foo;
 */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/** @record */
+function Reopened() { }
+/** @type {number} */
+Reopened.prototype.x;
+/** @type {string} */
+Reopened.prototype.y;

@@ -1,6 +1,7 @@
 
 /** @record */
 export function NeverTyped() {}
+
 /** @type {number} */
 NeverTyped.prototype.foo;
 /* This filename is specially marked in the tsickle test

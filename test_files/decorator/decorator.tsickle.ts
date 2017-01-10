@@ -37,17 +37,22 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 }
 
 function DecoratorTest_tsickle_Closure_declarations() {
+
 /** @type {!Array<!DecoratorInvocation>} */
 DecoratorTest.decorators;
+
 /**
  * @nocollapse
  * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>}
  */
 DecoratorTest.ctorParameters;
+
 /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
 DecoratorTest.propDecorators;
+
 /** @type {number} */
 DecoratorTest.prototype.x;
+
 /** @type {number} */
 DecoratorTest.prototype.y;
 }
@@ -58,14 +63,17 @@ class DecoratedClass {
 }
 
 function DecoratedClass_tsickle_Closure_declarations() {
+
 /** @type {string} */
 DecoratedClass.prototype.z;
 }
 
 /** @record */
 function DecoratorInvocation() {}
+
 /** @type {!Function} */
 DecoratorInvocation.prototype.type;
+
 /** @type {(undefined|!Array<?>)} */
 DecoratorInvocation.prototype.args;
 

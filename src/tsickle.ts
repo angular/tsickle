@@ -142,6 +142,21 @@ class ClosureRewriter extends Rewriter {
   }
 
   /**
+   * isFirstDeclaration returns true if decl is the first declaration
+   * of its symbol.  E.g. imagine
+   *   interface Foo { x: number; }
+   *   interface Foo { y: number; }
+   * we only want to emit the "@record" for Foo on the first one.
+   */
+  isFirstDeclaration(decl: ts.Declaration): boolean {
+    if (!decl.name) return true;
+    const typeChecker = this.program.getTypeChecker();
+    const sym = typeChecker.getSymbolAtLocation(decl.name);
+    if (!sym.declarations || sym.declarations.length < 2) return true;
+    return decl === sym.declarations[0];
+  }
+
+  /**
    * Handles emittng the jsdoc for methods, including overloads.
    * If overloaded, merges the signatures in the list of SignatureDeclarations into a single jsdoc.
    * - Total number of parameters will be the maximum count found across all variants.
@@ -741,20 +756,25 @@ class Annotator extends ClosureRewriter {
     let sym = this.program.getTypeChecker().getSymbolAtLocation(iface.name);
     if (sym.flags & ts.SymbolFlags.Value) return;
 
-    this.emit(`\n/** @record */\n`);
-    if (iface.flags & ts.NodeFlags.Export) this.emit('export ');
-    let name = getIdentifierText(iface.name);
-    this.emit(`function ${name}() {}\n`);
-    if (iface.typeParameters) {
-      this.emit(`// TODO: type parameters.\n`);
-    }
-    if (iface.heritageClauses) {
-      this.emit(`// TODO: derived interfaces.\n`);
+    const name = getIdentifierText(iface.name);
+
+    if (this.isFirstDeclaration(iface)) {
+      this.emit(`\n/** @record */\n`);
+      if (iface.flags & ts.NodeFlags.Export) this.emit('export ');
+      this.emit(`function ${name}() {}\n`);
+      if (iface.typeParameters) {
+        this.emit(`// TODO: type parameters.\n`);
+      }
+      if (iface.heritageClauses) {
+        this.emit(`// TODO: derived interfaces.\n`);
+      }
     }
 
     const memberNamespace = [name, 'prototype'];
     for (let elem of iface.members) {
-      this.visitProperty(memberNamespace, elem);
+      if (this.isFirstDeclaration(elem)) {
+        this.visitProperty(memberNamespace, elem);
+      }
     }
   }
 
@@ -838,7 +858,7 @@ class Annotator extends ClosureRewriter {
       }
     }
     tags.push({tagName: 'type', type: this.typeToClosure(p)});
-    this.emit(jsdoc.toString(tags));
+    this.emit('\n' + jsdoc.toString(tags));
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
   }
@@ -1026,21 +1046,6 @@ class ExternsWriter extends ClosureRewriter {
         this.emit(`\n/* TODO: ${ts.SyntaxKind[node.kind]} in ${namespace.join('.')} */\n`);
         break;
     }
-  }
-
-  /**
-   * isFirstDeclaration returns true if decl is the first declaration
-   * of its symbol.  E.g. imagine
-   *   interface Foo { x: number; }
-   *   interface Foo { y: number; }
-   * we only want to emit the "@record" for Foo on the first one.
-   */
-  private isFirstDeclaration(decl: ts.DeclarationStatement): boolean {
-    if (!decl.name) return true;
-    const typeChecker = this.program.getTypeChecker();
-    const sym = typeChecker.getSymbolAtLocation(decl.name);
-    if (!sym.declarations || sym.declarations.length < 2) return true;
-    return decl === sym.declarations[0];
   }
 
   private writeExternsType(decl: ts.InterfaceDeclaration|ts.ClassDeclaration, namespace: string[]) {

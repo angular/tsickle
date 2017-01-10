@@ -42,15 +42,19 @@ class JSDocTest {
 }
 
 function JSDocTest_tsickle_Closure_declarations() {
+
 /**
  * @export
  * @type {string}
  */
 JSDocTest.prototype.exported;
+
 /** @type {string} */
 JSDocTest.prototype.badExport;
+
 /** @type {string} */
 JSDocTest.prototype.stringWithoutJSDoc;
+
 /** @type {number} */
 JSDocTest.prototype.typedThing;
 }
