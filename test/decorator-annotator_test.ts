@@ -62,7 +62,7 @@ describe(
 export class Foo {
 }
 let X = 'a string';`);
-        const rawMap = (sourceMap as any).toJSON();
+        const rawMap = sourceMap.toJSON();
         const consumer = new SourceMapConsumer(rawMap);
         const lines = output.split('\n');
         const stringXLine = lines.findIndex(l => l.indexOf('a string') !== -1) + 1;
