@@ -188,7 +188,13 @@ export class TypeTranslator {
     // NOTE: Though type.flags has the name "flags", it usually can only be one
     // of the enum options at a time.  This switch handles all the cases in
     // the ts.TypeFlags enum in the order they occur.
-    switch (type.flags) {
+    // NOTE: Some TypeFlags are marked "internal" in the d.ts but still show
+    // up in the value of type.flags.  This mask limits the flag checks to
+    // the ones in the public API.  "lastFlag" here is the last flag handled
+    // in this switch statement, and should be kept in sync with typescript.d.ts.
+    let lastFlag = ts.TypeFlags.IndexedAccess;
+    let mask = (lastFlag << 1) - 1;
+    switch (type.flags & mask) {
       case ts.TypeFlags.Any:
         return '?';
       case ts.TypeFlags.String:
