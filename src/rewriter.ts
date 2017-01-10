@@ -29,6 +29,7 @@ export abstract class Rewriter {
   private indent: number = 0;
 
   constructor(protected file: ts.SourceFile) {
+    this.sourceMap = new SourceMapGenerator({file: file.fileName});
     this.sourceMap.addMapping({
       original: this.position,
       generated: this.position,

@@ -43,16 +43,16 @@ describe('source maps', () => {
   it('composes sources maps with multiple input files', function() {
     const sources = new Map<string, string>();
     sources.set('input1.ts', `
-      class X { field: number; }
-      let x : string = 'a string';
-      let y : string = 'another string';
-      let z : string = x + y;`);
+        class X { field: number; }
+        let x : string = 'a string';
+        let y : string = 'another string';
+        let z : string = x + y;`);
 
     sources.set('input2.ts', `
-      class A { field: number; }
-      let a : string = 'third string';
-      let b : string = 'fourth rate';
-      let c : string = a + b;`);
+        class A { field: number; }
+        let a : string = 'third string';
+        let b : string = 'fourth rate';
+        let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources);
@@ -73,25 +73,27 @@ describe('source maps', () => {
   it('handles decorators correctly', function() {
     const sources = new Map<string, string>();
     sources.set('input.ts', `/** @Annotation */
-    function classAnnotation(t: any) { return t; }
+        function classAnnotation(t: any) { return t; }
 
-    @classAnnotation
-    class DecoratorTest {
-      public x(s: string): string { return s; }
-    }`);
+        @classAnnotation
+        class DecoratorTest {
+          public x(s: string): string { return s; }
+        }`);
 
     const {compiledJS, sourceMap} = compile(sources);
 
     const xPosition = getLineAndColumn(compiledJS, 'x');
 
     expect(sourceMap.originalPositionFor(xPosition).line).to.equal(6, 'method X position');
-
   });
 });
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
   const lines = source.split('\n');
   const line = lines.findIndex(l => l.indexOf(token) !== -1) + 1;
+  if (line === 0) {
+    throw new Error(`Couldn't find token '${token}' in source`);
+  }
   const column = lines[line - 1].indexOf(token) + 1;
   return {line, column};
 }

@@ -154,7 +154,7 @@ function createSourceReplacingCompilerHost(
     let path: string = ts.sys.resolvePath(fileName);
     let sourceText = substituteSource.get(path);
     if (sourceText) {
-      return ts.createSourceFile(path, sourceText, languageVersion);
+      return ts.createSourceFile(fileName, sourceText, languageVersion);
     }
     return delegate.getSourceFile(path, languageVersion, onError);
   }
@@ -245,12 +245,10 @@ export function toClosureJS(
       for (const sourceFileName of (new SourceMapConsumer(tscSourceMapJson) as any).sources) {
         const tsickleSourceMapGenerator = tsickleSourceMaps.get(sourceFileName);
         if (!tsickleSourceMapGenerator) {
-          console.log('couldn\'t find a souce map for: ' + sourceFileName);
+          console.log(`couldn't find a source map for: ${sourceFileName}`);
           return null;
         }
         const tsickleRawSourceMap = tsickleSourceMapGenerator.toJSON();
-        tsickleRawSourceMap.sources[0] = sourceFileName;
-        tsickleRawSourceMap.file = sourceFileName;
 
         const tsickleSourceMap = new SourceMapConsumer(tsickleRawSourceMap);
 
