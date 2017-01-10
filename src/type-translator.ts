@@ -306,6 +306,13 @@ export class TypeTranslator {
       // Emit the referenced type and any type arguments.
       let referenceType = type as ts.TypeReference;
 
+      // A tuple is a ReferenceType where the target is flagged Tuple and the
+      // typeArguments are the tuple arguments.  Just treat it as a mystery
+      // array, because Closure doesn't understand tuples.
+      if (referenceType.target.objectFlags & ts.ObjectFlags.Tuple) {
+        return '!Array<?>';
+      }
+
       let typeStr = '';
       if (referenceType.target === referenceType) {
         // We get into an infinite loop here if the inner reference is
