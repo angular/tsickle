@@ -12,14 +12,16 @@ import * as fs from 'fs';
 import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
 import {toArray} from './util';
+import {TsickleCompilerHost} from './tsickle_compiler_host'
 
 /** Tsickle settings passed on the command line. */
-interface Settings {
+export interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
 
@@ -162,15 +164,22 @@ function createSourceReplacingCompilerHost(
 /**
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
+ * Pass in a files param to programmatically specify input instead of
+ * looking for the files on disk.
  */
-function toClosureJS(
+export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[]): {jsFiles: Map<string, string>, externs: string}|null {
+    allDiagnostics: ts.Diagnostic[],
+    files?: Map<string, string>): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  let program = ts.createProgram(fileNames, options);
+  let program = files === undefined ?
+      ts.createProgram(fileNames, options) :
+      ts.createProgram(
+          fileNames, options,
+          createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
   {  // Scope for the "diagnostics" variable so we can use the name again later.
     let diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length > 0) {
@@ -188,49 +197,16 @@ function toClosureJS(
         undefined,
   };
 
-  // Process each input file with tsickle and save the output.
-  const tsickleOutput = new Map<string, string>();
-  let tsickleExterns = '';
-  for (let fileName of fileNames) {
-    let {output, externs, diagnostics} =
-        tsickle.annotate(program, program.getSourceFile(fileName), tsickleOptions);
-    if (diagnostics.length > 0) {
-      allDiagnostics.push(...diagnostics);
-      return null;
-    }
-    tsickleOutput.set(ts.sys.resolvePath(fileName), output);
-    if (externs) {
-      tsickleExterns += externs;
-    }
-  }
-
-  // Reparse and reload the program, inserting the tsickle output in
-  // place of the original source.
-  let host = createSourceReplacingCompilerHost(tsickleOutput, ts.createCompilerHost(options));
+  const host = new TsickleCompilerHost(ts.createCompilerHost(options), program, tsickleOptions);
   program = ts.createProgram(fileNames, options, host);
 
-  // Emit, creating a map of fileName => generated JS source.
-  const jsFiles = new Map<string, string>();
-  function writeFile(fileName: string, data: string): void {
-    jsFiles.set(fileName, data);
-  }
-
-  let {diagnostics} = program.emit(undefined, writeFile);
+  let {diagnostics} = program.emit(undefined);
   if (diagnostics.length > 0) {
     allDiagnostics.push(...diagnostics);
     return null;
   }
 
-  for (let fileName of toArray(jsFiles.keys())) {
-    if (path.extname(fileName) !== '.map') {
-      const moduleId = fileName;  // TODO: does anyone use this?
-      let {output} = tsickle.processES5(
-          fileName, moduleId, jsFiles.get(fileName)!, cliSupport.pathToModuleName);
-      jsFiles.set(fileName, output);
-    }
-  }
-
-  return {jsFiles, externs: tsickleExterns};
+  return {jsFiles: host.getOutputFiles(), externs: host.getExterns()};
 }
 
 function main(args: string[]): number {
