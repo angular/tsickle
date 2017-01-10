@@ -7,6 +7,7 @@
  */
 
 import {expect} from 'chai';
+import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import {ANNOTATION_SUPPORT_CODE, convertDecorators} from '../src/decorator-annotator';
@@ -33,11 +34,11 @@ describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
         let program = testSupport.createProgram(sources(sourceText));
-        let {output, diagnostics} =
+        let {output, diagnostics, sourceMap} =
             convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
         if (!allowErrors) expect(diagnostics).to.be.empty;
         verifyCompiles(output);
-        return {output, diagnostics};
+        return {output, diagnostics, sourceMap};
       }
 
       function expectUnchanged(sourceText: string) {
@@ -52,6 +53,21 @@ describe(
         let badSourceFile =
             ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES6, true);
         expect(() => convertDecorators(program.getTypeChecker(), badSourceFile)).to.throw();
+      });
+
+      it('generates a source map', () => {
+        const {output, sourceMap} = translate(`
+/** @Annotation */ let Test1: Function;
+@Test1
+export class Foo {
+}
+let X = 'a string';`);
+        const rawMap = sourceMap.toJSON();
+        const consumer = new SourceMapConsumer(rawMap);
+        const lines = output.split('\n');
+        const stringXLine = lines.findIndex(l => l.indexOf('a string') !== -1) + 1;
+        expect(consumer.originalPositionFor({line: stringXLine, column: 10}).line)
+            .to.equal(6, 'string X definition');
       });
 
       describe('class decorator rewriter', () => {

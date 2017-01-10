@@ -57,8 +57,16 @@ export let closureExternsBlacklist: string[] = [
   'exports',
   'global',
   'module',
-  'WorkerGlobalScope',
+  // ErrorConstructor is the interface of the Error object itself.
+  // tsickle detects that this is part of the TypeScript standard library
+  // and assumes it's part of the Closure standard library, but this
+  // assumption is wrong for ErrorConstructor.  To properly handle this
+  // we'd somehow need to map methods defined on the ErrorConstructor
+  // interface into properties on Closure's Error object, but for now it's
+  // simpler to just blacklist it.
+  'ErrorConstructor',
   'Symbol',
+  'WorkerGlobalScope',
 ];
 
 export function formatDiagnostics(diags: ts.Diagnostic[]): string {
