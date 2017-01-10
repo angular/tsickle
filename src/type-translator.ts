@@ -185,8 +185,8 @@ export class TypeTranslator {
   }
 
   translate(type: ts.Type): string {
-    // NOTE: Though type.flags has the name "flags", it can only be one of
-    // the enum options at a time.  This switch handles all the cases in
+    // NOTE: Though type.flags has the name "flags", it usually can only be one
+    // of the enum options at a time.  This switch handles all the cases in
     // the ts.TypeFlags enum in the order they occur.
     switch (type.flags) {
       case ts.TypeFlags.Any:
@@ -199,6 +199,7 @@ export class TypeTranslator {
         return 'number';
       case ts.TypeFlags.Boolean:
       case ts.TypeFlags.BooleanLiteral:
+        // See the note in translateUnion about booleans.
         return 'boolean';
       case ts.TypeFlags.Enum:
       case ts.TypeFlags.EnumLiteral:
@@ -223,14 +224,7 @@ export class TypeTranslator {
       case ts.TypeFlags.Object:
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:
-        let unionType = type as ts.UnionType;
-        let parts = unionType.types.map(t => this.translate(t));
-        // Union types that include boolean literals and other literals can
-        // end up repeating the same Closure type. For example: true | boolean
-        // will be translated to boolean | boolean. Remove duplicates to produce
-        // types that read better.
-        parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
-        return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
+        return this.translateUnion(type as ts.UnionType);
       case ts.TypeFlags.Intersection:
       case ts.TypeFlags.Index:
       case ts.TypeFlags.IndexedAccess:
@@ -238,9 +232,31 @@ export class TypeTranslator {
         this.warn(`unhandled type flags: ${ts.TypeFlags[type.flags]}`);
         return '?';
       default:
+        // Handle cases where multiple flags are set.
+
+        // Booleans are represented as
+        //   ts.TypeFlags.Union | ts.TypeFlags.Boolean
+        // where the union is a union of true|false.
+        // Note also that in a more complex union, e.g. boolean|number, then
+        // it's a union of three things (true|false|number) and
+        // ts.TypeFlags.Boolean doesn't show up at all.
+        if (type.flags & ts.TypeFlags.Union) {
+          return this.translateUnion(type as ts.UnionType);
+        }
+
         // The switch statement should have been exhaustive.
         throw new Error(`unknown type flags: ${type.flags}`);
     }
+  }
+
+  private translateUnion(type: ts.UnionType): string {
+    let parts = type.types.map(t => this.translate(t));
+    // Union types that include boolean literals and other literals can
+    // end up repeating the same Closure type. For example: true | boolean
+    // will be translated to boolean | boolean. Remove duplicates to produce
+    // types that read better.
+    parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
+    return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
   }
 
   // translateObject translates a ts.ObjectType, which is the type of all
