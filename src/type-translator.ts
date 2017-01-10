@@ -51,6 +51,27 @@ export function typeToDebugString(type: ts.Type): string {
     }
   }
 
+  if (type.flags === ts.TypeFlags.Object) {
+    const objType = type as ts.ObjectType;
+    const objectFlags: ts.ObjectFlags[] = [
+      ts.ObjectFlags.Class,
+      ts.ObjectFlags.Interface,
+      ts.ObjectFlags.Reference,
+      ts.ObjectFlags.Tuple,
+      ts.ObjectFlags.Anonymous,
+      ts.ObjectFlags.Mapped,
+      ts.ObjectFlags.Instantiated,
+      ts.ObjectFlags.ObjectLiteral,
+      ts.ObjectFlags.EvolvingArray,
+      ts.ObjectFlags.ObjectLiteralPatternWithComputedProperties,
+    ];
+    for (let flag of objectFlags) {
+      if ((objType.objectFlags & flag) !== 0) {
+        debugString += ` object:${ts.ObjectFlags[flag]}`;
+      }
+    }
+  }
+
   if (type.symbol && type.symbol.name !== '__type') {
     debugString += ` symbol.name:${JSON.stringify(type.symbol.name)}`;
   }
@@ -164,51 +185,79 @@ export class TypeTranslator {
   }
 
   translate(type: ts.Type): string {
-    // See the function `buildTypeDisplay` in the TypeScript compiler source
-    // for guidance on a similar operation.
-
-    // NOTE: type.flags is a single value for primitive types, but sometimes a
-    // bitwise 'or' of some values for more complex types.  We use a switch
-    // statement for the basics and a series of "if" tests for the complex ones,
-    // roughly in the same order the flags occur in the TypeFlags enum.
+    // NOTE: Though type.flags has the name "flags", it can only be one of
+    // the enum options at a time.  This switch handles all the cases in
+    // the ts.TypeFlags enum in the order they occur.
     switch (type.flags) {
       case ts.TypeFlags.Any:
         return '?';
       case ts.TypeFlags.String:
+      case ts.TypeFlags.StringLiteral:
         return 'string';
       case ts.TypeFlags.Number:
+      case ts.TypeFlags.NumberLiteral:
         return 'number';
       case ts.TypeFlags.Boolean:
+      case ts.TypeFlags.BooleanLiteral:
         return 'boolean';
+      case ts.TypeFlags.Enum:
+      case ts.TypeFlags.EnumLiteral:
+        return 'number';
+      case ts.TypeFlags.ESSymbol:
+        // NOTE: currently this is just a typedef for {?}, shrug.
+        // https://github.com/google/closure-compiler/blob/55cf43ee31e80d89d7087af65b5542aa63987874/externs/es3.js#L34
+        return 'symbol';
       case ts.TypeFlags.Void:
         return 'void';
       case ts.TypeFlags.Undefined:
         return 'undefined';
       case ts.TypeFlags.Null:
         return 'null';
-      case ts.TypeFlags.EnumLiteral:
-      case ts.TypeFlags.Enum:
-        return 'number';
-      case ts.TypeFlags.StringLiteral:
-        return 'string';
-      case ts.TypeFlags.BooleanLiteral:
-        return 'boolean';
-      case ts.TypeFlags.NumberLiteral:
-        return 'number';
+      case ts.TypeFlags.Never:
+        this.warn(`should not emit a 'never' type`);
+        return '?';
+      case ts.TypeFlags.TypeParameter:
+        // This is e.g. the T in a type like Foo<T>.
+        this.warn(`unhandled type flags: ${ts.TypeFlags[type.flags]}`);
+        return '?';
+      case ts.TypeFlags.Object:
+        return this.translateObject(type as ts.ObjectType);
+      case ts.TypeFlags.Union:
+        let unionType = type as ts.UnionType;
+        let parts = unionType.types.map(t => this.translate(t));
+        // Union types that include boolean literals and other literals can
+        // end up repeating the same Closure type. For example: true | boolean
+        // will be translated to boolean | boolean. Remove duplicates to produce
+        // types that read better.
+        parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
+        return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
+      case ts.TypeFlags.Intersection:
+      case ts.TypeFlags.Index:
+      case ts.TypeFlags.IndexedAccess:
+        // TODO(ts2.1): handle these special types.
+        this.warn(`unhandled type flags: ${ts.TypeFlags[type.flags]}`);
+        return '?';
       default:
-        // Continue on to more complex tests below.
-        break;
+        // The switch statement should have been exhaustive.
+        throw new Error(`unknown type flags: ${type.flags}`);
     }
+  }
 
+  // translateObject translates a ts.ObjectType, which is the type of all
+  // object-like things in TS, such as classes and interfaces.
+  private translateObject(type: ts.ObjectType): string {
     if (type.symbol && this.isBlackListed(type.symbol)) return '?';
 
-    if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Class */ 1 === 1) {
+    // NOTE: objectFlags is an enum, but a given type can have multiple flags.
+    // Array<string> is both ts.ObjectFlags.Reference and ts.ObjectFlags.Interface.
+
+    if (type.objectFlags & ts.ObjectFlags.Class) {
       if (!type.symbol) {
         this.warn('class has no symbol');
         return '?';
       }
       return '!' + this.symbolToString(type.symbol);
-    } else if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Interface */ 1 === 1) {
+    } else if (type.objectFlags & ts.ObjectFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
       // when it's used, and should not be transformed to the output.
@@ -230,34 +279,27 @@ export class TypeTranslator {
         }
       }
       return '!' + this.symbolToString(type.symbol);
-    } else if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Reference */ 1 === 1) {
+    } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
       let referenceType = type as ts.TypeReference;
 
       let typeStr = '';
-      // TODO(ts2.1): let isTuple = (referenceType.flags & ts.TypeFlags.Tuple) > 0;
-      let isTuple = true;
-      // For unknown reasons, tuple types can be reference types containing a
-      // reference loop. see Destructuring3 in functions.ts.
-      // TODO(rado): handle tuples in their own branch.
-      if (!isTuple) {
-        if (referenceType.target === referenceType) {
-          // We get into an infinite loop here if the inner reference is
-          // the same as the outer; this can occur when this function
-          // fails to translate a more specific type before getting to
-          // this point.
-          throw new Error(
-              `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
-        }
-        typeStr += this.translate(referenceType.target);
+      if (referenceType.target === referenceType) {
+        // We get into an infinite loop here if the inner reference is
+        // the same as the outer; this can occur when this function
+        // fails to translate a more specific type before getting to
+        // this point.
+        throw new Error(
+            `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
       }
+      typeStr += this.translate(referenceType.target);
       if (referenceType.typeArguments) {
         let params = referenceType.typeArguments.map(t => this.translate(t));
-        typeStr += isTuple ? `!Array` : `<${params.join(', ')}>`;
+        typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
-    } else if (/* TODO(ts2.1): type.flags & ts.TypeFlags.Anonymous */ 1 === 1) {
+    } else if (type.objectFlags & ts.ObjectFlags.Anonymous) {
       if (!type.symbol) {
         // This comes up when generating code for an arrow function as passed
         // to a generic function.  The passed-in type is tagged as anonymous
@@ -279,16 +321,17 @@ export class TypeTranslator {
       }
       this.warn('unhandled anonymous type');
       return '?';
-    } else if (type.flags & ts.TypeFlags.Union) {
-      let unionType = type as ts.UnionType;
-      let parts = unionType.types.map(t => this.translate(t));
-      // In union types that include boolean literal and other literals can
-      // end up repeating the same closure type. For example: true | boolean
-      // will be translated to boolean | boolean. Remove duplicates to produce
-      // types that read better.
-      parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
-      return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
     }
+
+    /*
+    TODO(ts2.1): more unhandled object type flags:
+      Tuple
+      Mapped
+      Instantiated
+      ObjectLiteral
+      EvolvingArray
+      ObjectLiteralPatternWithComputedProperties
+    */
     this.warn(`unhandled type ${typeToDebugString(type)}`);
     return '?';
   }
