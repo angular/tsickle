@@ -95,6 +95,26 @@ static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|nu
 }`);
         });
 
+        it('transforms decorated classes with function expression annotation declaration', () => {
+          expect(translate(`
+/** @Annotation */ function Test() {};
+@Test
+class Foo {
+  field: string;
+}`).output).to.equal(`
+/** @Annotation */ function Test() {};
+
+class Foo {
+  field: string;
+static decorators: DecoratorInvocation[] = [
+{ type: Test },
+];
+/** @nocollapse */
+static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+];
+}`);
+        });
+
         it('accepts various complicated decorators', () => {
           expect(translate(`
 /** @Annotation */ let Test1: Function;
