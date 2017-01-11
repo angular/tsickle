@@ -48,6 +48,9 @@ class ClassRewriter extends Rewriter {
         case ts.SyntaxKind.CallExpression:
           node = (node as ts.CallExpression).expression;
           break;
+        // PropertyAccessExpression is intentionally missing here,
+        // because the rest of the rewriter does not handle such
+        // expressions.
         default:
           return false;
       }
@@ -62,10 +65,17 @@ class ClassRewriter extends Rewriter {
       // For example using '@Annotation' in a true comment.
       // However, a new TS API would be needed, track at
       // https://github.com/Microsoft/TypeScript/issues/7393.
-      let range = ts.getLeadingCommentRanges(d.getFullText(), 0);
+      let commentNode: ts.Node = d;
+      // Not handling PropertyAccess expressions here, because they are
+      // filtered earlier.
+      if (commentNode.kind === ts.SyntaxKind.VariableDeclaration) {
+        if (!commentNode.parent) return false;
+        commentNode = commentNode.parent;
+      }
+      let range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
       if (!range) return;
       for (let {pos, end} of range) {
-        let jsDocText = d.getFullText().substring(pos, end);
+        let jsDocText = commentNode.getFullText().substring(pos, end);
         if (jsDocText.includes('@Annotation')) return true;
       }
     }
