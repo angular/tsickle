@@ -21,4 +21,4 @@ fieldsTest.field1 = 'hi';
 
 let AnonymousClass = class {
   field: number;
-}
+};

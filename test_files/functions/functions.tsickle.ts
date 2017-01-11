@@ -1,8 +1,3 @@
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-Warning at test_files/functions/functions.ts:22:1: unhandled type {type flags:0x4000 TypeParameter}
-====
 
 /**
  * @param {number} a
@@ -53,8 +48,8 @@ function Destructuring({a, b}: {a: number, b: number}) {}
  */
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
 /**
- * @param {!Array<?, ?>} __0
- * @param {!Array<!Array<?>>} __1
+ * @param {!Array<?>} __0
+ * @param {!Array<?>} __1
  * @return {void}
  */
 function Destructuring3([a, b], [[c]]) {}
