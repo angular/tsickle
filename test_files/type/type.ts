@@ -8,10 +8,16 @@ let typeAny: any;
 let typeArr: Array<any>;
 let typeArr2: any[];
 let typeNestedArr: {a:any}[][];
+
 let typeObject: {a:number, b:string} = {a:3, b:'b'};
 let typeObject2: {[key:string]: number};
 let typeObject3: {a:number, [key:string]: number};
 let typeObjectEmpty: {};
+
+let typeTuple: [number, number] = [1, 2];
+let typeComplexTuple: [string, true|{a:string}] = ['', true];
+let typeTupleTuple: [[number, number]] = [[1, 2]];
+let typeTupleTuple2: [[number, number], string] = [[1, 2], ''];
 
 let typeUnion: string|boolean = Math.random() > 0.5 ? false : '';
 let typeUnion2: (string|boolean) = Math.random() > 0.5 ? false : '';

@@ -49,6 +49,9 @@ class ClassRewriter extends Rewriter {
         case ts.SyntaxKind.CallExpression:
           node = (node as ts.CallExpression).expression;
           break;
+        // PropertyAccessExpression is intentionally missing here,
+        // because the rest of the rewriter does not handle such
+        // expressions.
         default:
           return false;
       }
@@ -58,7 +61,26 @@ class ClassRewriter extends Rewriter {
     if (decSym.flags & ts.SymbolFlags.Alias) {
       decSym = this.typeChecker.getAliasedSymbol(decSym);
     }
-    return decSym.getDocumentationComment().some(c => c.text.indexOf('@Annotation') >= 0);
+    for (let d of decSym.getDeclarations()) {
+      // Switch to the TS JSDoc parser in the future to avoid false positives here.
+      // For example using '@Annotation' in a true comment.
+      // However, a new TS API would be needed, track at
+      // https://github.com/Microsoft/TypeScript/issues/7393.
+      let commentNode: ts.Node = d;
+      // Not handling PropertyAccess expressions here, because they are
+      // filtered earlier.
+      if (commentNode.kind === ts.SyntaxKind.VariableDeclaration) {
+        if (!commentNode.parent) return false;
+        commentNode = commentNode.parent;
+      }
+      let range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
+      if (!range) return;
+      for (let {pos, end} of range) {
+        let jsDocText = commentNode.getFullText().substring(pos, end);
+        if (jsDocText.includes('@Annotation')) return true;
+      }
+    }
+    return false;
   }
 
   private decoratorsToLower(n: ts.Node): ts.Decorator[] {

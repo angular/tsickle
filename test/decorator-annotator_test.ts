@@ -51,7 +51,7 @@ describe(
         let goodSourceFile = program.getSourceFile(testCaseFileName);
         expect(() => convertDecorators(program.getTypeChecker(), goodSourceFile)).to.not.throw();
         let badSourceFile =
-            ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES6, true);
+            ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES2015, true);
         expect(() => convertDecorators(program.getTypeChecker(), badSourceFile)).to.throw();
       });
 
@@ -104,6 +104,26 @@ class Foo {
 static decorators: DecoratorInvocation[] = [
 { type: Test1 },
 { type: Test2, args: [param, ] },
+];
+/** @nocollapse */
+static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+];
+}`);
+        });
+
+        it('transforms decorated classes with function expression annotation declaration', () => {
+          expect(translate(`
+/** @Annotation */ function Test() {};
+@Test
+class Foo {
+  field: string;
+}`).output).to.equal(`
+/** @Annotation */ function Test() {};
+
+class Foo {
+  field: string;
+static decorators: DecoratorInvocation[] = [
+{ type: Test },
 ];
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [

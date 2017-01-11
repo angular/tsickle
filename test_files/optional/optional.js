@@ -11,8 +11,7 @@ class OptionalTest {
      * @param {string} a
      * @param {(undefined|string)=} b
      */
-    constructor(a, b) {
-    }
+    constructor(a, b) { }
     /**
      * @param {string=} c
      * @return {void}
