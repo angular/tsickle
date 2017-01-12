@@ -35,7 +35,7 @@ export interface TsickleEnvironment {
    */
   shouldIgnoreWarningsForPath: (filePath: string) => boolean;
   /**
-   * If we do googmodule processing, we monkey patch module.id, since that's
+   * If we do googmodule processing, we polyfill module.id, since that's
    * part of ES6 modules.  This function determines what the module.id will be
    * for each file.
    */
