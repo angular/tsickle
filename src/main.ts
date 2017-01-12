@@ -19,7 +19,7 @@ import * as tsickle from './tsickle';
 import {toArray, createOutputRetainingCompilerHost} from './util';
 
 /** Tsickle settings passed on the command line. */
-interface Settings {
+export interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
 
@@ -128,7 +128,7 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
  * Compiles TypeScript code into Closure-compiler-ready JS.
  * Doesn't write any files to disk; all JS content is returned in a map.
  */
-function toClosureJS(
+export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     allDiagnostics: ts.Diagnostic[]): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
@@ -147,12 +147,12 @@ function toClosureJS(
   const tsickleCompilerHostOptions: tsickle.TsickleCompilerHostOptions = {
     googmodule: true,
     es5Mode: false,
-    tsickleTyped: settings.isUntyped,
+    tsickleTyped: !settings.isUntyped,
     prelude: '',
   };
 
   const tsickleEnvironment: tsickle.TsickleEnvironment = {
-    shouldSkipTsickleProcessing: (fileName) => false,
+    shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
   };
