@@ -29,9 +29,16 @@ export interface TsickleEnvironment {
    *  and generates a googmodule module name
    */
   pathToModuleName: (context: string, importPath: string) => string;
-  /** Tsickle treats warnings as errors, if true, ignore warnings */
+  /**
+   * Tsickle treats warnings as errors, if true, ignore warnings.  This might be
+   * useful for e.g. third party code.
+   */
   shouldIgnoreWarningsForPath: (filePath: string) => boolean;
-  /** Determines what we monkey patch the module.id to be in googmodule mode */
+  /**
+   * If we do googmodule processing, we monkey patch module.id, since that's
+   * part of ES6 modules.  This function determines what the module.id will be
+   * for each file.
+   */
   fileNameToModuleId: (fileName: string) => string;
 }
 
@@ -148,7 +155,7 @@ interface DecoratorInvocation {
     }
     if (this.environment.shouldIgnoreWarningsForPath(sourceFile.path)) {
       // All diagnostics (including warnings) are treated as errors.
-      // But for third-party code we won't fix warnings so just discard them.
+      // If we've decided to ignore them, just discard them.
       // Warnings include stuff like "don't use @type in your jsdoc"; tsickle
       // warns and then fixes up the code to be Closure-compatible anyway.
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
