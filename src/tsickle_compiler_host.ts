@@ -24,16 +24,19 @@ export interface TsickleEnvironment {
    * that file.
    */
   shouldSkipTsickleProcessing: (fileName: string) => boolean;
-  /** Converts a path to a module name */
+  /**
+   * Takes a context (the current file) and the path of the file to import
+   *  and generates a googmodule module name
+   */
   pathToModuleName: (context: string, importPath: string) => string;
   /** Tsickle treats warnings as errors, if true, ignore warnings */
   shouldIgnoreWarningsForPath: (filePath: string) => boolean;
 }
 
 /**
- * TsickleCompilerHost repeats the work of Google3CompilerHost, but with
- * tsickle processing of input files, including closure type annotation
- * processing, decorator downleveling and require -> googmodule rewriting.
+ * TsickleCompilerHost does tsickle processing of input files, including
+ * closure type annotation processing, decorator downleveling and
+ * require -> googmodule rewriting.
  */
 export class TsickleCompilerHost implements ts.CompilerHost {
   private ANNOTATION_SUPPORT = `

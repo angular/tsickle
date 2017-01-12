@@ -63,7 +63,7 @@ export function createSourceReplacingCompilerHost(
  * Constructs a new ts.CompilerHost that overlays sources in substituteSource
  * over another ts.CompilerHost.
  *
- * @param substituteSource A map of source file name -> overlay source text.
+ * @param outputFiles map to fill with source file name -> output text.
  */
 export function createOutputRetainingCompilerHost(
     outputFiles: Map<string, string>, delegate: ts.CompilerHost): ts.CompilerHost {
