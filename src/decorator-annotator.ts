@@ -73,6 +73,13 @@ class ClassRewriter extends Rewriter {
         if (!commentNode.parent) return false;
         commentNode = commentNode.parent;
       }
+      // Go up one more level to VariableDeclarationStatement, where usually
+      // the comment lives. If the declaration has an 'export', the
+      // VDList.getFullText will not contain the comment.
+      if (commentNode.kind === ts.SyntaxKind.VariableDeclarationList) {
+        if (!commentNode.parent) return false;
+        commentNode = commentNode.parent;
+      }
       let range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
       if (!range) return;
       for (let {pos, end} of range) {
