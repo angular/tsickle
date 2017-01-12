@@ -52,8 +52,7 @@ function DecoratorTest_tsickle_Closure_declarations() {
 let DecoratedClass = class DecoratedClass {
 };
 DecoratedClass = __decorate([
-    classDecorator,
-    __metadata("design:paramtypes", [])
+    classDecorator
 ], DecoratedClass);
 function DecoratedClass_tsickle_Closure_declarations() {
     /** @type {string} */
