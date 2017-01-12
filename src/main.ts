@@ -16,7 +16,7 @@ import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
-import {toArray, createSourceReplacingCompilerHost, createOutputRetainingCompilerHost} from './util';
+import {toArray, createOutputRetainingCompilerHost} from './util';
 
 /** Tsickle settings passed on the command line. */
 interface Settings {
@@ -144,19 +144,10 @@ function toClosureJS(
     }
   }
 
-  const tsickleOptions: tsickle.Options = {
-    untyped: settings.isUntyped,
-    logWarning: settings.verbose ?
-        (warning: ts.Diagnostic) => {
-          console.error(tsickle.formatDiagnostics([warning]));
-        } :
-        undefined,
-  };
-
   const tsickleCompilerHostOptions: tsickle.TsickleCompilerHostOptions = {
     googmodule: true,
     es5Mode: false,
-    tsickleTyped: false,
+    tsickleTyped: settings.isUntyped,
     prelude: '',
   };
 
@@ -171,7 +162,8 @@ function toClosureJS(
 
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
-  let host = new tsickle.TsickleCompilerHost(hostDelegate, tsickleCompilerHostOptions, tsickleEnvironment, program, tsickle.Pass.Tsickle);
+  let host = new tsickle.TsickleCompilerHost(
+      hostDelegate, tsickleCompilerHostOptions, tsickleEnvironment, program, tsickle.Pass.Tsickle);
   program = ts.createProgram(fileNames, options, host);
 
   let {diagnostics} = program.emit(undefined);
