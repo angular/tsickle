@@ -1,7 +1,9 @@
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
-import * as tsickle from './tsickle';
+import {annotate} from './tsickle';
+import {processES5} from './es5processor';
+import {convertDecorators} from './decorator-annotator';
 
 export enum Pass {
   None,
@@ -85,8 +87,6 @@ interface DecoratorInvocation {
   writeFile(
       fileName: string, content: string, writeByteOrderMark: boolean,
       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
-    // Strip any potential blaze-bin path (e.g. when compiling a generated
-    // file).
     fileName = this.delegate.getCanonicalFileName(fileName);
     if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
       content = this.convertCommonJsToGoogModule(fileName, content);
@@ -99,7 +99,7 @@ interface DecoratorInvocation {
     // Strip off the file name extension.
     fileName = fileName.substring(0, fileName.lastIndexOf('.'));
 
-    let {output, referencedModules} = tsickle.processES5(
+    let {output, referencedModules} = processES5(
         fileName, fileName, content, this.environment.pathToModuleName.bind(this.environment),
         this.options.es5Mode, this.options.prelude);
 
@@ -117,7 +117,7 @@ interface DecoratorInvocation {
       languageVersion: ts.ScriptTarget): ts.SourceFile {
     if (this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
     let fileContent = sourceFile.text;
-    const converted = tsickle.convertDecorators(program.getTypeChecker(), sourceFile);
+    const converted = convertDecorators(program.getTypeChecker(), sourceFile);
     if (converted.diagnostics) {
       this.diagnostics.push(...converted.diagnostics);
     }
@@ -138,7 +138,7 @@ interface DecoratorInvocation {
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
     let {output, externs, diagnostics} =
-        tsickle.annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
+        annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
     if (externs) {
       this.externs[fileName] = externs;
     }

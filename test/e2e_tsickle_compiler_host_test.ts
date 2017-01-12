@@ -4,6 +4,7 @@ import * as ts from 'typescript';
 import {pathToModuleName} from '../src/cli_support';
 import {Pass, TsickleCompilerHost, TsickleCompilerHostOptions, TsickleEnvironment} from '../src/tsickle_compiler_host';
 import {createSourceReplacingCompilerHost} from '../src/util';
+import {formatDiagnostics} from '../src/tsickle';
 
 function createTsickleCompilerHostOptions(): TsickleCompilerHostOptions {
   return {
@@ -95,13 +96,3 @@ describe('tsickle compiler host', () => {
             `console.log('hello');`);
   });
 });
-
-export function formatDiagnostics(diagnostics: ts.Diagnostic[]): string {
-  const diagnosticsHost: ts.FormatDiagnosticsHost = {
-    getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
-    getNewLine: () => ts.sys.newLine,
-    // Print filenames including their rootDir, so they can be located on disk
-    getCanonicalFileName: (f: string) => f
-  };
-  return ts.formatDiagnostics(diagnostics, diagnosticsHost);
-}
