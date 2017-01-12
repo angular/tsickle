@@ -170,6 +170,7 @@ export class TypeTranslator {
       writeSpace: writeText,
       writeStringLiteral: writeText,
       writeParameter: writeText,
+      writeProperty: writeText,
       writeSymbol: writeText,
       writeLine: doNothing,
       increaseIndent: doNothing,
