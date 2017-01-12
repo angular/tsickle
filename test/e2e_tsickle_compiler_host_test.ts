@@ -2,9 +2,9 @@ import {expect} from 'chai';
 import * as ts from 'typescript';
 
 import {pathToModuleName} from '../src/cli_support';
+import {formatDiagnostics} from '../src/tsickle';
 import {Pass, TsickleCompilerHost, TsickleCompilerHostOptions, TsickleEnvironment} from '../src/tsickle_compiler_host';
 import {createSourceReplacingCompilerHost} from '../src/util';
-import {formatDiagnostics} from '../src/tsickle';
 
 function createTsickleCompilerHostOptions(): TsickleCompilerHostOptions {
   return {

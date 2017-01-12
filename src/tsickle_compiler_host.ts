@@ -1,9 +1,9 @@
 import * as ts from 'typescript';
 
+import {convertDecorators} from './decorator-annotator';
+import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
 import {annotate} from './tsickle';
-import {processES5} from './es5processor';
-import {convertDecorators} from './decorator-annotator';
 
 export enum Pass {
   None,
