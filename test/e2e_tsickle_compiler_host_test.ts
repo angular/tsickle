@@ -4,10 +4,10 @@ import * as ts from 'typescript';
 import {pathToModuleName} from '../src/cli_support';
 import {formatDiagnostics} from '../src/tsickle';
 import {Pass, TsickleCompilerHost} from '../src/tsickle_compiler_host';
-import {createSourceReplacingCompilerHost} from '../src/util';
+import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from '../src/util';
 
 const tsickleCompilerHostOptions = {
-  googmodule: false,
+  googmodule: true,
   es5Mode: false,
   tsickleTyped: false,
   prelude: '',
@@ -17,6 +17,7 @@ const tsickleEnvironment = {
   shouldSkipTsickleProcessing: (fileName: string) => false,
   pathToModuleName: pathToModuleName,
   shouldIgnoreWarningsForPath: (filePath: string) => false,
+  fileNameToModuleId: (fileName: string) => fileName,
 };
 
 describe('tsickle compiler host', () => {
@@ -64,28 +65,18 @@ describe('tsickle compiler host', () => {
   });
 
   it(`does goog module rewriting`, () => {
-    const [program, compilerHost] = makeProgram('foo.ts', `console.log('hello');`);
-    const compilerHostOptions = {
-      googmodule: true,
-      es5Mode: false,
-      tsickleTyped: false,
-      prelude: '',
-    };
     const jsFiles = new Map<string, string>();
-    function writeFile(fileName: string, data: string): void {
-      jsFiles.set(fileName, data);
-    }
+    const compilerHost = createOutputRetainingCompilerHost(
+        jsFiles, ts.createCompilerHost({target: ts.ScriptTarget.ES5}));
+    const host =
+        new TsickleCompilerHost(compilerHost, tsickleCompilerHostOptions, tsickleEnvironment);
 
-    compilerHost.writeFile = writeFile;
-    const host = new TsickleCompilerHost(compilerHost, compilerHostOptions, tsickleEnvironment);
-    const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
-
-    host.writeFile(f.fileName, f.text, false);
-    expect(jsFiles.get('foo.ts'))
+    host.writeFile('foo.js', `console.log('hello');`, false);
+    expect(jsFiles.get('foo.js'))
         .to.equal(
             `goog.module('foo');` +
             ` exports = {}; ` +
-            `var module = {id: 'foo'};` +
+            `var module = {id: 'foo.js'};` +
             `console.log('hello');`);
   });
 });

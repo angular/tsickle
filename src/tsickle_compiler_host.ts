@@ -31,6 +31,8 @@ export interface TsickleEnvironment {
   pathToModuleName: (context: string, importPath: string) => string;
   /** Tsickle treats warnings as errors, if true, ignore warnings */
   shouldIgnoreWarningsForPath: (filePath: string) => boolean;
+  /** Determines what we monkey patch the module.id to be in googmodule mode */
+  fileNameToModuleId: (fileName: string) => string;
 }
 
 /**
@@ -99,11 +101,10 @@ interface DecoratorInvocation {
   }
 
   convertCommonJsToGoogModule(fileName: string, content: string): string {
-    // Strip off the file name extension.
-    fileName = fileName.substring(0, fileName.lastIndexOf('.'));
+    const moduleId = this.environment.fileNameToModuleId(fileName);
 
     let {output, referencedModules} = processES5(
-        fileName, fileName, content, this.environment.pathToModuleName.bind(this.environment),
+        fileName, moduleId, content, this.environment.pathToModuleName.bind(this.environment),
         this.options.es5Mode, this.options.prelude);
 
     const moduleName = this.environment.pathToModuleName('', fileName);

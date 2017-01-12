@@ -155,6 +155,7 @@ export function toClosureJS(
     shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
+    fileNameToModuleId: (fileName) => fileName,
   };
 
   const jsFiles = new Map<string, string>();
