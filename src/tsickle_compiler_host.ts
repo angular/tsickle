@@ -140,7 +140,6 @@ interface DecoratorInvocation {
     let {output, externs, diagnostics} =
         tsickle.annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
     if (externs) {
-      console.log('externs added for ' + fileName);
       this.externs[fileName] = externs;
     }
     if (this.environment.shouldIgnoreWarningsForPath(sourceFile.path)) {
@@ -158,7 +157,7 @@ interface DecoratorInvocation {
   getGeneratedExterns(): string {
     let allExterns = '';
     for (let fileName of Object.keys(this.externs)) {
-      // allExterns += `// externs from ${fileName}:\n`;
+      allExterns += `// externs from ${fileName}:\n`;
       allExterns += this.externs[fileName];
     }
     return allExterns;

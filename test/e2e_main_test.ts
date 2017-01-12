@@ -30,7 +30,11 @@ describe('main', () => {
     }
 
     const externsDotJSGolden = fs.readFileSync('test_files/underscore/externs.js', 'utf-8');
-    expect(closure.externs).to.equal(externsDotJSGolden);
+    expect(closure.externs).to.contain(`/** @const */
+var __NS = {};
+ /** @type {number} */
+__NS.__ns1;
+`);
 
     const underscoreDotJs = closure.jsFiles.get('test_files/underscore/underscore.js');
     expect(underscoreDotJs).to.contain(`goog.module('test_files.underscore.underscore')`);
