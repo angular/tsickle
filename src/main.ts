@@ -17,7 +17,6 @@ import * as ts from 'typescript';
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
 import {toArray, createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from './util';
-
 /** Tsickle settings passed on the command line. */
 export interface Settings {
   /** If provided, path to save externs to. */

@@ -152,19 +152,6 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
       } else if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
         warnings.push('type annotations (using {...}) are redundant with TypeScript types');
         continue;
-      } else if (!arrayIncludes(JSDOC_TAGS_WHITELIST, tagName)) {
-        // Silently drop tags we don't understand.  This is a subtle
-        // compromise between multiple issues.
-        // 1) If we pass through these non-Closure tags, the user will
-        //    get a warning from Closure, and the point of tsickle is
-        //    to insulate the user from Closure.
-        // 2) The output of tsickle is for Closure only, so we don't
-        //    care if we drop tags that Closure doesn't undersand.
-        // 3) Finally, we don't want to warn because users should be
-        //    free to add whichever JSDoc they feel like.  If the user
-        //    wants help ensuring they didn't typo a tag, that is the
-        //    responsibility of a linter.
-        continue;
       }
 
       // Grab the parameter name from @param tags.
@@ -184,7 +171,8 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
       if (tags.length === 0) {
         tags.push({text: line});
       } else {
-        tags[tags.length - 1].text += '\n' + line;
+        const lastTag = tags[tags.length - 1];
+        lastTag.text = (lastTag.text || '') + '\n' + line;
       }
     }
   }
@@ -201,7 +189,22 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
 function tagToString(tag: Tag): string {
   let out = '';
   if (tag.tagName) {
-    out += ` @${tag.tagName}`;
+    if (!arrayIncludes(JSDOC_TAGS_WHITELIST, tag.tagName)) {
+      // Escape tags we don't understand.  This is a subtle
+      // compromise between multiple issues.
+      // 1) If we pass through these non-Closure tags, the user will
+      //    get a warning from Closure, and the point of tsickle is
+      //    to insulate the user from Closure.
+      // 2) The output of tsickle is for Closure but also may be read
+      //    by humans, for example non-TypeScript users of Angular.
+      // 3) Finally, we don't want to warn because users should be
+      //    free to add whichever JSDoc they feel like.  If the user
+      //    wants help ensuring they didn't typo a tag, that is the
+      //    responsibility of a linter.
+      out += ` \\@${tag.tagName}`;
+    } else {
+      out += ` @${tag.tagName}`;
+    }
   }
   if (tag.type) {
     out += ' {';
