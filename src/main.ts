@@ -16,7 +16,7 @@ import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
-import {toArray, createOutputRetainingCompilerHost} from './util';
+import {toArray, createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from './util';
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
@@ -130,12 +130,17 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[]): {jsFiles: Map<string, string>, externs: string}|null {
+    allDiagnostics: ts.Diagnostic[],
+    files?: Map<string, string>): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  let program = ts.createProgram(fileNames, options);
+  let program = files === undefined ?
+      ts.createProgram(fileNames, options) :
+      ts.createProgram(
+          fileNames, options,
+          createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
   {  // Scope for the "diagnostics" variable so we can use the name again later.
     let diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length > 0) {

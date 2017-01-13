@@ -1,4 +1,6 @@
 import * as ts from 'typescript';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import * as path from 'path';
 
 import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
@@ -63,6 +65,9 @@ interface DecoratorInvocation {
   /** externs.js files produced by tsickle, if any. */
   public externs: {[fileName: string]: string} = {};
 
+  private decoratorDownlevelSourceMaps = new Map<string, SourceMapGenerator>();
+  private tsickleSourceMaps = new Map<string, SourceMapGenerator>();
+
   constructor(
       private delegate: ts.CompilerHost, private options: TsickleCompilerHostOptions,
       private environment: TsickleEnvironment, private oldProgram?: ts.Program,
@@ -99,12 +104,48 @@ interface DecoratorInvocation {
   writeFile(
       fileName: string, content: string, writeByteOrderMark: boolean,
       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
-    fileName = this.delegate.getCanonicalFileName(fileName);
-    if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
-      content = this.convertCommonJsToGoogModule(fileName, content);
+    if (path.extname(fileName) !== '.map') {
+      fileName = this.delegate.getCanonicalFileName(fileName);
+      if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
+        content = this.convertCommonJsToGoogModule(fileName, content);
+      }
+    }
+    else {
+      content = this.combineSourceMaps(content);
     }
 
     this.delegate.writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
+  }
+
+  sourceMapConsumerToGenerator(sourceMapConsumer: SourceMapConsumer): SourceMapGenerator {
+    return SourceMapGenerator.fromSourceMap(sourceMapConsumer);
+  }
+
+  sourceMapGeneratorToConsumer(sourceMapGenerator: SourceMapGenerator): SourceMapConsumer {
+    const rawSourceMap = sourceMapGenerator.toJSON();
+    return new SourceMapConsumer(rawSourceMap);
+  }
+
+  sourceMapTextToConsumer(sourceMapText: string): SourceMapConsumer {
+    const sourceMapJson: any = sourceMapText;
+    return new SourceMapConsumer(sourceMapJson);
+  }
+
+  combineSourceMaps(tscSourceMapText: string): string {
+    const tscSourceMapConsumer = this.sourceMapTextToConsumer(tscSourceMapText);
+    const tscSourceMapGenerator = this.sourceMapConsumerToGenerator(tscSourceMapConsumer);
+    for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+      const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceFileName);
+      if (tsickleSourceMapGenerator === undefined) {
+        console.log(`didn't find source map for ${sourceFileName}`);
+      }
+      else {
+        const tsickleSourceMapConsumer = this.sourceMapGeneratorToConsumer(tsickleSourceMapGenerator);
+        tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
+      }
+    }
+
+    return tscSourceMapGenerator.toString();
   }
 
   convertCommonJsToGoogModule(fileName: string, content: string): string {
@@ -137,6 +178,7 @@ interface DecoratorInvocation {
       return sourceFile;
     }
     fileContent = converted.output + this.ANNOTATION_SUPPORT;
+    this.decoratorDownlevelSourceMaps.set(fileName, converted.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
   }
 
@@ -148,7 +190,7 @@ interface DecoratorInvocation {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics} =
+    let {output, externs, diagnostics, sourceMap} =
         annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
     if (externs) {
       this.externs[fileName] = externs;
@@ -161,6 +203,7 @@ interface DecoratorInvocation {
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
     }
     this.diagnostics = diagnostics;
+    this.tsickleSourceMaps.set(fileName, sourceMap);
     return ts.createSourceFile(fileName, output, languageVersion, true);
   }
 
