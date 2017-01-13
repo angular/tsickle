@@ -141,7 +141,7 @@ function decoratorDownlevelCompiler(
     prelude: '',
   };
 
-  const tsickleEnvironment: tsickle.TsickleEnvironment = {
+  const tsickleHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
@@ -154,8 +154,8 @@ function decoratorDownlevelCompiler(
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
   let host = new tsickle.TsickleCompilerHost(
-      hostDelegate, tsickleCompilerHostOptions, tsickleEnvironment, program,
-      tsickle.Pass.DecoratorDownlevel);
+      hostDelegate, tsickleCompilerHostOptions, tsickleHost,
+      {oldProgram: program, pass: tsickle.Pass.DECORATOR_DOWNLEVEL});
   program = ts.createProgram(fileNames, options, host);
 
   let {diagnostics} = program.emit(undefined);
@@ -183,6 +183,7 @@ function compile(sources: Map<string, string>, compiler: Compiler):
   if (!closure) {
     diagnostics.forEach(v => console.log(JSON.stringify(v)));
     assert.fail();
+    // TODO(lucassloan): remove when the .d.ts has the correct types
     return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 
@@ -190,6 +191,7 @@ function compile(sources: Map<string, string>, compiler: Compiler):
 
   if (!compiledJS) {
     assert.fail();
+    // TODO(lucassloan): remove when the .d.ts has the correct types
     return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 

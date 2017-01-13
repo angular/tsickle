@@ -155,7 +155,7 @@ export function toClosureJS(
     prelude: '',
   };
 
-  const tsickleEnvironment: tsickle.TsickleEnvironment = {
+  const tsickleHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
@@ -168,7 +168,8 @@ export function toClosureJS(
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
   let host = new tsickle.TsickleCompilerHost(
-      hostDelegate, tsickleCompilerHostOptions, tsickleEnvironment, program, tsickle.Pass.Tsickle);
+      hostDelegate, tsickleCompilerHostOptions, tsickleHost,
+      {oldProgram: program, pass: tsickle.Pass.ANNOTATE});
   program = ts.createProgram(fileNames, options, host);
 
   let {diagnostics} = program.emit(undefined);
