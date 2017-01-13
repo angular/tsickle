@@ -20,7 +20,7 @@ function jsDocTestBadDoc(foo: string) {}
 
 /**
  * Test JS doc on class.
- * @madeUpTag This tag will be stripped, because Closure disallows it.
+ * @madeUpTag This tag will be escaped, because Closure disallows it.
  */
 class JSDocTest {
   /** @export */
@@ -36,7 +36,7 @@ class JSDocTest {
 }
 
 /**
- * @madeUptag This tag will be stripped, because Closure disallows it.
+ * @madeUptag This tag will be escaped, because Closure disallows it.
  * @see This tag will be kept, because Closure allows it.
  */
 function x() {};

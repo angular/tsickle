@@ -19,6 +19,7 @@ function returnsTest() {
 function jsDocTestBadDoc(foo) { }
 /**
  * Test JS doc on class.
+ * \@madeUpTag This tag will be escaped, because Closure disallows it.
  */
 class JSDocTest {
 }
@@ -36,6 +37,7 @@ function JSDocTest_tsickle_Closure_declarations() {
     JSDocTest.prototype.typedThing;
 }
 /**
+ * \@madeUptag This tag will be escaped, because Closure disallows it.
  * @see This tag will be kept, because Closure allows it.
  * @return {void}
  */
@@ -51,6 +53,7 @@ class RedundantJSDocShouldBeStripped {
 }
 /**
  * This comment has code that needs to be escaped to pass Closure checking.
+ * \@example
  *
  *   \@Reflect
  *   function example() {}
