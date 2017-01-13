@@ -6,6 +6,7 @@
  */
 function decorator(a: Object, b: string) {}
 /**
+ * \@Annotation
  * @param {!Object} a
  * @param {string} b
  * @return {void}
@@ -17,6 +18,7 @@ function annotationDecorator(a: Object, b: string) {}
  */
 function classDecorator(t: any) { return t; }
 /**
+ * \@Annotation
  * @param {?} t
  * @return {?}
  */
