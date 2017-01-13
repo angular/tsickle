@@ -1,6 +1,6 @@
-import * as ts from 'typescript';
-import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as path from 'path';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import * as ts from 'typescript';
 
 import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
@@ -109,8 +109,7 @@ interface DecoratorInvocation {
       if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
         content = this.convertCommonJsToGoogModule(fileName, content);
       }
-    }
-    else {
+    } else {
       content = this.combineSourceMaps(content);
     }
 
@@ -134,14 +133,21 @@ interface DecoratorInvocation {
   combineSourceMaps(tscSourceMapText: string): string {
     const tscSourceMapConsumer = this.sourceMapTextToConsumer(tscSourceMapText);
     const tscSourceMapGenerator = this.sourceMapConsumerToGenerator(tscSourceMapConsumer);
-    for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
-      const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceFileName);
-      if (tsickleSourceMapGenerator === undefined) {
-        console.log(`didn't find source map for ${sourceFileName}`);
-      }
-      else {
-        const tsickleSourceMapConsumer = this.sourceMapGeneratorToConsumer(tsickleSourceMapGenerator);
+    if (this.tsickleSourceMaps.size > 0) {
+      for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+        const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceFileName)!;
+        const tsickleSourceMapConsumer =
+            this.sourceMapGeneratorToConsumer(tsickleSourceMapGenerator);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
+      }
+    }
+    if (this.decoratorDownlevelSourceMaps.size > 0) {
+      for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+        const decoratorDownlevelSourceMapGenerator =
+            this.decoratorDownlevelSourceMaps.get(sourceFileName)!;
+        const decoratorDownlevelSourceMapConsumer =
+            this.sourceMapGeneratorToConsumer(decoratorDownlevelSourceMapGenerator);
+        tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
       }
     }
 
@@ -203,7 +209,7 @@ interface DecoratorInvocation {
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
     }
     this.diagnostics = diagnostics;
-    this.tsickleSourceMaps.set(fileName, sourceMap);
+    this.tsickleSourceMaps.set(path.parse(fileName).base, sourceMap);
     return ts.createSourceFile(fileName, output, languageVersion, true);
   }
 
