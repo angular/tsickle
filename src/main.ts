@@ -169,7 +169,7 @@ export function toClosureJS(
   // place of the original source.
   let host = new tsickle.TsickleCompilerHost(
       hostDelegate, tsickleCompilerHostOptions, tsickleHost,
-      {oldProgram: program, pass: tsickle.Pass.ANNOTATE});
+      {oldProgram: program, pass: tsickle.Pass.CLOSURIZE});
   program = ts.createProgram(fileNames, options, host);
 
   let {diagnostics} = program.emit(undefined);

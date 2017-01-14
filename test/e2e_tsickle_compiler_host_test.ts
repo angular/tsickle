@@ -40,7 +40,7 @@ describe('tsickle compiler host', () => {
     const [program, compilerHost] = makeProgram('foo.ts', 'let x: number = 123;');
     const host = new TsickleCompilerHost(
         compilerHost, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.ANNOTATE});
+        {oldProgram: program, pass: Pass.CLOSURIZE});
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     // NOTE(evanm): currently tsickle just removes all types; we will
     // likely revisit this.
@@ -61,7 +61,7 @@ describe('tsickle compiler host', () => {
     const [program, compilerHost] = makeProgram('foo.d.ts', 'declare let x: number;');
     const host = new TsickleCompilerHost(
         compilerHost, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.ANNOTATE});
+        {oldProgram: program, pass: Pass.CLOSURIZE});
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.match(/^declare let x: number/);
   });

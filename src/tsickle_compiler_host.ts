@@ -9,7 +9,7 @@ import {annotate} from './tsickle';
 
 /**
  * Tsickle can perform 2 different precompilation transforms - decorator downleveling
- * and Type Annotation.  Both require tsc to have already type checked their
+ * and closurization.  Both require tsc to have already type checked their
  * input, so they can't both be run in one call to tsc. If you only want one of
  * the transforms, you can specify it in the constructor, if you want both, you'll
  * have to specify it by calling reconfigureForRun() with the appropriate Pass.
@@ -17,7 +17,7 @@ import {annotate} from './tsickle';
 export enum Pass {
   NONE,
   DECORATOR_DOWNLEVEL,
-  ANNOTATE
+  CLOSURIZE
 }
 
 export interface TsickleCompilerHostOptions {
@@ -88,7 +88,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   /**
    * Tsickle can perform 2 kinds of precompilation source transforms - decorator
-   * downleveling and type annotation.  They can't be run in the same run of the
+   * downleveling and closurization.  They can't be run in the same run of the
    * typescript compiler, because they both depend on type information that comes
    * from running the compiler.  We need to use the same compiler host to run both
    * so we have all the source map data when finally write out.  Thus if we want
@@ -111,8 +111,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       case Pass.DECORATOR_DOWNLEVEL:
         return this.downlevelDecorators(
             sourceFile, this.runConfiguration.oldProgram, fileName, languageVersion);
-      case Pass.ANNOTATE:
-        return this.annotateTypes(
+      case Pass.CLOSURIZE:
+        return this.closurize(
             sourceFile, this.runConfiguration.oldProgram, fileName, languageVersion);
       default:
         throw new Error('tried to use TsickleCompilerHost with unknown pass enum');
@@ -208,7 +208,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
   }
 
-  private annotateTypes(
+  private closurize(
       sourceFile: ts.SourceFile, program: ts.Program, fileName: string,
       languageVersion: ts.ScriptTarget): ts.SourceFile {
     let isDefinitions = /\.d\.ts$/.test(fileName);
