@@ -16,8 +16,7 @@ import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
-import {toArray, createOutputRetainingCompilerHost} from './util';
-
+import {toArray, createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from './util';
 /** Tsickle settings passed on the command line. */
 export interface Settings {
   /** If provided, path to save externs to. */
@@ -130,12 +129,17 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[]): {jsFiles: Map<string, string>, externs: string}|null {
+    allDiagnostics: ts.Diagnostic[],
+    files?: Map<string, string>): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  let program = ts.createProgram(fileNames, options);
+  let program = files === undefined ?
+      ts.createProgram(fileNames, options) :
+      ts.createProgram(
+          fileNames, options,
+          createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
   {  // Scope for the "diagnostics" variable so we can use the name again later.
     let diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length > 0) {
@@ -151,7 +155,7 @@ export function toClosureJS(
     prelude: '',
   };
 
-  const tsickleEnvironment: tsickle.TsickleEnvironment = {
+  const tsickleHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
@@ -164,7 +168,8 @@ export function toClosureJS(
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
   let host = new tsickle.TsickleCompilerHost(
-      hostDelegate, tsickleCompilerHostOptions, tsickleEnvironment, program, tsickle.Pass.Tsickle);
+      hostDelegate, tsickleCompilerHostOptions, tsickleHost,
+      {oldProgram: program, pass: tsickle.Pass.CLOSURIZE});
   program = ts.createProgram(fileNames, options, host);
 
   let {diagnostics} = program.emit(undefined);

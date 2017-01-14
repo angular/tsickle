@@ -17,7 +17,7 @@ import {toArray} from './util';
 export {convertDecorators} from './decorator-annotator';
 export {processES5} from './es5processor';
 export {FileMap, ModulesManifest} from './modules_manifest';
-export {Pass, TsickleCompilerHost, TsickleCompilerHostOptions, TsickleEnvironment} from './tsickle_compiler_host';
+export {Pass, TsickleCompilerHost, TsickleCompilerHostOptions, TsickleHost} from './tsickle_compiler_host';
 
 export interface Options {
   /**
