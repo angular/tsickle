@@ -19,7 +19,7 @@ export abstract class Rewriter {
   /** Errors found while examining the code. */
   protected diagnostics: ts.Diagnostic[] = [];
   /** The source map that's generated while rewriting this file. */
-  private sourceMap = new SourceMapGenerator();
+  private sourceMap: SourceMapGenerator;
   /** Current position in the output. */
   private position = {line: 1, column: 1};
   /**
@@ -29,6 +29,7 @@ export abstract class Rewriter {
   private indent: number = 0;
 
   constructor(protected file: ts.SourceFile) {
+    this.sourceMap = new SourceMapGenerator({file: file.fileName});
     this.sourceMap.addMapping({
       original: this.position,
       generated: this.position,

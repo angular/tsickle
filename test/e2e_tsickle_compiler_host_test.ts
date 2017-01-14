@@ -13,7 +13,7 @@ const tsickleCompilerHostOptions = {
   prelude: '',
 };
 
-const tsickleEnvironment = {
+const tsickleHost = {
   shouldSkipTsickleProcessing: (fileName: string) => false,
   pathToModuleName: pathToModuleName,
   shouldIgnoreWarningsForPath: (filePath: string) => false,
@@ -39,7 +39,8 @@ describe('tsickle compiler host', () => {
   it('applies tsickle transforms', () => {
     const [program, compilerHost] = makeProgram('foo.ts', 'let x: number = 123;');
     const host = new TsickleCompilerHost(
-        compilerHost, tsickleCompilerHostOptions, tsickleEnvironment, program, Pass.Tsickle);
+        compilerHost, tsickleCompilerHostOptions, tsickleHost,
+        {oldProgram: program, pass: Pass.CLOSURIZE});
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     // NOTE(evanm): currently tsickle just removes all types; we will
     // likely revisit this.
@@ -50,8 +51,8 @@ describe('tsickle compiler host', () => {
     const [program, compilerHost] =
         makeProgram('foo.ts', '/** @Annotation */ const A: Function = null; @A class B {}');
     const host = new TsickleCompilerHost(
-        compilerHost, tsickleCompilerHostOptions, tsickleEnvironment, program,
-        Pass.DecoratorDownlevel);
+        compilerHost, tsickleCompilerHostOptions, tsickleHost,
+        {oldProgram: program, pass: Pass.DECORATOR_DOWNLEVEL});
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.contain('static decorators');
   });
@@ -59,7 +60,8 @@ describe('tsickle compiler host', () => {
   it(`doesn't transform .d.ts files`, () => {
     const [program, compilerHost] = makeProgram('foo.d.ts', 'declare let x: number;');
     const host = new TsickleCompilerHost(
-        compilerHost, tsickleCompilerHostOptions, tsickleEnvironment, program, Pass.Tsickle);
+        compilerHost, tsickleCompilerHostOptions, tsickleHost,
+        {oldProgram: program, pass: Pass.CLOSURIZE});
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.match(/^declare let x: number/);
   });
@@ -68,8 +70,7 @@ describe('tsickle compiler host', () => {
     const jsFiles = new Map<string, string>();
     const compilerHost = createOutputRetainingCompilerHost(
         jsFiles, ts.createCompilerHost({target: ts.ScriptTarget.ES5}));
-    const host =
-        new TsickleCompilerHost(compilerHost, tsickleCompilerHostOptions, tsickleEnvironment);
+    const host = new TsickleCompilerHost(compilerHost, tsickleCompilerHostOptions, tsickleHost);
 
     host.writeFile('foo.js', `console.log('hello');`, false);
     expect(jsFiles.get('foo.js'))

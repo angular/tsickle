@@ -24,6 +24,7 @@ describe('toClosureJS', () => {
     if (!closure) {
       diagnostics.forEach(v => console.log(JSON.stringify(v)));
       assert.fail();
+      // TODO(lucassloan): remove when the .d.ts has the correct types
       return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
     }
 
