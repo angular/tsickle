@@ -49,6 +49,9 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 function SuperTestInterface() { }
 /** @type {number} */
 SuperTestInterface.prototype.foo;
+/**
+ * @implements {SuperTestInterface}
+ */
 class SuperTestDerivedInterface {
 }
 function SuperTestDerivedInterface_tsickle_Closure_declarations() {
