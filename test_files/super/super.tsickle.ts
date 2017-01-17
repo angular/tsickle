@@ -61,6 +61,9 @@ SuperTestInterface.prototype.foo;
 interface SuperTestInterface {
   foo: number;
 }
+/**
+ * @implements {SuperTestInterface}
+ */
 class SuperTestDerivedInterface implements SuperTestInterface {
   foo: number;
 }
