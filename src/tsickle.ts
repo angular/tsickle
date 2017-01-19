@@ -740,7 +740,14 @@ class Annotator extends ClosureRewriter {
             // But it's fine to translate TS "implements Class" into Closure
             // "@extends {Class}" because this is just a type hint.
             let sym = this.program.getTypeChecker().getSymbolAtLocation(impl.expression);
-            if (sym.flags & ts.SymbolFlags.Class) tagName = 'extends';
+            if (sym.flags & ts.SymbolFlags.Class) {
+              tagName = 'extends';
+            } else if (sym.flags & ts.SymbolFlags.Value) {
+              // If the symbol was already in the value namespace, then it will
+              // not be a type in the Closure output (because Closure collapses
+              // the type and value namespaces).  Just ignore the implements.
+              continue;
+            }
 
             jsDoc.push({tagName, type: impl.getText()});
           }

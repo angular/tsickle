@@ -38,3 +38,11 @@ interfaceVar = new Extends();
 let /** @type {!Super} */ superVar;
 superVar = new Implements();
 superVar = new Extends();
+const /** @type {function(?): void} */ Zone = (function (global) {
+    class Zone2 {
+    }
+    function Zone2_tsickle_Closure_declarations() {
+        /** @type {string} */
+        Zone2.prototype.zone;
+    }
+});
