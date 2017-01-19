@@ -33,3 +33,18 @@ let /** @type {?} */ superVar: Super;
 superVar = new Implements();
 superVar = new Extends();
 
+// Reproduce issue #333: type/value namespace collision.
+// Because Zone is both a type and a value, the interface will be dropped
+// when converting to Closure, so the "implements" should be ignored.
+interface Zone { zone: string; }
+const /** @type {?} */ Zone = (function(global: any) {
+class Zone2 implements Zone {
+    zone: string;
+  }
+
+function Zone2_tsickle_Closure_declarations() {
+/** @type {?} */
+Zone2.prototype.zone;
+}
+
+});
