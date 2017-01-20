@@ -739,7 +739,19 @@ class Annotator extends ClosureRewriter {
             // We can only @implements an interface, not a class.
             // But it's fine to translate TS "implements Class" into Closure
             // "@extends {Class}" because this is just a type hint.
-            let sym = this.program.getTypeChecker().getSymbolAtLocation(impl.expression);
+            let typeChecker = this.program.getTypeChecker();
+            let sym = typeChecker.getSymbolAtLocation(impl.expression);
+            if (sym.flags & ts.SymbolFlags.TypeAlias) {
+              // It's implementing a type alias.  Follow the type alias back
+              // to the original symbol to check whether it's a type or a value.
+              let type = typeChecker.getDeclaredTypeOfSymbol(sym);
+              if (!type.symbol) {
+                // It's not clear when this can happen, but if it does all we
+                // do is fail to emit the @implements, which isn't so harmful.
+                continue;
+              }
+              sym = type.symbol;
+            }
             if (sym.flags & ts.SymbolFlags.Class) {
               tagName = 'extends';
             } else if (sym.flags & ts.SymbolFlags.Value) {
