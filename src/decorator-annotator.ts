@@ -70,18 +70,18 @@ class ClassRewriter extends Rewriter {
       // Not handling PropertyAccess expressions here, because they are
       // filtered earlier.
       if (commentNode.kind === ts.SyntaxKind.VariableDeclaration) {
-        if (!commentNode.parent) return false;
+        if (!commentNode.parent) continue;
         commentNode = commentNode.parent;
       }
       // Go up one more level to VariableDeclarationStatement, where usually
       // the comment lives. If the declaration has an 'export', the
       // VDList.getFullText will not contain the comment.
       if (commentNode.kind === ts.SyntaxKind.VariableDeclarationList) {
-        if (!commentNode.parent) return false;
+        if (!commentNode.parent) continue;
         commentNode = commentNode.parent;
       }
       let range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
-      if (!range) return;
+      if (!range) continue;
       for (let {pos, end} of range) {
         let jsDocText = commentNode.getFullText().substring(pos, end);
         if (jsDocText.includes('@Annotation')) return true;
