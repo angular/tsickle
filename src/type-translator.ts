@@ -325,6 +325,9 @@ export class TypeTranslator {
       }
       typeStr += this.translate(referenceType.target);
       if (referenceType.typeArguments) {
+        // Closure doesn't accept a type like {?<...>}, so if the parameterized
+        // type itself is unknown just use that by itself.
+        if (typeStr === '?') return typeStr;
         let params = referenceType.typeArguments.map(t => this.translate(t));
         typeStr += `<${params.join(', ')}>`;
       }
@@ -454,6 +457,8 @@ export class TypeTranslator {
 
     if (!callable && !indexable) {
       // Not callable, not indexable; implies a plain object with fields in it.
+      // Note: {a:number} is already non-nullable in Closure, so no need to put
+      // a ! prefix on it.
       return `{${fields.join(', ')}}`;
     }
 

@@ -33,19 +33,19 @@ function Test4(a) {
 function TestThisAndRest(...params) { }
 TestThisAndRest.call('foo', 'bar', 3);
 /**
- * @param {?} __0
+ * @param {{a: number, b: number}} __0
  * @return {?}
  */
 function Destructuring({ a, b }) { }
 /**
- * @param {?} __0
- * @param {?} __1
+ * @param {!Array<number>} __0
+ * @param {!Array<!Array<string>>} __1
  * @return {?}
  */
 function Destructuring2([a, b], [[c]]) { }
 /**
- * @param {?} __0
- * @param {?} __1
+ * @param {!Array<?, ?>} __0
+ * @param {!Array<!Array<?>>} __1
  * @return {?}
  */
 function Destructuring3([a, b], [[c]]) { }
