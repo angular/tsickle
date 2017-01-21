@@ -31,18 +31,46 @@ class Extends extends Super {
      */
     interfaceFunc() { }
 }
+/** @typedef {!Interface} */
+var TypeAlias;
+/**
+ * @implements {TypeAlias}
+ * @extends {Super}
+ */
+class ImplementsTypeAlias {
+    /**
+     * @return {void}
+     */
+    interfaceFunc() { }
+    /**
+     * @return {void}
+     */
+    superFunc() { }
+}
 // Verify Closure accepts the various casts.
 let /** @type {!Interface} */ interfaceVar;
 interfaceVar = new Implements();
 interfaceVar = new Extends();
+interfaceVar = new ImplementsTypeAlias();
 let /** @type {!Super} */ superVar;
 superVar = new Implements();
 superVar = new Extends();
-const /** @type {function(?): void} */ Zone = (function (global) {
-    class Zone2 {
-    }
-    function Zone2_tsickle_Closure_declarations() {
-        /** @type {string} */
-        Zone2.prototype.zone;
-    }
-});
+superVar = new ImplementsTypeAlias();
+/**
+ * @return {void}
+ */
+function Zone() { }
+class ZoneImplementsInterface {
+}
+function ZoneImplementsInterface_tsickle_Closure_declarations() {
+    /** @type {string} */
+    ZoneImplementsInterface.prototype.zone;
+}
+/** @typedef {?} */
+var ZoneAlias;
+class ZoneImplementsAlias {
+}
+function ZoneImplementsAlias_tsickle_Closure_declarations() {
+    /** @type {string} */
+    ZoneImplementsAlias.prototype.zone;
+}
