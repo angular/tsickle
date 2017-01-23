@@ -201,9 +201,6 @@ class ClosureRewriter extends Rewriter {
       for (let i = 0; i < sig.declaration.parameters.length; i++) {
         const paramNode = sig.declaration.parameters[i];
 
-        const destructuring =
-            (paramNode.name.kind === ts.SyntaxKind.ArrayBindingPattern ||
-             paramNode.name.kind === ts.SyntaxKind.ObjectBindingPattern);
         const name = getParameterName(paramNode, i);
         const isThisParam = name === 'this';
 
@@ -221,7 +218,7 @@ class ClosureRewriter extends Rewriter {
           // the Array<> wrapper.
           type = (type as ts.TypeReference).typeArguments[0];
         }
-        newTag.type = this.typeToClosure(fnDecl, type, destructuring);
+        newTag.type = this.typeToClosure(fnDecl, type);
 
         for (let {tagName, parameterName, text} of jsDoc) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
@@ -321,11 +318,8 @@ class ClosureRewriter extends Rewriter {
    * @param context The ts.Node containing the type reference; used for resolving symbols
    *     in context.
    * @param type The type to translate; if not provided, the Node's type will be used.
-   * @param destructuring If true, insert a Closure "!" (not-null annotation) on all
-   *     object/array types.  This is a workaround specifically for destructuring
-   *     bind patterns.
    */
-  typeToClosure(context: ts.Node, type?: ts.Type, destructuring = false): string {
+  typeToClosure(context: ts.Node, type?: ts.Type): string {
     if (this.options.untyped) {
       return '?';
     }
