@@ -875,14 +875,6 @@ class Annotator extends ClosureRewriter {
     }
 
     let tags = this.getJSDoc(p) || [];
-    let existingAnnotation = '';
-    for (let {tagName, text} of tags) {
-      if (tagName) {
-        existingAnnotation += `@${tagName}\n`;
-      } else {
-        existingAnnotation += `${text}\n`;
-      }
-    }
     tags.push({tagName: 'type', type: this.typeToClosure(p)});
     this.emit(jsdoc.toString(tags));
     namespace = namespace.concat([name]);
