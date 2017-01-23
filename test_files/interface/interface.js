@@ -27,3 +27,5 @@ TrickyInterface.prototype.foo;
 */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/** @type {?|undefined} */
+TrickyInterface.prototype.optAny;

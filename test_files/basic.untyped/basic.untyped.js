@@ -15,9 +15,9 @@ class Foo {
     }
 }
 function Foo_tsickle_Closure_declarations() {
-    /** @type {?} */
+    /** @type {?|undefined} */
     Foo.prototype.field;
-    /** @type {?} */
+    /** @type {?|undefined} */
     Foo.prototype.ctorArg;
 }
 // These two declarations should not have a @type annotation,

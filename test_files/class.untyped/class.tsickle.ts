@@ -62,7 +62,7 @@ class ZoneImplementsInterface implements Zone {
 }
 
 function ZoneImplementsInterface_tsickle_Closure_declarations() {
-/** @type {?} */
+/** @type {?|undefined} */
 ZoneImplementsInterface.prototype.zone;
 }
 
@@ -72,6 +72,6 @@ class ZoneImplementsAlias implements ZoneAlias {
 }
 
 function ZoneImplementsAlias_tsickle_Closure_declarations() {
-/** @type {?} */
+/** @type {?|undefined} */
 ZoneImplementsAlias.prototype.zone;
 }

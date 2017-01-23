@@ -800,7 +800,7 @@ class Annotator extends ClosureRewriter {
 
     const memberNamespace = [name, 'prototype'];
     for (let elem of iface.members) {
-      this.visitProperty(memberNamespace, elem);
+      this.visitProperty(memberNamespace, elem, elem.questionToken != null);
     }
   }
 
@@ -867,15 +867,31 @@ class Annotator extends ClosureRewriter {
     }
   }
 
-  private visitProperty(namespace: string[], p: ts.Declaration) {
-    let name = this.propertyName(p);
+  /**
+   * @param optional If true, property is optional (e.g. written "foo?: string").
+   */
+  private visitProperty(namespace: string[], prop: ts.Declaration, optional = false) {
+    let name = this.propertyName(prop);
     if (!name) {
-      this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(p.getText())}\n*/\n`);
+      this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(prop.getText())}\n*/\n`);
       return;
     }
 
-    let tags = this.getJSDoc(p) || [];
-    tags.push({tagName: 'type', type: this.typeToClosure(p)});
+    let type = this.typeToClosure(prop);
+    // Interesting special case:
+    // When a property is optional, e.g.
+    //   foo?: string;
+    // Then the type of the property is string|undefined and the above
+    // translation handles it correctly.
+    // But in the special case of any, which includes undefined:
+    //   foo?: any;
+    // The type is just "any" (because that covers undefined as well) and
+    // our translation of the type is just "?".  But Closure wants it to instead
+    // be ?|undefined.
+    if (type === '?') type += '|undefined';
+
+    let tags = this.getJSDoc(prop) || [];
+    tags.push({tagName: 'type', type});
     this.emit(jsdoc.toString(tags));
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
