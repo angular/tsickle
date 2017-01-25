@@ -153,6 +153,7 @@ export function toClosureJS(
     es5Mode: false,
     tsickleTyped: !settings.isUntyped,
     prelude: '',
+    convertIndexImportShorthand: false,
   };
 
   const tsickleHost: tsickle.TsickleHost = {
@@ -168,7 +169,7 @@ export function toClosureJS(
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
   let host = new tsickle.TsickleCompilerHost(
-      hostDelegate, tsickleCompilerHostOptions, tsickleHost,
+      hostDelegate, options, tsickleCompilerHostOptions, tsickleHost,
       {oldProgram: program, pass: tsickle.Pass.CLOSURIZE});
   program = ts.createProgram(fileNames, options, host);
 

@@ -25,6 +25,7 @@ export interface TsickleCompilerHostOptions {
   es5Mode: boolean;
   tsickleTyped: boolean;
   prelude: string;
+  convertIndexImportShorthand: boolean;
 }
 
 /**
@@ -82,8 +83,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   private tsickleSourceMaps = new Map<string, SourceMapGenerator>();
 
   constructor(
-      private delegate: ts.CompilerHost, private options: TsickleCompilerHostOptions,
-      private environment: TsickleHost,
+      private delegate: ts.CompilerHost, private tscOptions: ts.CompilerOptions,
+      private options: TsickleCompilerHostOptions, private environment: TsickleHost,
       private runConfiguration?: {oldProgram: ts.Program, pass: Pass}) {}
 
   /**
@@ -216,8 +217,12 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} =
-        annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
+    let {output, externs, diagnostics, sourceMap} = annotate(
+        program, sourceFile, {
+          untyped: !this.options.tsickleTyped,
+          convertIndexImportShorthand: this.options.convertIndexImportShorthand
+        },
+        this.delegate, this.tscOptions);
     if (externs) {
       this.externs[fileName] = externs;
     }
