@@ -718,49 +718,6 @@ class Annotator extends ClosureRewriter {
     if (hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
       jsDoc.push({tagName: 'abstract'});
     }
-
-    if (!this.options.untyped && classDecl.heritageClauses) {
-      // If the class has "extends Foo", that is preserved in the ES6 output
-      // and we don't need to do anything.  But if it has "implements Foo",
-      // that is a TS-specific thing and we need to translate it to the
-      // the Closure "@implements {Foo}".
-      for (const heritage of classDecl.heritageClauses) {
-        if (!heritage.types) continue;
-        if (heritage.token === ts.SyntaxKind.ImplementsKeyword) {
-          for (const impl of heritage.types) {
-            let tagName = 'implements';
-
-            // We can only @implements an interface, not a class.
-            // But it's fine to translate TS "implements Class" into Closure
-            // "@extends {Class}" because this is just a type hint.
-            let typeChecker = this.program.getTypeChecker();
-            let sym = typeChecker.getSymbolAtLocation(impl.expression);
-            if (sym.flags & ts.SymbolFlags.TypeAlias) {
-              // It's implementing a type alias.  Follow the type alias back
-              // to the original symbol to check whether it's a type or a value.
-              let type = typeChecker.getDeclaredTypeOfSymbol(sym);
-              if (!type.symbol) {
-                // It's not clear when this can happen, but if it does all we
-                // do is fail to emit the @implements, which isn't so harmful.
-                continue;
-              }
-              sym = type.symbol;
-            }
-            if (sym.flags & ts.SymbolFlags.Class) {
-              tagName = 'extends';
-            } else if (sym.flags & ts.SymbolFlags.Value) {
-              // If the symbol was already in the value namespace, then it will
-              // not be a type in the Closure output (because Closure collapses
-              // the type and value namespaces).  Just ignore the implements.
-              continue;
-            }
-
-            jsDoc.push({tagName, type: impl.getText()});
-          }
-        }
-      }
-    }
-
     this.emit('\n');
     if (jsDoc.length > 0) this.emit(jsdoc.toString(jsDoc));
     if (classDecl.members.length > 0) {
