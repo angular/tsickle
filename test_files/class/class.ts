@@ -47,3 +47,10 @@ type ZoneAlias = Zone;
 class ZoneImplementsAlias implements ZoneAlias {
   zone: string;
 }
+
+class HasObjectliteral {
+  public foo = {
+    bar: 0,
+    baz: ''
+  };
+}

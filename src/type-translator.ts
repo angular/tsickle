@@ -339,7 +339,8 @@ export class TypeTranslator {
         return '?';
       }
 
-      if (type.symbol.flags === ts.SymbolFlags.TypeLiteral) {
+      if (type.symbol.flags === ts.SymbolFlags.TypeLiteral ||
+          type.symbol.flags === ts.SymbolFlags.ObjectLiteral) {
         return this.translateTypeLiteral(type);
       } else if (
           type.symbol.flags === ts.SymbolFlags.Function ||
@@ -358,7 +359,6 @@ export class TypeTranslator {
       Tuple
       Mapped
       Instantiated
-      ObjectLiteral
       EvolvingArray
       ObjectLiteralPatternWithComputedProperties
     */

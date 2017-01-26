@@ -74,3 +74,15 @@ function ZoneImplementsAlias_tsickle_Closure_declarations() {
     /** @type {string} */
     ZoneImplementsAlias.prototype.zone;
 }
+class HasObjectliteral {
+    constructor() {
+        this.foo = {
+            bar: 0,
+            baz: ''
+        };
+    }
+}
+function HasObjectliteral_tsickle_Closure_declarations() {
+    /** @type {{bar: number, baz: string}} */
+    HasObjectliteral.prototype.foo;
+}
