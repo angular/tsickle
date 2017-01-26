@@ -11,34 +11,14 @@ import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
+import {Options} from './tsickle_compiler_host';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
 export {processES5} from './es5processor';
 export {FileMap, ModulesManifest} from './modules_manifest';
-export {Pass, TsickleCompilerHost, TsickleCompilerHostOptions, TsickleHost} from './tsickle_compiler_host';
-
-export interface Options {
-  /**
-   * If true, convert every type to the Closure {?} type, which means
-   * "don't check types".
-   */
-  untyped?: boolean;
-  /**
-   * If provided a function that logs an internal warning.
-   * These warnings are not actionable by an end user and should be hidden
-   * by default.
-   */
-  logWarning?: (warning: ts.Diagnostic) => void;
-  /** If provided, a set of paths whose types should always generate as {?}. */
-  typeBlackListPaths?: Set<string>;
-  /**
-   * Convert shorthand "/index" imports to full path (include the "/index").
-   * Annotation will be slower because every import must be resolved.
-   */
-  convertIndexImportShorthand?: boolean;
-}
+export {Options, Pass, TsickleCompilerHost, TsickleHost} from './tsickle_compiler_host';
 
 export interface Output {
   /** The TypeScript source with Closure annotations inserted. */
