@@ -20,12 +20,28 @@ export enum Pass {
   CLOSURIZE
 }
 
-export interface TsickleCompilerHostOptions {
-  googmodule: boolean;
-  es5Mode: boolean;
-  tsickleTyped: boolean;
-  prelude: string;
-  convertIndexImportShorthand: boolean;
+export interface Options {
+  googmodule?: boolean;
+  es5Mode?: boolean;
+  prelude?: string;
+  /**
+   * If true, convert every type to the Closure {?} type, which means
+   * "don't check types".
+   */
+  untyped?: boolean;
+  /**
+   * If provided a function that logs an internal warning.
+   * These warnings are not actionable by an end user and should be hidden
+   * by default.
+   */
+  logWarning?: (warning: ts.Diagnostic) => void;
+  /** If provided, a set of paths whose types should always generate as {?}. */
+  typeBlackListPaths?: Set<string>;
+  /**
+   * Convert shorthand "/index" imports to full path (include the "/index").
+   * Annotation will be slower because every import must be resolved.
+   */
+  convertIndexImportShorthand?: boolean;
 }
 
 /**
@@ -84,7 +100,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   constructor(
       private delegate: ts.CompilerHost, private tscOptions: ts.CompilerOptions,
-      private options: TsickleCompilerHostOptions, private environment: TsickleHost,
+      private options: Options, private environment: TsickleHost,
       private runConfiguration?: {oldProgram: ts.Program, pass: Pass}) {}
 
   /**
@@ -217,12 +233,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} = annotate(
-        program, sourceFile, {
-          untyped: !this.options.tsickleTyped,
-          convertIndexImportShorthand: this.options.convertIndexImportShorthand
-        },
-        this.delegate, this.tscOptions);
+    let {output, externs, diagnostics, sourceMap} =
+        annotate(program, sourceFile, this.options, this.delegate, this.tscOptions);
     if (externs) {
       this.externs[fileName] = externs;
     }

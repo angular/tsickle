@@ -148,12 +148,10 @@ export function toClosureJS(
     }
   }
 
-  const tsickleCompilerHostOptions: tsickle.TsickleCompilerHostOptions = {
+  const tsickleCompilerHostOptions: tsickle.Options = {
     googmodule: true,
     es5Mode: false,
-    tsickleTyped: !settings.isUntyped,
-    prelude: '',
-    convertIndexImportShorthand: false,
+    untyped: settings.isUntyped,
   };
 
   const tsickleHost: tsickle.TsickleHost = {

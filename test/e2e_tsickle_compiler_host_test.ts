@@ -9,9 +9,7 @@ import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} fr
 const tsickleCompilerHostOptions = {
   googmodule: true,
   es5Mode: false,
-  tsickleTyped: false,
-  prelude: '',
-  convertIndexImportShorthand: false,
+  untyped: true,
 };
 
 const tsickleHost = {
