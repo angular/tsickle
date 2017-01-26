@@ -999,14 +999,15 @@ class ExternsWriter extends ClosureRewriter {
             // E.g. "declare namespace foo {"
             let name = getIdentifierText(decl.name as ts.Identifier);
             if (name === undefined) break;
-            namespace = namespace.concat(name);
-            if (this.isFirstDeclaration(decl)) {
-              this.emit('/** @const */\n');
-              if (namespace.length > 1) {
-                this.emit(`${namespace.join('.')} = {};\n`);
-              } else {
-                this.emit(`var ${namespace} = {};\n`);
+            if (name === 'global') {
+              // E.g. "declare global { ... }".  Reset to the outer namespace.
+              namespace = [];
+            } else {
+              if (this.isFirstDeclaration(decl)) {
+                this.emit('/** @const */\n');
+                this.writeExternsVariable(name, namespace, '{}');
               }
+              namespace = namespace.concat(name);
             }
             if (decl.body) this.visit(decl.body, namespace);
             break;
