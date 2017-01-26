@@ -134,11 +134,10 @@ function decoratorDownlevelCompiler(
     }
   }
 
-  const tsickleCompilerHostOptions: tsickle.TsickleCompilerHostOptions = {
+  const tsickleCompilerHostOptions: tsickle.Options = {
     googmodule: true,
     es5Mode: false,
-    tsickleTyped: !settings.isUntyped,
-    prelude: '',
+    untyped: settings.isUntyped,
   };
 
   const tsickleHost: tsickle.TsickleHost = {
@@ -154,7 +153,7 @@ function decoratorDownlevelCompiler(
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
   let host = new tsickle.TsickleCompilerHost(
-      hostDelegate, tsickleCompilerHostOptions, tsickleHost,
+      hostDelegate, options, tsickleCompilerHostOptions, tsickleHost,
       {oldProgram: program, pass: tsickle.Pass.DECORATOR_DOWNLEVEL});
   program = ts.createProgram(fileNames, options, host);
 
