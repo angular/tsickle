@@ -416,7 +416,7 @@ class Annotator extends ClosureRewriter {
       // For Closure Compiler, such declarations must still be exported, so that importing code in
       // other modules can reference them. Because tsickle generates global symbols for such types,
       // the appropriate semantics are referencing the global name.
-      if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
+      if (!this.options.untyped && hasModifierFlag(node, ts.ModifierFlags.Export)) {
         const declName = this.getExportDeclarationName(node);
         if (node.kind === ts.SyntaxKind.VariableStatement) {
           // For variables, TypeScript rewrites every reference to the variable name as an
