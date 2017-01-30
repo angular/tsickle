@@ -375,12 +375,12 @@ class Annotator extends ClosureRewriter {
     };
   }
 
-  getExportDeclarationName(node: ts.Node): string {
+  getExportDeclarationNames(node: ts.Node): string[] {
     switch (node.kind) {
       case ts.SyntaxKind.VariableStatement:
         const varDecl = node as ts.VariableStatement;
-        if (varDecl.declarationList.declarations.length !== 1) break;
-        return this.getExportDeclarationName(varDecl.declarationList.declarations[0]);
+        return varDecl.declarationList.declarations.map(
+            (d) => this.getExportDeclarationNames(d)[0]);
       case ts.SyntaxKind.VariableDeclaration:
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
@@ -389,13 +389,16 @@ class Annotator extends ClosureRewriter {
         if (!decl.name || decl.name.kind !== ts.SyntaxKind.Identifier) {
           break;
         }
-        return getIdentifierText(decl.name as ts.Identifier);
+        return [getIdentifierText(decl.name as ts.Identifier)];
+      case ts.SyntaxKind.TypeAliasDeclaration:
+        const typeAlias = node as ts.TypeAliasDeclaration;
+        return [getIdentifierText(typeAlias.name)];
       default:
         break;
     }
     this.error(
         node, `unsupported export declaration ${ts.SyntaxKind[node.kind]}: ${node.getText()}`);
-    return 'errorUnhandledDeclarationKind';
+    return ['errorUnhandledDeclarationKind'];
   }
 
   /**
@@ -416,15 +419,17 @@ class Annotator extends ClosureRewriter {
       // other modules can reference them. Because tsickle generates global symbols for such types,
       // the appropriate semantics are referencing the global name.
       if (node.flags & ts.NodeFlags.Export) {
-        const declName = this.getExportDeclarationName(node);
-        if (node.kind === ts.SyntaxKind.VariableStatement) {
-          // For variables, TypeScript rewrites every reference to the variable name as an
-          // "exports." access, to maintain mutable ES6 exports semantics. Indirecting through the
-          // window object means we reference the correct global symbol. Closure Compiler does
-          // understand that "var foo" in externs corresponds to "window.foo".
-          this.emit(`\nexports.${declName} = window.${declName};\n`);
-        } else {
-          this.emit(`\nexports.${declName} = ${declName};\n`);
+        const declNames = this.getExportDeclarationNames(node);
+        for (let declName of declNames) {
+          if (node.kind === ts.SyntaxKind.VariableStatement) {
+            // For variables, TypeScript rewrites every reference to the variable name as an
+            // "exports." access, to maintain mutable ES6 exports semantics. Indirecting through the
+            // window object means we reference the correct global symbol. Closure Compiler does
+            // understand that "var foo" in externs corresponds to "window.foo".
+            this.emit(`\nexports.${declName} = window.${declName};\n`);
+          } else {
+            this.emit(`\nexports.${declName} = ${declName};\n`);
+          }
         }
       }
       return true;
