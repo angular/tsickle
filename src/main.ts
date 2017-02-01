@@ -152,6 +152,7 @@ export function toClosureJS(
     googmodule: true,
     es5Mode: false,
     tsickleTyped: !settings.isUntyped,
+    typeBlackListPaths: new Set(),
     prelude: '',
   };
 

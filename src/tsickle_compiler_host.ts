@@ -24,6 +24,7 @@ export interface TsickleCompilerHostOptions {
   googmodule: boolean;
   es5Mode: boolean;
   tsickleTyped: boolean;
+  typeBlackListPaths: Set<string>;
   prelude: string;
 }
 
@@ -216,8 +217,9 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} =
-        annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
+    let {output, externs, diagnostics, sourceMap} = annotate(
+        program, sourceFile,
+        {untyped: !this.options.tsickleTyped, typeBlackListPaths: this.options.typeBlackListPaths});
     if (externs) {
       this.externs[fileName] = externs;
     }
