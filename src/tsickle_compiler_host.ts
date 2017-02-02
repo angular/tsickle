@@ -158,6 +158,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   sourceMapGeneratorToConsumerWithFileName(
       sourceMapGenerator: SourceMapGenerator, fileName: string): SourceMapConsumer {
     const rawSourceMap = sourceMapGenerator.toJSON();
+    rawSourceMap.sources = [fileName];
     rawSourceMap.file = fileName;
     return new SourceMapConsumer(rawSourceMap);
   }
@@ -176,6 +177,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+        console.log(sourceFileName);
         const resolvedSourceFileName =
             this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(resolvedSourceFileName)!;
