@@ -156,11 +156,11 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   /**
-  * Tsc identifies source files by their relative path to the output file.  Since
-  * there's no easy way to identify these relative paths when tsickle generates its
-  * own source maps, we patch them with the file name from the tsc source maps
-  * before composing them.
-  */
+   * Tsc identifies source files by their relative path to the output file.  Since
+   * there's no easy way to identify these relative paths when tsickle generates its
+   * own source maps, we patch them with the file name from the tsc source maps
+   * before composing them.
+   */
   sourceMapGeneratorToConsumerWithFileName(
       sourceMapGenerator: SourceMapGenerator, fileName: string): SourceMapConsumer {
     const rawSourceMap = sourceMapGenerator.toJSON();
@@ -174,7 +174,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     return new SourceMapConsumer(sourceMapJson);
   }
 
-  getSourceMapKey(outputFilePath: string, sourceFileName:string): string {
+  getSourceMapKey(outputFilePath: string, sourceFileName: string): string {
     const fileDir = path.dirname(outputFilePath);
 
     return this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
