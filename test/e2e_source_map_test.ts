@@ -68,7 +68,7 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
         .to.equal('input1.ts', 'first input file');
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).line)
-        .to.equal(4, 'fouth string definition');
+        .to.equal(4, 'fourth string definition');
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
         .to.equal('input2.ts', 'second input file');
   });
@@ -98,7 +98,7 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
         .to.equal('a/b/input1.ts', 'first input file');
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).line)
-        .to.equal(4, 'fouth string definition');
+        .to.equal(4, 'fourth string definition');
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
         .to.equal('a/c/input2.ts', 'second input file');
   });
@@ -131,7 +131,7 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line: methodLine, column: methodColumn}).source)
         .to.equal('input1.ts', 'method input file');
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).line)
-        .to.equal(4, 'fouth string definition');
+        .to.equal(4, 'fourth string definition');
     expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
         .to.equal('input2.ts', 'second input file');
   });
