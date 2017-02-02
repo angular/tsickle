@@ -103,37 +103,45 @@ describe('source maps', () => {
         .to.equal('a/c/input2.ts', 'second input file');
   });
 
-  it('works when not tsickle processing some input', function() {
+  it('works when not decorator downleveling some input', function() {
     const sources = new Map<string, string>();
     sources.set('input1.ts', `
         /** @Annotation */
-        function classAnnotation(t: any) { return t; }
+        function class1Annotation(t: any) { return t; }
 
-        @classAnnotation
-        class DecoratorTest {
-          public methodName(s: string): string { return s; }
+        @class1Annotation
+        class DecoratorTest1 {
+          public method1Name(s: string): string { return s; }
         }`);
 
     sources.set('input2.ts', `
-        class A { field: number; }
-        let a : string = 'third string';
-        let b : string = 'fourth rate';
-        let c : string = a + b;`);
+        /** @Annotation */
+        function class2Annotation(t: any) { return t; }
+
+        @class2Annotation
+        class DecoratorTest2 {
+          public method2Name(s: string): string { return s; }
+        }`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources, 'output.js', new Set<string>(['input2.ts']));
 
-    const {line: methodLine, column: methodColumn} = getLineAndColumn(compiledJS, 'methodName');
-    const {line: stringBLine, column: stringBColumn} = getLineAndColumn(compiledJS, 'fourth rate');
+    const {line: method1Line, column: method1Column} = getLineAndColumn(compiledJS, 'method1Name');
+    const {line: method2Line, column: method2Column} = getLineAndColumn(compiledJS, 'method2Name');
 
-    expect(sourceMap.originalPositionFor({line: methodLine, column: methodColumn}).line)
-        .to.equal(7, 'method definition');
-    expect(sourceMap.originalPositionFor({line: methodLine, column: methodColumn}).source)
-        .to.equal('input1.ts', 'method input file');
-    expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).line)
-        .to.equal(4, 'fourth string definition');
-    expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
-        .to.equal('input2.ts', 'second input file');
+    // Check that we decorator downleveled input1, but not input2
+    expect(compiledJS).to.contain('DecoratorTest1_tsickle_Closure_declarations');
+    expect(compiledJS).not.to.contain('DecoratorTest2_tsickle_Closure_declarations');
+
+    // Check that the source maps work
+    expect(sourceMap.originalPositionFor({line: method1Line, column: method1Column}).line)
+        .to.equal(7, 'method 1 definition');
+    expect(sourceMap.originalPositionFor({line: method1Line, column: method1Column}).source)
+        .to.equal('input1.ts', 'method 1 input file');
+    expect(sourceMap.originalPositionFor({line: method2Line, column: method2Column}).line)
+        .to.equal(7, 'method 1 definition');
+    expect(sourceMap.originalPositionFor({line: method2Line, column: method2Column}).source)
+        .to.equal('input2.ts', 'method 2 input file');
   });
 
   it('handles decorators correctly', function() {
