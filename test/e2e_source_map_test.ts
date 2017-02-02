@@ -10,10 +10,9 @@ import {assert, expect} from 'chai';
 import * as path from 'path';
 import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
-import * as mock from 'mock-fs';
 
 import * as cliSupport from '../src/cli_support';
-import {Settings, toClosureJS} from '../src/main';
+import {Settings} from '../src/main';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from '../src/util';
@@ -173,11 +172,10 @@ interface Compiler {
 
 function tsickleCompiler(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[],
-    files: Map<string, string>, filesToIgnore: Set<string>): {jsFiles: Map<string, string>, externs: string}|null {
+    allDiagnostics: ts.Diagnostic[], files: Map<string, string>,
+    filesToIgnore: Set<string>): {jsFiles: Map<string, string>, externs: string}|null {
   let program = ts.createProgram(
-          fileNames, options,
-          createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
+      fileNames, options, createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
   {  // Scope for the "diagnostics" variable so we can use the name again later.
     let diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length > 0) {
@@ -206,10 +204,10 @@ function tsickleCompiler(
   // place of the original source.
   const host = new tsickle.TsickleCompilerHost(
       hostDelegate, options, tsickleCompilerHostOptions, tsickleHost);
-      host.reconfigureForRun(program, tsickle.Pass.DECORATOR_DOWNLEVEL);
+  host.reconfigureForRun(program, tsickle.Pass.DECORATOR_DOWNLEVEL);
   program = ts.createProgram(fileNames, options, host);
 
-      host.reconfigureForRun(program, tsickle.Pass.CLOSURIZE);
+  host.reconfigureForRun(program, tsickle.Pass.CLOSURIZE);
   program = ts.createProgram(fileNames, options, host);
 
   let {diagnostics} = program.emit(undefined);
@@ -221,8 +219,9 @@ function tsickleCompiler(
   return {jsFiles, externs: host.getGeneratedExterns()};
 }
 
-function compile(sources: Map<string, string>, outFile = 'output.js', filesNotToProcess = new Set<string>()):
-    {compiledJS: string, sourceMap: SourceMapConsumer} {
+function compile(
+    sources: Map<string, string>, outFile = 'output.js',
+    filesNotToProcess = new Set<string>()): {compiledJS: string, sourceMap: SourceMapConsumer} {
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
     resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
@@ -232,7 +231,8 @@ function compile(sources: Map<string, string>, outFile = 'output.js', filesNotTo
 
   const closure = tsickleCompiler(
       {sourceMap: true, outFile: outFile, experimentalDecorators: true} as ts.CompilerOptions,
-      toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics, resolvedSources, filesNotToProcess);
+      toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics, resolvedSources,
+      filesNotToProcess);
 
   if (!closure) {
     assert.fail();

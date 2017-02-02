@@ -155,7 +155,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     return SourceMapGenerator.fromSourceMap(sourceMapConsumer);
   }
 
-  sourceMapGeneratorToConsumerWithFileName(sourceMapGenerator: SourceMapGenerator, fileName: string): SourceMapConsumer {
+  sourceMapGeneratorToConsumerWithFileName(
+      sourceMapGenerator: SourceMapGenerator, fileName: string): SourceMapConsumer {
     const rawSourceMap = sourceMapGenerator.toJSON();
     rawSourceMap.file = fileName;
     return new SourceMapConsumer(rawSourceMap);
@@ -175,21 +176,23 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
-        const resolvedSourceFileName = this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
+        const resolvedSourceFileName =
+            this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(resolvedSourceFileName)!;
-        const tsickleSourceMapConsumer =
-            this.sourceMapGeneratorToConsumerWithFileName(tsickleSourceMapGenerator, sourceFileName);
+        const tsickleSourceMapConsumer = this.sourceMapGeneratorToConsumerWithFileName(
+            tsickleSourceMapGenerator, sourceFileName);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
       }
     }
     if (this.decoratorDownlevelSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
-        const resolvedSourceFileName = this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
+        const resolvedSourceFileName =
+            this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
         const decoratorDownlevelSourceMapGenerator =
             this.decoratorDownlevelSourceMaps.get(resolvedSourceFileName)!;
-        const decoratorDownlevelSourceMapConsumer =
-            this.sourceMapGeneratorToConsumerWithFileName(decoratorDownlevelSourceMapGenerator, sourceFileName);
+        const decoratorDownlevelSourceMapConsumer = this.sourceMapGeneratorToConsumerWithFileName(
+            decoratorDownlevelSourceMapGenerator, sourceFileName);
         tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
       }
     }
@@ -216,7 +219,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   private downlevelDecorators(
       sourceFile: ts.SourceFile, program: ts.Program, fileName: string,
       languageVersion: ts.ScriptTarget): ts.SourceFile {
-    this.decoratorDownlevelSourceMaps.set(this.getCanonicalFileName(sourceFile.path), new SourceMapGenerator());
+    this.decoratorDownlevelSourceMaps.set(
+        this.getCanonicalFileName(sourceFile.path), new SourceMapGenerator());
     if (this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
     let fileContent = sourceFile.text;
     const converted = convertDecorators(program.getTypeChecker(), sourceFile);
@@ -228,14 +232,16 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       return sourceFile;
     }
     fileContent = converted.output + ANNOTATION_SUPPORT;
-    this.decoratorDownlevelSourceMaps.set(this.getCanonicalFileName(sourceFile.path), converted.sourceMap);
+    this.decoratorDownlevelSourceMaps.set(
+        this.getCanonicalFileName(sourceFile.path), converted.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
   }
 
   private closurize(
       sourceFile: ts.SourceFile, program: ts.Program, fileName: string,
       languageVersion: ts.ScriptTarget): ts.SourceFile {
-    this.tsickleSourceMaps.set(this.getCanonicalFileName(sourceFile.path), new SourceMapGenerator());
+    this.tsickleSourceMaps.set(
+        this.getCanonicalFileName(sourceFile.path), new SourceMapGenerator());
     let isDefinitions = /\.d\.ts$/.test(fileName);
     // Don't tsickle-process any d.ts that isn't a compilation target;
     // this means we don't process e.g. lib.d.ts.
