@@ -171,7 +171,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     const tscSourceMapConsumer = this.sourceMapTextToConsumer(tscSourceMapText);
     const tscSourceMapGenerator = this.sourceMapConsumerToGenerator(tscSourceMapConsumer);
 
-    const fileDir = path.parse(filePath).dir;
+    const fileDir = path.dirname(filePath);
 
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
