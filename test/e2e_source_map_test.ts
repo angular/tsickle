@@ -199,7 +199,8 @@ function tsickleCompiler(
   };
 
   const tsickleHost: tsickle.TsickleHost = {
-    shouldSkipTsickleProcessing: (fileName) => filesToIgnore.has(fileName),
+    shouldSkipTsickleProcessing:
+        (fileName) => fileNames.indexOf(fileName) === -1 || filesToIgnore.has(fileName),
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (fileName) => fileName,
