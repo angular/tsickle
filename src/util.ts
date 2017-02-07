@@ -91,8 +91,8 @@ export function createOutputRetainingCompilerHost(
 }
 
 export function extractInlineSourceMap(source: string): string {
-    const regex = new RegExp("//# sourceMappingURL=data:application/json;base64,(.*)");
-    const result = regex.exec(source)!;
-    const base64EncodedMap = result[1];
-    return decode(base64EncodedMap);
+  const regex = new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)');
+  const result = regex.exec(source)!;
+  const base64EncodedMap = result[1];
+  return decode(base64EncodedMap);
 }

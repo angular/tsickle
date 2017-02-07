@@ -255,8 +255,8 @@ function tsickleCompiler(
 }
 
 function compile(
-    sources: Map<string, string>, outFile = 'output.js',
-    filesNotToProcess = new Set<string>(), inlineSourceMap = false): {compiledJS: string, sourceMap: SourceMapConsumer} {
+    sources: Map<string, string>, outFile = 'output.js', filesNotToProcess = new Set<string>(),
+    inlineSourceMap = false): {compiledJS: string, sourceMap: SourceMapConsumer} {
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
     resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
@@ -266,16 +266,21 @@ function compile(
 
   let compilerOptions: ts.CompilerOptions;
   if (inlineSourceMap) {
-      compilerOptions = {inlineSourceMap: inlineSourceMap, outFile: outFile, experimentalDecorators: true};
-  }
-  else {
-      compilerOptions = {sourceMap: true, outFile: outFile, experimentalDecorators: true};
+    compilerOptions = {
+      inlineSourceMap: inlineSourceMap,
+      outFile: outFile,
+      experimentalDecorators: true
+    };
+  } else {
+    compilerOptions = {sourceMap: true, outFile: outFile, experimentalDecorators: true};
   }
 
-  const closure = tsickleCompiler(compilerOptions, toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics, resolvedSources, filesNotToProcess);
+  const closure = tsickleCompiler(
+      compilerOptions, toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics,
+      resolvedSources, filesNotToProcess);
 
   if (!closure) {
-          console.error(tsickle.formatDiagnostics(diagnostics));
+    console.error(tsickle.formatDiagnostics(diagnostics));
     assert.fail();
     // TODO(lucassloan): remove when the .d.ts has the correct types
     return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
@@ -291,9 +296,8 @@ function compile(
 
   let sourceMapJson: any;
   if (inlineSourceMap) {
-      sourceMapJson = extractInlineSourceMap(compiledJS);
-  }
-  else {
+    sourceMapJson = extractInlineSourceMap(compiledJS);
+  } else {
     sourceMapJson = getFileWithName(outFile + '.map', closure.jsFiles);
   }
   const sourceMap = new SourceMapConsumer(sourceMapJson);

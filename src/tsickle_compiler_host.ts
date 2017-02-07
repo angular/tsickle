@@ -218,7 +218,9 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     const sourceMapJson = extractInlineSourceMap(tscOutputText);
     const composedSourceMap = this.combineSourceMaps(filePath, sourceMapJson);
     const encodedSourceMap = encode(composedSourceMap);
-    return tscOutputText.replace(new RegExp("//# sourceMappingURL=data:application/json;base64,(.*)"), `//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
+    return tscOutputText.replace(
+        new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)'),
+        `//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
   }
 
   convertCommonJsToGoogModule(fileName: string, content: string): string {
