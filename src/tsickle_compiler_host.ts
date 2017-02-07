@@ -214,12 +214,12 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     return tscSourceMapGenerator.toString();
   }
 
-  combineInlineSourceMaps(filePath: string, tscOutputText: string): string {
-    const sourceMapJson = extractInlineSourceMap(tscOutputText);
+  combineInlineSourceMaps(filePath: string, compiledJsWithInlineSourceMap: string): string {
+    const sourceMapJson = extractInlineSourceMap(compiledJsWithInlineSourceMap);
     const composedSourceMap = this.combineSourceMaps(filePath, sourceMapJson);
     const encodedSourceMap = encode(composedSourceMap);
-    return tscOutputText.replace(
-        new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)'),
+    return compiledJsWithInlineSourceMap.replace(
+        new RegExp('^//# sourceMappingURL=data:application/json;base64,(.*)$', 'm'),
         `//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
   }
 

@@ -1,6 +1,3 @@
-import {decode} from 'base-64';
-import * as ts from 'typescript';
-
 /**
  * @license
  * Copyright Google Inc. All Rights Reserved.
@@ -12,6 +9,9 @@ import * as ts from 'typescript';
 // toArray is a temporary function to help in the use of
 // ES6 maps and sets when running on node 4, which doesn't
 // support Iterators completely.
+
+import {decode} from 'base-64';
+import * as ts from 'typescript';
 
 export function toArray<T>(iterator: Iterator<T>): T[] {
   const array: T[] = [];
@@ -91,7 +91,7 @@ export function createOutputRetainingCompilerHost(
 }
 
 export function extractInlineSourceMap(source: string): string {
-  const regex = new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)');
+  const regex = new RegExp('^//# sourceMappingURL=data:application/json;base64,(.*)$', 'm');
   const result = regex.exec(source)!;
   const base64EncodedMap = result[1];
   return decode(base64EncodedMap);
