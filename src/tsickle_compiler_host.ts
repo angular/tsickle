@@ -1,4 +1,3 @@
-import {encode} from 'base-64';
 import * as path from 'path';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
@@ -217,7 +216,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   combineInlineSourceMaps(filePath: string, compiledJsWithInlineSourceMap: string): string {
     const sourceMapJson = extractInlineSourceMap(compiledJsWithInlineSourceMap);
     const composedSourceMap = this.combineSourceMaps(filePath, sourceMapJson);
-    const encodedSourceMap = encode(composedSourceMap);
+    const encodedSourceMap = Buffer.from(composedSourceMap, 'utf8').toString('base64');
     return compiledJsWithInlineSourceMap.replace(
         new RegExp('^//# sourceMappingURL=data:application/json;base64,(.*)$', 'm'),
         `//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);

@@ -10,7 +10,6 @@
 // ES6 maps and sets when running on node 4, which doesn't
 // support Iterators completely.
 
-import {decode} from 'base-64';
 import * as ts from 'typescript';
 
 export function toArray<T>(iterator: Iterator<T>): T[] {
@@ -94,5 +93,5 @@ export function extractInlineSourceMap(source: string): string {
   const regex = new RegExp('^//# sourceMappingURL=data:application/json;base64,(.*)$', 'm');
   const result = regex.exec(source)!;
   const base64EncodedMap = result[1];
-  return decode(base64EncodedMap);
+  return Buffer.from(base64EncodedMap, 'base64').toString('utf8');
 }

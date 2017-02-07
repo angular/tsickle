@@ -29,7 +29,6 @@
     "@types/node": "^6.0.38",
     "@types/source-map": "^0.1.27",
     "@types/source-map-support": "^0.2.27",
-    "base-64": "^0.1.0",
     "chai": "^3.5.0",
     "clang-format": "^1.0.45",
     "glob": "^7.0.0",
