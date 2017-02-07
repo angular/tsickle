@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {decode} from 'base-64';
 import {assert, expect} from 'chai';
 import * as path from 'path';
 import {SourceMapConsumer} from 'source-map';
@@ -16,7 +15,7 @@ import * as cliSupport from '../src/cli_support';
 import {Settings} from '../src/main';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
-import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from '../src/util';
+import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost, extractInlineSourceMap} from '../src/util';
 
 describe('source maps', () => {
   it('composes source maps with tsc', function() {
@@ -292,7 +291,7 @@ function compile(
 
   let sourceMapJson: any;
   if (inlineSourceMap) {
-      sourceMapJson = getInlineSourceMap(compiledJS);
+      sourceMapJson = extractInlineSourceMap(compiledJS);
   }
   else {
     sourceMapJson = getFileWithName(outFile + '.map', closure.jsFiles);
@@ -300,14 +299,6 @@ function compile(
   const sourceMap = new SourceMapConsumer(sourceMapJson);
 
   return {compiledJS, sourceMap};
-}
-
-function getInlineSourceMap(source: string): string | null {
-    console.log(source);
-    const regex = new RegExp("//# sourceMappingURL=data:application/json;base64,(.*)");
-    const result = regex.exec(source)!;
-    const base64EncodedMap = result[1];
-    return decode(base64EncodedMap);
 }
 
 function getFileWithName(filename: string, files: Map<string, string>): string|undefined {
