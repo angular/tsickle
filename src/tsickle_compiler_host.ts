@@ -1,3 +1,4 @@
+import {encode} from 'base-64';
 import * as path from 'path';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
@@ -6,6 +7,7 @@ import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
 import {annotate} from './tsickle';
+import {extractInlineSourceMap} from './util';
 
 /**
  * Tsickle can perform 2 different precompilation transforms - decorator downleveling
@@ -144,6 +146,9 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
         content = this.convertCommonJsToGoogModule(fileName, content);
       }
+      if (this.tscOptions.inlineSourceMap) {
+        content = this.combineInlineSourceMaps(fileName, content);
+      }
     } else {
       content = this.combineSourceMaps(fileName, content);
     }
@@ -207,6 +212,13 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     }
 
     return tscSourceMapGenerator.toString();
+  }
+
+  combineInlineSourceMaps(filePath: string, tscOutputText: string): string {
+    const sourceMapJson = extractInlineSourceMap(tscOutputText);
+    const composedSourceMap = this.combineSourceMaps(filePath, sourceMapJson);
+    const encodedSourceMap = encode(composedSourceMap);
+    return tscOutputText.replace(new RegExp("//# sourceMappingURL=data:application/json;base64,(.*)"), `//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
   }
 
   convertCommonJsToGoogModule(fileName: string, content: string): string {
