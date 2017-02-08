@@ -29,18 +29,20 @@ describe('source maps', () => {
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources);
 
-    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
-    const {line: stringYLine, column: stringYColumn} =
-        getLineAndColumn(compiledJS, 'another string');
-
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
-        .to.equal(3, 'first string definition');
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
-        .to.equal('input.ts', 'input file name');
-    expect(sourceMap.originalPositionFor({line: stringYLine, column: stringYColumn}).line)
-        .to.equal(4, 'second string definition');
-    expect(sourceMap.originalPositionFor({line: stringYLine, column: stringYColumn}).source)
-        .to.equal('input.ts', 'input file name');
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'a string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(3, 'first string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input.ts', 'input file name');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'another string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(4, 'second string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input.ts', 'input file name');
+    }
   });
 
   it('composes sources maps with multiple input files', function() {
@@ -60,17 +62,20 @@ describe('source maps', () => {
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources);
 
-    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
-    const {line: stringBLine, column: stringBColumn} = getLineAndColumn(compiledJS, 'fourth rate');
-
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
-        .to.equal(3, 'first string definition');
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
-        .to.equal('input1.ts', 'first input file');
-    expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).line)
-        .to.equal(4, 'fourth string definition');
-    expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
-        .to.equal('input2.ts', 'second input file');
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'a string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(3, 'first string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input1.ts', 'first input file');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'fourth rate');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(4, 'fourth string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input2.ts', 'second input file');
+    }
   });
 
   it('handles files in different directories', function() {
@@ -90,17 +95,20 @@ describe('source maps', () => {
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources, 'a/d/output.js');
 
-    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
-    const {line: stringBLine, column: stringBColumn} = getLineAndColumn(compiledJS, 'fourth rate');
-
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
-        .to.equal(3, 'first string definition');
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
-        .to.equal('../b/input1.ts', 'first input file');
-    expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).line)
-        .to.equal(4, 'fourth string definition');
-    expect(sourceMap.originalPositionFor({line: stringBLine, column: stringBColumn}).source)
-        .to.equal('../c/input2.ts', 'second input file');
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'a string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(3, 'first string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('../b/input1.ts', 'first input file');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'fourth rate');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(4, 'fourth string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('../c/input2.ts', 'second input file');
+    }
   });
 
   it('works when not decorator downleveling some input', function() {
@@ -126,22 +134,23 @@ describe('source maps', () => {
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources, 'output.js', new Set<string>(['input2.ts']));
 
-    const {line: method1Line, column: method1Column} = getLineAndColumn(compiledJS, 'method1Name');
-    const {line: method2Line, column: method2Column} = getLineAndColumn(compiledJS, 'method2Name');
-
     // Check that we decorator downleveled input1, but not input2
     expect(compiledJS).to.contain('DecoratorTest1_tsickle_Closure_declarations');
     expect(compiledJS).not.to.contain('DecoratorTest2_tsickle_Closure_declarations');
 
     // Check that the source maps work
-    expect(sourceMap.originalPositionFor({line: method1Line, column: method1Column}).line)
-        .to.equal(7, 'method 1 definition');
-    expect(sourceMap.originalPositionFor({line: method1Line, column: method1Column}).source)
-        .to.equal('input1.ts', 'method 1 input file');
-    expect(sourceMap.originalPositionFor({line: method2Line, column: method2Column}).line)
-        .to.equal(7, 'method 1 definition');
-    expect(sourceMap.originalPositionFor({line: method2Line, column: method2Column}).source)
-        .to.equal('input2.ts', 'method 2 input file');
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'method1Name');
+      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(7, 'method 1 definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input1.ts', 'method 1 input file');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'method2Name');
+      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(7, 'method 1 definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input2.ts', 'method 2 input file');
+    }
   });
 
   it('handles decorators correctly', function() {
@@ -156,9 +165,9 @@ describe('source maps', () => {
 
     const {compiledJS, sourceMap} = compile(sources);
 
-    const methodPosition = getLineAndColumn(compiledJS, 'methodName');
+    const {line, column} = getLineAndColumn(compiledJS, 'methodName');
 
-    expect(sourceMap.originalPositionFor(methodPosition).line).to.equal(6, 'method position');
+    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
 
   it('composes inline sources', function() {
@@ -172,19 +181,20 @@ describe('source maps', () => {
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} = compile(sources, undefined, undefined, true);
 
-    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
-    const {line: stringYLine, column: stringYColumn} =
-        getLineAndColumn(compiledJS, 'another string');
-
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
-        .to.equal(3, 'first string definition');
-    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
-        .to.equal('input.ts', 'input file name');
-    expect(sourceMap.originalPositionFor({line: stringYLine, column: stringYColumn}).line)
-        .to.equal(4, 'second string definition');
-    expect(sourceMap.originalPositionFor({line: stringYLine, column: stringYColumn}).source)
-        .to.equal('input.ts', 'input file name');
-
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'a string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(3, 'first string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input.ts', 'input file name');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'another string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(4, 'second string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input.ts', 'input file name');
+    }
   });
 });
 
