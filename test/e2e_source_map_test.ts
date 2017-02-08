@@ -272,7 +272,11 @@ function compile(
       experimentalDecorators: true
     };
   } else {
-    compilerOptions = {sourceMap: true, outFile: outFile, experimentalDecorators: true};
+    compilerOptions = {
+      sourceMap: true,
+      outFile: outFile,
+      experimentalDecorators: true,
+    };
   }
 
   const closure = tsickleCompiler(

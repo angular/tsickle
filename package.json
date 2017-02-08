@@ -18,7 +18,6 @@
     "typescript": "^2.1.0"
   },
   "devDependencies": {
-    "@types/base-64": "^0.1.0",
     "@types/chai": "^3.4.32",
     "@types/glob": "^5.0.29",
     "@types/google-closure-compiler": "0.0.18",
