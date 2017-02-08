@@ -15,7 +15,7 @@ import * as cliSupport from '../src/cli_support';
 import {Settings} from '../src/main';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
-import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from '../src/util';
+import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost, extractInlineSourceMap} from '../src/util';
 
 describe('source maps', () => {
   it('composes source maps with tsc', function() {
@@ -160,6 +160,32 @@ describe('source maps', () => {
 
     expect(sourceMap.originalPositionFor(methodPosition).line).to.equal(6, 'method position');
   });
+
+  it('composes inline sources', function() {
+    const sources = new Map<string, string>();
+    sources.set('input.ts', `
+      class X { field: number; }
+      let x : string = 'a string';
+      let y : string = 'another string';
+      let z : string = x + y;`);
+
+    // Run tsickle+TSC to convert inputs to Closure JS files.
+    const {compiledJS, sourceMap} = compile(sources, undefined, undefined, true);
+
+    const {line: stringXLine, column: stringXColumn} = getLineAndColumn(compiledJS, 'a string');
+    const {line: stringYLine, column: stringYColumn} =
+        getLineAndColumn(compiledJS, 'another string');
+
+    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).line)
+        .to.equal(3, 'first string definition');
+    expect(sourceMap.originalPositionFor({line: stringXLine, column: stringXColumn}).source)
+        .to.equal('input.ts', 'input file name');
+    expect(sourceMap.originalPositionFor({line: stringYLine, column: stringYColumn}).line)
+        .to.equal(4, 'second string definition');
+    expect(sourceMap.originalPositionFor({line: stringYLine, column: stringYColumn}).source)
+        .to.equal('input.ts', 'input file name');
+
+  });
 });
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
@@ -229,8 +255,8 @@ function tsickleCompiler(
 }
 
 function compile(
-    sources: Map<string, string>, outFile = 'output.js',
-    filesNotToProcess = new Set<string>()): {compiledJS: string, sourceMap: SourceMapConsumer} {
+    sources: Map<string, string>, outFile = 'output.js', filesNotToProcess = new Set<string>(),
+    inlineSourceMap = false): {compiledJS: string, sourceMap: SourceMapConsumer} {
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
     resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
@@ -238,12 +264,27 @@ function compile(
 
   const diagnostics: ts.Diagnostic[] = [];
 
+  let compilerOptions: ts.CompilerOptions;
+  if (inlineSourceMap) {
+    compilerOptions = {
+      inlineSourceMap: inlineSourceMap,
+      outFile: outFile,
+      experimentalDecorators: true
+    };
+  } else {
+    compilerOptions = {
+      sourceMap: true,
+      outFile: outFile,
+      experimentalDecorators: true,
+    };
+  }
+
   const closure = tsickleCompiler(
-      {sourceMap: true, outFile: outFile, experimentalDecorators: true} as ts.CompilerOptions,
-      toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics, resolvedSources,
-      filesNotToProcess);
+      compilerOptions, toArray(sources.keys()), {isUntyped: false} as Settings, diagnostics,
+      resolvedSources, filesNotToProcess);
 
   if (!closure) {
+    console.error(tsickle.formatDiagnostics(diagnostics));
     assert.fail();
     // TODO(lucassloan): remove when the .d.ts has the correct types
     return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
@@ -257,7 +298,12 @@ function compile(
     return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 
-  const sourceMapJson: any = getFileWithName(outFile + '.map', closure.jsFiles);
+  let sourceMapJson: any;
+  if (inlineSourceMap) {
+    sourceMapJson = extractInlineSourceMap(compiledJS);
+  } else {
+    sourceMapJson = getFileWithName(outFile + '.map', closure.jsFiles);
+  }
   const sourceMap = new SourceMapConsumer(sourceMapJson);
 
   return {compiledJS, sourceMap};
