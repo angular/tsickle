@@ -130,24 +130,11 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     allDiagnostics: ts.Diagnostic[],
-    files?: Map<string, string>): {jsFiles: Map<string, string>, externs: string}|null {
+    files = new Map<string, string>()): {jsFiles: Map<string, string>, externs: string}|null {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  let program = files === undefined ?
-      ts.createProgram(fileNames, options) :
-      ts.createProgram(
-          fileNames, options,
-          createSourceReplacingCompilerHost(files, ts.createCompilerHost(options)));
-  {  // Scope for the "diagnostics" variable so we can use the name again later.
-    let diagnostics = ts.getPreEmitDiagnostics(program);
-    if (diagnostics.length > 0) {
-      allDiagnostics.push(...diagnostics);
-      return null;
-    }
-  }
-
   const tsickleCompilerHostOptions: tsickle.Options = {
     googmodule: true,
     es5Mode: false,
@@ -162,14 +149,27 @@ export function toClosureJS(
   };
 
   const jsFiles = new Map<string, string>();
-  const hostDelegate = createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(options));
+  const outputRetainingHost =
+      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(options));
+
+  const sourceReplacingHost = createSourceReplacingCompilerHost(files, outputRetainingHost);
+
+  const tch = new tsickle.TsickleCompilerHost(
+      sourceReplacingHost, options, tsickleCompilerHostOptions, tsickleHost);
+
+  let program = ts.createProgram(fileNames, options, tch);
+  {  // Scope for the "diagnostics" variable so we can use the name again later.
+    let diagnostics = ts.getPreEmitDiagnostics(program);
+    if (diagnostics.length > 0) {
+      allDiagnostics.push(...diagnostics);
+      return null;
+    }
+  }
 
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
-  let host = new tsickle.TsickleCompilerHost(
-      hostDelegate, options, tsickleCompilerHostOptions, tsickleHost,
-      {oldProgram: program, pass: tsickle.Pass.CLOSURIZE});
-  program = ts.createProgram(fileNames, options, host);
+  tch.reconfigureForRun(program, tsickle.Pass.CLOSURIZE);
+  program = ts.createProgram(fileNames, options, tch);
 
   let {diagnostics} = program.emit(undefined);
   if (diagnostics.length > 0) {
@@ -177,7 +177,7 @@ export function toClosureJS(
     return null;
   }
 
-  return {jsFiles, externs: host.getGeneratedExterns()};
+  return {jsFiles, externs: tch.getGeneratedExterns()};
 }
 
 function main(args: string[]): number {
