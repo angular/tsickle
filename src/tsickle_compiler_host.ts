@@ -141,7 +141,6 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       fileName: string, content: string, writeByteOrderMark: boolean,
       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
     if (path.extname(fileName) !== '.map') {
-      fileName = this.delegate.getCanonicalFileName(fileName);
       if (this.options.googmodule && !isDtsFileName(fileName)) {
         content = this.convertCommonJsToGoogModule(fileName, content);
       }
