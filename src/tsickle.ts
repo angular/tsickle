@@ -90,7 +90,7 @@ function isValidClosurePropertyName(name: string): boolean {
   return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 }
 
-function isDtsFileName(fileName: string): boolean {
+export function isDtsFileName(fileName: string): boolean {
   return /\.d\.ts$/.test(fileName);
 }
 

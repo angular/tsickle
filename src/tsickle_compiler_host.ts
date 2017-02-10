@@ -5,7 +5,7 @@ import * as ts from 'typescript';
 import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
-import {annotate} from './tsickle';
+import {annotate, isDtsFileName} from './tsickle';
 import {extractInlineSourceMap} from './util';
 
 /**
@@ -142,10 +142,10 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
     if (path.extname(fileName) !== '.map') {
       fileName = this.delegate.getCanonicalFileName(fileName);
-      if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
+      if (this.options.googmodule && !isDtsFileName(fileName)) {
         content = this.convertCommonJsToGoogModule(fileName, content);
       }
-      if (this.tscOptions.inlineSourceMap) {
+      if (!isDtsFileName(fileName) && this.tscOptions.inlineSourceMap) {
         content = this.combineInlineSourceMaps(fileName, content);
       }
     } else {
@@ -264,7 +264,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       languageVersion: ts.ScriptTarget): ts.SourceFile {
     this.tsickleSourceMaps.set(
         this.getCanonicalFileName(sourceFile.path), new SourceMapGenerator());
-    let isDefinitions = /\.d\.ts$/.test(fileName);
+    let isDefinitions = isDtsFileName(fileName);
     // Don't tsickle-process any d.ts that isn't a compilation target;
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
