@@ -196,6 +196,26 @@ describe('source maps', () => {
           .to.equal('input.ts', 'input file name');
     }
   });
+
+  it(`doesn't blow up trying to handle a source map in a .d.ts file`, function() {
+    const sources = new Map<string, string>();
+    sources.set('input.ts', `
+      class X { field: number; }
+      let x : string = 'a string';
+      let y : string = 'another string';
+      let z : string = x + y;`);
+
+    // Run tsickle+TSC to convert inputs to Closure JS files.
+    const {compiledJS, dts, sourceMap} = compile(sources, undefined, undefined, true, true);
+
+    const {line, column} = getLineAndColumn(compiledJS, 'a string');
+    expect(sourceMap.originalPositionFor({line, column}).line)
+        .to.equal(3, 'first string definition');
+    expect(sourceMap.originalPositionFor({line, column}).source)
+        .to.equal('input.ts', 'input file name');
+
+    expect(dts).to.contain('declare let x: string;');
+  });
 });
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
@@ -266,7 +286,8 @@ function tsickleCompiler(
 
 function compile(
     sources: Map<string, string>, outFile = 'output.js', filesNotToProcess = new Set<string>(),
-    inlineSourceMap = false): {compiledJS: string, sourceMap: SourceMapConsumer} {
+    inlineSourceMap = false, generateDTS = false):
+    {compiledJS: string, dts: string | undefined, sourceMap: SourceMapConsumer} {
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
     resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
@@ -279,13 +300,15 @@ function compile(
     compilerOptions = {
       inlineSourceMap: inlineSourceMap,
       outFile: outFile,
-      experimentalDecorators: true
+      experimentalDecorators: true,
+      declaration: generateDTS,
     };
   } else {
     compilerOptions = {
       sourceMap: true,
       outFile: outFile,
       experimentalDecorators: true,
+      declaration: generateDTS,
     };
   }
 
@@ -297,7 +320,7 @@ function compile(
     console.error(tsickle.formatDiagnostics(diagnostics));
     assert.fail();
     // TODO(lucassloan): remove when the .d.ts has the correct types
-    return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
+    return {compiledJS: '', dts: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 
   const compiledJS = getFileWithName(outFile, closure.jsFiles);
@@ -305,7 +328,7 @@ function compile(
   if (!compiledJS) {
     assert.fail();
     // TODO(lucassloan): remove when the .d.ts has the correct types
-    return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
+    return {compiledJS: '', dts: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 
   let sourceMapJson: any;
@@ -316,7 +339,9 @@ function compile(
   }
   const sourceMap = new SourceMapConsumer(sourceMapJson);
 
-  return {compiledJS, sourceMap};
+  const dts = getFileWithName(outFile.substring(0, outFile.length - 3) + '.d.ts', closure.jsFiles);
+
+  return {compiledJS, dts, sourceMap};
 }
 
 function getFileWithName(filename: string, files: Map<string, string>): string|undefined {
