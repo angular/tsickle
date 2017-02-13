@@ -51,9 +51,9 @@ describe('tsickle compiler host', () => {
 
   it('applies tsickle transforms', () => {
     const [program, compilerHost, options] = makeProgram('foo.ts', 'let x: number = 123;');
-    const host = new TsickleCompilerHost(
-        compilerHost, options, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.CLOSURIZE});
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.contain('/** @type {?} */');
   });
@@ -61,9 +61,9 @@ describe('tsickle compiler host', () => {
   it('applies tsickle transforms with types', () => {
     const [program, compilerHost, options] = makeProgram('foo.ts', 'let x: number = 123;');
     tsickleCompilerHostOptions.untyped = false;
-    const host = new TsickleCompilerHost(
-        compilerHost, options, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.CLOSURIZE});
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.contain('/** @type {number} */');
   });
@@ -76,9 +76,9 @@ describe('tsickle compiler host', () => {
     const [program, compilerHost, options] = makeMultiFileProgram(sources);
     tsickleCompilerHostOptions.typeBlackListPaths = new Set([ts.sys.resolvePath('banned.d.ts')]);
     tsickleCompilerHostOptions.untyped = false;
-    const host = new TsickleCompilerHost(
-        compilerHost, options, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.CLOSURIZE});
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.contain('/** @type {?} */ b: Banned');
   });
@@ -86,18 +86,18 @@ describe('tsickle compiler host', () => {
   it('lowers decorators to annotations', () => {
     const [program, compilerHost, options] =
         makeProgram('foo.ts', '/** @Annotation */ const A: Function = null; @A class B {}');
-    const host = new TsickleCompilerHost(
-        compilerHost, options, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.DECORATOR_DOWNLEVEL});
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+    host.reconfigureForRun(program, Pass.DECORATOR_DOWNLEVEL);
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.contain('static decorators');
   });
 
   it(`doesn't transform .d.ts files`, () => {
     const [program, compilerHost, options] = makeProgram('foo.d.ts', 'declare let x: number;');
-    const host = new TsickleCompilerHost(
-        compilerHost, options, tsickleCompilerHostOptions, tsickleHost,
-        {oldProgram: program, pass: Pass.CLOSURIZE});
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
     const f = host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
     expect(f.text).to.match(/^declare let x: number/);
   });
