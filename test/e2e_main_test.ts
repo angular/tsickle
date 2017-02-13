@@ -7,7 +7,6 @@
  */
 
 import {assert, expect} from 'chai';
-import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import {Settings, toClosureJS} from '../src/main';
@@ -24,8 +23,7 @@ describe('toClosureJS', () => {
     if (!closure) {
       diagnostics.forEach(v => console.log(JSON.stringify(v)));
       assert.fail();
-      // TODO(lucassloan): remove when the .d.ts has the correct types
-      return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
+      return;
     }
 
     expect(closure.externs).to.contain(`/** @const */

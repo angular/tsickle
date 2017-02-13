@@ -325,4 +325,5 @@ function getFileWithName(filename: string, files: Map<string, string>): string|u
       return files.get(filepath);
     }
   }
+  return undefined;
 }

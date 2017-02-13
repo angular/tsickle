@@ -3,12 +3,15 @@
     "experimentalDecorators": true,
     "module": "commonjs",
     "declaration": true,
-    "noImplicitAny": true,
     "noEmitOnError": true,
     "target": "es5",
     "lib": ["es5", "es6", "es2015.collection", "es2015.iterable", "dom"],
     "jsx": "react",
     "types": ["node", "mocha"],
+
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
     "strictNullChecks": true
   },
   "files": [
