@@ -9,6 +9,7 @@
 import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
+import {getDecoratorDeclarations} from './decorators';
 import {Rewriter} from './rewriter';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
@@ -39,29 +40,7 @@ class ClassRewriter extends Rewriter {
    * Determines whether the given decorator should be re-written as an annotation.
    */
   private shouldLower(decorator: ts.Decorator) {
-    // Walk down the expression to find the identifier of the decorator function
-    let node: ts.Node = decorator;
-    while (node.kind !== ts.SyntaxKind.Identifier) {
-      switch (node.kind) {
-        case ts.SyntaxKind.Decorator:
-          node = (node as ts.Decorator).expression;
-          break;
-        case ts.SyntaxKind.CallExpression:
-          node = (node as ts.CallExpression).expression;
-          break;
-        // PropertyAccessExpression is intentionally missing here,
-        // because the rest of the rewriter does not handle such
-        // expressions.
-        default:
-          return false;
-      }
-    }
-
-    let decSym = this.typeChecker.getSymbolAtLocation(node);
-    if (decSym.flags & ts.SymbolFlags.Alias) {
-      decSym = this.typeChecker.getAliasedSymbol(decSym);
-    }
-    for (let d of decSym.getDeclarations()) {
+    for (let d of getDecoratorDeclarations(decorator, this.typeChecker)) {
       // Switch to the TS JSDoc parser in the future to avoid false positives here.
       // For example using '@Annotation' in a true comment.
       // However, a new TS API would be needed, track at
