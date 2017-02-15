@@ -165,7 +165,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   getSourceMapKeyForSourceFile(sourceFile: ts.SourceFile): string {
-    return this.getCanonicalFileName(sourceFile.path);
+    return this.getCanonicalFileName(path.resolve(sourceFile.path));
   }
 
   stripAndStoreExistingSourceMap(sourceFile: ts.SourceFile): ts.SourceFile {
