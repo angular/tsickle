@@ -35,7 +35,9 @@ private y: number;
 static decorators: DecoratorInvocation[] = [
 { type: classAnnotation },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
 ];
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {

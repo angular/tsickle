@@ -23,7 +23,16 @@ function jsDocTestBadDoc(foo) { }
  */
 class JSDocTest {
 }
+/**
+ * \@internal
+ */
+JSDocTest.X = [];
 function JSDocTest_tsickle_Closure_declarations() {
+    /**
+     * \@internal
+     * @type {!Array<string>}
+     */
+    JSDocTest.X;
     /**
      * @export
      * @type {string}

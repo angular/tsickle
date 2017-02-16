@@ -23,6 +23,9 @@ function jsDocTestBadDoc(foo: string) {}
  * @madeUpTag This tag will be escaped, because Closure disallows it.
  */
 class JSDocTest {
+  /** @internal */
+  static X: string[] = [];
+
   /** @export */
   exported: string;
 
@@ -39,7 +42,7 @@ class JSDocTest {
  * @madeUptag This tag will be escaped, because Closure disallows it.
  * @see This tag will be kept, because Closure allows it.
  */
-function x() {};
+function x(){};
 
 /**
  * This class has JSDoc, but some of it should be stripped.

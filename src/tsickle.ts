@@ -581,6 +581,15 @@ class Annotator extends ClosureRewriter {
         this.writeNode(nnexpr.expression);
         this.emit('))');
         return true;
+      case ts.SyntaxKind.PropertyDeclaration:
+        const jsDoc = this.getJSDoc(node);
+        if (jsDoc && jsDoc.length > 0 && node.getFirstToken()) {
+          this.emit('\n');
+          this.emit(jsdoc.toString(jsDoc));
+          this.writeRange(node.getFirstToken().getStart(), node.getEnd());
+          return true;
+        }
+        break;
       default:
         break;
     }
