@@ -31,5 +31,5 @@ TestSplat(1, 2);
 TestSplat2(1, 2);
 TestSplat3(1, 2);
 
-function defaultBeforeRequired(x = 1, y: number) {}
-defaultBeforeRequired(undefined, 2);
+function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
+defaultBeforeRequired(undefined, 2, 'h', 3);
