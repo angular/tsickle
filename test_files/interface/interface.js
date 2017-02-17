@@ -23,7 +23,14 @@ function TrickyInterface() { }
 TrickyInterface.prototype.foo;
 /* TODO: handle strange member:
 (x: number): __ yuck __
-    number;
+      number;
 */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/**
+ * \@param a some string value
+ * \@return some number value
+ * @override
+ * @type {function(string): number}
+ */
+TrickyInterface.prototype.hasSomeParamJsDoc;

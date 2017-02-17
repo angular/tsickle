@@ -186,10 +186,11 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
  * Serializes a Tag into a string usable in a comment.
  * Returns a string like " @foo {bar} baz" (note the whitespace).
  */
-function tagToString(tag: Tag): string {
+function tagToString(tag: Tag, escapeExtraTags: string[] = []): string {
   let out = '';
   if (tag.tagName) {
-    if (!arrayIncludes(JSDOC_TAGS_WHITELIST, tag.tagName)) {
+    if (!arrayIncludes(JSDOC_TAGS_WHITELIST, tag.tagName) ||
+        arrayIncludes(escapeExtraTags, tag.tagName)) {
       // Escape tags we don't understand.  This is a subtle
       // compromise between multiple issues.
       // 1) If we pass through these non-Closure tags, the user will
@@ -227,14 +228,14 @@ function tagToString(tag: Tag): string {
 }
 
 /** Serializes a Comment out to a string usable in source code. */
-export function toString(tags: Tag[]): string {
+export function toString(tags: Tag[], escapeExtraTags: string[] = []): string {
   if (tags.length === 0) return '';
   if (tags.length === 1) {
     let tag = tags[0];
     if (tag.tagName === 'type' && (!tag.text || !tag.text.match('\n'))) {
       // Special-case one-liner "type" tags to fit on one line, e.g.
       //   /** @type {foo} */
-      return '/**' + tagToString(tag) + ' */\n';
+      return '/**' + tagToString(tag, escapeExtraTags) + ' */\n';
     }
     // Otherwise, fall through to the multi-line output.
   }
@@ -244,7 +245,7 @@ export function toString(tags: Tag[]): string {
   for (let tag of tags) {
     out += ' *';
     // If the tagToString is multi-line, insert " * " prefixes on subsequent lines.
-    out += tagToString(tag).split('\n').join('\n * ');
+    out += tagToString(tag, escapeExtraTags).split('\n').join('\n * ');
     out += '\n';
   }
   out += ' */\n';
