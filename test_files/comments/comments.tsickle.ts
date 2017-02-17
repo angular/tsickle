@@ -1,7 +1,9 @@
 
 class Comments {
-  /** @export */
-  export1: string;
+/**
+ * @export
+ */
+export1: string;
   // Note: the below @export doesn't make it into the output because it
   // it isn't in a JSDoc comment.
   /// @export

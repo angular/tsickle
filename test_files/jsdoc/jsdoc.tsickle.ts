@@ -1,9 +1,11 @@
 Warning at test_files/jsdoc/jsdoc.ts:16:1: type annotations (using {...}) are redundant with TypeScript types
-Warning at test_files/jsdoc/jsdoc.ts:29:3: type annotations (using {...}) are redundant with TypeScript types
-Warning at test_files/jsdoc/jsdoc.ts:34:3: @type annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:44:1: @extends annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:32:3: type annotations (using {...}) are redundant with TypeScript types
+Warning at test_files/jsdoc/jsdoc.ts:37:3: @type annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:32:3: type annotations (using {...}) are redundant with TypeScript types
+Warning at test_files/jsdoc/jsdoc.ts:37:3: @type annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:47:1: @extends annotations are redundant with TypeScript equivalents
 @implements annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:51:3: @constructor annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:54:3: @constructor annotations are redundant with TypeScript equivalents
 ====
 
 /**
@@ -30,8 +32,14 @@ function jsDocTestBadDoc(foo: string) {}
  * \@madeUpTag This tag will be escaped, because Closure disallows it.
  */
 class JSDocTest {
-  /** @export */
-  exported: string;
+/**
+ * \@internal
+ */
+static X: string[] = [];
+/**
+ * @export
+ */
+exported: string;
 
   /** @export {number} */
   badExport: string;
@@ -43,6 +51,11 @@ class JSDocTest {
 }
 
 function JSDocTest_tsickle_Closure_declarations() {
+/**
+ * \@internal
+ * @type {!Array<string>}
+ */
+JSDocTest.X;
 /**
  * @export
  * @type {string}
@@ -61,7 +74,7 @@ JSDocTest.prototype.typedThing;
  * @see This tag will be kept, because Closure allows it.
  * @return {void}
  */
-function x() {};
+function x(){};
 /**
  * This class has JSDoc, but some of it should be stripped.
  * @see Nothing.
