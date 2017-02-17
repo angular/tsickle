@@ -18,7 +18,7 @@ export function getInlineSourceMapCount(source: string): number {
   return match ? match.length : 0;
 }
 
-export function extractInlineSourceMap(source: string): string {
+export function extractInlineSourceMap(source: string): string|null {
   const inlineSourceMapRegex = getInlineSourceMapRegex();
   let previousResult: RegExpExecArray|null = null;
   let result: RegExpExecArray|null = null;
@@ -30,7 +30,8 @@ export function extractInlineSourceMap(source: string): string {
     previousResult = result;
     result = inlineSourceMapRegex.exec(source);
   } while (result !== null);
-  const base64EncodedMap = previousResult![1];
+  if (!previousResult) return null;
+  const base64EncodedMap = previousResult[1];
   return Buffer.from(base64EncodedMap, 'base64').toString('utf8');
 }
 

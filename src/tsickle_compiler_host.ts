@@ -171,6 +171,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   stripAndStoreExistingSourceMap(sourceFile: ts.SourceFile): ts.SourceFile {
     if (sourceMapUtils.containsInlineSourceMap(sourceFile.text)) {
       const sourceMapJson = sourceMapUtils.extractInlineSourceMap(sourceFile.text);
+      if (!sourceMapJson) return sourceFile;
       const sourceMap = sourceMapUtils.sourceMapTextToGenerator(sourceMapJson);
 
       const stripedSourceText = sourceMapUtils.removeInlineSourceMap(sourceFile.text);
@@ -238,6 +239,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   combineInlineSourceMaps(filePath: string, compiledJsWithInlineSourceMap: string): string {
     const sourceMapJson = sourceMapUtils.extractInlineSourceMap(compiledJsWithInlineSourceMap);
+    if (!sourceMapJson) return compiledJsWithInlineSourceMap;
     const composedSourceMap = this.combineSourceMaps(filePath, sourceMapJson);
     return sourceMapUtils.setInlineSourceMap(compiledJsWithInlineSourceMap, composedSourceMap);
   }
