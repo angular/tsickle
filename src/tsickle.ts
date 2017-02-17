@@ -402,11 +402,10 @@ class Annotator extends ClosureRewriter {
     return [];
   }
 
-  emitAmbientDeclaration(node: ts.Node) {
-    this.externsWriter.visit(node);
-    // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
-    // conversion of its contents.
-    this.writeRange(node.getFullStart(), node.getEnd());
+  /**
+   * Emits an ES6 export for the ambient declaration behind node, if it is indeed exported.
+   */
+  maybeEmitAmbientDeclarationExport(node: ts.Node) {
     // In TypeScript, `export declare` simply generates no code in the exporting module, but does
     // generate a regular import in the importing module.
     // For Closure Compiler, such declarations must still be exported, so that importing code in
@@ -443,7 +442,12 @@ class Annotator extends ClosureRewriter {
    */
   maybeProcess(node: ts.Node): boolean {
     if ((hasModifierFlag(node, ts.ModifierFlags.Ambient)) || isDtsFileName(this.file.fileName)) {
-      this.emitAmbientDeclaration(node);
+      this.externsWriter.visit(node);
+      // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
+      // conversion of its contents.
+      this.writeRange(node.getFullStart(), node.getEnd());
+      // ... but it might need to be exported for downstream importing code.
+      this.maybeEmitAmbientDeclarationExport(node);
       return true;
     }
 
