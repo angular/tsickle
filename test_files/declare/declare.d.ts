@@ -31,7 +31,9 @@ declare namespace DeclareTestModule {
   type TypeAlias = string | number;
 }
 
-// This module is quoted, so it shouldn't show up in externs.js.
+// This module is quoted, which declares an importable module.
+// We can't model this in externs beyond making sure it's declared
+// in *some* namespace;
 declare module "DeclareTestQuotedModule" {
   var foo: string;
 }
