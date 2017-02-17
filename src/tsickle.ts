@@ -411,25 +411,26 @@ class Annotator extends ClosureRewriter {
     // For Closure Compiler, such declarations must still be exported, so that importing code in
     // other modules can reference them. Because tsickle generates global symbols for such types,
     // the appropriate semantics are referencing the global name.
-    if (!this.options.untyped && hasModifierFlag(node, ts.ModifierFlags.Export)) {
-      const declNames = this.getExportDeclarationNames(node);
-      for (let decl of declNames) {
-        const sym = this.program.getTypeChecker().getSymbolAtLocation(decl);
-        const isValue = sym.flags & ts.SymbolFlags.Value;
-        const declName = getIdentifierText(decl);
-        if (node.kind === ts.SyntaxKind.VariableStatement) {
-          // For variables, TypeScript rewrites every reference to the variable name as an
-          // "exports." access, to maintain mutable ES6 exports semantics. Indirecting through the
-          // window object means we reference the correct global symbol. Closure Compiler does
-          // understand that "var foo" in externs corresponds to "window.foo".
-          this.emit(`\nexports.${declName} = window.${declName};\n`);
-        } else if (!isValue) {
-          // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
-          // exists in externs). Export them as a typedef, which forwards to the type in externs.
-          this.emit(`\n/** @typedef {${declName}} */\nexports.${declName};\n`);
-        } else {
-          this.emit(`\nexports.${declName} = ${declName};\n`);
-        }
+    if (this.options.untyped || !hasModifierFlag(node, ts.ModifierFlags.Export)) {
+      return;
+    }
+    const declNames = this.getExportDeclarationNames(node);
+    for (let decl of declNames) {
+      const sym = this.program.getTypeChecker().getSymbolAtLocation(decl);
+      const isValue = sym.flags & ts.SymbolFlags.Value;
+      const declName = getIdentifierText(decl);
+      if (node.kind === ts.SyntaxKind.VariableStatement) {
+        // For variables, TypeScript rewrites every reference to the variable name as an
+        // "exports." access, to maintain mutable ES6 exports semantics. Indirecting through the
+        // window object means we reference the correct global symbol. Closure Compiler does
+        // understand that "var foo" in externs corresponds to "window.foo".
+        this.emit(`\nexports.${declName} = window.${declName};\n`);
+      } else if (!isValue) {
+        // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
+        // exists in externs). Export them as a typedef, which forwards to the type in externs.
+        this.emit(`\n/** @typedef {${declName}} */\nexports.${declName};\n`);
+      } else {
+        this.emit(`\nexports.${declName} = ${declName};\n`);
       }
     }
   }
