@@ -46,6 +46,7 @@ declare class OverloadSimpleArgs {
   overloaded(a: string): void;
   overloaded(a: number, b: boolean): void;
   overloaded(a: string, b: boolean, c: number): void;
+  overloaded(a: string, b: boolean, c: number, ...d: any[]): void;
 }
 
 

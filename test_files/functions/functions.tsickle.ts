@@ -77,7 +77,8 @@ TestSplat3(1, 2);
 /**
  * @param {number=} x
  * @param {number=} y
+ * @param {...?} z
  * @return {void}
  */
-function defaultBeforeRequired(x = 1, y: number) {}
-defaultBeforeRequired(undefined, 2);
+function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
+defaultBeforeRequired(undefined, 2, 'h', 3);

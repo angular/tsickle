@@ -58,9 +58,10 @@ function OverloadSimpleArgs() {}
  * @param {string|number} a
  * @param {boolean=} b
  * @param {number=} c
+ * @param {...?} d
  * @return {void}
  */
-OverloadSimpleArgs.prototype.overloaded = function(a, b, c) {};
+OverloadSimpleArgs.prototype.overloaded = function(a, b, c, d) {};
 
 /** @constructor @struct */
 function OverloadNameVariants() {}
