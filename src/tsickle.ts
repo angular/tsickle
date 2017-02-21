@@ -1075,25 +1075,29 @@ class ExternsWriter extends ClosureRewriter {
       case ts.SyntaxKind.ModuleDeclaration:
         let decl = <ts.ModuleDeclaration>node;
         switch (decl.name.kind) {
-          case ts.SyntaxKind.Identifier:
+          case ts.SyntaxKind.Identifier: {
             // E.g. "declare namespace foo {"
             let name = getIdentifierText(decl.name as ts.Identifier);
             if (name === undefined) break;
-            namespace = namespace.concat(name);
             if (this.isFirstDeclaration(decl)) {
               this.emit('/** @const */\n');
-              if (namespace.length > 1) {
-                this.emit(`${namespace.join('.')} = {};\n`);
-              } else {
-                this.emit(`var ${namespace} = {};\n`);
-              }
+              this.writeExternsVariable(name, namespace, '{}');
             }
-            if (decl.body) this.visit(decl.body, namespace);
-            break;
-          case ts.SyntaxKind.StringLiteral:
+            if (decl.body) this.visit(decl.body, namespace.concat(name));
+          } break;
+          case ts.SyntaxKind.StringLiteral: {
             // E.g. "declare module 'foo' {" (note the quotes).
-            // Skip it.
-            break;
+            // We still want to emit externs for this module, but
+            // Closure doesn't really provide a mechanism for
+            // module-scoped externs.  For now, ignore the enclosing
+            // namespace (because this is declaring a top-level module)
+            // and emit into a fake namespace.
+            namespace = ['tsickle_declare_module'];
+            let name = (decl.name as ts.StringLiteral).text;
+            this.emit('/** @const */\n');
+            this.writeExternsVariable(name, namespace, '{}');
+            if (decl.body) this.visit(decl.body, namespace.concat(name));
+          } break;
           default:
             this.errorUnimplementedKind(decl.name, 'externs generation of namespace');
         }
