@@ -249,6 +249,11 @@ class ClosureRewriter extends Rewriter {
         paramTag.optional = true;
       }
       newDoc.push(paramTag);
+      if (paramTag.restParam) {
+        // Cannot have any parameters after a rest param.
+        // Just dump the remaining parameters.
+        break;
+      }
     }
 
     // Merge the JSDoc tags for each overloaded return.
