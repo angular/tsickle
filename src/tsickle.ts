@@ -10,10 +10,11 @@ import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {hasExportingDecorator} from './decorators';
+import {extractGoogNamespaceImport} from './es5processor';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
 import {Options} from './tsickle_compiler_host';
-import {assertTypeChecked, TypeTranslator} from './type-translator';
+import * as typeTranslator from './type-translator';
 import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
@@ -127,6 +128,15 @@ const VISIBILITY_FLAGS: ts.ModifierFlags =
  * Another Rewriter subclass manages .ts => externs translation.
  */
 class ClosureRewriter extends Rewriter {
+  /**
+   * A mapping of aliases for symbols in the current file, used when emitting types.
+   * TypeScript emits imported symbols with unpredictable prefixes. To generate correct type
+   * annotations, tsickle creates its own aliases for types, and registers them in this map (see
+   * `emitImportDeclaration` and `forwardDeclare()` below). The aliases are then used when emitting
+   * types.
+   */
+  symbolsToAliasedNames = new Map<ts.Symbol, string>();
+
   constructor(protected program: ts.Program, file: ts.SourceFile, protected options: Options) {
     super(file);
   }
@@ -318,7 +328,8 @@ class ClosureRewriter extends Rewriter {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    let translator = new TypeTranslator(typeChecker, context, this.options.typeBlackListPaths);
+    let translator = new typeTranslator.TypeTranslator(
+        typeChecker, context, this.options.typeBlackListPaths, this.symbolsToAliasedNames);
     translator.warn = msg => this.debugWarn(context, msg);
     return translator.translate(type);
   }
@@ -360,6 +371,7 @@ class Annotator extends ClosureRewriter {
 
   constructor(
       program: ts.Program, file: ts.SourceFile, options: Options,
+      private pathToModuleName: (context: string, importPath: string) => string,
       private host?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions) {
     super(program, file, options);
     this.externsWriter = new ExternsWriter(program, file, options);
@@ -491,19 +503,30 @@ class Annotator extends ClosureRewriter {
         let exportDecl = <ts.ExportDeclaration>node;
         this.writeRange(node.getFullStart(), node.getStart());
         this.emit('export');
+        let exportedSymbols: ts.Symbol[] = [];
+        const typeChecker = this.program.getTypeChecker();
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
           // It's an "export * from ..." statement.
           // Rewrite it to re-export each exported symbol directly.
-          let exports = this.expandSymbolsFromExportStar(exportDecl);
-          this.emit(` {${exports.join(',')}}`);
+          exportedSymbols = this.expandSymbolsFromExportStar(exportDecl);
+          this.emit(` {${exportedSymbols.map(e => unescapeName(e.name)).join(',')}}`);
         } else {
-          if (exportDecl.exportClause) this.visit(exportDecl.exportClause);
+          if (exportDecl.exportClause) {
+            exportedSymbols =
+                exportDecl.exportClause.elements.map(e => typeChecker.getSymbolAtLocation(e.name));
+            this.visit(exportDecl.exportClause);
+          }
         }
         if (exportDecl.moduleSpecifier) {
-          this.emit(' from');
-          this.writeModuleSpecifier(exportDecl.moduleSpecifier);
+          this.emit(` from '${this.resolveModuleSpecifier(exportDecl.moduleSpecifier)}';`);
+          this.forwardDeclare(exportDecl.moduleSpecifier, exportedSymbols);
+        } else {
+          // export {...};
+          this.emit(';');
         }
-        this.emit(';');
+        if (exportedSymbols.length) {
+          this.emitTypeDefExports(exportedSymbols);
+        }
         return true;
       case ts.SyntaxKind.InterfaceDeclaration:
         this.emitInterface(node as ts.InterfaceDeclaration);
@@ -652,7 +675,7 @@ class Annotator extends ClosureRewriter {
    * over the target module's exports, which means Closure won't see the declarations/types
    * that are exported.
    */
-  private expandSymbolsFromExportStar(exportDecl: ts.ExportDeclaration): string[] {
+  private expandSymbolsFromExportStar(exportDecl: ts.ExportDeclaration): ts.Symbol[] {
     // You can't have an "export *" without a module specifier.
     const moduleSpecifier = exportDecl.moduleSpecifier!;
     let typeChecker = this.program.getTypeChecker();
@@ -678,7 +701,7 @@ class Annotator extends ClosureRewriter {
 
     // Expand the export list, then filter it to the symbols we want to reexport.
     let exports = typeChecker.getExportsOfModule(typeChecker.getSymbolAtLocation(moduleSpecifier));
-    const reexports = new Set<string>();
+    const reexports = new Set<ts.Symbol>();
     for (let sym of exports) {
       let name = unescapeName(sym.name);
       if (localSet.has(name)) {
@@ -692,10 +715,33 @@ class Annotator extends ClosureRewriter {
         continue;
       }
       this.generatedExports.add(name);
-      reexports.add(name);
+      reexports.add(sym);
     }
-
     return toArray(reexports.keys());
+  }
+
+  /**
+   * Write an `exports.` assignment for each type alias exported in the given `exports`.
+   * TypeScript by itself does not export non-value symbols (e.g. interfaces, typedefs), as it
+   * expects to remove those entirely for runtime. For Closure, types must be
+   * exported as downstream code will import the type.
+   *
+   * The tsickle pass turns interfaces into values by generating a `function MyInterface() {}` for
+   * them, so in the second conversion pass, TypeScript does export a value for them. However for
+   * pure typedefs, tsickle only generates a property access with a JSDoc comment, so they need to
+   * be exported explicitly here.
+   */
+  private emitTypeDefExports(exports: ts.Symbol[]) {
+    if (this.options.untyped) return;
+    const typeChecker = this.program.getTypeChecker();
+    for (let sym of exports) {
+      if (sym.flags & ts.SymbolFlags.Alias) sym = typeChecker.getAliasedSymbol(sym);
+      const isTypeAlias =
+          (sym.flags & ts.SymbolFlags.TypeAlias) !== 0 && (sym.flags & ts.SymbolFlags.Value) === 0;
+      if (!isTypeAlias) continue;
+      const typeName = this.symbolsToAliasedNames.get(sym) || sym.name;
+      this.emit(`\n/** @typedef {${typeName}} */\nexports.${sym.name}; // re-export typedef`);
+    }
   }
 
   /**
@@ -703,7 +749,7 @@ class Annotator extends ClosureRewriter {
    * TypeScript supports the shorthand, but not all ES6 module loaders do.
    * Workaround for https://github.com/Microsoft/TypeScript/issues/12597
    */
-  private writeModuleSpecifier(moduleSpecifier: ts.Expression) {
+  private resolveModuleSpecifier(moduleSpecifier: ts.Expression): string {
     if (moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
       throw new Error(`unhandled moduleSpecifier kind: ${ts.SyntaxKind[moduleSpecifier.kind]}`);
     }
@@ -725,7 +771,7 @@ class Annotator extends ClosureRewriter {
         }
       }
     }
-    this.emit(` '${moduleId}'`);
+    return moduleId;
   }
 
   /**
@@ -737,48 +783,46 @@ class Annotator extends ClosureRewriter {
   private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
     this.writeRange(decl.getFullStart(), decl.getStart());
     this.emit('import');
+    const importPath = this.resolveModuleSpecifier(decl.moduleSpecifier);
     const importClause = decl.importClause;
     if (!importClause) {
       // import './foo';
-
-      this.writeModuleSpecifier(decl.moduleSpecifier);
-      this.emit(';');
+      this.emit(`'${importPath}';`);
       return true;
     } else if (
         importClause.name || (importClause.namedBindings &&
                               importClause.namedBindings.kind === ts.SyntaxKind.NamedImports)) {
       this.visit(importClause);
-      this.emit(' from');
-      this.writeModuleSpecifier(decl.moduleSpecifier);
-      this.emit(';');
+      this.emit(` from '${importPath}';`);
 
       // importClause.name implies
       //   import a from ...;
       // namedBindings being NamedImports implies
       //   import {a as b} from ...;
       //
-      // Both of these forms create a local name "a", which after
-      // TypeScript CommonJS compilation will become some renamed
-      // variable like "module_1.a".  But a user might still use plain
-      // "a" in some JSDoc comment, so gather up these local names for
-      // imports and make an alias for each for JSDoc purposes.
+      // Both of these forms create a local name "a", which after TypeScript CommonJS compilation
+      // will become some renamed variable like "module_1.default" or "module_1.a" (for default vs
+      // named bindings, respectively).
+      // tsickle references types in JSDoc. Because the module prefixes are not predictable, and
+      // because TypeScript might remove imports entirely if they are only for types, the code below
+      // inserts an artificial `const prefix = goog.require` call for the module, and then registers
+      // all symbols from this import to be prefixed.
       if (!this.options.untyped) {
-        let localNames: string[];
+        let symbols: ts.Symbol[] = [];
+        const typeChecker = this.program.getTypeChecker();
         if (importClause.name) {
           // import a from ...;
-          localNames = [getIdentifierText(importClause.name)];
+          symbols = [typeChecker.getSymbolAtLocation(importClause.name)];
         } else {
           // import {a as b} from ...;
-          const namedImports = importClause.namedBindings as ts.NamedImports;
-          localNames = namedImports.elements.map(imp => getIdentifierText(imp.name));
+          if (!importClause.namedBindings ||
+              importClause.namedBindings.kind !== ts.SyntaxKind.NamedImports) {
+            throw new Error('unreached');  // Guaranteed by if check above.
+          }
+          symbols =
+              importClause.namedBindings.elements.map(e => typeChecker.getSymbolAtLocation(e.name));
         }
-
-        for (let name of localNames) {
-          // This may look like a self-reference but TypeScript will rename the
-          // right-hand side!
-          this.emit(
-              `\nconst ${name}: NeverTypeCheckMe = ${name};  /* local alias for Closure JSDoc */`);
-        }
+        this.forwardDeclare(decl.moduleSpecifier, symbols, !!importClause.name);
       }
       return true;
     } else if (
@@ -786,13 +830,55 @@ class Annotator extends ClosureRewriter {
         importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
       // import * as foo from ...;
       this.visit(importClause);
-      this.emit(' from');
-      this.writeModuleSpecifier(decl.moduleSpecifier);
-      this.emit(';');
+      this.emit(` from '${importPath}';`);
       return true;
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
       return false;  // Use default processing.
+    }
+  }
+
+  private forwardDeclareCounter = 0;
+
+  /**
+   * Emits a `goog.forwardDeclare` alias for each symbol from the given list.
+   * @param specifier the import specifier, i.e. module path ("from '...'").
+   */
+  private forwardDeclare(specifier: ts.Expression, symbols: ts.Symbol[], isDefaultImport = false) {
+    if (this.options.untyped) return;
+    const importPath = this.resolveModuleSpecifier(specifier);
+    const nsImport = extractGoogNamespaceImport(importPath);
+    const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
+    const moduleNamespace =
+        nsImport !== null ? nsImport : this.pathToModuleName(this.file.fileName, importPath);
+    const typeChecker = this.program.getTypeChecker();
+    const exports = typeChecker.getExportsOfModule(typeChecker.getSymbolAtLocation(specifier));
+    // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
+    // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
+    // here would cause a change in load order, which is observable (and can lead to errors).
+    // Instead, goog.forwardDeclare types, which allows using them in type annotations without
+    // causing a load. See below for the exception to the rule.
+    this.emit(`\nconst ${forwardDeclarePrefix} = goog.forwardDeclare('${moduleNamespace}');`);
+    const hasValues = exports.some(e => (e.flags & ts.SymbolFlags.Value) !== 0);
+    if (!hasValues) {
+      // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
+      // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
+      // complaining about values not matching 'NoResolvedType', or modules not having a certain
+      // member.
+      // To fix, explicitly goog.require() modules that only export types. This should usually not
+      // cause breakages due to load order (as no symbols are accessible from the module - though
+      // contrived code could observe changes in side effects).
+      // This is a heuristic - if the module exports some values, but those are never imported,
+      // the file will still end up not being imported. Hopefully modules that export values are
+      // imported for their value in some place.
+      this.emit(`\ngoog.require('${moduleNamespace}'); // force type-only module to be loaded`);
+    }
+    for (let sym of symbols) {
+      if (sym.flags & ts.SymbolFlags.Alias) sym = typeChecker.getAliasedSymbol(sym);
+      // goog: imports don't actually use the .default property that TS thinks they have.
+      const qualifiedName = nsImport && isDefaultImport ? forwardDeclarePrefix :
+                                                          forwardDeclarePrefix + '.' + sym.name;
+      this.symbolsToAliasedNames.set(sym, qualifiedName);
     }
   }
 
@@ -829,6 +915,9 @@ class Annotator extends ClosureRewriter {
               }
               sym = type.symbol;
             }
+            if (sym.flags & ts.SymbolFlags.Alias) {
+              sym = typeChecker.getAliasedSymbol(sym);
+            }
             if (sym.flags & ts.SymbolFlags.Class) {
               tagName = 'extends';
             } else if (sym.flags & ts.SymbolFlags.Value) {
@@ -837,8 +926,9 @@ class Annotator extends ClosureRewriter {
               // the type and value namespaces).  Just ignore the implements.
               continue;
             }
-
-            jsDoc.push({tagName, type: impl.getText()});
+            // typeToClosure includes nullability modifiers, so getText() directly here.
+            const alias = this.symbolsToAliasedNames.get(sym);
+            jsDoc.push({tagName, type: alias || impl.getText()});
           }
         }
       }
@@ -968,6 +1058,12 @@ class Annotator extends ClosureRewriter {
 
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
     if (this.options.untyped) return;
+
+    // If the type is also defined as a value, skip emitting it. Closure collapses type & value
+    // namespaces, the two emits would conflict if tsickle emitted both.
+    let sym = this.program.getTypeChecker().getSymbolAtLocation(node.name);
+    if (sym.flags & ts.SymbolFlags.Value) return;
+
     // Write a Closure typedef, which involves an unused "var" declaration.
     // Note: in the case of an export, we cannot emit a literal "var" because
     // TypeScript drops exports that are never assigned to (and Closure
@@ -1329,8 +1425,9 @@ class ExternsWriter extends ClosureRewriter {
 }
 
 export function annotate(
-    program: ts.Program, file: ts.SourceFile, options: Options = {}, host?: ts.ModuleResolutionHost,
-    tsOpts?: ts.CompilerOptions): Output {
-  assertTypeChecked(file);
-  return new Annotator(program, file, options, host, tsOpts).annotate();
+    program: ts.Program, file: ts.SourceFile,
+    pathToModuleName: (context: string, importPath: string) => string, options: Options = {},
+    host?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions): Output {
+  typeTranslator.assertTypeChecked(file);
+  return new Annotator(program, file, options, pathToModuleName, host, tsOpts).annotate();
 }

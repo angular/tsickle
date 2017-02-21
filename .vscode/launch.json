@@ -38,7 +38,7 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "TEST_FILTER": "^jsdoc_types$"
+        "TEST_FILTER": "^export$"
       },
       "console": "internalConsole",
       "sourceMaps": true,

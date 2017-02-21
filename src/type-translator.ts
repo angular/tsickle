@@ -142,10 +142,13 @@ export class TypeTranslator {
    * @param pathBlackList is a set of paths that should never get typed;
    *     any reference to symbols defined in these paths should by typed
    *     as {?}.
+   * @param symbolsToPrefix a mapping from symbols (`Foo`) to a prefix they should be emitted with
+   *     (`tsickle_import.Foo`).
    */
   constructor(
       private typeChecker: ts.TypeChecker, private node: ts.Node,
-      private pathBlackList?: Set<string>) {}
+      private pathBlackList?: Set<string>,
+      private symbolsToAliasedNames: Map<ts.Symbol, string> = new Map<ts.Symbol, string>()) {}
 
   /**
    * Converts a ts.Symbol to a string.
@@ -157,6 +160,8 @@ export class TypeTranslator {
   public symbolToString(sym: ts.Symbol): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
+    let alias = this.symbolsToAliasedNames.get(sym);
+    if (alias) return alias;
     let writeText = (text: string) => str += text;
     let doNothing = () => {
       return;

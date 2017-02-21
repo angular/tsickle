@@ -1,14 +1,27 @@
 
 /** @record */
-function Point() {}
+export function Point() {}
 /** @type {number} */
 Point.prototype.x;
 /** @type {number} */
 Point.prototype.y;
-interface Point {
+/** Used by implement_import.ts */
+export interface Point {
   x: number;
   y: number;
 }
+/**
+ * Used by implement_import.ts
+ */
+export class User {
+  shoeSize: number;
+}
+
+function User_tsickle_Closure_declarations() {
+/** @type {number} */
+User.prototype.shoeSize;
+}
+
 /**
  * @param {!Point} p
  * @return {number}

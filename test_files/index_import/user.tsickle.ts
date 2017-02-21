@@ -1,11 +1,13 @@
 /// <ref './library.d.ts'>
 import {a} from './has_index/index';
-const a: NeverTypeCheckMe = a;  /* local alias for Closure JSDoc */
+const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.index_import.has_index.index');
 export {a} from './has_index/index';
+const tsickle_forward_declare_2 = goog.forwardDeclare('test_files.index_import.has_index.index');
 export {a} from './has_index/index';
+const tsickle_forward_declare_3 = goog.forwardDeclare('test_files.index_import.has_index.index');
 import {a as a2} from './has_index/index';
-const a2: NeverTypeCheckMe = a2;  /* local alias for Closure JSDoc */
+const tsickle_forward_declare_4 = goog.forwardDeclare('test_files.index_import.has_index.index');
 import {a as a3} from './has_index/index.js';
-const a3: NeverTypeCheckMe = a3;  /* local alias for Closure JSDoc */
+const tsickle_forward_declare_5 = goog.forwardDeclare('test_files.index_import.has_index.index');
 import {b} from './lib';
-const b: NeverTypeCheckMe = b;  /* local alias for Closure JSDoc */
+const tsickle_forward_declare_6 = goog.forwardDeclare('test_files.index_import.lib');
