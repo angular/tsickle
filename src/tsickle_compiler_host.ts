@@ -1,5 +1,5 @@
 import * as path from 'path';
-import {SourceMapGenerator} from 'source-map';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from './decorator-annotator';
@@ -224,11 +224,12 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
-        const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey)!;
-        const preexistingSourceMapConsumer =
-            sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-                preexistingSourceMapGenerator, sourceFileName);
-        tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
+        const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
+        if (preexistingSourceMapGenerator) {
+          const preexistingSourceMapConsumer =
+              new SourceMapConsumer(preexistingSourceMapGenerator.toJSON());
+          tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
+        }
       }
     }
 

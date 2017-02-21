@@ -232,12 +232,7 @@ describe('source maps', () => {
           public methodName(s: string): string { return s; }
         }`);
 
-    const closurizeSources = new Map<string, string>();
-    let program = testSupport.createProgram(decoratorDownlevelSources);
-    let {output, sourceMap: preexistingSourceMap} =
-        convertDecorators(program.getTypeChecker(), program.getSourceFile('input.ts'));
-    output = output + ANNOTATION_SUPPORT_CODE;
-    closurizeSources.set('input.ts', setInlineSourceMap(output, preexistingSourceMap.toString()));
+    const closurizeSources = decoratorDownlevelAndAddInlineSourceMaps(decoratorDownlevelSources);
 
     const {compiledJS, sourceMap} =
         compile(closurizeSources, {inlineSourceMap: true, tsicklePasses: [tsickle.Pass.CLOSURIZE]});
@@ -257,7 +252,53 @@ describe('source maps', () => {
     expect(sourceMap).to.exist;
     expect(compiledJS).to.contain(`var module = {id: 'output.js'};`);
   });
+
+  it(`handles mixed source mapped and non source mapped input`, function() {
+    const decoratorDownlevelSources = new Map<string, string>();
+    decoratorDownlevelSources.set('input1.ts', `/** @Annotation */
+        function classAnnotation(t: any) { return t; }
+
+        @classAnnotation
+        class DecoratorTest {
+          public methodName(s: string): string { return s; }
+        }`);
+
+    const closurizeSources = decoratorDownlevelAndAddInlineSourceMaps(decoratorDownlevelSources);
+    closurizeSources.set('input2.ts', `
+      class X { field: number; }
+      let x : string = 'a string';
+      let y : string = 'another string';
+      let z : string = x + y;`);
+
+    const {compiledJS, sourceMap} =
+        compile(closurizeSources, {tsicklePasses: [tsickle.Pass.CLOSURIZE]});
+
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'methodName');
+      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'another string');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(4, 'second string definition');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input2.ts', 'input file name');
+    }
+  });
 });
+
+function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
+    Map<string, string> {
+  const transformedSources = new Map<string, string>();
+  let program = testSupport.createProgram(sources);
+  for (const fileName of toArray(sources.keys())) {
+    let {output, sourceMap: preexistingSourceMap} =
+        convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
+    output = output + ANNOTATION_SUPPORT_CODE;
+    transformedSources.set(fileName, setInlineSourceMap(output, preexistingSourceMap.toString()));
+  }
+  return transformedSources;
+}
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
   const lines = source.split('\n');
