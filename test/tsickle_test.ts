@@ -62,7 +62,7 @@ function compareAgainstGolden(output: string|null, path: string) {
       }
     }
   } else {
-    expect(output).to.equal(golden);
+    expect(output).to.equal(golden, path);
   }
 }
 
