@@ -1,4 +1,4 @@
-goog.module('test_files.optional.optional');var module = module || {id: 'test_files/optional/optional.js'};/**
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.optional.optional');var module = module || {id: 'test_files/optional/optional.js'};/**
  * @param {number} x
  * @param {(undefined|string)=} y
  * @return {void}

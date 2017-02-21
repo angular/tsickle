@@ -1,4 +1,4 @@
-goog.module('test_files.jsdoc_types.module2');var module = module || {id: 'test_files/jsdoc_types/module2.js'};
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.jsdoc_types.module2');var module = module || {id: 'test_files/jsdoc_types/module2.js'};
 class ClassOne {
 }
 exports.ClassOne = ClassOne;

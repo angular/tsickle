@@ -1,4 +1,4 @@
-goog.module('test_files.index_import.user');var module = module || {id: 'test_files/index_import/user.js'};
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.index_import.user');var module = module || {id: 'test_files/index_import/user.js'};
 /// <ref './library.d.ts'>
 var index_1 = goog.require('test_files.index_import.has_index.index');
 const a = index_1.a; /* local alias for Closure JSDoc */

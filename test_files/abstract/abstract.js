@@ -1,4 +1,4 @@
-goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};/**
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};/**
  * @abstract
  */
 class Base {

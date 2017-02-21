@@ -1,4 +1,4 @@
-goog.module('test_files.comments.comments');var module = module || {id: 'test_files/comments/comments.js'};class Comments {
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.comments.comments');var module = module || {id: 'test_files/comments/comments.js'};class Comments {
 }
 function Comments_tsickle_Closure_declarations() {
     /**
