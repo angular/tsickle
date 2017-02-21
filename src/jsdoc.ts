@@ -258,11 +258,16 @@ export function merge(tags: Tag[]): Tag {
   let parameterNames = new Set<string>();
   let types = new Set<string>();
   let texts = new Set<string>();
+  // If any of the tags are optional/rest, then the merged output is optional/rest.
+  let optional = false;
+  let restParam = false;
   for (const tag of tags) {
     if (tag.tagName) tagNames.add(tag.tagName);
     if (tag.parameterName) parameterNames.add(tag.parameterName);
     if (tag.type) types.add(tag.type);
     if (tag.text) texts.add(tag.text);
+    if (tag.optional) optional = true;
+    if (tag.restParam) restParam = true;
   }
 
   if (tagNames.size !== 1) {
@@ -273,5 +278,8 @@ export function merge(tags: Tag[]): Tag {
       parameterNames.size > 0 ? Array.from(parameterNames).join('_or_') : undefined;
   const type = types.size > 0 ? Array.from(types).join('|') : undefined;
   const text = texts.size > 0 ? Array.from(texts).join(' / ') : undefined;
-  return {tagName, parameterName, type, text};
+  let tag: Tag = {tagName, parameterName, type, text};
+  if (optional) tag.optional = true;
+  if (restParam) tag.restParam = true;
+  return tag;
 }
