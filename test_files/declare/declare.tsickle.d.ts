@@ -36,7 +36,7 @@ declare namespace DeclareTestModule {
 // This module is quoted, which declares an importable module.
 // We can't model this in externs beyond making sure it's declared
 // in *some* namespace;
-declare module "DeclareTestQuotedModule" {
+declare module "DeclareTest-QuotedModule" {
   var foo: string;
 }
 
