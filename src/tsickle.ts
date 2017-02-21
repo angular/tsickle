@@ -241,19 +241,12 @@ class ClosureRewriter extends Rewriter {
         paramTag.parameterName += i.toString();
       }
       paramNames.add(paramTag.parameterName);
-      // If any overload marks this param as a ..., mark it ... in the
-      // merged output.
-      if (paramTags[i].find(t => t.restParam === true) !== undefined) {
-        paramTag.restParam = true;
-      }
-      // If any overload marks this param optional, mark it optional in the
-      // merged output. Also mark parameters following optional as optional,
+      // If the tag is optional, mark parameters following optional as optional,
       // even if they are not, since Closure restricts this, see
       // https://github.com/google/closure-compiler/issues/2314
-      const optional = paramTags[i].find(t => t.optional === true) !== undefined || foundOptional;
-      if (!paramTag.restParam && (optional || i >= minArgsCount)) {
+      if (!paramTag.restParam && (paramTag.optional || foundOptional || i >= minArgsCount)) {
         foundOptional = true;
-        paramTag.type += '=';
+        paramTag.optional = true;
       }
       newDoc.push(paramTag);
     }
