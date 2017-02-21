@@ -58,6 +58,24 @@ JSON probably uses the string `'username'` and not whatever name Closure would
 invent for it.  (Note: `declare` on an interface has no additional meaning in
 pure TypeScript.)
 
+#### Exporting decorators
+
+An exporting decorator is a decorator that has `@ExportDecoratedItems` in its
+JSDoc.
+
+The name of the element that have an exporting decorator are preserved through
+the Closure compilation process.
+
+Example:
+
+    /** @ExportDecoratedItems */
+    function myDecorator() {
+      // ...
+    }
+
+    @myDecorator()
+    class DoNotRenameThisClass { ... }
+
 ## Development
 
 ### Gulp tasks
