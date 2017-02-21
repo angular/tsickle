@@ -16,8 +16,6 @@ function annotationDecorator(a, b) { }
  * @return {?}
  */
 function classDecorator(t) { return t; }
-/** @typedef {!Object} */
-var classAnnotation;
 /**
  * \@Annotation
  * @param {?} t

@@ -3,3 +3,6 @@
 export let export2 = 3;
 export let export3 = 3;
 export let export4 = 3;
+
+export type TypeDef = string|number;
+export interface Interface { x: string; }

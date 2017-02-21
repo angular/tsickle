@@ -322,8 +322,9 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} =
-        annotate(program, sourceFile, this.options, this.delegate, this.tscOptions);
+    let {output, externs, diagnostics, sourceMap} = annotate(
+        program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
+        this.delegate, this.tscOptions);
     if (externs) {
       this.externs[fileName] = externs;
     }

@@ -19,9 +19,6 @@ function annotationDecorator(a: Object, b: string) {}
 function classDecorator(t: any) { return t; }
 
 type classAnnotation = {};
-/** @typedef {!Object} */
-var classAnnotation;
-
 /**
  * \@Annotation
  * @param {?} t

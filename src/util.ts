@@ -19,7 +19,7 @@ export function toArray<T>(iterator: Iterator<T>): T[] {
     if (ir.done) {
       break;
     }
-    array.push(ir.value!);
+    array.push(ir.value);
   }
   return array;
 }

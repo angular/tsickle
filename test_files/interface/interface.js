@@ -1,9 +1,21 @@
-goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};/** @record */
+goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};
+/** @record */
 function Point() { }
+exports.Point = Point;
 /** @type {number} */
 Point.prototype.x;
 /** @type {number} */
 Point.prototype.y;
+/**
+ * Used by implement_import.ts
+ */
+class User {
+}
+exports.User = User;
+function User_tsickle_Closure_declarations() {
+    /** @type {number} */
+    User.prototype.shoeSize;
+}
 /**
  * @param {!Point} p
  * @return {number}
