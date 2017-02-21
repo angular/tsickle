@@ -70,6 +70,11 @@ declare module CodeMirror {
   }
 }
 
+// Test overloaded functions with confusing parameter names.
+declare function redirect(url: string): void;
+declare function redirect(status: number, url: string): void;
+declare function redirect(url: string, status: number): void;
+
 // An interface that is not tagged with "declare", but exists in a
 // d.ts file so it should show up in the externs anyway.
 interface BareInterface {

@@ -231,9 +231,16 @@ class ClosureRewriter extends Rewriter {
     }
 
     // Merge the JSDoc tags for each overloaded parameter.
+    // Ensure each parameter has a unique name; the merging process can otherwise
+    // accidentally generate the same parameter name twice.
+    let paramNames = new Set();
     let foundOptional = false;
     for (let i = 0; i < maxArgsCount; i++) {
       let paramTag = jsdoc.merge(paramTags[i]);
+      if (paramNames.has(paramTag.parameterName)) {
+        paramTag.parameterName += i.toString();
+      }
+      paramNames.add(paramTag.parameterName);
       // If any overload marks this param as a ..., mark it ... in the
       // merged output.
       if (paramTags[i].find(t => t.restParam === true) !== undefined) {

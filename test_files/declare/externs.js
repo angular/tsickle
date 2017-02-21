@@ -98,6 +98,13 @@ CodeMirror.Editor = function() {};
  /** @type {string} */
 CodeMirror.Editor.prototype.name;
 
+/**
+ * @param {string|number} url_or_status
+ * @param {string|number=} url_or_status1
+ * @return {void}
+ */
+function redirect(url_or_status, url_or_status1) {}
+
 /** @record @struct */
 function BareInterface() {}
  /** @type {string} */
