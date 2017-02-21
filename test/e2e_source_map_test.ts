@@ -14,7 +14,7 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import {ANNOTATION_SUPPORT_CODE, convertDecorators} from '../src/decorator-annotator';
 import {Settings, toClosureJS} from '../src/main';
-import {extractInlineSourceMap, getInlineSourceMapCount, setInlineSourceMap,} from '../src/source_map_utils';
+import {getInlineSourceMapCount, setInlineSourceMap,} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
@@ -246,6 +246,17 @@ describe('source maps', () => {
     const {line, column} = getLineAndColumn(compiledJS, 'methodName');
     expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
+
+  it(`doesn't blow up putting an inline source map in an empty file`, function() {
+    const sources = new Map<string, string>();
+    sources.set('input.ts', ``);
+
+    // Run tsickle+TSC to convert inputs to Closure JS files.
+    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true});
+
+    expect(sourceMap).to.exist;
+    expect(compiledJS).to.contain(`var module = {id: 'output.js'};`);
+  });
 });
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
@@ -348,6 +359,23 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
       options.outFile.substring(0, options.outFile.length - 3) + '.d.ts', closure.jsFiles);
 
   return {compiledJS, dts, sourceMap};
+}
+
+function extractInlineSourceMap(source: string): string {
+  const inlineSourceMapRegex =
+      new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)$', 'mg');
+  let previousResult: RegExpExecArray|null = null;
+  let result: RegExpExecArray|null = null;
+  // We want to extract the last source map in the source file
+  // since that's probably the most recent one added.  We keep
+  // matching against the source until we don't get a result,
+  // then we use the previous result.
+  do {
+    previousResult = result;
+    result = inlineSourceMapRegex.exec(source);
+  } while (result !== null);
+  const base64EncodedMap = previousResult![1];
+  return Buffer.from(base64EncodedMap, 'base64').toString('utf8');
 }
 
 function getFileWithName(filename: string, files: Map<string, string>): string|undefined {

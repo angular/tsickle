@@ -52,7 +52,7 @@ export function createSourceReplacingCompilerHost(
       onError?: (message: string) => void): ts.SourceFile {
     let path: string = ts.sys.resolvePath(fileName);
     let sourceText = substituteSource.get(path);
-    if (sourceText) {
+    if (sourceText !== undefined) {
       return ts.createSourceFile(fileName, sourceText, languageVersion);
     }
     return delegate.getSourceFile(path, languageVersion, onError);
