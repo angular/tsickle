@@ -112,7 +112,7 @@ describe('tsickle compiler host', () => {
     host.writeFile('foo.js', `console.log('hello');`, false);
     expect(jsFiles.get('foo.js'))
         .to.equal(
-            `goog.module('foo');` +
+            `/** @fileoverview @suppress {lateProvide} */ goog.module('foo');` +
             ` exports = {}; ` +
             `var module = {id: 'foo.js'};` +
             `console.log('hello');`);
