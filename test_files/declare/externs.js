@@ -57,9 +57,12 @@ DeclareTestModule.StringEnum.foo;
 /** @typedef {(string|number)} */
 DeclareTestModule.TypeAlias;
 /** @const */
-tsickle_declare_module.DeclareTestQuotedModule = {};
+var tsickle_declare_module = {};
+// Derived from: declare module "DeclareTest-QuotedModule"
+/** @const */
+tsickle_declare_module.DeclareTest_QuotedModule = {};
  /** @type {string} */
-tsickle_declare_module.DeclareTestQuotedModule.foo;
+tsickle_declare_module.DeclareTest_QuotedModule.foo;
  /** @type {number} */
 var declareGlobalVar;
 
