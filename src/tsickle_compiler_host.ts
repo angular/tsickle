@@ -105,7 +105,35 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   constructor(
       private delegate: ts.CompilerHost, private tscOptions: ts.CompilerOptions,
-      private options: Options, private environment: TsickleHost) {}
+      private options: Options, private environment: TsickleHost) {
+    // ts.CompilerHost includes a bunch of optional methods.  If they're
+    // present on the delegate host, we want to delegate them.
+    if (this.delegate.getCancellationToken) {
+      this.getCancellationToken = this.delegate.getCancellationToken!.bind(this.delegate);
+    }
+    if (this.delegate.getDefaultLibLocation) {
+      this.getDefaultLibLocation = this.delegate.getDefaultLibLocation!.bind(this.delegate);
+    }
+    if (this.delegate.resolveModuleNames) {
+      this.resolveModuleNames = this.delegate.resolveModuleNames!.bind(this.delegate);
+    }
+    if (this.delegate.resolveTypeReferenceDirectives) {
+      this.resolveTypeReferenceDirectives =
+          this.delegate.resolveTypeReferenceDirectives!.bind(this.delegate);
+    }
+    if (this.delegate.getEnvironmentVariable) {
+      this.getEnvironmentVariable = this.delegate.getEnvironmentVariable!.bind(this.delegate);
+    }
+    if (this.delegate.trace) {
+      this.trace = this.delegate.trace!.bind(this.delegate);
+    }
+    if (this.delegate.directoryExists) {
+      this.directoryExists = this.delegate.directoryExists!.bind(this.delegate);
+    }
+    if (this.delegate.realpath) {
+      this.delegate.realpath = this.delegate.realpath!.bind(this.delegate);
+    }
+  }
 
   /**
    * Tsickle can perform 2 kinds of precompilation source transforms - decorator
@@ -169,7 +197,11 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   stripAndStoreExistingSourceMap(sourceFile: ts.SourceFile): ts.SourceFile {
-    if (sourceMapUtils.containsInlineSourceMap(sourceFile.text)) {
+    // Because tsc doesn't have strict null checks, it can pass us an
+    // undefined sourceFile, but we can't acknowledge that it does, because
+    // we have to comply with their interface, which doesn't allow
+    // undefined as far as we're concerned
+    if (sourceFile && sourceMapUtils.containsInlineSourceMap(sourceFile.text)) {
       const sourceMapJson = sourceMapUtils.extractInlineSourceMap(sourceFile.text);
       const sourceMap = sourceMapUtils.sourceMapTextToGenerator(sourceMapJson);
 
@@ -318,7 +350,6 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   // Delegate everything else to the original compiler host.
-
   fileExists(fileName: string): boolean {
     return this.delegate.fileExists(fileName);
   }
@@ -350,4 +381,17 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   getCanonicalFileName(fileName: string): string {
     return this.delegate.getCanonicalFileName(fileName);
   }
+
+  // Optional delegated methods, see constructor
+  public getCancellationToken: (() => ts.CancellationToken)|undefined;
+  public getDefaultLibLocation: (() => string)|undefined;
+  public resolveModuleNames:
+      ((moduleNames: string[], containingFile: string) => ts.ResolvedModule[])|undefined;
+  public resolveTypeReferenceDirectives:
+      ((typeReferenceDirectiveNames: string[],
+        containingFile: string) => ts.ResolvedTypeReferenceDirective[])|undefined;
+  public getEnvironmentVariable: ((name: string) => string)|undefined;
+  public trace: ((s: string) => void)|undefined;
+  public directoryExists: ((directoryName: string) => boolean)|undefined;
+  public realpath: ((path: string) => string)|undefined;
 }
