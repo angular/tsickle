@@ -108,6 +108,13 @@ CodeMirror.Editor.prototype.name;
  */
 function redirect(url_or_status, url_or_status1) {}
 
+/**
+ * @param {number} a
+ * @param {...?|string} b
+ * @return {string}
+ */
+function TestOverload(a, b) {}
+
 /** @record @struct */
 function BareInterface() {}
  /** @type {string} */

@@ -1,4 +1,4 @@
-Warning at test_files/declare/declare.d.ts:88:1: anonymous type has no symbol
+Warning at test_files/declare/declare.d.ts:92:1: anonymous type has no symbol
 ====
 declare namespace DeclareTestModule {
   namespace inner {
@@ -76,6 +76,10 @@ declare module CodeMirror {
 declare function redirect(url: string): void;
 declare function redirect(status: number, url: string): void;
 declare function redirect(url: string, status: number): void;
+
+// Test an overload with a rest param occurring before an ordinary function.
+declare function TestOverload(a: number, ...b: any[]): string;
+declare function TestOverload(a: number, b: string, c: string): string;
 
 // An interface that is not tagged with "declare", but exists in a
 // d.ts file so it should show up in the externs anyway.
