@@ -93,3 +93,8 @@ constructor() {}
  * @return {void}
  */
 function JSDocWithBadTag() {}
+/**
+ * For example,
+ * \@madeUpTag
+ */
+const c = 'c';
