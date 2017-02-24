@@ -1,4 +1,4 @@
-goog.module('test_files.class.untyped.class');var module = module || {id: 'test_files/class.untyped/class.js'};class Super {
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.class.untyped.class');var module = module || {id: 'test_files/class.untyped/class.js'};class Super {
     /**
      * @return {?}
      */

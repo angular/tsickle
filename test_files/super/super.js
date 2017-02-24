@@ -1,4 +1,4 @@
-goog.module('test_files.super.super');var module = module || {id: 'test_files/super/super.js'};class SuperTestBaseNoArg {
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.super.super');var module = module || {id: 'test_files/super/super.js'};class SuperTestBaseNoArg {
     constructor() { }
 }
 class SuperTestBaseOneArg {

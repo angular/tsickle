@@ -1,4 +1,4 @@
-goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};/** @record */
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};/** @record */
 function Interface() { }
 /** @type {function(): void} */
 Interface.prototype.interfaceFunc;

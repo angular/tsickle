@@ -1,4 +1,4 @@
-goog.module('test_files.structural.untyped.structural.untyped');var module = module || {id: 'test_files/structural.untyped/structural.untyped.js'};class StructuralTest {
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.structural.untyped.structural.untyped');var module = module || {id: 'test_files/structural.untyped/structural.untyped.js'};class StructuralTest {
     /**
      * @return {?}
      */

@@ -1,4 +1,4 @@
-goog.module('test_files.declare_export.declare_export');var module = module || {id: 'test_files/declare_export/declare_export.js'};
+/** @fileoverview @suppress {lateProvide} */ goog.module('test_files.declare_export.declare_export');var module = module || {id: 'test_files/declare_export/declare_export.js'};
 /** @typedef {ExportDeclaredIf} */
 exports.ExportDeclaredIf;
 exports.exportedDeclaredVar = window.exportedDeclaredVar;

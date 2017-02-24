@@ -53,6 +53,11 @@ class ES5Processor extends Rewriter {
     // TODO(evanm): only emit the goog.module *after* the first comment,
     // so that @suppress statements work.
     const moduleName = this.pathToModuleName('', this.file.fileName);
+    // tsickle's aliasing of imported types leads Closure Compiler to think there are circular
+    // dependencies, which gives a "lateProvide" error. TODO(martinprobst): while usually only an
+    // artifact of import handling, these could actually be bona-fide circular dependencies, so it'd
+    // be better to remove this suppression again.
+    this.emit('/** @fileoverview @suppress {lateProvide} */ ');
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
     if (this.prelude) this.emit(this.prelude);
