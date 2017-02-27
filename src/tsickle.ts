@@ -653,6 +653,7 @@ class Annotator extends ClosureRewriter {
         this.emit('))');
         return true;
       case ts.SyntaxKind.PropertyDeclaration:
+      case ts.SyntaxKind.VariableStatement:
         const jsDoc = this.getJSDoc(node);
         if (jsDoc && jsDoc.length > 0 && node.getFirstToken()) {
           this.emit('\n');

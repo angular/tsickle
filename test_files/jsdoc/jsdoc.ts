@@ -65,3 +65,9 @@ class RedundantJSDocShouldBeStripped {
  *   function example2() {}
  */
 function JSDocWithBadTag() {}
+
+/**
+ * For example,
+ * @madeUpTag
+ */
+const c = 'c';
