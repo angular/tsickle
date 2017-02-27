@@ -22,8 +22,8 @@ export interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
 
-  /** If provided, convert every type to the Closure {?} type */
-  isUntyped: boolean;
+  /** If provided, attempt to provide types rather than {?}. */
+  isTyped?: boolean;
 
   /** If true, log internal debug warnings to the console. */
   verbose?: boolean;
@@ -37,7 +37,7 @@ example:
 
 tsickle flags are:
   --externs=PATH     save generated Closure externs.js to PATH
-  --untyped          convert every type in TypeScript to the Closure {?} type
+  --typed            [experimental] attempt to provide Closure types instead of {?}
 `);
 }
 
@@ -46,7 +46,7 @@ tsickle flags are:
  * the arguments to pass on to tsc.
  */
 function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: string[]} {
-  let settings: Settings = {isUntyped: false};
+  let settings: Settings = {};
   let parsedArgs = minimist(args);
   for (let flag of Object.keys(parsedArgs)) {
     switch (flag) {
@@ -58,8 +58,8 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
       case 'externs':
         settings.externsPath = parsedArgs[flag];
         break;
-      case 'untyped':
-        settings.isUntyped = true;
+      case 'typed':
+        settings.isTyped = true;
         break;
       case 'verbose':
         settings.verbose = true;
@@ -135,7 +135,7 @@ function getDefaultClosureJSOptions(fileNames: string[], settings: Settings): Cl
     tsickleCompilerHostOptions: {
       googmodule: true,
       es5Mode: false,
-      untyped: settings.isUntyped,
+      untyped: !settings.isTyped,
     },
     tsickleHost: {
       shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,

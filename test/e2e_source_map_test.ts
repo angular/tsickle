@@ -13,7 +13,7 @@ import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import {ANNOTATION_SUPPORT_CODE, convertDecorators} from '../src/decorator-annotator';
-import {Settings, toClosureJS} from '../src/main';
+import {toClosureJS} from '../src/main';
 import {getInlineSourceMapCount, setInlineSourceMap,} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
@@ -369,8 +369,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
     tsicklePasses: options.tsicklePasses,
   };
 
-  const closure = toClosureJS(
-      compilerOptions, fileNames, {isUntyped: false} as Settings, diagnostics, closureJSOPtions);
+  const closure = toClosureJS(compilerOptions, fileNames, {}, diagnostics, closureJSOPtions);
 
   if (!closure) {
     console.error(tsickle.formatDiagnostics(diagnostics));
