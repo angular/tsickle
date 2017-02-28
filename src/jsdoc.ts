@@ -113,14 +113,35 @@ const JSDOC_TAGS_WHITELIST = [
 ];
 
 /**
- * A list of JSDoc @tags that are never allowed in TypeScript source.
- * These are Closure tags that can be expressed in the TypeScript surface
- * syntax.
+ * A list of JSDoc @tags that are never allowed in TypeScript source. These are Closure tags that
+ * can be expressed in the TypeScript surface syntax. As tsickle's emit will mangle type names,
+ * these will cause Closure Compiler issues and should not be used.
  */
-const JSDOC_TAGS_BLACKLIST = ['constructor', 'extends', 'implements', 'private', 'public', 'type'];
+const JSDOC_TAGS_BLACKLIST = [
+  'constructor',
+  'enum',
+  'extends',
+  'implements',
+  'interface',
+  'lends',
+  'private',
+  'public',
+  'record',
+  'template',
+  'this',
+  'type',
+  'typedef',
+];
 
-/** A list of JSDoc @tags that might include a {type} after them. */
-const JSDOC_TAGS_WITH_TYPES = ['export', 'param', 'return'];
+/**
+ * A list of JSDoc @tags that might include a {type} after them. Only banned when a type is passed.
+ */
+const JSDOC_TAGS_WITH_TYPES = [
+  'const',
+  'export',
+  'param',
+  'return',
+];
 
 /**
  * parse parses JSDoc out of a comment string.
@@ -150,7 +171,12 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
         warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
         continue;  // Drop the tag so Closure won't process it.
       } else if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
-        warnings.push('type annotations (using {...}) are redundant with TypeScript types');
+        warnings.push(
+            `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
+            `remove the {...} part`);
+        continue;
+      } else if (tagName === 'dict') {
+        warnings.push('use index signatures (`[k: string]: type`) instead of @dict');
         continue;
       }
 

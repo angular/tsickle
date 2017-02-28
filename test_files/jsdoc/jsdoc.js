@@ -22,6 +22,12 @@ function jsDocTestBadDoc(foo) { }
  * \@madeUpTag This tag will be escaped, because Closure disallows it.
  */
 class JSDocTest {
+    constructor() {
+        /** @enum {string} */
+        this.badEnumThing = { A: 'a' };
+        /** @const {string} */
+        this.badConstThing = 'a';
+    }
 }
 /**
  * \@internal
@@ -44,7 +50,32 @@ function JSDocTest_tsickle_Closure_declarations() {
     JSDocTest.prototype.stringWithoutJSDoc;
     /** @type {number} */
     JSDocTest.prototype.typedThing;
+    /** @type {?} */
+    JSDocTest.prototype.badEnumThing;
+    /** @type {string} */
+    JSDocTest.prototype.badConstThing;
+    /** @type {string} */
+    JSDocTest.prototype.badTypeDef;
 }
+class BadTemplated {
+}
+class BadDict {
+}
+class BadLends {
+}
+/**
+ * @throws {Error} JSCompiler treats this as pure documentation, no need to ban it.
+ * @return {void}
+ */
+function fnThrows() { }
+/**
+ * @return {void}
+ */
+function badThis() { }
+/**
+ * @return {void}
+ */
+function BadInterface() { }
 /**
  * \@madeUptag This tag will be escaped, because Closure disallows it.
  * @see This tag will be kept, because Closure allows it.
