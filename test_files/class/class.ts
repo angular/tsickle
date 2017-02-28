@@ -32,12 +32,15 @@ abstract class AbstractClass {
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
+let interfaceExtendsInterfaceValue = {} as InterfaceExtendsInterface;
 interface InterfaceExtendsClass extends Class {
   interfaceFunc2(): void;
 }
+let interfaceExtendsClassValue: InterfaceExtendsClass = {} as InterfaceExtendsClass;
 interface InterfaceExtendsAbstractClass extends AbstractClass {
   interfaceFunc2(): void;
 }
+let interfaceExtendsAbstractClassValue: InterfaceExtendsAbstractClass = {} as any;
 
 // 3) class implements.
 class ClassImplementsInterface implements Interface {
@@ -74,18 +77,22 @@ class ImplementsTypeAlias implements TypeAlias, Class {
 
 // Verify Closure accepts the various subtypes of Interface.
 let interfaceVar: Interface;
-let interfaceExtendsInterface: InterfaceExtendsInterface;
-interfaceVar = interfaceExtendsInterface;
+interfaceVar = interfaceExtendsInterfaceValue;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of Class.
 let classVar: Class;
-let interfaceExtendsClass: InterfaceExtendsClass;
-classVar = interfaceExtendsClass;
+classVar = interfaceExtendsClassValue;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
+
+// Verify Closure accepts the various subtypes of AbstractClass.
+let abstractClassVar: AbstractClass;
+abstractClassVar = interfaceExtendsAbstractClass;
+abstractClassVar = new ClassImplementsAbstractClass();
+abstractClassVar = new ClassExtendsAbstractClass();
 
 // Reproduce issue #333: type/value namespace collision.
 // Because Zone is both a type and a value, the interface will be dropped

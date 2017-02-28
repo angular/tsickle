@@ -6,7 +6,7 @@ class Class {
     /**
      * @return {void}
      */
-    superFunc() { }
+    classFunc() { }
 }
 /**
  * @abstract
@@ -22,24 +22,43 @@ class AbstractClass {
      */
     nonAbstractFunc() { }
 }
+/** @record */
+function InterfaceExtendsInterface() { }
+// TODO: derived interfaces.
+/** @type {function(): void} */
+InterfaceExtendsInterface.prototype.interfaceFunc2;
+/** @record */
+function InterfaceExtendsClass() { }
+// TODO: derived interfaces.
+/** @type {function(): void} */
+InterfaceExtendsClass.prototype.interfaceFunc2;
+/** @record */
+function InterfaceExtendsAbstractClass() { }
+// TODO: derived interfaces.
+/** @type {function(): void} */
+InterfaceExtendsAbstractClass.prototype.interfaceFunc2;
 /**
  * @implements {Interface}
- * @extends {Class}
  */
-class Implements {
+class ClassImplementsInterface {
     /**
      * @return {void}
      */
     interfaceFunc() { }
+}
+/**
+ * @extends {Class}
+ */
+class ClassImplementsClass {
     /**
      * @return {void}
      */
-    superFunc() { }
+    classFunc() { }
 }
 /**
  * @extends {AbstractClass}
  */
-class ImplementsAbstract {
+class ClassImplementsAbstractClass {
     /**
      * @return {void}
      */
@@ -49,16 +68,13 @@ class ImplementsAbstract {
      */
     nonAbstractFunc() { }
 }
-/**
- * @implements {Interface}
- */
-class Extends extends Class {
+class ClassExtendsClass extends Class {
     /**
      * @return {void}
      */
-    interfaceFunc() { }
+    classFunc() { }
 }
-class ExtendsAbstract extends AbstractClass {
+class ClassExtendsAbstractClass extends AbstractClass {
     /**
      * @return {void}
      */
@@ -78,17 +94,27 @@ class ImplementsTypeAlias {
     /**
      * @return {void}
      */
-    superFunc() { }
+    classFunc() { }
 }
-// Verify Closure accepts the various casts.
+// Verify Closure accepts the various subtypes of Interface.
 let /** @type {!Interface} */ interfaceVar;
-interfaceVar = new Implements();
-interfaceVar = new Extends();
+let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = (null);
+interfaceVar = interfaceExtendsInterface;
+interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
-let /** @type {!Class} */ superVar;
-superVar = new Implements();
-superVar = new Extends();
-superVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of Class.
+let /** @type {!Class} */ classVar;
+let /** @type {!InterfaceExtendsClass} */ interfaceExtendsClass = (null);
+classVar = interfaceExtendsClass;
+classVar = new ClassImplementsClass();
+classVar = new ClassExtendsClass();
+classVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of AbstractClass.
+let /** @type {!AbstractClass} */ abstractClassVar;
+let /** @type {!InterfaceExtendsAbstractClass} */ interfaceExtendsAbstractClass = (null);
+abstractClassVar = interfaceExtendsAbstractClass;
+abstractClassVar = new ClassImplementsAbstractClass();
+abstractClassVar = new ClassExtendsAbstractClass();
 /**
  * @return {void}
  */
