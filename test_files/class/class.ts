@@ -32,15 +32,26 @@ abstract class AbstractClass {
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
-let interfaceExtendsInterfaceValue = {} as InterfaceExtendsInterface;
 interface InterfaceExtendsClass extends Class {
   interfaceFunc2(): void;
 }
-let interfaceExtendsClassValue: InterfaceExtendsClass = {} as InterfaceExtendsClass;
 interface InterfaceExtendsAbstractClass extends AbstractClass {
   interfaceFunc2(): void;
 }
-let interfaceExtendsAbstractClassValue: InterfaceExtendsAbstractClass = {} as any;
+// Create values of each of the above interface types for use in later testing.
+let interfaceExtendsInterface: InterfaceExtendsInterface = {
+  interfaceFunc() {},
+  interfaceFunc2() {}
+};
+let interfaceExtendsClass: InterfaceExtendsClass = {
+  classFunc() {},
+  interfaceFunc2() {}
+};
+let interfaceExtendsAbstractClass: InterfaceExtendsAbstractClass = {
+  abstractFunc() {},
+  nonAbstractFunc() {},
+  interfaceFunc2() {}
+};
 
 // 3) class implements.
 class ClassImplementsInterface implements Interface {
@@ -66,8 +77,6 @@ class ClassExtendsAbstractClass extends AbstractClass {
   abstractFunc(): void {}
 }
 
-
-
 // It's also legal to alias a type and then implement the alias.
 type TypeAlias = Interface;
 class ImplementsTypeAlias implements TypeAlias, Class {
@@ -77,20 +86,20 @@ class ImplementsTypeAlias implements TypeAlias, Class {
 
 // Verify Closure accepts the various subtypes of Interface.
 let interfaceVar: Interface;
-interfaceVar = interfaceExtendsInterfaceValue;
+// TODO(evanm): interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of Class.
 let classVar: Class;
-classVar = interfaceExtendsClassValue;
+// TODO(evanm): classVar = interfaceExtendsClass;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of AbstractClass.
 let abstractClassVar: AbstractClass;
-abstractClassVar = interfaceExtendsAbstractClass;
+// TODO(evanm): abstractClassVar = interfaceExtendsAbstractClass;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 

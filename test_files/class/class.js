@@ -37,6 +37,41 @@ function InterfaceExtendsAbstractClass() { }
 // TODO: derived interfaces.
 /** @type {function(): void} */
 InterfaceExtendsAbstractClass.prototype.interfaceFunc2;
+// Create values of each of the above interface types for use in later testing.
+let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
+    /**
+     * @return {void}
+     */
+    interfaceFunc() { },
+    /**
+     * @return {void}
+     */
+    interfaceFunc2() { }
+};
+let /** @type {!InterfaceExtendsClass} */ interfaceExtendsClass = {
+    /**
+     * @return {void}
+     */
+    classFunc() { },
+    /**
+     * @return {void}
+     */
+    interfaceFunc2() { }
+};
+let /** @type {!InterfaceExtendsAbstractClass} */ interfaceExtendsAbstractClass = {
+    /**
+     * @return {void}
+     */
+    abstractFunc() { },
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { },
+    /**
+     * @return {void}
+     */
+    interfaceFunc2() { }
+};
 /**
  * @implements {Interface}
  */
@@ -98,21 +133,18 @@ class ImplementsTypeAlias {
 }
 // Verify Closure accepts the various subtypes of Interface.
 let /** @type {!Interface} */ interfaceVar;
-let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = (null);
-interfaceVar = interfaceExtendsInterface;
+// TODO(evanm): interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 // Verify Closure accepts the various subtypes of Class.
 let /** @type {!Class} */ classVar;
-let /** @type {!InterfaceExtendsClass} */ interfaceExtendsClass = (null);
-classVar = interfaceExtendsClass;
+// TODO(evanm): classVar = interfaceExtendsClass;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
 // Verify Closure accepts the various subtypes of AbstractClass.
 let /** @type {!AbstractClass} */ abstractClassVar;
-let /** @type {!InterfaceExtendsAbstractClass} */ interfaceExtendsAbstractClass = (null);
-abstractClassVar = interfaceExtendsAbstractClass;
+// TODO(evanm): abstractClassVar = interfaceExtendsAbstractClass;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 /**

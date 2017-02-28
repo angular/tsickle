@@ -1,4 +1,4 @@
-Warning at test_files/class/class.ts:106:1: type/symbol conflict for Zone, using {?} for now
+Warning at test_files/class/class.ts:115:1: type/symbol conflict for Zone, using {?} for now
 ====
 
 /** @record */
@@ -76,6 +76,41 @@ InterfaceExtendsAbstractClass.prototype.interfaceFunc2;
 interface InterfaceExtendsAbstractClass extends AbstractClass {
   interfaceFunc2(): void;
 }
+// Create values of each of the above interface types for use in later testing.
+let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface: InterfaceExtendsInterface = {
+/**
+ * @return {void}
+ */
+interfaceFunc() {},
+/**
+ * @return {void}
+ */
+interfaceFunc2() {}
+};
+let /** @type {!InterfaceExtendsClass} */ interfaceExtendsClass: InterfaceExtendsClass = {
+/**
+ * @return {void}
+ */
+classFunc() {},
+/**
+ * @return {void}
+ */
+interfaceFunc2() {}
+};
+let /** @type {!InterfaceExtendsAbstractClass} */ interfaceExtendsAbstractClass: InterfaceExtendsAbstractClass = {
+/**
+ * @return {void}
+ */
+abstractFunc() {},
+/**
+ * @return {void}
+ */
+nonAbstractFunc() {},
+/**
+ * @return {void}
+ */
+interfaceFunc2() {}
+};
 /**
  * @implements {Interface}
  */
@@ -120,8 +155,6 @@ class ClassExtendsAbstractClass extends AbstractClass {
 abstractFunc(): void {}
 }
 
-
-
 // It's also legal to alias a type and then implement the alias.
 type TypeAlias = Interface;
 /** @typedef {!Interface} */
@@ -144,23 +177,20 @@ classFunc(): void {}
 
 // Verify Closure accepts the various subtypes of Interface.
 let /** @type {!Interface} */ interfaceVar: Interface;
-let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface: InterfaceExtendsInterface = /** @type {?} */(( null as any));
-interfaceVar = interfaceExtendsInterface;
+// TODO(evanm): interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of Class.
 let /** @type {!Class} */ classVar: Class;
-let /** @type {!InterfaceExtendsClass} */ interfaceExtendsClass: InterfaceExtendsClass = /** @type {?} */(( null as any));
-classVar = interfaceExtendsClass;
+// TODO(evanm): classVar = interfaceExtendsClass;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of AbstractClass.
 let /** @type {!AbstractClass} */ abstractClassVar: AbstractClass;
-let /** @type {!InterfaceExtendsAbstractClass} */ interfaceExtendsAbstractClass: InterfaceExtendsAbstractClass = /** @type {?} */(( null as any));
-abstractClassVar = interfaceExtendsAbstractClass;
+// TODO(evanm): abstractClassVar = interfaceExtendsAbstractClass;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 
