@@ -36,7 +36,34 @@ class JSDocTest {
 
   /** @type {badType} */
   typedThing: number;
+
+  /** @enum {string} */
+  badEnumThing = {A: 'a'};
+
+  /** @const {string} */
+  badConstThing = 'a';
+
+  /** @typedef {string} */
+  badTypeDef: string;
 }
+
+/** @template T */
+class BadTemplated {}
+
+/** @dict */
+class BadDict {}
+
+/** @lends {BadDict} */
+class BadLends {}
+
+/** @throws {Error} JSCompiler treats this as pure documentation, no need to ban it. */
+function fnThrows() {}
+
+/** @this {string} */
+function badThis() {}
+
+/** @interface @record */
+function BadInterface() {}
 
 /**
  * @madeUptag This tag will be escaped, because Closure disallows it.

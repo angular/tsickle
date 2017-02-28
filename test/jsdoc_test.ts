@@ -42,7 +42,9 @@ describe('jsdoc.parse', () => {
 */`;
     expect(jsdoc.parse(source)).to.deep.equal({
       tags: [],
-      warnings: ['type annotations (using {...}) are redundant with TypeScript types']
+      warnings: [
+        'the type annotation on @param is redundant with its TypeScript type, remove the {...} part'
+      ]
     });
   });
   it('warns on @type annotations', () => {
