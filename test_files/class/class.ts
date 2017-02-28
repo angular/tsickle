@@ -3,7 +3,7 @@
 //   interface, class, abstract class
 // And there are two keywords for relating them:
 //   extends, implements
-// You can legally use them in any configuration the cross product implies;
+// You can legally use them in almost any configuration the cross product implies;
 // for example, you can "implements" a class though it's more rare than the
 // other options.
 
@@ -12,55 +12,80 @@ interface Interface {
   interfaceFunc(): void;
 }
 class Class {
-  superFunc(): void {}
+  classFunc(): void {}
 }
 abstract class AbstractClass {
   abstract abstractFunc(): void;
   nonAbstractFunc(): void { }
 }
 
-// This tests "implements" against an interface and the class.
-class Implements implements Interface, Class {
-  interfaceFunc(): void {}
-  superFunc(): void {}
+// Write out all permutations:
+// 1) interface implements
+// 2) interface extends
+// 3) class implements
+// 4) class extends
+
+// 1) interface implements.
+// No examples; this is not legal TypeScript.
+
+// 2) interface extends.
+interface InterfaceExtendsInterface extends Interface {
+  interfaceFunc2(): void;
+}
+interface InterfaceExtendsClass extends Class {
+  interfaceFunc2(): void;
+}
+interface InterfaceExtendsAbstractClass extends AbstractClass {
+  interfaceFunc2(): void;
 }
 
-// This tests "implements" against an abstract class.
-// Note: in Closure you cannot currently "implements" two classes, see #410.
-class ImplementsAbstract implements AbstractClass {
+// 3) class implements.
+class ClassImplementsInterface implements Interface {
+  interfaceFunc(): void {}
+}
+class ClassImplementsClass implements Class {
+  classFunc(): void {}
+}
+class ClassImplementsAbstractClass implements AbstractClass {
   abstractFunc(): void {}
   // Note: because this class *implements* AbstractClass, it must also implement
   // nonAbstractFunc despite that already having an implementation.
   nonAbstractFunc(): void {}
 }
 
-// This tests "extends" against the class.
-class Extends extends Class implements Interface {
-  interfaceFunc(): void {}
+// 4) class extends.
+// Note: cannot "extends" an interface.
+//    class ClassExtendsInterface extends Interface {
+class ClassExtendsClass extends Class {
+  classFunc(): void {}
 }
-
-// This tests "extends" against the abstract class.
-class ExtendsAbstract extends AbstractClass {
+class ClassExtendsAbstractClass extends AbstractClass {
   abstractFunc(): void {}
 }
+
+
 
 // It's also legal to alias a type and then implement the alias.
 type TypeAlias = Interface;
 class ImplementsTypeAlias implements TypeAlias, Class {
   interfaceFunc(): void {}
-  superFunc(): void {}
+  classFunc(): void {}
 }
 
-// Verify Closure accepts the various casts.
+// Verify Closure accepts the various subtypes of Interface.
 let interfaceVar: Interface;
-interfaceVar = new Implements();
-interfaceVar = new Extends();
+let interfaceExtendsInterface: InterfaceExtendsInterface;
+interfaceVar = interfaceExtendsInterface;
+interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 
-let superVar: Class;
-superVar = new Implements();
-superVar = new Extends();
-superVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of Class.
+let classVar: Class;
+let interfaceExtendsClass: InterfaceExtendsClass;
+classVar = interfaceExtendsClass;
+classVar = new ClassImplementsClass();
+classVar = new ClassExtendsClass();
+classVar = new ImplementsTypeAlias();
 
 // Reproduce issue #333: type/value namespace collision.
 // Because Zone is both a type and a value, the interface will be dropped
