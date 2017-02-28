@@ -156,8 +156,10 @@ export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     allDiagnostics: ts.Diagnostic[], partialClosureJSOptions = {} as Partial<ClosureJSOptions>):
     {jsFiles: Map<string, string>, externs: string}|null {
-  const closureJSOptions: ClosureJSOptions = {...getDefaultClosureJSOptions(fileNames, settings),
-                                              ...partialClosureJSOptions};
+  const closureJSOptions: ClosureJSOptions = {
+    ...getDefaultClosureJSOptions(fileNames, settings),
+    ...partialClosureJSOptions
+  };
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text

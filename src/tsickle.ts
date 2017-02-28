@@ -791,8 +791,9 @@ class Annotator extends ClosureRewriter {
       this.emit(`'${importPath}';`);
       return true;
     } else if (
-        importClause.name || (importClause.namedBindings &&
-                              importClause.namedBindings.kind === ts.SyntaxKind.NamedImports)) {
+        importClause.name ||
+        (importClause.namedBindings &&
+         importClause.namedBindings.kind === ts.SyntaxKind.NamedImports)) {
       this.visit(importClause);
       this.emit(` from '${importPath}';`);
 
