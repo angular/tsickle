@@ -1,14 +1,24 @@
-Warning at test_files/class/class.ts:58:1: type/symbol conflict for Zone, using {?} for now
+Warning at test_files/class/class.ts:74:1: type/symbol conflict for Zone, using {?} for now
 ====
 
 /** @record */
 function Interface() {}
 /** @type {function(): void} */
 Interface.prototype.interfaceFunc;
+// This test exercises the various ways classes and interfaces can interact.
+// There are three types of classy things:
+//   interface, class, abstract class
+// And there are two keywords for relating them:
+//   extends, implements
+// You can legally use them in any configuration the cross product implies;
+// for example, you can "implements" a class though it's more rare than the
+// other options.
+
+// Three declarations, one for each type of thing.
 interface Interface {
   interfaceFunc(): void;
 }
-class Super {
+class Class {
 /**
  * @return {void}
  */
@@ -30,10 +40,9 @@ nonAbstractFunc(): void { }
 }
 /**
  * @implements {Interface}
- * @extends {Super}
- * @extends {AbstractClass}
+ * @extends {Class}
  */
-class Implements implements Interface, Super, AbstractClass {
+class Implements implements Interface, Class {
 /**
  * @return {void}
  */
@@ -42,6 +51,11 @@ interfaceFunc(): void {}
  * @return {void}
  */
 superFunc(): void {}
+}
+/**
+ * @extends {AbstractClass}
+ */
+class ImplementsAbstract implements AbstractClass {
 /**
  * @return {void}
  */
@@ -54,7 +68,7 @@ nonAbstractFunc(): void {}
 /**
  * @implements {Interface}
  */
-class Extends extends Super implements Interface {
+class Extends extends Class implements Interface {
 /**
  * @return {void}
  */
@@ -74,9 +88,9 @@ var TypeAlias;
 
 /**
  * @implements {TypeAlias}
- * @extends {Super}
+ * @extends {Class}
  */
-class ImplementsTypeAlias implements TypeAlias, Super {
+class ImplementsTypeAlias implements TypeAlias, Class {
 /**
  * @return {void}
  */
@@ -93,7 +107,7 @@ interfaceVar = new Implements();
 interfaceVar = new Extends();
 interfaceVar = new ImplementsTypeAlias();
 
-let /** @type {!Super} */ superVar: Super;
+let /** @type {!Class} */ superVar: Class;
 superVar = new Implements();
 superVar = new Extends();
 superVar = new ImplementsTypeAlias();

@@ -2,7 +2,7 @@ goog.module('test_files.class.class');var module = module || {id: 'test_files/cl
 function Interface() { }
 /** @type {function(): void} */
 Interface.prototype.interfaceFunc;
-class Super {
+class Class {
     /**
      * @return {void}
      */
@@ -24,8 +24,7 @@ class AbstractClass {
 }
 /**
  * @implements {Interface}
- * @extends {Super}
- * @extends {AbstractClass}
+ * @extends {Class}
  */
 class Implements {
     /**
@@ -36,6 +35,11 @@ class Implements {
      * @return {void}
      */
     superFunc() { }
+}
+/**
+ * @extends {AbstractClass}
+ */
+class ImplementsAbstract {
     /**
      * @return {void}
      */
@@ -48,7 +52,7 @@ class Implements {
 /**
  * @implements {Interface}
  */
-class Extends extends Super {
+class Extends extends Class {
     /**
      * @return {void}
      */
@@ -64,7 +68,7 @@ class ExtendsAbstract extends AbstractClass {
 var TypeAlias;
 /**
  * @implements {TypeAlias}
- * @extends {Super}
+ * @extends {Class}
  */
 class ImplementsTypeAlias {
     /**
@@ -81,7 +85,7 @@ let /** @type {!Interface} */ interfaceVar;
 interfaceVar = new Implements();
 interfaceVar = new Extends();
 interfaceVar = new ImplementsTypeAlias();
-let /** @type {!Super} */ superVar;
+let /** @type {!Class} */ superVar;
 superVar = new Implements();
 superVar = new Extends();
 superVar = new ImplementsTypeAlias();

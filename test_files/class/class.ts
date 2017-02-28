@@ -1,36 +1,52 @@
+// This test exercises the various ways classes and interfaces can interact.
+// There are three types of classy things:
+//   interface, class, abstract class
+// And there are two keywords for relating them:
+//   extends, implements
+// You can legally use them in any configuration the cross product implies;
+// for example, you can "implements" a class though it's more rare than the
+// other options.
+
+// Three declarations, one for each type of thing.
 interface Interface {
   interfaceFunc(): void;
 }
-
-class Super {
+class Class {
   superFunc(): void {}
 }
-
 abstract class AbstractClass {
   abstract abstractFunc(): void;
   nonAbstractFunc(): void { }
 }
 
-class Implements implements Interface, Super, AbstractClass {
+// This tests "implements" against an interface and the class.
+class Implements implements Interface, Class {
   interfaceFunc(): void {}
   superFunc(): void {}
+}
+
+// This tests "implements" against an abstract class.
+// Note: in Closure you cannot currently "implements" two classes, see #410.
+class ImplementsAbstract implements AbstractClass {
   abstractFunc(): void {}
   // Note: because this class *implements* AbstractClass, it must also implement
   // nonAbstractFunc despite that already having an implementation.
   nonAbstractFunc(): void {}
 }
 
-class Extends extends Super implements Interface {
+// This tests "extends" against the class.
+class Extends extends Class implements Interface {
   interfaceFunc(): void {}
 }
 
+// This tests "extends" against the abstract class.
 class ExtendsAbstract extends AbstractClass {
   abstractFunc(): void {}
 }
 
 // It's also legal to alias a type and then implement the alias.
 type TypeAlias = Interface;
-class ImplementsTypeAlias implements TypeAlias, Super {
+class ImplementsTypeAlias implements TypeAlias, Class {
   interfaceFunc(): void {}
   superFunc(): void {}
 }
@@ -41,7 +57,7 @@ interfaceVar = new Implements();
 interfaceVar = new Extends();
 interfaceVar = new ImplementsTypeAlias();
 
-let superVar: Super;
+let superVar: Class;
 superVar = new Implements();
 superVar = new Extends();
 superVar = new ImplementsTypeAlias();
