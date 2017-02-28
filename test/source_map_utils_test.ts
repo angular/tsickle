@@ -28,8 +28,9 @@ describe('source map utils', () => {
     const foobar = `${SOURCE_MAP_COMMENT}${encode('foo')}\n${SOURCE_MAP_COMMENT}${encode('bar')}`;
     expect(sourceMapUtils.extractInlineSourceMap(foobar)).to.equal('bar');
 
-    const foobarbaz = `${SOURCE_MAP_COMMENT}${encode('foo')}\n${SOURCE_MAP_COMMENT}${encode(
-        'bar')}\n${SOURCE_MAP_COMMENT}${encode('baz')}`;
+    const foobarbaz = `${SOURCE_MAP_COMMENT}${encode('foo')}\n` +
+        `${SOURCE_MAP_COMMENT}${encode('bar')}\n` +
+        `${SOURCE_MAP_COMMENT}${encode('baz')}`;
     expect(sourceMapUtils.extractInlineSourceMap(foobarbaz)).to.equal('baz');
   });
 });
