@@ -6,14 +6,26 @@ class Super {
   superFunc(): void {}
 }
 
+abstract class AbstractClass {
+  abstract abstractFunc(): void;
+  nonAbstractFunc(): void { }
+}
 
-class Implements implements Interface, Super {
+class Implements implements Interface, Super, AbstractClass {
   interfaceFunc(): void {}
   superFunc(): void {}
+  abstractFunc(): void {}
+  // Note: because this class *implements* AbstractClass, it must also implement
+  // nonAbstractFunc despite that already having an implementation.
+  nonAbstractFunc(): void {}
 }
 
 class Extends extends Super implements Interface {
   interfaceFunc(): void {}
+}
+
+class ExtendsAbstract extends AbstractClass {
+  abstractFunc(): void {}
 }
 
 // It's also legal to alias a type and then implement the alias.

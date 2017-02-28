@@ -9,8 +9,23 @@ class Super {
     superFunc() { }
 }
 /**
+ * @abstract
+ */
+class AbstractClass {
+    /**
+     * @abstract
+     * @return {void}
+     */
+    abstractFunc() { }
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { }
+}
+/**
  * @implements {Interface}
  * @extends {Super}
+ * @extends {AbstractClass}
  */
 class Implements {
     /**
@@ -21,6 +36,14 @@ class Implements {
      * @return {void}
      */
     superFunc() { }
+    /**
+     * @return {void}
+     */
+    abstractFunc() { }
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { }
 }
 /**
  * @implements {Interface}
@@ -30,6 +53,12 @@ class Extends extends Super {
      * @return {void}
      */
     interfaceFunc() { }
+}
+class ExtendsAbstract extends AbstractClass {
+    /**
+     * @return {void}
+     */
+    abstractFunc() { }
 }
 /** @typedef {!Interface} */
 var TypeAlias;

@@ -1,4 +1,4 @@
-Warning at test_files/class/class.ts:46:1: type/symbol conflict for Zone, using {?} for now
+Warning at test_files/class/class.ts:58:1: type/symbol conflict for Zone, using {?} for now
 ====
 
 /** @record */
@@ -15,10 +15,25 @@ class Super {
 superFunc(): void {}
 }
 /**
+ * @abstract
+ */
+abstract class AbstractClass {
+/**
+ * @abstract
+ * @return {void}
+ */
+abstractFunc() {}
+/**
+ * @return {void}
+ */
+nonAbstractFunc(): void { }
+}
+/**
  * @implements {Interface}
  * @extends {Super}
+ * @extends {AbstractClass}
  */
-class Implements implements Interface, Super {
+class Implements implements Interface, Super, AbstractClass {
 /**
  * @return {void}
  */
@@ -27,6 +42,14 @@ interfaceFunc(): void {}
  * @return {void}
  */
 superFunc(): void {}
+/**
+ * @return {void}
+ */
+abstractFunc(): void {}
+/**
+ * @return {void}
+ */
+nonAbstractFunc(): void {}
 }
 /**
  * @implements {Interface}
@@ -36,6 +59,12 @@ class Extends extends Super implements Interface {
  * @return {void}
  */
 interfaceFunc(): void {}
+}
+class ExtendsAbstract extends AbstractClass {
+/**
+ * @return {void}
+ */
+abstractFunc(): void {}
 }
 
 // It's also legal to alias a type and then implement the alias.
