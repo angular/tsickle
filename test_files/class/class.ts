@@ -24,11 +24,13 @@ abstract class AbstractClass {
 // 2) interface extends
 // 3) class implements
 // 4) class extends
+// 5) abstract class implements
+// 6) abstract class extends
 
-// 1) interface implements.
-// No examples; this is not legal TypeScript.
+// Permutation 1: interface implements.
+// "interface implements" is not legal TypeScript, so no examples necessary.
 
-// 2) interface extends.
+// Permutation 2: interface extends.
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
@@ -53,7 +55,7 @@ let interfaceExtendsAbstractClass: InterfaceExtendsAbstractClass = {
   interfaceFunc2() {}
 };
 
-// 3) class implements.
+// Permutation 3: class implements.
 class ClassImplementsInterface implements Interface {
   interfaceFunc(): void {}
 }
@@ -67,14 +69,38 @@ class ClassImplementsAbstractClass implements AbstractClass {
   nonAbstractFunc(): void {}
 }
 
-// 4) class extends.
+// Permutation 4: class extends.
 // Note: cannot "extends" an interface.
-//    class ClassExtendsInterface extends Interface {
+// So this is illegal: class ClassExtendsInterface extends Interface {
 class ClassExtendsClass extends Class {
   classFunc(): void {}
 }
 class ClassExtendsAbstractClass extends AbstractClass {
   abstractFunc(): void {}
+}
+
+// Permutation 5: abstract class implements.
+abstract class AbstractClassImplementsInterface implements Interface {
+  interfaceFunc(): void {}
+}
+abstract class AbstractClassImplementsClass implements Class {
+  classFunc(): void {}
+}
+abstract class AbstractClassImplementsAbstractClass implements AbstractClass {
+  // Note: because this class *implements* AbstractClass, it must also implement
+  // abstractFunc and nonAbstractFunc despite that already having an implementation.
+  abstractFunc(): void {}
+  nonAbstractFunc(): void {}
+}
+
+// Permutation 6: abstract class extends.
+// Note: cannot "extends" an interface.
+// So this is illegal: class AbstractClassExtendsInterface extends Interface {
+abstract class AbstractClassExtendsClass extends Class {
+  classFunc(): void {}
+}
+abstract class AbstractClassExtendsAbstractClass extends AbstractClass {
+  // Note: can leave out abstractFunc() because this class is still abstract.
 }
 
 // It's also legal to alias a type and then implement the alias.

@@ -1,4 +1,4 @@
-Warning at test_files/class/class.ts:115:1: type/symbol conflict for Zone, using {?} for now
+Warning at test_files/class/class.ts:141:1: type/symbol conflict for Zone, using {?} for now
 ====
 
 /** @record */
@@ -50,11 +50,13 @@ InterfaceExtendsInterface.prototype.interfaceFunc2;
 // 2) interface extends
 // 3) class implements
 // 4) class extends
+// 5) abstract class implements
+// 6) abstract class extends
 
-// 1) interface implements.
-// No examples; this is not legal TypeScript.
+// Permutation 1: interface implements.
+// "interface implements" is not legal TypeScript, so no examples necessary.
 
-// 2) interface extends.
+// Permutation 2: interface extends.
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
@@ -153,6 +155,55 @@ class ClassExtendsAbstractClass extends AbstractClass {
  * @return {void}
  */
 abstractFunc(): void {}
+}
+/**
+ * @abstract
+ * @implements {Interface}
+ */
+abstract class AbstractClassImplementsInterface implements Interface {
+/**
+ * @return {void}
+ */
+interfaceFunc(): void {}
+}
+/**
+ * @abstract
+ * @extends {Class}
+ */
+abstract class AbstractClassImplementsClass implements Class {
+/**
+ * @return {void}
+ */
+classFunc(): void {}
+}
+/**
+ * @abstract
+ * @extends {AbstractClass}
+ */
+abstract class AbstractClassImplementsAbstractClass implements AbstractClass {
+/**
+ * @return {void}
+ */
+abstractFunc(): void {}
+/**
+ * @return {void}
+ */
+nonAbstractFunc(): void {}
+}
+/**
+ * @abstract
+ */
+abstract class AbstractClassExtendsClass extends Class {
+/**
+ * @return {void}
+ */
+classFunc(): void {}
+}
+/**
+ * @abstract
+ */
+abstract class AbstractClassExtendsAbstractClass extends AbstractClass {
+  // Note: can leave out abstractFunc() because this class is still abstract.
 }
 
 // It's also legal to alias a type and then implement the alias.

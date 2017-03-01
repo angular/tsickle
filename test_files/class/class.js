@@ -115,6 +115,54 @@ class ClassExtendsAbstractClass extends AbstractClass {
      */
     abstractFunc() { }
 }
+/**
+ * @abstract
+ * @implements {Interface}
+ */
+class AbstractClassImplementsInterface {
+    /**
+     * @return {void}
+     */
+    interfaceFunc() { }
+}
+/**
+ * @abstract
+ * @extends {Class}
+ */
+class AbstractClassImplementsClass {
+    /**
+     * @return {void}
+     */
+    classFunc() { }
+}
+/**
+ * @abstract
+ * @extends {AbstractClass}
+ */
+class AbstractClassImplementsAbstractClass {
+    /**
+     * @return {void}
+     */
+    abstractFunc() { }
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { }
+}
+/**
+ * @abstract
+ */
+class AbstractClassExtendsClass extends Class {
+    /**
+     * @return {void}
+     */
+    classFunc() { }
+}
+/**
+ * @abstract
+ */
+class AbstractClassExtendsAbstractClass extends AbstractClass {
+}
 /** @typedef {!Interface} */
 var TypeAlias;
 /**
