@@ -1,11 +1,26 @@
-# Tsickle - TypeScript to Closure Annotator [![Build Status](https://travis-ci.org/angular/tsickle.svg?branch=master)](https://travis-ci.org/angular/tsickle)
+# Tsickle - TypeScript to Closure Translator [![Build Status](https://travis-ci.org/angular/tsickle.svg?branch=master)](https://travis-ci.org/angular/tsickle)
 
-Tsickle processes TypeScript and adds [Closure Compiler]-compatible JSDoc
-annotations. This allows using TypeScript to transpile your sources, and then
+Tsickle converts TypeScript code into a form acceptible to the [Closure Compiler].
+This allows using TypeScript to transpile your sources, and then using
 Closure Compiler to bundle and optimize them, while taking advantage of type
 information in Closure Compiler.
 
 [Closure Compiler]: https://github.com/google/closure-compiler/
+
+## What conversion means
+
+A (non-exhaustive) list of the sorts of transformations Tsickle applies:
+
+- inserts Closure-compatible JSDoc annotations on functions/classes/etc
+- converts ES6 modules into `goog.module`/`goog.provide`
+- generates externs.js from TypeScript d.ts (and `declare`, see below)
+- declares types for class member variables
+- translates `export * from ...` into a form Closure accepts
+- converts TypeScript enums into a form Closure accepts
+- reprocesses all jsdoc to strip Closure-invalid tags
+
+In general the goal is that you write valid TypeScript and Tsickle handles
+making it valid Closure Compiler code.
 
 ## Installation
 
