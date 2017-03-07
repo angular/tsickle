@@ -31,3 +31,7 @@ let useDefaultClassAsType: DefaultClass;
 // NeverTyped should be {?}, even in typed mode.
 let useNeverTyped: NeverTyped;
 let useNeverTyped2: string|NeverTyped;
+/** Note: no implements JSDoc clause because the type is blacklisted. */
+class ImplementsNeverTyped implements NeverTyped {
+  foo: number;
+}

@@ -328,10 +328,15 @@ class ClosureRewriter extends Rewriter {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    let translator = new typeTranslator.TypeTranslator(
-        typeChecker, context, this.options.typeBlackListPaths, this.symbolsToAliasedNames);
+    return this.newTypeTranslator(context).translate(type);
+  }
+
+  newTypeTranslator(context: ts.Node) {
+    const translator = new typeTranslator.TypeTranslator(
+        this.program.getTypeChecker(), context, this.options.typeBlackListPaths,
+        this.symbolsToAliasedNames);
     translator.warn = msg => this.debugWarn(context, msg);
-    return translator.translate(type);
+    return translator;
   }
 
   /**
@@ -919,6 +924,9 @@ class Annotator extends ClosureRewriter {
             }
             if (sym.flags & ts.SymbolFlags.Alias) {
               sym = typeChecker.getAliasedSymbol(sym);
+            }
+            if (this.newTypeTranslator(impl.expression).isBlackListed(sym)) {
+              continue;
             }
             if (sym.flags & ts.SymbolFlags.Class) {
               tagName = 'extends';
