@@ -1,7 +1,5 @@
 Warning at test_files/type/type.ts:14:5: unhandled type literal
 Warning at test_files/type/type.ts:15:5: symbol has no declarations
-Warning at test_files/type/type.ts:34:1: unhandled type flags: TypeParameter
-Warning at test_files/type/type.ts:34:1: unhandled type flags: TypeParameter
 ====
 // Ensure we still understand what Array is, even when it has been
 // monkeypatched -- issue #170.
@@ -39,7 +37,8 @@ let /** @type {function(number, function(number): string): string} */ typeFunc3:
 function typeCallback(callback: (val: number) => number) { }
 typeCallback(val => val + 1);
 /**
- * @param {function(?): ?} callback
+ * @template T
+ * @param {function(T): T} callback
  * @return {void}
  */
 function typeGenericCallback<T>(callback: (val: T) => T) { }

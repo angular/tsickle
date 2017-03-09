@@ -20,7 +20,7 @@ describe('source maps', () => {
       class X { field: number; }
       class Y { field2: string; }`);
     const program = createProgram(sources);
-    const annotated = annotate(program, program.getSourceFile('input.ts'));
+    const annotated = annotate(program, program.getSourceFile('input.ts'), () => 'input');
     const rawMap = annotated.sourceMap.toJSON();
     const consumer = new SourceMapConsumer(rawMap);
     const lines = annotated.output.split('\n');

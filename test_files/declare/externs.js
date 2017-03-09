@@ -56,6 +56,13 @@ DeclareTestModule.StringEnum.foo;
 
 /** @typedef {(string|number)} */
 DeclareTestModule.TypeAlias;
+/** @const */
+var tsickle_declare_module = {};
+// Derived from: declare module "DeclareTest-QuotedModule"
+/** @const */
+tsickle_declare_module.DeclareTest_QuotedModule = {};
+ /** @type {string} */
+tsickle_declare_module.DeclareTest_QuotedModule.foo;
  /** @type {number} */
 var declareGlobalVar;
 
@@ -93,6 +100,20 @@ function CodeMirror(x_or_y, x) {}
 CodeMirror.Editor = function() {};
  /** @type {string} */
 CodeMirror.Editor.prototype.name;
+
+/**
+ * @param {string|number} url_or_status
+ * @param {string|number=} url_or_status1
+ * @return {void}
+ */
+function redirect(url_or_status, url_or_status1) {}
+
+/**
+ * @param {number} a
+ * @param {...?|string} b
+ * @return {string}
+ */
+function TestOverload(a, b) {}
 
 /** @record @struct */
 function BareInterface() {}

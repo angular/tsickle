@@ -10,7 +10,7 @@ function Test3(a: number, b: number) {}
 // Test overloaded functions.
 function Test4(a: number): string;
 function Test4(a: any): string {
-  return "a";
+  return 'a';
 }
 
 // Test a "this" param and a rest param in the same function.
@@ -20,7 +20,7 @@ TestThisAndRest.call('foo', 'bar', 3);
 function Destructuring({a, b}: {a: number, b: number}) {}
 function Destructuring2([a, b]: number[], [[c]]: string[][]) {}
 function Destructuring3([a, b], [[c]]) {}
-Destructuring({a:1, b:2});
+Destructuring({a: 1, b: 2});
 Destructuring2([1, 2], [['a']]);
 Destructuring3([1, 2], [['a']]);
 
@@ -30,3 +30,6 @@ function TestSplat3(...a) {}
 TestSplat(1, 2);
 TestSplat2(1, 2);
 TestSplat3(1, 2);
+
+function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
+defaultBeforeRequired(undefined, 2, 'h', 3);

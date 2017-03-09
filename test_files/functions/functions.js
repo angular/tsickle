@@ -23,7 +23,7 @@ function Test3(a, b) { }
  * @return {string}
  */
 function Test4(a) {
-    return "a";
+    return 'a';
 }
 /**
  * @this {string}
@@ -70,3 +70,11 @@ function TestSplat3(...a) { }
 TestSplat(1, 2);
 TestSplat2(1, 2);
 TestSplat3(1, 2);
+/**
+ * @param {number=} x
+ * @param {number=} y
+ * @param {...?} z
+ * @return {void}
+ */
+function defaultBeforeRequired(x = 1, y, ...z) { }
+defaultBeforeRequired(undefined, 2, 'h', 3);

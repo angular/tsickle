@@ -18,11 +18,15 @@ goog.module('test_files.fields.fields');var module = module || {id: 'test_files/
 }
 function FieldsTest_tsickle_Closure_declarations() {
     /** @type {string} */
+    /** @type {string} */
     FieldsTest.prototype.field1;
+    /** @type {number} */
     /** @type {number} */
     FieldsTest.prototype.field2;
     /** @type {string} */
+    /** @type {string} */
     FieldsTest.prototype.field4;
+    /** @type {number} */
     /** @type {number} */
     FieldsTest.prototype.field3;
 }

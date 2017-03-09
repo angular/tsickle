@@ -46,6 +46,7 @@ declare class OverloadSimpleArgs {
   overloaded(a: string): void;
   overloaded(a: number, b: boolean): void;
   overloaded(a: string, b: boolean, c: number): void;
+  overloaded(a: string, b: boolean, c: number, ...d: any[]): void;
 }
 
 
@@ -92,4 +93,9 @@ declare class Merged {
       a_or_c_or_e_or_f: string|number|Array<OverloadBigMix>|OverloadBigMix[],
       opt_b: number) : void|number|boolean;
   variadic(...test: number[]): void;
+}
+
+declare class OverloadTypeArgs {
+  typeArged<T>(a: number, b: T): T;
+  typeArged<T, U>(a: T, b: U): U;
 }

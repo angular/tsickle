@@ -16,7 +16,9 @@ class Foo {
 }
 function Foo_tsickle_Closure_declarations() {
     /** @type {?|undefined} */
+    /** @type {?|undefined} */
     Foo.prototype.field;
+    /** @type {?|undefined} */
     /** @type {?|undefined} */
     Foo.prototype.ctorArg;
 }

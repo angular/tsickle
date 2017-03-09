@@ -58,9 +58,10 @@ function OverloadSimpleArgs() {}
  * @param {string|number} a
  * @param {boolean=} b
  * @param {number=} c
+ * @param {...?} d
  * @return {void}
  */
-OverloadSimpleArgs.prototype.overloaded = function(a, b, c) {};
+OverloadSimpleArgs.prototype.overloaded = function(a, b, c, d) {};
 
 /** @constructor @struct */
 function OverloadNameVariants() {}
@@ -126,3 +127,14 @@ Merged.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
  * @return {void}
  */
 Merged.prototype.variadic = function(test) {};
+
+/** @constructor @struct */
+function OverloadTypeArgs() {}
+
+/**
+ * @template T, U
+ * @param {number|T} a
+ * @param {T|U} b
+ * @return {T|U}
+ */
+OverloadTypeArgs.prototype.typeArged = function(a, b) {};

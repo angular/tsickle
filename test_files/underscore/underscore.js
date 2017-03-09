@@ -3,6 +3,7 @@ goog.module('test_files.underscore.underscore');var module = module || {id: 'tes
 
 var export_underscore_1 = goog.require('test_files.underscore.export_underscore');
 exports.__test = export_underscore_1.__test;
+const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.underscore.export_underscore');
 let /** @type {number} */ __foo = 3;
 exports.__bar = __foo;
 class __Class {
@@ -18,5 +19,7 @@ function __Class_tsickle_Closure_declarations() {
     /** @type {string} */
     __Class.prototype.__member;
 }
-/** @record */
+/**
+ * @record
+ */
 function __Interface() { }
