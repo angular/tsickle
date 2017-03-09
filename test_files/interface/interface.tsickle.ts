@@ -1,14 +1,30 @@
 
-/** @record */
-function Point() {}
+/**
+ * Used by implement_import.ts
+ * @record
+ */
+export function Point() {}
 /** @type {number} */
 Point.prototype.x;
 /** @type {number} */
 Point.prototype.y;
-interface Point {
+/** Used by implement_import.ts */
+export interface Point {
   x: number;
   y: number;
 }
+/**
+ * Used by implement_import.ts
+ */
+export class User {
+  shoeSize: number;
+}
+
+function User_tsickle_Closure_declarations() {
+/** @type {number} */
+User.prototype.shoeSize;
+}
+
 /**
  * @param {!Point} p
  * @return {number}
@@ -17,10 +33,12 @@ function usePoint(p: Point): number {
   return p.x + p.y;
 }
 
-let /** @type {!Point} */ p: Point = {x:1, y:1};
+let /** @type {!Point} */ p: Point = {x: 1, y: 1};
 usePoint(p);
-usePoint({x:1, y:1});
-/** @record */
+usePoint({x: 1, y: 1});
+/**
+ * @record
+ */
 function TrickyInterface() {}
 /* TODO: handle strange member:
 [offset: number]: number;
@@ -29,10 +47,17 @@ function TrickyInterface() {}
 TrickyInterface.prototype.foo;
 /* TODO: handle strange member:
 (x: number): __ yuck __
-    number;
+      number;
 */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/**
+ * \@param a some string value
+ * \@return some number value
+ * @override
+ * @type {function(string): number}
+ */
+TrickyInterface.prototype.hasSomeParamJsDoc;
 
 
 /*
@@ -49,7 +74,13 @@ interface TrickyInterface {
   [offset: number]: number;
   'foo': number;
   (x: number): /* yuck */
-    number;
+      number;
   // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
+  /**
+   * @param a some string value
+   * @return some number value
+   * @override
+   */
+  hasSomeParamJsDoc: (a: string) => number;
 }

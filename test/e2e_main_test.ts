@@ -7,10 +7,9 @@
  */
 
 import {assert, expect} from 'chai';
-import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
-import {Settings, toClosureJS} from '../src/main';
+import {toClosureJS} from '../src/main';
 
 describe('toClosureJS', () => {
   it('creates externs, adds type comments and rewrites imports', function() {
@@ -19,13 +18,12 @@ describe('toClosureJS', () => {
     const closure = toClosureJS(
         {sourceMap: true, experimentalDecorators: true} as ts.CompilerOptions,
         ['test_files/underscore/export_underscore.ts', 'test_files/underscore/underscore.ts'],
-        {isUntyped: false} as Settings, diagnostics);
+        {isTyped: true}, diagnostics);
 
     if (!closure) {
       diagnostics.forEach(v => console.log(JSON.stringify(v)));
       assert.fail();
-      // TODO(lucassloan): remove when the .d.ts has the correct types
-      return {compiledJS: '', sourceMap: new SourceMapConsumer('' as any)};
+      return;
     }
 
     expect(closure.externs).to.contain(`/** @const */

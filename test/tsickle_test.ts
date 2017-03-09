@@ -62,7 +62,7 @@ function compareAgainstGolden(output: string|null, path: string) {
       }
     }
   } else {
-    expect(output).to.equal(golden);
+    expect(output).to.equal(golden, path);
   }
 }
 
@@ -133,7 +133,13 @@ testFn('golden tests', () => {
         };
         // Run TypeScript through tsickle and compare against goldens.
         let {output, externs, diagnostics} = tsickle.annotate(
-            program, program.getSourceFile(tsPath), options, {
+            program, program.getSourceFile(tsPath),
+            (context, importPath) => {
+              importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
+              if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
+              return importPath.replace(/\//g, '.');
+            },
+            options, {
               fileExists: ts.sys.fileExists,
               readFile: ts.sys.readFile,
             },

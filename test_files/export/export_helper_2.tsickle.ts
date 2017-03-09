@@ -3,3 +3,16 @@
 export let /** @type {number} */ export2 = 3;
 export let /** @type {number} */ export3 = 3;
 export let /** @type {number} */ export4 = 3;
+
+export type TypeDef = string|number;
+/** @typedef {(string|number)} */
+exports.TypeDef;
+
+/**
+ * @record
+ */
+export function Interface() {}
+/** @type {string} */
+Interface.prototype.x;
+
+export interface Interface { x: string; }

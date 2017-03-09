@@ -1,5 +1,7 @@
 
-/** @record */
+/**
+ * @record
+ */
 export function NeverTyped() {}
 /** @type {number} */
 NeverTyped.prototype.foo;

@@ -16,3 +16,5 @@ let export2 = 3;
 
 // This is just an import, so export5 should still be included.
 import {export5} from './export_helper';
+
+export * from './type_and_value';

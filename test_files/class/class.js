@@ -1,41 +1,144 @@
-goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};/** @record */
+goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};/**
+ * @record
+ */
 function Interface() { }
 /** @type {function(): void} */
 Interface.prototype.interfaceFunc;
-class Super {
+class Class {
     /**
      * @return {void}
      */
-    superFunc() { }
+    classFunc() { }
 }
 /**
- * @implements {Interface}
- * @extends {Super}
+ * @abstract
  */
-class Implements {
+class AbstractClass {
+    /**
+     * @abstract
+     * @return {void}
+     */
+    abstractFunc() { }
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { }
+}
+/**
+ * @record
+ * @extends {Interface}
+ */
+function InterfaceExtendsInterface() { }
+/** @type {function(): void} */
+InterfaceExtendsInterface.prototype.interfaceFunc2;
+// Note: interfaces can only extend interfaces, so there's no
+// InterfaceExtendsClass etc.
+let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
+    /**
+     * @return {void}
+     */
+    interfaceFunc() { },
+    /**
+     * @return {void}
+     */
+    interfaceFunc2() { }
+};
+/**
+ * @implements {Interface}
+ */
+class ClassImplementsInterface {
     /**
      * @return {void}
      */
     interfaceFunc() { }
+}
+/**
+ * @extends {Class}
+ */
+class ClassImplementsClass {
     /**
      * @return {void}
      */
-    superFunc() { }
+    classFunc() { }
 }
 /**
+ * @extends {AbstractClass}
+ */
+class ClassImplementsAbstractClass {
+    /**
+     * @return {void}
+     */
+    abstractFunc() { }
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { }
+}
+class ClassExtendsClass extends Class {
+    /**
+     * @return {void}
+     */
+    classFunc() { }
+}
+class ClassExtendsAbstractClass extends AbstractClass {
+    /**
+     * @return {void}
+     */
+    abstractFunc() { }
+}
+/**
+ * @abstract
  * @implements {Interface}
  */
-class Extends extends Super {
+class AbstractClassImplementsInterface {
     /**
      * @return {void}
      */
     interfaceFunc() { }
+}
+/**
+ * @abstract
+ * @extends {Class}
+ */
+class AbstractClassImplementsClass {
+    /**
+     * @return {void}
+     */
+    classFunc() { }
+}
+/**
+ * @abstract
+ * @extends {AbstractClass}
+ */
+class AbstractClassImplementsAbstractClass {
+    /**
+     * @return {void}
+     */
+    abstractFunc() { }
+    /**
+     * @return {void}
+     */
+    nonAbstractFunc() { }
+}
+/**
+ * @abstract
+ */
+class AbstractClassExtendsClass extends Class {
+    /**
+     * @return {void}
+     */
+    classFunc() { }
+}
+/**
+ * @abstract
+ */
+class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /** @typedef {!Interface} */
 var TypeAlias;
 /**
  * @implements {TypeAlias}
- * @extends {Super}
+ * @extends {Class}
  */
 class ImplementsTypeAlias {
     /**
@@ -45,17 +148,22 @@ class ImplementsTypeAlias {
     /**
      * @return {void}
      */
-    superFunc() { }
+    classFunc() { }
 }
-// Verify Closure accepts the various casts.
+// Verify Closure accepts the various subtypes of Interface.
 let /** @type {!Interface} */ interfaceVar;
-interfaceVar = new Implements();
-interfaceVar = new Extends();
+interfaceVar = interfaceExtendsInterface;
+interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
-let /** @type {!Super} */ superVar;
-superVar = new Implements();
-superVar = new Extends();
-superVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of Class.
+let /** @type {!Class} */ classVar;
+classVar = new ClassImplementsClass();
+classVar = new ClassExtendsClass();
+classVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of AbstractClass.
+let /** @type {!AbstractClass} */ abstractClassVar;
+abstractClassVar = new ClassImplementsAbstractClass();
+abstractClassVar = new ClassExtendsAbstractClass();
 /**
  * @return {void}
  */

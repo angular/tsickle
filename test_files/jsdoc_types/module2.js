@@ -5,11 +5,16 @@ exports.ClassOne = ClassOne;
 class ClassTwo {
 }
 exports.ClassTwo = ClassTwo;
-/** @record */
+/**
+ * @record
+ */
 function Interface() { }
 exports.Interface = Interface;
 /** @type {number} */
 Interface.prototype.x;
+/**
+ * @template T
+ */
 class ClassWithParams {
 }
 exports.ClassWithParams = ClassWithParams;

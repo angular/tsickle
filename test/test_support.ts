@@ -56,9 +56,9 @@ export function createProgram(sources: Map<string, string>): ts.Program {
                            onError?: (msg: string) => void): ts.SourceFile {
     if (fileName === cachedLibPath) return cachedLib;
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
-    let file = sources.get(fileName);
-    if (file) {
-      return ts.createSourceFile(fileName, file, ts.ScriptTarget.Latest, true);
+    let contents = sources.get(fileName);
+    if (contents !== undefined) {
+      return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
     }
     throw new Error('unexpected file read of ' + fileName + ' not in ' + toArray(sources.keys()));
   };

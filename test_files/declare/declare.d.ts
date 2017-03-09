@@ -31,8 +31,10 @@ declare namespace DeclareTestModule {
   type TypeAlias = string | number;
 }
 
-// This module is quoted, so it shouldn't show up in externs.js.
-declare module "DeclareTestQuotedModule" {
+// This module is quoted, which declares an importable module.
+// We can't model this in externs beyond making sure it's declared
+// in *some* namespace;
+declare module "DeclareTest-QuotedModule" {
   var foo: string;
 }
 
@@ -67,6 +69,15 @@ declare module CodeMirror {
     name: string;
   }
 }
+
+// Test overloaded functions with confusing parameter names.
+declare function redirect(url: string): void;
+declare function redirect(status: number, url: string): void;
+declare function redirect(url: string, status: number): void;
+
+// Test an overload with a rest param occurring before an ordinary function.
+declare function TestOverload(a: number, ...b: any[]): string;
+declare function TestOverload(a: number, b: string, c: string): string;
 
 // An interface that is not tagged with "declare", but exists in a
 // d.ts file so it should show up in the externs anyway.

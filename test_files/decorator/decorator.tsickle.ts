@@ -19,9 +19,6 @@ function annotationDecorator(a: Object, b: string) {}
 function classDecorator(t: any) { return t; }
 
 type classAnnotation = {};
-/** @typedef {!Object} */
-var classAnnotation;
-
 /**
  * \@Annotation
  * @param {?} t
@@ -35,7 +32,9 @@ private y: number;
 static decorators: DecoratorInvocation[] = [
 { type: classAnnotation },
 ];
-/** @nocollapse */
+/**
+ * @nocollapse
+ */
 static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
 ];
 static propDecorators: {[key: string]: DecoratorInvocation[]} = {
@@ -69,7 +68,9 @@ function DecoratedClass_tsickle_Closure_declarations() {
 DecoratedClass.prototype.z;
 }
 
-/** @record */
+/**
+ * @record
+ */
 function DecoratorInvocation() {}
 /** @type {!Function} */
 DecoratorInvocation.prototype.type;

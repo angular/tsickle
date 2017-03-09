@@ -4,3 +4,12 @@ goog.module('test_files.export.export_helper_2');var module = module || {id: 'te
 exports.export2 = 3;
 exports.export3 = 3;
 exports.export4 = 3;
+/** @typedef {(string|number)} */
+exports.TypeDef;
+/**
+ * @record
+ */
+function Interface() { }
+exports.Interface = Interface;
+/** @type {string} */
+Interface.prototype.x;

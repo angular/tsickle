@@ -2,6 +2,7 @@
 // See getIdentifierText() in tsickle.ts.
 
 export {__test} from './export_underscore';
+const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.underscore.export_underscore');
 
 let /** @type {number} */ __foo = 3;
 export {__foo as __bar};
@@ -21,7 +22,9 @@ function __Class_tsickle_Closure_declarations() {
 __Class.prototype.__member;
 }
 
-/** @record */
+/**
+ * @record
+ */
 function __Interface() {}
 
 interface __Interface {}

@@ -1,15 +1,21 @@
-interface Point {
+/** Used by implement_import.ts */
+export interface Point {
   x: number;
   y: number;
+}
+
+/** Used by implement_import.ts */
+export class User {
+  shoeSize: number;
 }
 
 function usePoint(p: Point): number {
   return p.x + p.y;
 }
 
-let p: Point = {x:1, y:1};
+let p: Point = {x: 1, y: 1};
 usePoint(p);
-usePoint({x:1, y:1});
+usePoint({x: 1, y: 1});
 
 /*
 TODO: this example crashes the compiler -- I've mailed the team about it.
@@ -25,7 +31,13 @@ interface TrickyInterface {
   [offset: number]: number;
   'foo': number;
   (x: number): /* yuck */
-    number;
+      number;
   // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
+  /**
+   * @param a some string value
+   * @return some number value
+   * @override
+   */
+  hasSomeParamJsDoc: (a: string) => number;
 }

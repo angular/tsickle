@@ -3,6 +3,6 @@ sudo: false
 node_js:
   - "stable"
 before_script:
-  - npm install
+  - yarn
 script:
-  - npm test
+  - yarn test

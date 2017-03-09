@@ -74,3 +74,11 @@ function TestSplat3(...a) {}
 TestSplat(1, 2);
 TestSplat2(1, 2);
 TestSplat3(1, 2);
+/**
+ * @param {?=} x
+ * @param {?=} y
+ * @param {...?} z
+ * @return {?}
+ */
+function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
+defaultBeforeRequired(undefined, 2, 'h', 3);

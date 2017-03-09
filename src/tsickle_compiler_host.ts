@@ -5,7 +5,8 @@ import * as ts from 'typescript';
 import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
-import {annotate} from './tsickle';
+import * as sourceMapUtils from './source_map_utils';
+import {annotate, isDtsFileName} from './tsickle';
 
 /**
  * Tsickle can perform 2 different precompilation transforms - decorator downleveling
@@ -20,11 +21,28 @@ export enum Pass {
   CLOSURIZE
 }
 
-export interface TsickleCompilerHostOptions {
-  googmodule: boolean;
-  es5Mode: boolean;
-  tsickleTyped: boolean;
-  prelude: string;
+export interface Options {
+  googmodule?: boolean;
+  es5Mode?: boolean;
+  prelude?: string;
+  /**
+   * If true, convert every type to the Closure {?} type, which means
+   * "don't check types".
+   */
+  untyped?: boolean;
+  /**
+   * If provided a function that logs an internal warning.
+   * These warnings are not actionable by an end user and should be hidden
+   * by default.
+   */
+  logWarning?: (warning: ts.Diagnostic) => void;
+  /** If provided, a set of paths whose types should always generate as {?}. */
+  typeBlackListPaths?: Set<string>;
+  /**
+   * Convert shorthand "/index" imports to full path (include the "/index").
+   * Annotation will be slower because every import must be resolved.
+   */
+  convertIndexImportShorthand?: boolean;
 }
 
 /**
@@ -78,13 +96,44 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   /** externs.js files produced by tsickle, if any. */
   public externs: {[fileName: string]: string} = {};
 
+  private sourceFileToPreexistingSourceMap = new Map<ts.SourceFile, SourceMapGenerator>();
+  private preexistingSourceMaps = new Map<string, SourceMapGenerator>();
   private decoratorDownlevelSourceMaps = new Map<string, SourceMapGenerator>();
   private tsickleSourceMaps = new Map<string, SourceMapGenerator>();
 
+  private runConfiguration: {oldProgram: ts.Program, pass: Pass}|undefined;
+
   constructor(
-      private delegate: ts.CompilerHost, private options: TsickleCompilerHostOptions,
-      private environment: TsickleHost,
-      private runConfiguration?: {oldProgram: ts.Program, pass: Pass}) {}
+      private delegate: ts.CompilerHost, private tscOptions: ts.CompilerOptions,
+      private options: Options, private environment: TsickleHost) {
+    // ts.CompilerHost includes a bunch of optional methods.  If they're
+    // present on the delegate host, we want to delegate them.
+    if (this.delegate.getCancellationToken) {
+      this.getCancellationToken = this.delegate.getCancellationToken!.bind(this.delegate);
+    }
+    if (this.delegate.getDefaultLibLocation) {
+      this.getDefaultLibLocation = this.delegate.getDefaultLibLocation!.bind(this.delegate);
+    }
+    if (this.delegate.resolveModuleNames) {
+      this.resolveModuleNames = this.delegate.resolveModuleNames!.bind(this.delegate);
+    }
+    if (this.delegate.resolveTypeReferenceDirectives) {
+      this.resolveTypeReferenceDirectives =
+          this.delegate.resolveTypeReferenceDirectives!.bind(this.delegate);
+    }
+    if (this.delegate.getEnvironmentVariable) {
+      this.getEnvironmentVariable = this.delegate.getEnvironmentVariable!.bind(this.delegate);
+    }
+    if (this.delegate.trace) {
+      this.trace = this.delegate.trace!.bind(this.delegate);
+    }
+    if (this.delegate.directoryExists) {
+      this.directoryExists = this.delegate.directoryExists!.bind(this.delegate);
+    }
+    if (this.delegate.realpath) {
+      this.delegate.realpath = this.delegate.realpath!.bind(this.delegate);
+    }
+  }
 
   /**
    * Tsickle can perform 2 kinds of precompilation source transforms - decorator
@@ -103,7 +152,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void): ts.SourceFile {
     if (this.runConfiguration === undefined || this.runConfiguration.pass === Pass.NONE) {
-      return this.delegate.getSourceFile(fileName, languageVersion, onError);
+      const sourceFile = this.delegate.getSourceFile(fileName, languageVersion, onError);
+      return this.stripAndStoreExistingSourceMap(sourceFile);
     }
 
     const sourceFile = this.runConfiguration.oldProgram.getSourceFile(fileName);
@@ -123,55 +173,106 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       fileName: string, content: string, writeByteOrderMark: boolean,
       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
     if (path.extname(fileName) !== '.map') {
-      fileName = this.delegate.getCanonicalFileName(fileName);
-      if (this.options.googmodule && !fileName.match(/\.d\.ts$/)) {
+      if (!isDtsFileName(fileName) && this.tscOptions.inlineSourceMap) {
+        content = this.combineInlineSourceMaps(fileName, content);
+      }
+      if (this.options.googmodule && !isDtsFileName(fileName)) {
         content = this.convertCommonJsToGoogModule(fileName, content);
       }
     } else {
-      content = this.combineSourceMaps(content);
+      content = this.combineSourceMaps(fileName, content);
     }
 
     this.delegate.writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
   }
 
-  sourceMapConsumerToGenerator(sourceMapConsumer: SourceMapConsumer): SourceMapGenerator {
-    return SourceMapGenerator.fromSourceMap(sourceMapConsumer);
+  getSourceMapKeyForPathAndName(outputFilePath: string, sourceFileName: string): string {
+    const fileDir = path.dirname(outputFilePath);
+
+    return this.getCanonicalFileName(path.resolve(fileDir, sourceFileName));
   }
 
-  sourceMapGeneratorToConsumer(sourceMapGenerator: SourceMapGenerator): SourceMapConsumer {
-    const rawSourceMap = sourceMapGenerator.toJSON();
-    return new SourceMapConsumer(rawSourceMap);
+  getSourceMapKeyForSourceFile(sourceFile: ts.SourceFile): string {
+    return this.getCanonicalFileName(path.resolve(sourceFile.path));
   }
 
-  sourceMapTextToConsumer(sourceMapText: string): SourceMapConsumer {
-    const sourceMapJson: any = sourceMapText;
-    return new SourceMapConsumer(sourceMapJson);
+  stripAndStoreExistingSourceMap(sourceFile: ts.SourceFile): ts.SourceFile {
+    // Because tsc doesn't have strict null checks, it can pass us an
+    // undefined sourceFile, but we can't acknowledge that it does, because
+    // we have to comply with their interface, which doesn't allow
+    // undefined as far as we're concerned
+    if (sourceFile && sourceMapUtils.containsInlineSourceMap(sourceFile.text)) {
+      const sourceMapJson = sourceMapUtils.extractInlineSourceMap(sourceFile.text);
+      const sourceMap = sourceMapUtils.sourceMapTextToGenerator(sourceMapJson);
+
+      const stripedSourceText = sourceMapUtils.removeInlineSourceMap(sourceFile.text);
+      const stripedSourceFile =
+          ts.createSourceFile(sourceFile.fileName, stripedSourceText, sourceFile.languageVersion);
+      this.sourceFileToPreexistingSourceMap.set(stripedSourceFile, sourceMap);
+      return stripedSourceFile;
+    }
+
+    return sourceFile;
   }
 
-  combineSourceMaps(tscSourceMapText: string): string {
-    const tscSourceMapConsumer = this.sourceMapTextToConsumer(tscSourceMapText);
-    const tscSourceMapGenerator = this.sourceMapConsumerToGenerator(tscSourceMapConsumer);
+  combineSourceMaps(filePath: string, tscSourceMapText: string): string {
+    // We stripe inline source maps off source files before they've been parsed
+    // which is before they have path properties, so we need to construct the
+    // map of sourceMapKey to preexistingSourceMap after the whole program has been
+    // loaded.
+    if (this.sourceFileToPreexistingSourceMap.size > 0 && this.preexistingSourceMaps.size === 0) {
+      this.sourceFileToPreexistingSourceMap.forEach((sourceMap, sourceFile) => {
+        const sourceMapKey = this.getSourceMapKeyForSourceFile(sourceFile);
+        this.preexistingSourceMaps.set(sourceMapKey, sourceMap);
+      });
+    }
+
+    const tscSourceMapConsumer = sourceMapUtils.sourceMapTextToConsumer(tscSourceMapText);
+    const tscSourceMapGenerator = sourceMapUtils.sourceMapConsumerToGenerator(tscSourceMapConsumer);
+
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
-        const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceFileName)!;
-        const tsickleSourceMapConsumer =
-            this.sourceMapGeneratorToConsumer(tsickleSourceMapGenerator);
+        const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
+        const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceMapKey)!;
+        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
+            tsickleSourceMapGenerator, sourceFileName);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
       }
     }
     if (this.decoratorDownlevelSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+        const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const decoratorDownlevelSourceMapGenerator =
-            this.decoratorDownlevelSourceMaps.get(sourceFileName)!;
+            this.decoratorDownlevelSourceMaps.get(sourceMapKey)!;
         const decoratorDownlevelSourceMapConsumer =
-            this.sourceMapGeneratorToConsumer(decoratorDownlevelSourceMapGenerator);
+            sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
+                decoratorDownlevelSourceMapGenerator, sourceFileName);
         tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
       }
     }
+    if (this.preexistingSourceMaps.size > 0) {
+      // TODO(lucassloan): remove when the .d.ts has the correct types
+      for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+        const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
+        const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
+        if (preexistingSourceMapGenerator) {
+          const preexistingSourceMapConsumer =
+              new SourceMapConsumer(preexistingSourceMapGenerator.toJSON());
+          tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
+        }
+      }
+    }
+
 
     return tscSourceMapGenerator.toString();
+  }
+
+  combineInlineSourceMaps(filePath: string, compiledJsWithInlineSourceMap: string): string {
+    const sourceMapJson = sourceMapUtils.extractInlineSourceMap(compiledJsWithInlineSourceMap);
+    const composedSourceMap = this.combineSourceMaps(filePath, sourceMapJson);
+    return sourceMapUtils.setInlineSourceMap(compiledJsWithInlineSourceMap, composedSourceMap);
   }
 
   convertCommonJsToGoogModule(fileName: string, content: string): string {
@@ -193,6 +294,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   private downlevelDecorators(
       sourceFile: ts.SourceFile, program: ts.Program, fileName: string,
       languageVersion: ts.ScriptTarget): ts.SourceFile {
+    this.decoratorDownlevelSourceMaps.set(
+        this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
     if (this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
     let fileContent = sourceFile.text;
     const converted = convertDecorators(program.getTypeChecker(), sourceFile);
@@ -204,20 +307,24 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       return sourceFile;
     }
     fileContent = converted.output + ANNOTATION_SUPPORT;
-    this.decoratorDownlevelSourceMaps.set(fileName, converted.sourceMap);
+    this.decoratorDownlevelSourceMaps.set(
+        this.getSourceMapKeyForSourceFile(sourceFile), converted.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
   }
 
   private closurize(
       sourceFile: ts.SourceFile, program: ts.Program, fileName: string,
       languageVersion: ts.ScriptTarget): ts.SourceFile {
-    let isDefinitions = /\.d\.ts$/.test(fileName);
+    this.tsickleSourceMaps.set(
+        this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
+    let isDefinitions = isDtsFileName(fileName);
     // Don't tsickle-process any d.ts that isn't a compilation target;
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} =
-        annotate(program, sourceFile, {untyped: !this.options.tsickleTyped});
+    let {output, externs, diagnostics, sourceMap} = annotate(
+        program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
+        this.delegate, this.tscOptions);
     if (externs) {
       this.externs[fileName] = externs;
     }
@@ -229,7 +336,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
     }
     this.diagnostics = diagnostics;
-    this.tsickleSourceMaps.set(path.parse(fileName).base, sourceMap);
+    this.tsickleSourceMaps.set(this.getSourceMapKeyForSourceFile(sourceFile), sourceMap);
     return ts.createSourceFile(fileName, output, languageVersion, true);
   }
 
@@ -244,7 +351,6 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   // Delegate everything else to the original compiler host.
-
   fileExists(fileName: string): boolean {
     return this.delegate.fileExists(fileName);
   }
@@ -276,4 +382,17 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   getCanonicalFileName(fileName: string): string {
     return this.delegate.getCanonicalFileName(fileName);
   }
+
+  // Optional delegated methods, see constructor
+  public getCancellationToken: (() => ts.CancellationToken)|undefined;
+  public getDefaultLibLocation: (() => string)|undefined;
+  public resolveModuleNames:
+      ((moduleNames: string[], containingFile: string) => ts.ResolvedModule[])|undefined;
+  public resolveTypeReferenceDirectives:
+      ((typeReferenceDirectiveNames: string[],
+        containingFile: string) => ts.ResolvedTypeReferenceDirective[])|undefined;
+  public getEnvironmentVariable: ((name: string) => string)|undefined;
+  public trace: ((s: string) => void)|undefined;
+  public directoryExists: ((directoryName: string) => boolean)|undefined;
+  public realpath: ((path: string) => string)|undefined;
 }
