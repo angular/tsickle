@@ -6,9 +6,7 @@ goog.module('test_files.interface.interface');var module = module || {id: 'test_
 function Point() { }
 exports.Point = Point;
 /** @type {number} */
-/** @type {number} */
 Point.prototype.x;
-/** @type {number} */
 /** @type {number} */
 Point.prototype.y;
 /**
@@ -18,7 +16,6 @@ class User {
 }
 exports.User = User;
 function User_tsickle_Closure_declarations() {
-    /** @type {number} */
     /** @type {number} */
     User.prototype.shoeSize;
 }
@@ -40,24 +37,15 @@ function TrickyInterface() { }
 [offset: number]: number;
 */
 /** @type {number} */
-/** @type {number} */
 TrickyInterface.prototype.foo;
 /* TODO: handle strange member:
 (x: number): __ yuck __
-    number;
+      number;
 */
-/** @type {(undefined|string)} */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
 /** @type {?|undefined} */
-/** @type {?|undefined} */
 TrickyInterface.prototype.optAny;
-/**
- * @param a some string value
- * @return some number value
- * @override
- * @type {function(string): number}
- */
 /**
  * \@param a some string value
  * \@return some number value

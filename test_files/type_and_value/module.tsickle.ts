@@ -6,6 +6,5 @@ export class Class { z: number }
 
 function Class_tsickle_Closure_declarations() {
 /** @type {number} */
-/** @type {number} */
 Class.prototype.z;
 }

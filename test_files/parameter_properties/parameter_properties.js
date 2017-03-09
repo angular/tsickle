@@ -13,12 +13,7 @@ function ParamProps_tsickle_Closure_declarations() {
      * @export
      * @type {string}
      */
-    /**
-     * @export
-     * @type {string}
-     */
     ParamProps.prototype.bar;
-    /** @type {string} */
     /** @type {string} */
     ParamProps.prototype.bar2;
 }

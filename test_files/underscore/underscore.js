@@ -17,7 +17,6 @@ class __Class {
 }
 function __Class_tsickle_Closure_declarations() {
     /** @type {string} */
-    /** @type {string} */
     __Class.prototype.__member;
 }
 /**

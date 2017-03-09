@@ -6,7 +6,6 @@ goog.module('test_files.structural.untyped.structural.untyped');var module = mod
 }
 function StructuralTest_tsickle_Closure_declarations() {
     /** @type {?|undefined} */
-    /** @type {?|undefined} */
     StructuralTest.prototype.field1;
 }
 /**

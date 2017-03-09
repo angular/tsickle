@@ -36,6 +36,5 @@ class ImplementsNeverTyped {
 }
 function ImplementsNeverTyped_tsickle_Closure_declarations() {
     /** @type {number} */
-    /** @type {number} */
     ImplementsNeverTyped.prototype.foo;
 }

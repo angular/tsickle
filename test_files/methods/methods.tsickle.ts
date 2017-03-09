@@ -23,7 +23,6 @@ set f(n: number) { this._f = n - 1; }
 
 function HasMethods_tsickle_Closure_declarations() {
 /** @type {number} */
-/** @type {number} */
 HasMethods.prototype._f;
 }
 

@@ -5,7 +5,6 @@ goog.module('test_files.import_only_types.types_only');var module = module || {i
 function Foo() { }
 exports.Foo = Foo;
 /** @type {string} */
-/** @type {string} */
 Foo.prototype.x;
 /** @typedef {number} */
 exports.Bar;

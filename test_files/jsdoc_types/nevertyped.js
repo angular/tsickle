@@ -5,5 +5,4 @@ goog.module('test_files.jsdoc_types.nevertyped');var module = module || {id: 'te
 function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
 /** @type {number} */
-/** @type {number} */
 NeverTyped.prototype.foo;

@@ -8,5 +8,4 @@ exports.Class = Class;
 function Interface() { }
 exports.Interface = Interface;
 /** @type {number} */
-/** @type {number} */
 Interface.prototype.x;

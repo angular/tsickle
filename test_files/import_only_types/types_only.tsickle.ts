@@ -4,7 +4,6 @@
  */
 export function Foo() {}
 /** @type {string} */
-/** @type {string} */
 Foo.prototype.x;
 // Exports only types, but must still be goog.require'd for Closure Compiler.
 

@@ -11,7 +11,6 @@ exports.ClassTwo = ClassTwo;
 function Interface() { }
 exports.Interface = Interface;
 /** @type {number} */
-/** @type {number} */
 Interface.prototype.x;
 /**
  * @template T

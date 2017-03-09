@@ -9,7 +9,6 @@ method(): string { return this.field1; }
 
 function StructuralTest_tsickle_Closure_declarations() {
 /** @type {?|undefined} */
-/** @type {?|undefined} */
 StructuralTest.prototype.field1;
 }
 
