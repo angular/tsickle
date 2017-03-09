@@ -6,7 +6,9 @@ exports.export3 = 3;
 exports.export4 = 3;
 /** @typedef {(string|number)} */
 exports.TypeDef;
-/** @record */
+/**
+ * @record
+ */
 function Interface() { }
 exports.Interface = Interface;
 /** @type {string} */

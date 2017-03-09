@@ -22,7 +22,9 @@ function __Class_tsickle_Closure_declarations() {
 __Class.prototype.__member;
 }
 
-/** @record */
+/**
+ * @record
+ */
 function __Interface() {}
 
 interface __Interface {}

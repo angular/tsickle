@@ -1,5 +1,8 @@
 
-/** @record */
+/**
+ * Used by implement_import.ts
+ * @record
+ */
 export function Point() {}
 /** @type {number} */
 Point.prototype.x;
@@ -33,7 +36,9 @@ function usePoint(p: Point): number {
 let /** @type {!Point} */ p: Point = {x: 1, y: 1};
 usePoint(p);
 usePoint({x: 1, y: 1});
-/** @record */
+/**
+ * @record
+ */
 function TrickyInterface() {}
 /* TODO: handle strange member:
 [offset: number]: number;

@@ -2,7 +2,9 @@ goog.module('test_files.jsdoc_types.module1');var module = module || {id: 'test_
 class Class {
 }
 exports.Class = Class;
-/** @record */
+/**
+ * @record
+ */
 function Interface() { }
 exports.Interface = Interface;
 /** @type {number} */

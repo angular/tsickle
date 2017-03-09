@@ -1,5 +1,8 @@
 goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};
-/** @record */
+/**
+ * Used by implement_import.ts
+ * @record
+ */
 function Point() { }
 exports.Point = Point;
 /** @type {number} */
@@ -26,7 +29,9 @@ function usePoint(p) {
 let /** @type {!Point} */ p = { x: 1, y: 1 };
 usePoint(p);
 usePoint({ x: 1, y: 1 });
-/** @record */
+/**
+ * @record
+ */
 function TrickyInterface() { }
 /* TODO: handle strange member:
 [offset: number]: number;

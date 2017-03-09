@@ -24,7 +24,8 @@ let /** @type {function(number, function(number): string): string} */ typeFunc3 
 function typeCallback(callback) { }
 typeCallback(val => val + 1);
 /**
- * @param {function(?): ?} callback
+ * @template T
+ * @param {function(T): T} callback
  * @return {void}
  */
 function typeGenericCallback(callback) { }

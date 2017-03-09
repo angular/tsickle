@@ -8,7 +8,9 @@ export type TypeDef = string|number;
 /** @typedef {(string|number)} */
 exports.TypeDef;
 
-/** @record */
+/**
+ * @record
+ */
 export function Interface() {}
 /** @type {string} */
 Interface.prototype.x;

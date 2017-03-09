@@ -6,7 +6,9 @@ const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.export.export_
 exports.TypeDef; // re-export typedef
 export let /** @type {number} */ export1 = 3;
 export let /** @type {number} */ export2 = 3;
-/** @record */
+/**
+ * @record
+ */
 export function Bar() {}
 /** @type {number} */
 Bar.prototype.barField;
