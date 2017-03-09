@@ -46,12 +46,12 @@ function Zone() { }
 class ZoneImplementsInterface {
 }
 function ZoneImplementsInterface_tsickle_Closure_declarations() {
-    /** @type {?|undefined} */
+    /** @type {?} */
     ZoneImplementsInterface.prototype.zone;
 }
 class ZoneImplementsAlias {
 }
 function ZoneImplementsAlias_tsickle_Closure_declarations() {
-    /** @type {?|undefined} */
+    /** @type {?} */
     ZoneImplementsAlias.prototype.zone;
 }

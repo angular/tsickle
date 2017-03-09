@@ -1114,7 +1114,7 @@ class Annotator extends ClosureRewriter {
     // The type is just "any" (because that covers undefined as well) and
     // our translation of the type is just "?".  But Closure wants it to instead
     // be ?|undefined.
-    if (type === '?') type += '|undefined';
+    if (optional && type === '?') type += '|undefined';
 
     let tags = this.getJSDoc(prop) || [];
     tags.push({tagName: 'type', type});

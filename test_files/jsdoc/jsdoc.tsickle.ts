@@ -88,7 +88,7 @@ JSDocTest.prototype.badExport;
 JSDocTest.prototype.stringWithoutJSDoc;
 /** @type {number} */
 JSDocTest.prototype.typedThing;
-/** @type {?|undefined} */
+/** @type {?} */
 JSDocTest.prototype.badEnumThing;
 /** @type {string} */
 JSDocTest.prototype.badConstThing;

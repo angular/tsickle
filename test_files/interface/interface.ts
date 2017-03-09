@@ -30,7 +30,6 @@ interface TrickyInterface {
   'foo': number;
   (x: number): /* yuck */
       number;
-  // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
   // Note: this should be type ?|undefined, which is different(!) than just {?}.
   optAny?: any|string;
