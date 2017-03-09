@@ -14,7 +14,9 @@ public y: number) {}
 
 function MyPoint_tsickle_Closure_declarations() {
 /** @type {number} */
+/** @type {number} */
 MyPoint.prototype.x;
+/** @type {number} */
 /** @type {number} */
 MyPoint.prototype.y;
 }
@@ -30,6 +32,7 @@ constructor(public shoeSize: number) {}
 }
 
 function ImplementsUser_tsickle_Closure_declarations() {
+/** @type {number} */
 /** @type {number} */
 ImplementsUser.prototype.shoeSize;
 }

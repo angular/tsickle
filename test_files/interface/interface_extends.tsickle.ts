@@ -4,6 +4,7 @@
  */
 function ParentInterface() {}
 /** @type {number} */
+/** @type {number} */
 ParentInterface.prototype.x;
 interface ParentInterface {
   x: number;
@@ -13,6 +14,7 @@ interface ParentInterface {
  * @extends {ParentInterface}
  */
 function SubType() {}
+/** @type {number} */
 /** @type {number} */
 SubType.prototype.y;
 
@@ -26,6 +28,7 @@ interface SubType extends ParentInterface {
  * @extends {SubType}
  */
 function SubMulti() {}
+/** @type {number} */
 /** @type {number} */
 SubMulti.prototype.z;
 

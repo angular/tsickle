@@ -13,7 +13,6 @@ exports.TypeDef;
  */
 export function Interface() {}
 /** @type {string} */
-/** @type {string} */
 Interface.prototype.x;
 
 export interface Interface { x: string; }

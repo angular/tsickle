@@ -76,22 +76,36 @@ function JSDocTest_tsickle_Closure_declarations() {
  * \@internal
  * @type {!Array<string>}
  */
+/**
+ * \@internal
+ * @type {!Array<string>}
+ */
 JSDocTest.X;
+/**
+ * @export
+ * @type {string}
+ */
 /**
  * @export
  * @type {string}
  */
 JSDocTest.prototype.exported;
 /** @type {string} */
+/** @type {string} */
 JSDocTest.prototype.badExport;
+/** @type {string} */
 /** @type {string} */
 JSDocTest.prototype.stringWithoutJSDoc;
 /** @type {number} */
+/** @type {number} */
 JSDocTest.prototype.typedThing;
-/** @type {?} */
+/** @type {?|undefined} */
+/** @type {?|undefined} */
 JSDocTest.prototype.badEnumThing;
 /** @type {string} */
+/** @type {string} */
 JSDocTest.prototype.badConstThing;
+/** @type {string} */
 /** @type {string} */
 JSDocTest.prototype.badTypeDef;
 }

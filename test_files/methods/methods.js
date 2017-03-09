@@ -20,5 +20,6 @@ goog.module('test_files.methods.methods');var module = module || {id: 'test_file
 }
 function HasMethods_tsickle_Closure_declarations() {
     /** @type {number} */
+    /** @type {number} */
     HasMethods.prototype._f;
 }

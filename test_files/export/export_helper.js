@@ -15,6 +15,5 @@ exports.export2 = 3;
 function Bar() { }
 exports.Bar = Bar;
 /** @type {number} */
-/** @type {number} */
 Bar.prototype.barField;
 exports.export5 = 3;

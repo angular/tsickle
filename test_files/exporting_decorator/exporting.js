@@ -39,9 +39,7 @@ ExportedClass = __decorate([
 ], ExportedClass);
 function ExportedClass_tsickle_Closure_declarations() {
     /** @type {boolean} */
-    /** @type {boolean} */
     ExportedClass.prototype.exportMe;
-    /** @type {number} */
     /** @type {number} */
     ExportedClass.prototype.doNotExportMe;
 }

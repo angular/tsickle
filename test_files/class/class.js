@@ -3,7 +3,6 @@ goog.module('test_files.class.class');var module = module || {id: 'test_files/cl
  */
 function Interface() { }
 /** @type {function(): void} */
-/** @type {function(): void} */
 Interface.prototype.interfaceFunc;
 class Class {
     /**
@@ -30,7 +29,6 @@ class AbstractClass {
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() { }
-/** @type {function(): void} */
 /** @type {function(): void} */
 InterfaceExtendsInterface.prototype.interfaceFunc2;
 // Note: interfaces can only extend interfaces, so there's no
@@ -174,7 +172,6 @@ class ZoneImplementsInterface {
 }
 function ZoneImplementsInterface_tsickle_Closure_declarations() {
     /** @type {string} */
-    /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
 /** @typedef {?} */
@@ -182,7 +179,6 @@ var ZoneAlias;
 class ZoneImplementsAlias {
 }
 function ZoneImplementsAlias_tsickle_Closure_declarations() {
-    /** @type {string} */
     /** @type {string} */
     ZoneImplementsAlias.prototype.zone;
 }

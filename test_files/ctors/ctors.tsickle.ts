@@ -8,7 +8,6 @@ constructor(private a: number) {}
 
 function X_tsickle_Closure_declarations() {
 /** @type {number} */
-/** @type {number} */
 X.prototype.a;
 }
 

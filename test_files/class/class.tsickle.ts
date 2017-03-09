@@ -6,7 +6,6 @@ Warning at test_files/class/class.ts:125:1: type/symbol conflict for Zone, using
  */
 function Interface() {}
 /** @type {function(): void} */
-/** @type {function(): void} */
 Interface.prototype.interfaceFunc;
 // This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:
@@ -46,7 +45,6 @@ nonAbstractFunc(): void { }
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() {}
-/** @type {function(): void} */
 /** @type {function(): void} */
 InterfaceExtendsInterface.prototype.interfaceFunc2;
 
@@ -223,7 +221,6 @@ class ZoneImplementsInterface implements Zone {
 
 function ZoneImplementsInterface_tsickle_Closure_declarations() {
 /** @type {string} */
-/** @type {string} */
 ZoneImplementsInterface.prototype.zone;
 }
 
@@ -236,7 +233,6 @@ class ZoneImplementsAlias implements ZoneAlias {
 }
 
 function ZoneImplementsAlias_tsickle_Closure_declarations() {
-/** @type {string} */
 /** @type {string} */
 ZoneImplementsAlias.prototype.zone;
 }

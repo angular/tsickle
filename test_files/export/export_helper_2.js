@@ -12,5 +12,4 @@ exports.TypeDef;
 function Interface() { }
 exports.Interface = Interface;
 /** @type {string} */
-/** @type {string} */
 Interface.prototype.x;

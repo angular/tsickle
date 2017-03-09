@@ -5,6 +5,7 @@ export class Class {}
  */
 export function Interface() {}
 /** @type {number} */
+/** @type {number} */
 Interface.prototype.x;
 
 export interface Interface { x: number }

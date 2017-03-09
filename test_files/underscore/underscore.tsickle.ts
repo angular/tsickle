@@ -19,6 +19,7 @@ __method(__arg: string): string {
 
 function __Class_tsickle_Closure_declarations() {
 /** @type {string} */
+/** @type {string} */
 __Class.prototype.__member;
 }
 

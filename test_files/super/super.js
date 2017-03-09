@@ -11,6 +11,7 @@ class SuperTestBaseOneArg {
 }
 function SuperTestBaseOneArg_tsickle_Closure_declarations() {
     /** @type {number} */
+    /** @type {number} */
     SuperTestBaseOneArg.prototype.x;
 }
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
@@ -24,6 +25,7 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
 }
 function SuperTestDerivedParamProps_tsickle_Closure_declarations() {
     /** @type {string} */
+    /** @type {string} */
     SuperTestDerivedParamProps.prototype.y;
 }
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
@@ -33,6 +35,7 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     }
 }
 function SuperTestDerivedInitializedProps_tsickle_Closure_declarations() {
+    /** @type {string} */
     /** @type {string} */
     SuperTestDerivedInitializedProps.prototype.y;
 }
@@ -50,6 +53,7 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
  */
 function SuperTestInterface() { }
 /** @type {number} */
+/** @type {number} */
 SuperTestInterface.prototype.foo;
 /**
  * @implements {SuperTestInterface}
@@ -58,12 +62,14 @@ class SuperTestDerivedInterface {
 }
 function SuperTestDerivedInterface_tsickle_Closure_declarations() {
     /** @type {number} */
+    /** @type {number} */
     SuperTestDerivedInterface.prototype.foo;
 }
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
 function SuperTestStaticProp_tsickle_Closure_declarations() {
+    /** @type {number} */
     /** @type {number} */
     SuperTestStaticProp.foo;
 }

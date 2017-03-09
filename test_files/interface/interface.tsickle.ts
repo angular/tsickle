@@ -5,7 +5,9 @@
  */
 export function Point() {}
 /** @type {number} */
+/** @type {number} */
 Point.prototype.x;
+/** @type {number} */
 /** @type {number} */
 Point.prototype.y;
 /** Used by implement_import.ts */
@@ -21,6 +23,7 @@ export class User {
 }
 
 function User_tsickle_Closure_declarations() {
+/** @type {number} */
 /** @type {number} */
 User.prototype.shoeSize;
 }
@@ -44,13 +47,24 @@ function TrickyInterface() {}
 [offset: number]: number;
 */
 /** @type {number} */
+/** @type {number} */
 TrickyInterface.prototype.foo;
 /* TODO: handle strange member:
 (x: number): __ yuck __
-      number;
+    number;
 */
 /** @type {(undefined|string)} */
+/** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/** @type {?|undefined} */
+/** @type {?|undefined} */
+TrickyInterface.prototype.optAny;
+/**
+ * @param a some string value
+ * @return some number value
+ * @override
+ * @type {function(string): number}
+ */
 /**
  * \@param a some string value
  * \@return some number value
@@ -74,9 +88,11 @@ interface TrickyInterface {
   [offset: number]: number;
   'foo': number;
   (x: number): /* yuck */
-      number;
+    number;
   // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
+  // Note: this should be type ?|undefined, which is different(!) than just {?}.
+  optAny?: any|string;
   /**
    * @param a some string value
    * @return some number value

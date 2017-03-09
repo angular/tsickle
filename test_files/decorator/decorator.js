@@ -40,24 +40,16 @@ __decorate([
 ], DecoratorTest.prototype, "x", void 0);
 function DecoratorTest_tsickle_Closure_declarations() {
     /** @type {!Array<!DecoratorInvocation>} */
-    /** @type {!Array<!DecoratorInvocation>} */
     DecoratorTest.decorators;
-    /**
-     * @nocollapse
-     * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>}
-     */
     /**
      * @nocollapse
      * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>}
      */
     DecoratorTest.ctorParameters;
     /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
-    /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
     DecoratorTest.propDecorators;
     /** @type {number} */
-    /** @type {number} */
     DecoratorTest.prototype.x;
-    /** @type {number} */
     /** @type {number} */
     DecoratorTest.prototype.y;
 }
@@ -68,7 +60,6 @@ DecoratedClass = __decorate([
 ], DecoratedClass);
 function DecoratedClass_tsickle_Closure_declarations() {
     /** @type {string} */
-    /** @type {string} */
     DecoratedClass.prototype.z;
 }
 /**
@@ -76,8 +67,6 @@ function DecoratedClass_tsickle_Closure_declarations() {
  */
 function DecoratorInvocation() { }
 /** @type {!Function} */
-/** @type {!Function} */
 DecoratorInvocation.prototype.type;
-/** @type {(undefined|!Array<?>)} */
 /** @type {(undefined|!Array<?>)} */
 DecoratorInvocation.prototype.args;

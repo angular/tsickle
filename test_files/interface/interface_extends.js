@@ -3,12 +3,14 @@ goog.module('test_files.interface.interface_extends');var module = module || {id
  */
 function ParentInterface() { }
 /** @type {number} */
+/** @type {number} */
 ParentInterface.prototype.x;
 /**
  * @record
  * @extends {ParentInterface}
  */
 function SubType() { }
+/** @type {number} */
 /** @type {number} */
 SubType.prototype.y;
 /**
@@ -17,5 +19,6 @@ SubType.prototype.y;
  * @extends {SubType}
  */
 function SubMulti() { }
+/** @type {number} */
 /** @type {number} */
 SubMulti.prototype.z;

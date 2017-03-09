@@ -11,7 +11,6 @@ export let /** @type {number} */ export2 = 3;
  */
 export function Bar() {}
 /** @type {number} */
-/** @type {number} */
 Bar.prototype.barField;
 
 

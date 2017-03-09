@@ -5,7 +5,9 @@ Static.bar = 3;
 Static.baz = 3;
 function Static_tsickle_Closure_declarations() {
     /** @type {number} */
+    /** @type {number} */
     Static.bar;
+    /** @type {number} */
     /** @type {number} */
     Static.baz;
 }
