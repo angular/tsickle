@@ -98,7 +98,7 @@ class ImplementsTypeAlias implements TypeAlias, Class {
 
 // Verify Closure accepts the various subtypes of Interface.
 let interfaceVar: Interface;
-// TODO(evanm): interfaceVar = interfaceExtendsInterface;
+interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 
