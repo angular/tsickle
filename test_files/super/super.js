@@ -45,7 +45,9 @@ class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {
 }
 class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 }
-/** @record */
+/**
+ * @record
+ */
 function SuperTestInterface() { }
 /** @type {number} */
 SuperTestInterface.prototype.foo;

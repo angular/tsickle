@@ -1,12 +1,17 @@
 
 export class ClassOne {}
 export class ClassTwo {}
-/** @record */
+/**
+ * @record
+ */
 export function Interface() {}
 /** @type {number} */
 Interface.prototype.x;
 
 export interface Interface { x: number }
+/**
+ * @template T
+ */
 export class ClassWithParams<T> {}
 
 // TODO(evanm):

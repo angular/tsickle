@@ -1,7 +1,9 @@
 Warning at test_files/class/class.ts:141:1: type/symbol conflict for Zone, using {?} for now
 ====
 
-/** @record */
+/**
+ * @record
+ */
 function Interface() {}
 /** @type {function(): void} */
 Interface.prototype.interfaceFunc;

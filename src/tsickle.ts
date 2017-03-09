@@ -166,18 +166,19 @@ class ClosureRewriter extends Rewriter {
     // then paramTags[0] = [info about x, info about y].
     const paramTags: jsdoc.Tag[][] = [];
     const returnTags: jsdoc.Tag[] = [];
+    const typeParameterNames = new Set<string>();
 
     for (let fnDecl of fnDecls) {
       // Construct the JSDoc comment by reading the existing JSDoc, if
       // any, and merging it with the known types of the function
       // parameters and return type.
-      let jsDoc = this.getJSDoc(fnDecl) || [];
+      let docTags = this.getJSDoc(fnDecl) || [];
 
       // Copy all the tags other than @param/@return into the new
       // JSDoc without any change; @param/@return are handled specially.
       // TODO: there may be problems if an annotation doesn't apply to all overloads;
       // is it worth checking for this and erroring?
-      for (let tag of jsDoc) {
+      for (let tag of docTags) {
         if (tag.tagName === 'param' || tag.tagName === 'return') continue;
         newDoc.push(tag);
       }
@@ -187,6 +188,15 @@ class ClosureRewriter extends Rewriter {
         newDoc.push({tagName: 'abstract'});
       }
 
+      // Add any @template tags.
+      // Multiple declarations with the same template variable names should work:
+      // the declarations get turned into union types, and Closure Compiler will need
+      // to find a union where all type arguments are satisfied.
+      if (fnDecl.typeParameters) {
+        for (const tp of fnDecl.typeParameters) {
+          typeParameterNames.add(getIdentifierText(tp.name));
+        }
+      }
       // Merge the parameters into a single list of merged names and list of types
       const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
       for (let i = 0; i < sig.declaration.parameters.length; i++) {
@@ -211,7 +221,7 @@ class ClosureRewriter extends Rewriter {
         }
         newTag.type = this.typeToClosure(fnDecl, type);
 
-        for (let {tagName, parameterName, text} of jsDoc) {
+        for (let {tagName, parameterName, text} of docTags) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
             newTag.text = text;
             break;
@@ -226,7 +236,7 @@ class ClosureRewriter extends Rewriter {
         let retType = typeChecker.getReturnTypeOfSignature(sig);
         let retTypeString: string = this.typeToClosure(fnDecl, retType);
         let returnDoc: string|undefined;
-        for (let {tagName, text} of jsDoc) {
+        for (let {tagName, text} of docTags) {
           if (tagName === 'return') {
             returnDoc = text;
             break;
@@ -238,6 +248,10 @@ class ClosureRewriter extends Rewriter {
           text: returnDoc,
         });
       }
+    }
+
+    if (typeParameterNames.size > 0) {
+      newDoc.push({tagName: 'template', text: Array.from(typeParameterNames.values()).join(', ')});
     }
 
     // Merge the JSDoc tags for each overloaded parameter.
@@ -303,6 +317,75 @@ class ClosureRewriter extends Rewriter {
     return parsed.tags;
   }
 
+  maybeAddTemplateClause(docTags: jsdoc.Tag[], decl: HasTypeParameters) {
+    if (!decl.typeParameters) return;
+    // Closure does not support template constraints (T extends X).
+    docTags.push({
+      tagName: 'template',
+      text: decl.typeParameters
+                .map(tp => {
+                  if (tp.constraint) {
+                    this.emit('\n// unsupported: template constraints.');
+                  }
+                  return getIdentifierText(tp.name);
+                })
+                .join(', ')
+    });
+  }
+
+  maybeAddHeritageClauses(
+      docTags: jsdoc.Tag[], decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration) {
+    if (!decl.heritageClauses) return;
+    for (const heritage of decl.heritageClauses!) {
+      if (!heritage.types) continue;
+      if (decl.kind === ts.SyntaxKind.ClassDeclaration &&
+          heritage.token !== ts.SyntaxKind.ImplementsKeyword) {
+        // If a class has "extends Foo", that is preserved in the ES6 output
+        // and we don't need to do anything.  But if it has "implements Foo",
+        // that is a TS-specific thing and we need to translate it to the
+        // the Closure "@implements {Foo}".
+        continue;
+      }
+      for (const impl of heritage.types) {
+        let tagName = decl.kind === ts.SyntaxKind.InterfaceDeclaration ? 'extends' : 'implements';
+
+        // We can only @implements an interface, not a class.
+        // But it's fine to translate TS "implements Class" into Closure
+        // "@extends {Class}" because this is just a type hint.
+        let typeChecker = this.program.getTypeChecker();
+        let sym = typeChecker.getSymbolAtLocation(impl.expression);
+        if (sym.flags & ts.SymbolFlags.TypeAlias) {
+          // It's implementing a type alias.  Follow the type alias back
+          // to the original symbol to check whether it's a type or a value.
+          let type = typeChecker.getDeclaredTypeOfSymbol(sym);
+          if (!type.symbol) {
+            // It's not clear when this can happen, but if it does all we
+            // do is fail to emit the @implements, which isn't so harmful.
+            continue;
+          }
+          sym = type.symbol;
+        }
+        if (sym.flags & ts.SymbolFlags.Alias) {
+          sym = typeChecker.getAliasedSymbol(sym);
+        }
+        if (this.newTypeTranslator(impl.expression).isBlackListed(sym)) {
+          continue;
+        }
+        if (sym.flags & ts.SymbolFlags.Class) {
+          tagName = 'extends';
+        } else if (sym.flags & ts.SymbolFlags.Value) {
+          // If the symbol was already in the value namespace, then it will
+          // not be a type in the Closure output (because Closure collapses
+          // the type and value namespaces).  Just ignore the implements.
+          continue;
+        }
+        // typeToClosure includes nullability modifiers, so getText() directly here.
+        const alias = this.symbolsToAliasedNames.get(sym);
+        docTags.push({tagName, type: alias || impl.getText()});
+      }
+    }
+  }
+
   /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
   emitJSDocType(node: ts.Node, additionalDocTag?: string, type?: ts.Type) {
     this.emit(' /**');
@@ -328,10 +411,15 @@ class ClosureRewriter extends Rewriter {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    let translator = new typeTranslator.TypeTranslator(
-        typeChecker, context, this.options.typeBlackListPaths, this.symbolsToAliasedNames);
+    return this.newTypeTranslator(context).translate(type);
+  }
+
+  newTypeTranslator(context: ts.Node) {
+    const translator = new typeTranslator.TypeTranslator(
+        this.program.getTypeChecker(), context, this.options.typeBlackListPaths,
+        this.symbolsToAliasedNames);
     translator.warn = msg => this.debugWarn(context, msg);
-    return translator.translate(type);
+    return translator;
   }
 
   /**
@@ -354,6 +442,9 @@ class ClosureRewriter extends Rewriter {
     this.options.logWarning(diagnostic);
   }
 }
+
+type HasTypeParameters =
+    ts.InterfaceDeclaration|ts.ClassLikeDeclaration|ts.TypeAliasDeclaration|ts.SignatureDeclaration;
 
 /** Annotator translates a .ts to a .ts with Closure annotations. */
 class Annotator extends ClosureRewriter {
@@ -654,10 +745,10 @@ class Annotator extends ClosureRewriter {
         return true;
       case ts.SyntaxKind.PropertyDeclaration:
       case ts.SyntaxKind.VariableStatement:
-        const jsDoc = this.getJSDoc(node);
-        if (jsDoc && jsDoc.length > 0 && node.getFirstToken()) {
+        const docTags = this.getJSDoc(node);
+        if (docTags && docTags.length > 0 && node.getFirstToken()) {
           this.emit('\n');
-          this.emit(jsdoc.toString(jsDoc));
+          this.emit(jsdoc.toString(docTags));
           this.writeRange(node.getFirstToken().getStart(), node.getEnd());
           return true;
         }
@@ -885,59 +976,18 @@ class Annotator extends ClosureRewriter {
   }
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
-    let jsDoc = this.getJSDoc(classDecl) || [];
+    let docTags = this.getJSDoc(classDecl) || [];
     if (hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
-      jsDoc.push({tagName: 'abstract'});
+      docTags.push({tagName: 'abstract'});
     }
 
-    if (!this.options.untyped && classDecl.heritageClauses) {
-      // If the class has "extends Foo", that is preserved in the ES6 output
-      // and we don't need to do anything.  But if it has "implements Foo",
-      // that is a TS-specific thing and we need to translate it to the
-      // the Closure "@implements {Foo}".
-      for (const heritage of classDecl.heritageClauses) {
-        if (!heritage.types) continue;
-        if (heritage.token === ts.SyntaxKind.ImplementsKeyword) {
-          for (const impl of heritage.types) {
-            let tagName = 'implements';
-
-            // We can only @implements an interface, not a class.
-            // But it's fine to translate TS "implements Class" into Closure
-            // "@extends {Class}" because this is just a type hint.
-            let typeChecker = this.program.getTypeChecker();
-            let sym = typeChecker.getSymbolAtLocation(impl.expression);
-            if (sym.flags & ts.SymbolFlags.TypeAlias) {
-              // It's implementing a type alias.  Follow the type alias back
-              // to the original symbol to check whether it's a type or a value.
-              let type = typeChecker.getDeclaredTypeOfSymbol(sym);
-              if (!type.symbol) {
-                // It's not clear when this can happen, but if it does all we
-                // do is fail to emit the @implements, which isn't so harmful.
-                continue;
-              }
-              sym = type.symbol;
-            }
-            if (sym.flags & ts.SymbolFlags.Alias) {
-              sym = typeChecker.getAliasedSymbol(sym);
-            }
-            if (sym.flags & ts.SymbolFlags.Class) {
-              tagName = 'extends';
-            } else if (sym.flags & ts.SymbolFlags.Value) {
-              // If the symbol was already in the value namespace, then it will
-              // not be a type in the Closure output (because Closure collapses
-              // the type and value namespaces).  Just ignore the implements.
-              continue;
-            }
-            // typeToClosure includes nullability modifiers, so getText() directly here.
-            const alias = this.symbolsToAliasedNames.get(sym);
-            jsDoc.push({tagName, type: alias || impl.getText()});
-          }
-        }
-      }
+    if (!this.options.untyped) {
+      this.maybeAddTemplateClause(docTags, classDecl);
+      this.maybeAddHeritageClauses(docTags, classDecl);
     }
 
     this.emit('\n');
-    if (jsDoc.length > 0) this.emit(jsdoc.toString(jsDoc));
+    if (docTags.length > 0) this.emit(jsdoc.toString(docTags));
     if (classDecl.members.length > 0) {
       // We must visit all members individually, to strip out any
       // /** @export */ annotations that show up in the constructor
@@ -962,16 +1012,17 @@ class Annotator extends ClosureRewriter {
     let sym = this.program.getTypeChecker().getSymbolAtLocation(iface.name);
     if (sym.flags & ts.SymbolFlags.Value) return;
 
-    this.emit(`\n/** @record */\n`);
+    let docTags = this.getJSDoc(iface) || [];
+    docTags.push({tagName: 'record'});
+    this.maybeAddTemplateClause(docTags, iface);
+    this.maybeAddHeritageClauses(docTags, iface);
+
+    this.emit('\n');
+    this.emit(jsdoc.toString(docTags));
+
     if (hasModifierFlag(iface, ts.ModifierFlags.Export)) this.emit('export ');
     let name = getIdentifierText(iface.name);
     this.emit(`function ${name}() {}\n`);
-    if (iface.typeParameters) {
-      this.emit(`// TODO: type parameters.\n`);
-    }
-    if (iface.heritageClauses) {
-      this.emit(`// TODO: derived interfaces.\n`);
-    }
 
     const memberNamespace = [name, 'prototype'];
     for (let elem of iface.members) {

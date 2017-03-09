@@ -68,7 +68,9 @@ function DecoratedClass_tsickle_Closure_declarations() {
 DecoratedClass.prototype.z;
 }
 
-/** @record */
+/**
+ * @record
+ */
 function DecoratorInvocation() {}
 /** @type {!Function} */
 DecoratorInvocation.prototype.type;

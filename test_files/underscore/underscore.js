@@ -19,5 +19,7 @@ function __Class_tsickle_Closure_declarations() {
     /** @type {string} */
     __Class.prototype.__member;
 }
-/** @record */
+/**
+ * @record
+ */
 function __Interface() { }

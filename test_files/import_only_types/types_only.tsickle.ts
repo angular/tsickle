@@ -1,5 +1,7 @@
 
-/** @record */
+/**
+ * @record
+ */
 export function Foo() {}
 /** @type {string} */
 Foo.prototype.x;

@@ -94,3 +94,8 @@ declare class Merged {
       opt_b: number) : void|number|boolean;
   variadic(...test: number[]): void;
 }
+
+declare class OverloadTypeArgs {
+  typeArged<T>(a: number, b: T): T;
+  typeArged<T, U>(a: T, b: U): U;
+}

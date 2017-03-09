@@ -214,6 +214,14 @@ function main(args: string[]): number {
     return 1;
   }
 
+  if (config.options.module !== ts.ModuleKind.CommonJS) {
+    // This is not an upstream TypeScript diagnostic, therefore it does not go
+    // through the diagnostics array mechanism.
+    console.error(
+        'tsickle converts TypeScript modules to Closure modules via CommonJS internally. Set tsconfig.js "module": "commonjs"');
+    return 1;
+  }
+
   // Run tsickle+TSC to convert inputs to Closure JS files.
   let closure = toClosureJS(config.options, config.fileNames, settings, diagnostics);
   if (closure === null) {

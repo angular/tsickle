@@ -231,8 +231,11 @@ export class TypeTranslator {
         return '?';
       case ts.TypeFlags.TypeParameter:
         // This is e.g. the T in a type like Foo<T>.
-        this.warn(`unhandled type flags: ${ts.TypeFlags[type.flags]}`);
-        return '?';
+        if (!type.symbol) {
+          this.warn(`TypeParameter without a symbol`);  // should not happen (tm)
+          return '?';
+        }
+        return this.symbolToString(type.symbol);
       case ts.TypeFlags.Object:
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:

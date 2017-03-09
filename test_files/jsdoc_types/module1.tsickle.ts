@@ -1,6 +1,8 @@
 
 export class Class {}
-/** @record */
+/**
+ * @record
+ */
 export function Interface() {}
 /** @type {number} */
 Interface.prototype.x;
