@@ -152,7 +152,7 @@ class ImplementsTypeAlias {
 }
 // Verify Closure accepts the various subtypes of Interface.
 let /** @type {!Interface} */ interfaceVar;
-// TODO(evanm): interfaceVar = interfaceExtendsInterface;
+interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 // Verify Closure accepts the various subtypes of Class.

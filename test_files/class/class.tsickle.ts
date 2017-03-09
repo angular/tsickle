@@ -191,7 +191,7 @@ classFunc(): void {}
 
 // Verify Closure accepts the various subtypes of Interface.
 let /** @type {!Interface} */ interfaceVar: Interface;
-// TODO(evanm): interfaceVar = interfaceExtendsInterface;
+interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 
