@@ -1026,7 +1026,8 @@ class Annotator extends ClosureRewriter {
 
     const memberNamespace = [name, 'prototype'];
     for (let elem of iface.members) {
-      this.visitProperty(memberNamespace, elem, elem.questionToken != null);
+      let isOptional = elem.questionToken != null;
+      this.visitProperty(memberNamespace, elem, isOptional);
     }
   }
 
