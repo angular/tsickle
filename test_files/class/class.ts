@@ -34,24 +34,10 @@ abstract class AbstractClass {
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
-interface InterfaceExtendsClass extends Class {
-  interfaceFunc2(): void;
-}
-interface InterfaceExtendsAbstractClass extends AbstractClass {
-  interfaceFunc2(): void;
-}
-// Create values of each of the above interface types for use in later testing.
+// Note: interfaces can only extend interfaces, so there's no
+// InterfaceExtendsClass etc.
 let interfaceExtendsInterface: InterfaceExtendsInterface = {
   interfaceFunc() {},
-  interfaceFunc2() {}
-};
-let interfaceExtendsClass: InterfaceExtendsClass = {
-  classFunc() {},
-  interfaceFunc2() {}
-};
-let interfaceExtendsAbstractClass: InterfaceExtendsAbstractClass = {
-  abstractFunc() {},
-  nonAbstractFunc() {},
   interfaceFunc2() {}
 };
 
@@ -118,14 +104,12 @@ interfaceVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of Class.
 let classVar: Class;
-// TODO(evanm): classVar = interfaceExtendsClass;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
 
 // Verify Closure accepts the various subtypes of AbstractClass.
 let abstractClassVar: AbstractClass;
-// TODO(evanm): abstractClassVar = interfaceExtendsAbstractClass;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 

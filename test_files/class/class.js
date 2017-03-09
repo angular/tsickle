@@ -24,51 +24,20 @@ class AbstractClass {
      */
     nonAbstractFunc() { }
 }
-/** @record */
+/**
+ * @record
+ * @extends {Interface}
+ */
 function InterfaceExtendsInterface() { }
-// TODO: derived interfaces.
 /** @type {function(): void} */
 InterfaceExtendsInterface.prototype.interfaceFunc2;
-/** @record */
-function InterfaceExtendsClass() { }
-// TODO: derived interfaces.
-/** @type {function(): void} */
-InterfaceExtendsClass.prototype.interfaceFunc2;
-/** @record */
-function InterfaceExtendsAbstractClass() { }
-// TODO: derived interfaces.
-/** @type {function(): void} */
-InterfaceExtendsAbstractClass.prototype.interfaceFunc2;
-// Create values of each of the above interface types for use in later testing.
+// Note: interfaces can only extend interfaces, so there's no
+// InterfaceExtendsClass etc.
 let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
     /**
      * @return {void}
      */
     interfaceFunc() { },
-    /**
-     * @return {void}
-     */
-    interfaceFunc2() { }
-};
-let /** @type {!InterfaceExtendsClass} */ interfaceExtendsClass = {
-    /**
-     * @return {void}
-     */
-    classFunc() { },
-    /**
-     * @return {void}
-     */
-    interfaceFunc2() { }
-};
-let /** @type {!InterfaceExtendsAbstractClass} */ interfaceExtendsAbstractClass = {
-    /**
-     * @return {void}
-     */
-    abstractFunc() { },
-    /**
-     * @return {void}
-     */
-    nonAbstractFunc() { },
     /**
      * @return {void}
      */
@@ -188,13 +157,11 @@ interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
 // Verify Closure accepts the various subtypes of Class.
 let /** @type {!Class} */ classVar;
-// TODO(evanm): classVar = interfaceExtendsClass;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
 // Verify Closure accepts the various subtypes of AbstractClass.
 let /** @type {!AbstractClass} */ abstractClassVar;
-// TODO(evanm): abstractClassVar = interfaceExtendsAbstractClass;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 /**
