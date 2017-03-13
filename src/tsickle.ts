@@ -36,7 +36,7 @@ export interface Output {
 /**
  * The header to be used in generated externs.  This is not included in the
  * output of annotate() because annotate() works one file at a time, and
- * typically you create one externs file from the entire compilation.
+ * typically you create one externs file from the entire compilation unit.
  */
 export const EXTERNS_HEADER = `/**
  * @externs
