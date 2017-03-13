@@ -6,7 +6,8 @@ import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
 import * as sourceMapUtils from './source_map_utils';
-import {annotate, isDtsFileName} from './tsickle';
+import * as tsickle from './tsickle';
+import {isDtsFileName} from './tsickle';
 
 /**
  * Tsickle can perform 2 different precompilation transforms - decorator downleveling
@@ -322,7 +323,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} = annotate(
+    let {output, externs, diagnostics, sourceMap} = tsickle.annotate(
         program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
         this.delegate, this.tscOptions);
     if (externs) {
@@ -342,7 +343,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   /** Concatenate all generated externs definitions together into a string. */
   getGeneratedExterns(): string {
-    let allExterns = '';
+    let allExterns = tsickle.EXTERNS_HEADER;
     for (let fileName of Object.keys(this.externs)) {
       allExterns += `// externs from ${fileName}:\n`;
       allExterns += this.externs[fileName];

@@ -144,7 +144,10 @@ testFn('golden tests', () => {
               readFile: ts.sys.readFile,
             },
             testSupport.compilerOptions);
-        if (externs) allExterns = externs;
+        if (externs) {
+          if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
+          allExterns += externs;
+        }
 
         // If there were any diagnostics, convert them into strings for
         // the golden output.
