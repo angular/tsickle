@@ -144,7 +144,7 @@ testFn('golden tests', () => {
               readFile: ts.sys.readFile,
             },
             testSupport.compilerOptions);
-        if (externs) {
+        if (externs && !test.name.endsWith('.no_externs')) {
           if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
           allExterns += externs;
         }

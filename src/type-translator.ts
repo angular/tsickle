@@ -187,6 +187,12 @@ export class TypeTranslator {
       reportInaccessibleThisError: doNothing,
     };
     builder.buildSymbolDisplay(sym, writer, this.node);
+    // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special
+    // ಠ_ಠ.clutz namespace. While most code seen by Tsickle will only ever see local aliases, Clutz
+    // symbols can be written by users directly in code, and they can appear by dereferencing
+    // TypeAliases. The code below simply strips the prefix, the remaining type name then matches
+    // Closure's type.
+    if (str.startsWith('ಠ_ಠ.clutz.')) str = str.substring('ಠ_ಠ.clutz.'.length);
     return str;
   }
 
