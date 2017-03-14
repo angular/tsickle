@@ -20,6 +20,7 @@ export var /** @type {number} */ exportLocal = 3;
 let /** @type {number} */ export2 = 3;
 
 // This is just an import, so export5 should still be included.
+
 import {export5} from './export_helper';
 const tsickle_forward_declare_4 = goog.forwardDeclare('test_files.export.export_helper');
 
