@@ -1,5 +1,5 @@
 import * as path from 'path';
-import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from './decorator-annotator';
@@ -236,8 +236,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceMapKey)!;
-        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-            tsickleSourceMapGenerator, sourceFileName);
+        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+            tsickleSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
       }
     }
@@ -247,9 +247,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const decoratorDownlevelSourceMapGenerator =
             this.decoratorDownlevelSourceMaps.get(sourceMapKey)!;
-        const decoratorDownlevelSourceMapConsumer =
-            sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-                decoratorDownlevelSourceMapGenerator, sourceFileName);
+        const decoratorDownlevelSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+            decoratorDownlevelSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
       }
     }
@@ -259,8 +258,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
         if (preexistingSourceMapGenerator) {
-          const preexistingSourceMapConsumer =
-              new SourceMapConsumer(preexistingSourceMapGenerator.toJSON());
+          const preexistingSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+              preexistingSourceMapGenerator, sourceFileName);
           tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
         }
       }

@@ -64,11 +64,16 @@ export function sourceMapConsumerToGenerator(sourceMapConsumer: SourceMapConsume
  * own source maps, we patch them with the file name from the tsc source maps
  * before composing them.
  */
-export function sourceMapGeneratorToConsumerWithFileName(
-    sourceMapGenerator: SourceMapGenerator, fileName: string): SourceMapConsumer {
+export function sourceMapGeneratorToConsumer(
+    sourceMapGenerator: SourceMapGenerator, fileName?: string,
+    sourceName?: string): SourceMapConsumer {
   const rawSourceMap = sourceMapGenerator.toJSON();
-  rawSourceMap.sources = [fileName];
-  rawSourceMap.file = fileName;
+  if (sourceName) {
+    rawSourceMap.sources = [sourceName];
+  }
+  if (fileName) {
+    rawSourceMap.file = fileName;
+  }
   return new SourceMapConsumer(rawSourceMap);
 }
 
