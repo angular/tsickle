@@ -7,6 +7,8 @@ exports.export4 = export_helper_1.export4;
 exports.Interface = export_helper_1.Interface;
 const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.export.export_helper');
 /** @typedef {tsickle_forward_declare_1.TypeDef} */
+exports.RenamedTypeDef; // re-export typedef
+/** @typedef {tsickle_forward_declare_1.TypeDef} */
 exports.TypeDef; // re-export typedef
 const tsickle_forward_declare_2 = goog.forwardDeclare('test_files.export.export_helper_2');
 // These conflict with an export discovered via the above exports,

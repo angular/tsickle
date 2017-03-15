@@ -134,6 +134,17 @@ const VISIBILITY_FLAGS: ts.ModifierFlags =
     ts.ModifierFlags.Private | ts.ModifierFlags.Protected | ts.ModifierFlags.Public;
 
 /**
+ * A symbol combined with its name in the local file. Symbols can be renamed on import or export
+ * (`import {Foo as Bar}`).
+ */
+interface NamedSymbol {
+  /** The local name of the symbol (named `Bar` in the example above). */
+  name: string;
+  /** The symbol (named `Foo` in the example above). */
+  sym: ts.Symbol;
+}
+
+/**
  * A Rewriter subclass that adds Tsickle-specific (Closure translation) functionality.
  *
  * One Rewriter subclass manages .ts => .ts+Closure translation.
@@ -600,7 +611,7 @@ class Annotator extends ClosureRewriter {
         let exportDecl = <ts.ExportDeclaration>node;
         this.writeRange(node.getFullStart(), node.getStart());
         this.emit('export');
-        let exportedSymbols: ts.Symbol[] = [];
+        let exportedSymbols: NamedSymbol[] = [];
         const typeChecker = this.program.getTypeChecker();
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
           // It's an "export * from ..." statement.
@@ -609,8 +620,7 @@ class Annotator extends ClosureRewriter {
           this.emit(` {${exportedSymbols.map(e => unescapeName(e.name)).join(',')}}`);
         } else {
           if (exportDecl.exportClause) {
-            exportedSymbols =
-                exportDecl.exportClause.elements.map(e => typeChecker.getSymbolAtLocation(e.name));
+            exportedSymbols = this.getNamedSymbols(exportDecl.exportClause.elements, typeChecker);
             this.visit(exportDecl.exportClause);
           }
         }
@@ -773,7 +783,7 @@ class Annotator extends ClosureRewriter {
    * over the target module's exports, which means Closure won't see the declarations/types
    * that are exported.
    */
-  private expandSymbolsFromExportStar(exportDecl: ts.ExportDeclaration): ts.Symbol[] {
+  private expandSymbolsFromExportStar(exportDecl: ts.ExportDeclaration): NamedSymbol[] {
     // You can't have an "export *" without a module specifier.
     const moduleSpecifier = exportDecl.moduleSpecifier!;
     let typeChecker = this.program.getTypeChecker();
@@ -815,7 +825,9 @@ class Annotator extends ClosureRewriter {
       this.generatedExports.add(name);
       reexports.add(sym);
     }
-    return toArray(reexports.keys());
+    return toArray(reexports.keys()).map(sym => {
+      return {name: sym.name, sym};
+    });
   }
 
   /**
@@ -829,16 +841,16 @@ class Annotator extends ClosureRewriter {
    * pure typedefs, tsickle only generates a property access with a JSDoc comment, so they need to
    * be exported explicitly here.
    */
-  private emitTypeDefExports(exports: ts.Symbol[]) {
+  private emitTypeDefExports(exports: NamedSymbol[]) {
     if (this.options.untyped) return;
     const typeChecker = this.program.getTypeChecker();
-    for (let sym of exports) {
-      if (sym.flags & ts.SymbolFlags.Alias) sym = typeChecker.getAliasedSymbol(sym);
-      const isTypeAlias =
-          (sym.flags & ts.SymbolFlags.TypeAlias) !== 0 && (sym.flags & ts.SymbolFlags.Value) === 0;
+    for (let exp of exports) {
+      if (exp.sym.flags & ts.SymbolFlags.Alias) exp.sym = typeChecker.getAliasedSymbol(exp.sym);
+      const isTypeAlias = (exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
+          (exp.sym.flags & ts.SymbolFlags.Value) === 0;
       if (!isTypeAlias) continue;
-      const typeName = this.symbolsToAliasedNames.get(sym) || sym.name;
-      this.emit(`\n/** @typedef {${typeName}} */\nexports.${sym.name}; // re-export typedef`);
+      const typeName = this.symbolsToAliasedNames.get(exp.sym) || exp.sym.name;
+      this.emit(`\n/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef`);
     }
   }
 
@@ -919,19 +931,21 @@ class Annotator extends ClosureRewriter {
       // inserts an artificial `const prefix = goog.require` call for the module, and then registers
       // all symbols from this import to be prefixed.
       if (!this.options.untyped) {
-        let symbols: ts.Symbol[] = [];
+        let symbols: NamedSymbol[] = [];
         const typeChecker = this.program.getTypeChecker();
         if (importClause.name) {
           // import a from ...;
-          symbols = [typeChecker.getSymbolAtLocation(importClause.name)];
+          symbols = [{
+            name: getIdentifierText(importClause.name),
+            sym: typeChecker.getSymbolAtLocation(importClause.name)
+          }];
         } else {
           // import {a as b} from ...;
           if (!importClause.namedBindings ||
               importClause.namedBindings.kind !== ts.SyntaxKind.NamedImports) {
             throw new Error('unreached');  // Guaranteed by if check above.
           }
-          symbols =
-              importClause.namedBindings.elements.map(e => typeChecker.getSymbolAtLocation(e.name));
+          symbols = this.getNamedSymbols(importClause.namedBindings.elements, typeChecker);
         }
         this.forwardDeclare(decl.moduleSpecifier, symbols, !!importClause.name);
       }
@@ -949,13 +963,27 @@ class Annotator extends ClosureRewriter {
     }
   }
 
+  private getNamedSymbols(
+      specifiers: Array<ts.ImportSpecifier|ts.ExportSpecifier>,
+      typeChecker: ts.TypeChecker): NamedSymbol[] {
+    return specifiers.map(e => {
+      return {
+        // e.name might be renaming symbol as in `export {Foo as Bar}`, where e.name would be 'Bar'
+        // and != sym.name. Store away the name so forwardDeclare below can emit the right name.
+        name: getIdentifierText(e.name),
+        sym: typeChecker.getSymbolAtLocation(e.name),
+      };
+    });
+  }
+
   private forwardDeclareCounter = 0;
 
   /**
    * Emits a `goog.forwardDeclare` alias for each symbol from the given list.
    * @param specifier the import specifier, i.e. module path ("from '...'").
    */
-  private forwardDeclare(specifier: ts.Expression, symbols: ts.Symbol[], isDefaultImport = false) {
+  private forwardDeclare(
+      specifier: ts.Expression, exportedSymbols: NamedSymbol[], isDefaultImport = false) {
     if (this.options.untyped) return;
     const importPath = this.resolveModuleSpecifier(specifier);
     const nsImport = extractGoogNamespaceImport(importPath);
@@ -984,12 +1012,12 @@ class Annotator extends ClosureRewriter {
       // imported for their value in some place.
       this.emit(`\ngoog.require('${moduleNamespace}'); // force type-only module to be loaded`);
     }
-    for (let sym of symbols) {
-      if (sym.flags & ts.SymbolFlags.Alias) sym = typeChecker.getAliasedSymbol(sym);
+    for (let exp of exportedSymbols) {
+      if (exp.sym.flags & ts.SymbolFlags.Alias) exp.sym = typeChecker.getAliasedSymbol(exp.sym);
       // goog: imports don't actually use the .default property that TS thinks they have.
       const qualifiedName = nsImport && isDefaultImport ? forwardDeclarePrefix :
-                                                          forwardDeclarePrefix + '.' + sym.name;
-      this.symbolsToAliasedNames.set(sym, qualifiedName);
+                                                          forwardDeclarePrefix + '.' + exp.sym.name;
+      this.symbolsToAliasedNames.set(exp.sym, qualifiedName);
     }
   }
 

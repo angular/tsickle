@@ -8,3 +8,5 @@ export interface Bar { barField: number; }
 export var export3: Bar;
 
 export let export5 = 3;
+
+export {TypeDef as RenamedTypeDef} from './export_helper_2';

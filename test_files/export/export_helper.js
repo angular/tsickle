@@ -17,3 +17,6 @@ exports.Bar = Bar;
 /** @type {number} */
 Bar.prototype.barField;
 exports.export5 = 3;
+const tsickle_forward_declare_2 = goog.forwardDeclare('test_files.export.export_helper_2');
+/** @typedef {tsickle_forward_declare_2.TypeDef} */
+exports.RenamedTypeDef; // re-export typedef

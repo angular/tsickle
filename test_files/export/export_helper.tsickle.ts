@@ -18,3 +18,8 @@ export interface Bar { barField: number; }
 export var /** @type {!Bar} */ export3: Bar;
 
 export let /** @type {number} */ export5 = 3;
+
+export {TypeDef as RenamedTypeDef} from './export_helper_2';
+const tsickle_forward_declare_2 = goog.forwardDeclare('test_files.export.export_helper_2');
+/** @typedef {tsickle_forward_declare_2.TypeDef} */
+exports.RenamedTypeDef; // re-export typedef
