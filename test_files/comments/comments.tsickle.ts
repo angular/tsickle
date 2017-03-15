@@ -14,13 +14,15 @@ export1: string;
   nodoc2: number;
   /// non js-doc comment
   nodoc3: number;
-  /** inline jsdoc comment without type annotation */
-  jsdoc1: number;
-  /**
-   * multi-line jsdoc comment without
-   * type annotation.
-   */
-  jsdoc2: number;
+/**
+ * inline jsdoc comment without type annotation
+ */
+jsdoc1: number;
+/**
+ * multi-line jsdoc comment without
+ * type annotation.
+ */
+jsdoc2: number;
 }
 
 function Comments_tsickle_Closure_declarations() {

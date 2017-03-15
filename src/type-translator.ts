@@ -8,6 +8,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
+import {toArray} from './util';
 
 export function assertTypeChecked(sourceFile: ts.SourceFile) {
   if (!('resolvedModules' in sourceFile)) {
@@ -37,6 +38,7 @@ function isClosureProvidedType(symbol: ts.Symbol): boolean {
 export function typeToDebugString(type: ts.Type): string {
   let debugString = `flags:0x${type.flags.toString(16)}`;
 
+  // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const basicTypes: ts.TypeFlags[] = [
     ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
     ts.TypeFlags.Boolean,       ts.TypeFlags.Enum,           ts.TypeFlags.StringLiteral,
@@ -44,7 +46,7 @@ export function typeToDebugString(type: ts.Type): string {
     ts.TypeFlags.ESSymbol,      ts.TypeFlags.Void,           ts.TypeFlags.Undefined,
     ts.TypeFlags.Null,          ts.TypeFlags.Never,          ts.TypeFlags.TypeParameter,
     ts.TypeFlags.Object,        ts.TypeFlags.Union,          ts.TypeFlags.Intersection,
-    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,
+    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,  ts.TypeFlags.NonPrimitive,
   ];
   for (let flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
@@ -54,6 +56,7 @@ export function typeToDebugString(type: ts.Type): string {
 
   if (type.flags === ts.TypeFlags.Object) {
     const objType = type as ts.ObjectType;
+    // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
     const objectFlags: ts.ObjectFlags[] = [
       ts.ObjectFlags.Class,
       ts.ObjectFlags.Interface,
@@ -64,7 +67,6 @@ export function typeToDebugString(type: ts.Type): string {
       ts.ObjectFlags.Instantiated,
       ts.ObjectFlags.ObjectLiteral,
       ts.ObjectFlags.EvolvingArray,
-      ts.ObjectFlags.ObjectLiteralPatternWithComputedProperties,
     ];
     for (let flag of objectFlags) {
       if ((objType.objectFlags & flag) !== 0) {
@@ -87,6 +89,7 @@ export function typeToDebugString(type: ts.Type): string {
 export function symbolToDebugString(sym: ts.Symbol): string {
   let debugString = `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
 
+  // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const symbolFlags = [
     ts.SymbolFlags.FunctionScopedVariable,
     ts.SymbolFlags.BlockScopedVariable,
@@ -112,13 +115,10 @@ export function symbolToDebugString(sym: ts.Symbol): string {
     ts.SymbolFlags.ExportType,
     ts.SymbolFlags.ExportNamespace,
     ts.SymbolFlags.Alias,
-    ts.SymbolFlags.Instantiated,
-    ts.SymbolFlags.Merged,
-    ts.SymbolFlags.Transient,
     ts.SymbolFlags.Prototype,
-    ts.SymbolFlags.SyntheticProperty,
-    ts.SymbolFlags.Optional,
     ts.SymbolFlags.ExportStar,
+    ts.SymbolFlags.Optional,
+    ts.SymbolFlags.Transient,
   ];
   for (const flag of symbolFlags) {
     if ((sym.flags & flag) !== 0) {
@@ -193,6 +193,7 @@ export class TypeTranslator {
         return;
       },
       reportInaccessibleThisError: doNothing,
+      reportIllegalExtends: doNothing,
     };
     builder.buildSymbolDisplay(sym, writer, this.node);
     // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special
@@ -429,7 +430,7 @@ export class TypeTranslator {
       return `function(new: (${constructedType})${paramsStr}): ?`;
     }
 
-    for (let field of Object.keys(type.symbol.members)) {
+    for (let field of toArray(type.symbol.members.keys())) {
       switch (field) {
         case '__call':
           callable = true;
@@ -438,7 +439,7 @@ export class TypeTranslator {
           indexable = true;
           break;
         default:
-          let member = type.symbol.members[field];
+          let member = type.symbol.members.get(field);
           // optional members are handled by the type including |undefined in a union type.
           let memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
