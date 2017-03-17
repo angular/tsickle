@@ -24,11 +24,11 @@ export const compilerOptions: ts.CompilerOptions = {
   noEmitHelpers: true,
   module: ts.ModuleKind.CommonJS,
   jsx: ts.JsxEmit.React,
-  // Flags below are needed to make sure source paths are correctly set on write calls.
-  rootDir: path.resolve(process.cwd()),
   // Disable searching for @types typings. This prevents TS from looking
   // around for a node_modules directory.
   types: [],
+  // Flags below are needed to make sure source paths are correctly set on write calls.
+  rootDir: path.resolve(process.cwd()),
   outDir: '.',
   strictNullChecks: true,
 };
@@ -38,6 +38,7 @@ const {cachedLibPath, cachedLib} = (function() {
   let fn = host.getDefaultLibFileName(compilerOptions);
   let p = ts.getDefaultLibFilePath(compilerOptions);
   return {
+    // Normalize path to fix mixed/wrong directory separators on windows.
     cachedLibPath: path.normalize(p),
     cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)
   };
@@ -50,6 +51,8 @@ export function createProgram(sources: Map<string, string>): ts.Program {
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
+    // Normalize path to fix wrong directory separators on windows which
+    // would break the equality check.
     fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
