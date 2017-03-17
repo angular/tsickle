@@ -24,6 +24,9 @@ export const compilerOptions: ts.CompilerOptions = {
   noEmitHelpers: true,
   module: ts.ModuleKind.CommonJS,
   jsx: ts.JsxEmit.React,
+  // Disable searching for @types typings. This prevents TS from looking
+  // around for a node_modules directory.
+  types: [],
   // Flags below are needed to make sure source paths are correctly set on write calls.
   rootDir: path.resolve(process.cwd()),
   outDir: '.',
@@ -34,26 +37,23 @@ const {cachedLibPath, cachedLib} = (function() {
   let host = ts.createCompilerHost(compilerOptions);
   let fn = host.getDefaultLibFileName(compilerOptions);
   let p = ts.getDefaultLibFilePath(compilerOptions);
-  return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)};
+  return {
+    // Normalize path to fix mixed/wrong directory separators on windows.
+    cachedLibPath: path.normalize(p),
+    cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)
+  };
 })();
 
 /** Creates a ts.Program from a set of input files. */
 export function createProgram(sources: Map<string, string>): ts.Program {
   let host = ts.createCompilerHost(compilerOptions);
 
-  // Fake out host.directoryExists so that it doesn't read through node_modules/@types.
-  let realDirectoryExists = host.directoryExists;
-  host.directoryExists = dirName => {
-    if (path.isAbsolute(dirName)) {
-      let relName = path.relative(process.cwd(), dirName);
-      if (relName === 'node_modules/@types') return false;
-    }
-    return realDirectoryExists ? realDirectoryExists(dirName) : false;
-  };
-
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
+    // Normalize path to fix wrong directory separators on windows which
+    // would break the equality check.
+    fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
     let contents = sources.get(fileName);
