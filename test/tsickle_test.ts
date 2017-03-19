@@ -141,7 +141,7 @@ testFn('golden tests', () => {
             (context, importPath) => {
               importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
               if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-              return importPath.replace(/\//g, '.');
+              return importPath.replace(/\/|\\/g, '.');
             },
             options, {
               fileExists: ts.sys.fileExists,
