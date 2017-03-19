@@ -62,6 +62,9 @@ function compareAgainstGolden(output: string|null, path: string) {
       }
     }
   } else {
+    // Make sure we have proper line endings when testing on Windows.
+    if (golden != null) golden = golden.replace(/\r\n/g, '\n');
+    if (output != null) output = output.replace(/\r\n/g, '\n');
     expect(output).to.equal(golden, path);
   }
 }
