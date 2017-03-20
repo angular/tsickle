@@ -48,6 +48,10 @@ function compareAgainstGolden(output: string|null, path: string) {
     }
   }
 
+  // Make sure we have proper line endings when testing on Windows.
+  if (golden != null) golden = golden.replace(/\r\n/g, '\n');
+  if (output != null) output = output.replace(/\r\n/g, '\n');
+
   if (UPDATE_GOLDENS && output !== golden) {
     console.log('Updating golden file for', path);
     if (output !== null) {
@@ -137,7 +141,7 @@ testFn('golden tests', () => {
             (context, importPath) => {
               importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
               if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-              return importPath.replace(/\//g, '.');
+              return importPath.replace(/\/|\\/g, '.');
             },
             options, {
               fileExists: ts.sys.fileExists,

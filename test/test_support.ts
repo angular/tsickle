@@ -38,7 +38,7 @@ const {cachedLibPath, cachedLib} = (function() {
   let fn = host.getDefaultLibFileName(compilerOptions);
   let p = ts.getDefaultLibFilePath(compilerOptions);
   return {
-    // Normalize path to fix mixed/wrong directory separators on windows.
+    // Normalize path to fix mixed/wrong directory separators on Windows.
     cachedLibPath: path.normalize(p),
     cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)
   };
@@ -51,7 +51,7 @@ export function createProgram(sources: Map<string, string>): ts.Program {
   host.getSourceFile = function(
                            fileName: string, languageVersion: ts.ScriptTarget,
                            onError?: (msg: string) => void): ts.SourceFile {
-    // Normalize path to fix wrong directory separators on windows which
+    // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
     fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
