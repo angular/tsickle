@@ -37,6 +37,14 @@ to try it you should expect to spend some time debugging and reporting bugs.
 
 ## Usage
 
+### Versioning
+
+Tsickle uses lots of TypeScript compiler APIs, so you must use a tsickle version that matches your TypeScript version.
+We publish our releases with the minor version corresponding to the TypeScript version it works with, so eg.
+`0.2.6` supports TypeScript 2.0, `0.21.6` supports TypeScript 2.1, etc.
+
+Check the package.json file to see what version is supported at HEAD.
+
 ### Project Setup
 
 Tsickle works by wrapping `tsc`.  To use it, you must set up your project such
