@@ -1,50 +1,47 @@
 /** @ExportDecoratedItems */
-function exportingClassDecorator() {
-  return function(target: any) {}
-}
-
-function nonExportingClassDecorator() {
-  return function(target: any) {}
-}
-
-/** @ExportDecoratedItems */
-function exportingFieldDecorator() {
+function exportingDecorator() {
   return function(target: any, name: string|symbol) {}
 }
 
-function nonExportingFieldDecorator() {
+function nonExportingDecorator() {
   return function(target: any, name: string|symbol) {}
 }
 
-@exportingClassDecorator()
-class ExportedClass {
+class MyClass {
 
-  @exportingFieldDecorator()
+  @exportingDecorator()
   exportMe: boolean;
 
-  @nonExportingFieldDecorator()
+  @nonExportingDecorator()
   doNotExportMe: number;
-}
 
-@nonExportingClassDecorator()
-class NonExportedClass {  
-  @exportingFieldDecorator()
+  @exportingDecorator()
   exportThisOneToo() {
     return false;  
   }
 
-  @nonExportingFieldDecorator()
+  @nonExportingDecorator()
   doNotExportThisOneEither() {
     return 42;
   }
 
-  @exportingFieldDecorator()
+  @exportingDecorator()
   get exportThisGetter() {
     return 42;
   }
 
-  @exportingFieldDecorator()
+  @exportingDecorator()
   set exportThisSetter(x: number) {
+    console.log(`I don't really care about ${x}.`);
+  }
+
+  @nonExportingDecorator()
+  get doNotExportThisGetter() {
+    return 42;
+  }
+
+  @nonExportingDecorator()
+  set doNotExportThisSetter(x: number) {
     console.log(`I don't really care about ${x}.`);
   }
 }

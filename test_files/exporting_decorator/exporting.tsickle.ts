@@ -1,76 +1,79 @@
 
 /**
  * \@ExportDecoratedItems
- * @return {function(?): void}
- */
-function exportingClassDecorator() {
-  return function(target: any) {}
-}
-/**
- * @return {function(?): void}
- */
-function nonExportingClassDecorator() {
-  return function(target: any) {}
-}
-/**
- * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}
  */
-function exportingFieldDecorator() {
+function exportingDecorator() {
   return function(target: any, name: string|symbol) {}
 }
 /**
  * @return {function(?, (string|symbol)): void}
  */
-function nonExportingFieldDecorator() {
+function nonExportingDecorator() {
   return function(target: any, name: string|symbol) {}
 }
-@exportingClassDecorator()
-class ExportedClass {
-
-  @exportingFieldDecorator()
+class MyClass {
+/**
+ * @export
+ */
+@exportingDecorator()
   exportMe: boolean;
 
-  @nonExportingFieldDecorator()
+  @nonExportingDecorator()
   doNotExportMe: number;
-}
-
-function ExportedClass_tsickle_Closure_declarations() {
-/** @type {boolean} */
-ExportedClass.prototype.exportMe;
-/** @type {number} */
-ExportedClass.prototype.doNotExportMe;
-}
-
-@nonExportingClassDecorator()
-class NonExportedClass {
 /**
+ * @export
  * @return {boolean}
  */
-@exportingFieldDecorator()
+@exportingDecorator()
   exportThisOneToo() {
     return false;  
   }
 /**
  * @return {number}
  */
-@nonExportingFieldDecorator()
+@nonExportingDecorator()
   doNotExportThisOneEither() {
     return 42;
   }
 /**
+ * @export
  * @return {number}
  */
-@exportingFieldDecorator()
+@exportingDecorator()
   get exportThisGetter() {
+    return 42;
+  }
+/**
+ * @export
+ * @param {number} x
+ * @return {void}
+ */
+@exportingDecorator()
+  set exportThisSetter(x: number) {
+    console.log(`I don't really care about ${x}.`);
+  }
+/**
+ * @return {number}
+ */
+@nonExportingDecorator()
+  get doNotExportThisGetter() {
     return 42;
   }
 /**
  * @param {number} x
  * @return {void}
  */
-@exportingFieldDecorator()
-  set exportThisSetter(x: number) {
+@nonExportingDecorator()
+  set doNotExportThisSetter(x: number) {
     console.log(`I don't really care about ${x}.`);
   }
 }
+
+function MyClass_tsickle_Closure_declarations() {
+/** @type {boolean} */
+MyClass.prototype.exportMe;
+/** @type {number} */
+MyClass.prototype.doNotExportMe;
+}
+
