@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as nodePath from 'path';
 import * as ts from 'typescript';
 
 export function assertTypeChecked(sourceFile: ts.SourceFile) {
@@ -503,13 +504,15 @@ export class TypeTranslator {
   /** @return true if sym should always have type {?}. */
   isBlackListed(symbol: ts.Symbol): boolean {
     if (this.pathBlackList === undefined) return false;
-    const pathBlackList = this.pathBlackList;
     if (symbol.declarations === undefined) {
       this.warn('symbol has no declarations');
       return true;
     }
+    // Normalize paths to not break checks on Windows.
+    const pathBlackList = new Set<string>(
+        Array.from(this.pathBlackList.values()).map(path => nodePath.normalize(path)));
     return symbol.declarations.every(n => {
-      const path = n.getSourceFile().fileName;
+      const path = nodePath.normalize(n.getSourceFile().fileName);
       return pathBlackList.has(path);
     });
   }
