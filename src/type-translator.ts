@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as path from 'path';
 import * as ts from 'typescript';
 
 export function assertTypeChecked(sourceFile: ts.SourceFile) {
@@ -134,7 +135,7 @@ export class TypeTranslator {
    * A list of types we've encountered while emitting; used to avoid getting stuck in recursive
    * types.
    */
-  private seenTypes: ts.Type[] = [];
+  private readonly seenTypes: ts.Type[] = [];
 
   /**
    * @param node is the source AST ts.Node the type comes from.  This is used
@@ -146,9 +147,16 @@ export class TypeTranslator {
    *     (`tsickle_import.Foo`).
    */
   constructor(
-      private typeChecker: ts.TypeChecker, private node: ts.Node,
-      private pathBlackList?: Set<string>,
-      private symbolsToAliasedNames: Map<ts.Symbol, string> = new Map<ts.Symbol, string>()) {}
+      private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
+      private readonly pathBlackList?: Set<string>,
+      private readonly symbolsToAliasedNames:
+          Map<ts.Symbol, string> = new Map<ts.Symbol, string>()) {
+    // Normalize paths to not break checks on Windows.
+    if (this.pathBlackList != null) {
+      this.pathBlackList =
+          new Set<string>(Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
+    }
+  }
 
   /**
    * Converts a ts.Symbol to a string.
@@ -509,8 +517,8 @@ export class TypeTranslator {
       return true;
     }
     return symbol.declarations.every(n => {
-      const path = n.getSourceFile().fileName;
-      return pathBlackList.has(path);
+      const fileName = path.normalize(n.getSourceFile().fileName);
+      return pathBlackList.has(fileName);
     });
   }
 }
