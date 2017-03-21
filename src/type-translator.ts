@@ -511,13 +511,14 @@ export class TypeTranslator {
   /** @return true if sym should always have type {?}. */
   isBlackListed(symbol: ts.Symbol): boolean {
     if (this.pathBlackList === undefined) return false;
+    const pathBlackList = this.pathBlackList;
     if (symbol.declarations === undefined) {
       this.warn('symbol has no declarations');
       return true;
     }
     return symbol.declarations.every(n => {
       const fileName = path.normalize(n.getSourceFile().fileName);
-      return this.pathBlackList != null && this.pathBlackList.has(fileName);
+      return pathBlackList.has(fileName);
     });
   }
 }
