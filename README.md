@@ -87,8 +87,8 @@ pure TypeScript.)
 An exporting decorator is a decorator that has `@ExportDecoratedItems` in its
 JSDoc.
 
-The name of the element that have an exporting decorator are preserved through
-the Closure compilation process.
+The names of elements that have an exporting decorator are preserved through
+the Closure compilation process by applying an `@export` tag to them.
 
 Example:
 
