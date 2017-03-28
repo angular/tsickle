@@ -347,7 +347,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
   const options: CompilerOptions = {...DEFAULT_COMPILER_OPTIONS, ...partialOptions};
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
-    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
+    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName)!);
   }
 
   const diagnostics: ts.Diagnostic[] = [];
