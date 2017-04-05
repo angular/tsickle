@@ -41,6 +41,9 @@ describe('golden file tests', () => {
   it('generates correct Closure code', (done: (err?: Error) => void) => {
     let tests = goldenTests();
     let goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
+    goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
+    goldenJs.push('test_files/clutz.no_externs/some_other.js');
+    goldenJs.push('test_files/fileoverview/closure_FileOverview.js');
     goldenJs.push('test_files/import_from_goog/closure_Module.js');
     goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
     let externs = tests.map(t => t.externsPath).filter(fs.existsSync);

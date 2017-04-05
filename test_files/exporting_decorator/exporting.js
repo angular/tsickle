@@ -1,50 +1,19 @@
 goog.module('test_files.exporting_decorator.exporting');var module = module || {id: 'test_files/exporting_decorator/exporting.js'};/**
  * \@ExportDecoratedItems
- * @return {function(?): void}
- */
-function exportingClassDecorator() {
-    return function (target) { };
-}
-/**
- * @return {function(?): void}
- */
-function nonExportingClassDecorator() {
-    return function (target) { };
-}
-/**
- * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}
  */
-function exportingFieldDecorator() {
+function exportingDecorator() {
     return function (target, name) { };
 }
 /**
  * @return {function(?, (string|symbol)): void}
  */
-function nonExportingFieldDecorator() {
+function nonExportingDecorator() {
     return function (target, name) { };
 }
-let ExportedClass = class ExportedClass {
-};
-__decorate([
-    exportingFieldDecorator(),
-    __metadata("design:type", Boolean)
-], ExportedClass.prototype, "exportMe", void 0);
-__decorate([
-    nonExportingFieldDecorator(),
-    __metadata("design:type", Number)
-], ExportedClass.prototype, "doNotExportMe", void 0);
-ExportedClass = __decorate([
-    exportingClassDecorator()
-], ExportedClass);
-function ExportedClass_tsickle_Closure_declarations() {
-    /** @type {boolean} */
-    ExportedClass.prototype.exportMe;
-    /** @type {number} */
-    ExportedClass.prototype.doNotExportMe;
-}
-let NonExportedClass = class NonExportedClass {
+class MyClass {
     /**
+     * @export
      * @return {boolean}
      */
     exportThisOneToo() {
@@ -57,41 +26,77 @@ let NonExportedClass = class NonExportedClass {
         return 42;
     }
     /**
+     * @export
      * @return {number}
      */
     get exportThisGetter() {
         return 42;
     }
     /**
+     * @export
      * @param {number} x
      * @return {void}
      */
     set exportThisSetter(x) {
         console.log(`I don't really care about ${x}.`);
     }
-};
+    /**
+     * @return {number}
+     */
+    get doNotExportThisGetter() {
+        return 42;
+    }
+    /**
+     * @param {number} x
+     * @return {void}
+     */
+    set doNotExportThisSetter(x) {
+        console.log(`I don't really care about ${x}.`);
+    }
+}
 __decorate([
-    exportingFieldDecorator(),
+    exportingDecorator(),
+    __metadata("design:type", Boolean)
+], MyClass.prototype, "exportMe", void 0);
+__decorate([
+    nonExportingDecorator(),
+    __metadata("design:type", Number)
+], MyClass.prototype, "doNotExportMe", void 0);
+__decorate([
+    exportingDecorator(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], NonExportedClass.prototype, "exportThisOneToo", null);
+], MyClass.prototype, "exportThisOneToo", null);
 __decorate([
-    nonExportingFieldDecorator(),
+    nonExportingDecorator(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], NonExportedClass.prototype, "doNotExportThisOneEither", null);
+], MyClass.prototype, "doNotExportThisOneEither", null);
 __decorate([
-    exportingFieldDecorator(),
+    exportingDecorator(),
     __metadata("design:type", Object),
     __metadata("design:paramtypes", [])
-], NonExportedClass.prototype, "exportThisGetter", null);
+], MyClass.prototype, "exportThisGetter", null);
 __decorate([
-    exportingFieldDecorator(),
+    exportingDecorator(),
     __metadata("design:type", Number),
     __metadata("design:paramtypes", [Number])
-], NonExportedClass.prototype, "exportThisSetter", null);
-NonExportedClass = __decorate([
-    nonExportingClassDecorator()
-], NonExportedClass);
+], MyClass.prototype, "exportThisSetter", null);
+__decorate([
+    nonExportingDecorator(),
+    __metadata("design:type", Object),
+    __metadata("design:paramtypes", [])
+], MyClass.prototype, "doNotExportThisGetter", null);
+__decorate([
+    nonExportingDecorator(),
+    __metadata("design:type", Number),
+    __metadata("design:paramtypes", [Number])
+], MyClass.prototype, "doNotExportThisSetter", null);
+function MyClass_tsickle_Closure_declarations() {
+    /** @type {boolean} */
+    MyClass.prototype.exportMe;
+    /** @type {number} */
+    MyClass.prototype.doNotExportMe;
+}

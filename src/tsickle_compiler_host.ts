@@ -1,12 +1,13 @@
 import * as path from 'path';
-import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
 import * as sourceMapUtils from './source_map_utils';
-import {annotate, isDtsFileName} from './tsickle';
+import * as tsickle from './tsickle';
+import {isDtsFileName} from './tsickle';
 
 /**
  * Tsickle can perform 2 different precompilation transforms - decorator downleveling
@@ -235,8 +236,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceMapKey)!;
-        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-            tsickleSourceMapGenerator, sourceFileName);
+        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+            tsickleSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
       }
     }
@@ -246,9 +247,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const decoratorDownlevelSourceMapGenerator =
             this.decoratorDownlevelSourceMaps.get(sourceMapKey)!;
-        const decoratorDownlevelSourceMapConsumer =
-            sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-                decoratorDownlevelSourceMapGenerator, sourceFileName);
+        const decoratorDownlevelSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+            decoratorDownlevelSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
       }
     }
@@ -258,8 +258,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
         if (preexistingSourceMapGenerator) {
-          const preexistingSourceMapConsumer =
-              new SourceMapConsumer(preexistingSourceMapGenerator.toJSON());
+          const preexistingSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+              preexistingSourceMapGenerator, sourceFileName);
           tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
         }
       }
@@ -322,7 +322,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} = annotate(
+    let {output, externs, diagnostics, sourceMap} = tsickle.annotate(
         program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
         this.delegate, this.tscOptions);
     if (externs) {
@@ -342,7 +342,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   /** Concatenate all generated externs definitions together into a string. */
   getGeneratedExterns(): string {
-    let allExterns = '';
+    let allExterns = tsickle.EXTERNS_HEADER;
     for (let fileName of Object.keys(this.externs)) {
       allExterns += `// externs from ${fileName}:\n`;
       allExterns += this.externs[fileName];

@@ -242,6 +242,22 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
 
+  it('handles input source maps with different file names than supplied to tsc', function() {
+    const sources = new Map<string, string>();
+    const inputSourceMap =
+        `{"version":3,"sources":["original.ts"],"names":[],"mappings":"AAAA,MAAM,EAAE,EAAE,CAAC","file":"foo/bar/intermediate.ts","sourceRoot":""}`;
+    const encodedSourceMap = Buffer.from(inputSourceMap, 'utf8').toString('base64');
+    sources.set('intermediate.ts', `const x = 3;
+//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
+
+    const {compiledJS, sourceMap} = compile(sources);
+
+    const {line, column} = getLineAndColumn(compiledJS, 'x');
+    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'x definition');
+    expect(sourceMap.originalPositionFor({line, column}).source)
+        .to.equal('original.ts', 'input file name');
+  });
+
   it(`doesn't blow up putting an inline source map in an empty file`, function() {
     const sources = new Map<string, string>();
     sources.set('input.ts', ``);
@@ -331,7 +347,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
   const options: CompilerOptions = {...DEFAULT_COMPILER_OPTIONS, ...partialOptions};
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
-    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName));
+    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName)!);
   }
 
   const diagnostics: ts.Diagnostic[] = [];

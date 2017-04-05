@@ -19,7 +19,7 @@ export function pathToModuleName(context: string, fileName: string): string {
   }
   // Replace characters not supported by goog.module.
   let moduleName =
-      fileName.replace(/\//g, '.').replace(/^[^a-zA-Z_$]/, '_').replace(/[^a-zA-Z0-9._$]/g, '_');
+      fileName.replace(/\/|\\/g, '.').replace(/^[^a-zA-Z_$]/, '_').replace(/[^a-zA-Z0-9._$]/g, '_');
 
   return moduleName;
 }
