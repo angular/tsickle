@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as path from 'path';
 import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
@@ -470,6 +471,9 @@ class ClosureRewriter extends Rewriter {
 type HasTypeParameters =
     ts.InterfaceDeclaration|ts.ClassLikeDeclaration|ts.TypeAliasDeclaration|ts.SignatureDeclaration;
 
+// Matches common extensions of TypeScript input filenames
+const extension = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
+
 /** Annotator translates a .ts to a .ts with Closure annotations. */
 class Annotator extends ClosureRewriter {
   /**
@@ -854,13 +858,14 @@ class Annotator extends ClosureRewriter {
       }
       const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.host);
       if (resolved && resolved.resolvedModule) {
-        const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(/(\.d)?\.ts$/, '');
-        const requestedModule = moduleId.replace(/\.js$/, '');
-        // If the imported module resolves to foo/index, but the specified module was foo, then we
-        // append the /index.
-        if (resolvedModule.substr(resolvedModule.length - 6) === '/index' &&
-            requestedModule.substr(requestedModule.length - 6) !== '/index') {
-          moduleId += '/index';
+        const requestedModule = moduleId.replace(extension, '');
+        const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
+        if (requestedModule.substr(requestedModule.lastIndexOf('/')) !==
+            resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
+          const relative = './' + path.relative(path.dirname(this.file.fileName), resolvedModule);
+          // moduleResolution=node support: if importing from under
+          // node_modules, omit the leading part of the path.
+          moduleId = relative.replace(/^(\.+\/)+node_modules\//, '');
         }
       }
     }
