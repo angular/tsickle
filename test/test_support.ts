@@ -31,6 +31,7 @@ export const compilerOptions: ts.CompilerOptions = {
   rootDir: path.resolve(process.cwd()),
   outDir: '.',
   strictNullChecks: true,
+  noImplicitUseStrict: true,
 };
 
 const {cachedLibPath, cachedLib} = (function() {
