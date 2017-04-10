@@ -106,7 +106,7 @@ class ES5Processor extends Rewriter {
       case ts.SyntaxKind.ExpressionStatement:
         // Check for "use strict" and skip it if necessary.
         if (!this.strippedStrict && this.isUseStrict(node)) {
-          this.writeRange(node.getFullStart(), node.getStart());
+          this.emitCommentWithoutStatementBody(node);
           this.strippedStrict = true;
           return;
         }
@@ -119,6 +119,7 @@ class ES5Processor extends Rewriter {
         // Check for
         //   Object.defineProperty(exports, "__esModule", ...);
         if (this.isEsModuleProperty(node as ts.ExpressionStatement)) {
+          this.emitCommentWithoutStatementBody(node);
           return;
         }
         // Otherwise fall through to default processing.
@@ -131,6 +132,15 @@ class ES5Processor extends Rewriter {
         break;
     }
     this.visit(node);
+  }
+
+  /**
+   * The TypeScript AST attaches comments to statement nodes, so even if a node
+   * contains code we want to skip emitting, we need to emit the attached
+   * comment(s).
+   */
+  emitCommentWithoutStatementBody(node: ts.Node) {
+    this.writeRange(node.getFullStart(), node.getStart());
   }
 
   /** isUseStrict returns true if node is a "use strict"; statement. */
