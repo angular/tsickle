@@ -50,8 +50,10 @@ function MultipleConstructorsVariadic(a) {}
  * @param {...!Array<string>|!Array<number>|string|number} points
  */
 function MultipleConstructorsVariadicNames(points) {}
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadSimpleArgs() {}
 
 /**
@@ -62,8 +64,10 @@ function OverloadSimpleArgs() {}
  * @return {void}
  */
 OverloadSimpleArgs.prototype.overloaded = function(a, b, c, d) {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadNameVariants() {}
 
 /**
@@ -71,8 +75,10 @@ function OverloadNameVariants() {}
  * @return {void}
  */
 OverloadNameVariants.prototype.overloaded = function(a_or_b_or_c) {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadReturnTypesNoVoid() {}
 
 /**
@@ -82,8 +88,10 @@ function OverloadReturnTypesNoVoid() {}
  * @return {boolean|number}
  */
 OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b, c) {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadReturnTypesWithVoid() {}
 
 /**
@@ -93,8 +101,10 @@ function OverloadReturnTypesWithVoid() {}
  * @return {void|boolean|number}
  */
 OverloadReturnTypesWithVoid.prototype.overloaded = function(a, b, c) {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadBigMix() {}
 
 /**
@@ -103,16 +113,20 @@ function OverloadBigMix() {}
  * @return {void|number|boolean}
  */
 OverloadBigMix.prototype.overloaded = function(a_or_c_or_e, b) {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadValueOf() {}
 
 /**
  * @return {string}
  */
 OverloadValueOf.prototype.valueOf = function() {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function Merged() {}
 
 /**
@@ -127,8 +141,10 @@ Merged.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
  * @return {void}
  */
 Merged.prototype.variadic = function(test) {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 function OverloadTypeArgs() {}
 
 /**

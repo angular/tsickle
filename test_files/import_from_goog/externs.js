@@ -8,8 +8,10 @@ var tsickle_declare_module = {};
 // Derived from: declare module "goog:closure.Module"
 /** @const */
 tsickle_declare_module.goog_closure_Module = {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 tsickle_declare_module.goog_closure_Module.X = function() {};
 
 /* TODO: ExportAssignment in tsickle_declare_module.goog_closure_Module */
@@ -18,11 +20,15 @@ var tsickle_declare_module = {};
 // Derived from: declare module "goog:closure.OtherModule"
 /** @const */
 tsickle_declare_module.goog_closure_OtherModule = {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 tsickle_declare_module.goog_closure_OtherModule.SymA = function() {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 tsickle_declare_module.goog_closure_OtherModule.SymB = function() {};
 
 /* TODO: ExportDeclaration in tsickle_declare_module.goog_closure_OtherModule */
