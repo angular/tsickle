@@ -17,8 +17,10 @@ var DeclareTestModule = {};
 DeclareTestModule.inner = {};
  /** @type {boolean} */
 DeclareTestModule.inner.someBool;
-
-/** @record @struct */
+/**
+ * @record
+ * @struct
+ */
 DeclareTestModule.Foo = function() {};
  /** @type {string} */
 DeclareTestModule.Foo.prototype.field;
@@ -42,8 +44,10 @@ DeclareTestModule.Clazz = function(a) {};
  * @return {number}
  */
 DeclareTestModule.Clazz.prototype.method = function(a) {};
-
-/** @record @struct */
+/**
+ * @record
+ * @struct
+ */
 DeclareTestModule.NotYetHandled = function() {};
 
 /* TODO: IndexSignature: DeclareTestModule */
@@ -79,8 +83,10 @@ var declareGlobalVar;
  * @return {number}
  */
 function declareGlobalFunction(x) {}
-
-/** @record @struct */
+/**
+ * @record
+ * @struct
+ */
 function DeclareTestInterface() {}
  /** @type {string} */
 DeclareTestInterface.prototype.foo;
@@ -103,8 +109,10 @@ Object.prototype.myMethod = function() {};
  * @return {!CodeMirror.Editor}
  */
 function CodeMirror(x_or_y, x) {}
-
-/** @record @struct */
+/**
+ * @record
+ * @struct
+ */
 CodeMirror.Editor = function() {};
  /** @type {string} */
 CodeMirror.Editor.prototype.name;
@@ -122,8 +130,10 @@ function redirect(url_or_status, url_or_status1) {}
  * @return {string}
  */
 function TestOverload(a, b) {}
-
-/** @record @struct */
+/**
+ * @record
+ * @struct
+ */
 function BareInterface() {}
  /** @type {string} */
 BareInterface.prototype.name;

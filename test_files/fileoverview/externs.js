@@ -8,8 +8,10 @@ var tsickle_declare_module = {};
 // Derived from: declare module "goog:closure.FileOverview"
 /** @const */
 tsickle_declare_module.goog_closure_FileOverview = {};
-
-/** @constructor @struct */
+/**
+ * @constructor
+ * @struct
+ */
 tsickle_declare_module.goog_closure_FileOverview.X = function() {};
 
 /* TODO: ExportAssignment in tsickle_declare_module.goog_closure_FileOverview */
