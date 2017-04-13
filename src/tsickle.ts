@@ -385,7 +385,8 @@ class ClosureRewriter extends Rewriter {
     for (const heritage of decl.heritageClauses!) {
       if (!heritage.types) continue;
       if (decl.kind === ts.SyntaxKind.ClassDeclaration &&
-          heritage.token !== ts.SyntaxKind.ImplementsKeyword) {
+          heritage.token !== ts.SyntaxKind.ImplementsKeyword &&
+          !hasModifierFlag(decl, ts.ModifierFlags.Ambient)) {
         // If a class has "extends Foo", that is preserved in the ES6 output
         // and we don't need to do anything.  But if it has "implements Foo",
         // that is a TS-specific thing and we need to translate it to the
@@ -1544,10 +1545,16 @@ class ExternsWriter extends ClosureRewriter {
 
     if (this.isFirstDeclaration(decl)) {
       let paramNames: string[] = [];
+      const jsdocTags: jsdoc.Tag[] = [];
+      let writeJsDoc = true;
+      this.maybeAddHeritageClauses(jsdocTags, decl);
       if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
+        jsdocTags.push({tagName: 'constructor'});
+        jsdocTags.push({tagName: 'struct'});
         const ctors = (decl as ts.ClassDeclaration)
                           .members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
+          writeJsDoc = false;
           const firstCtor: ts.ConstructorDeclaration = ctors[0] as ts.ConstructorDeclaration;
           const ctorTags = [{tagName: 'constructor'}, {tagName: 'struct'}];
           if (ctors.length > 1) {
@@ -1555,12 +1562,12 @@ class ExternsWriter extends ClosureRewriter {
           } else {
             paramNames = this.emitFunctionType([firstCtor], ctorTags);
           }
-        } else {
-          this.emit('\n/** @constructor @struct */\n');
         }
       } else {
-        this.emit('\n/** @record @struct */\n');
+        jsdocTags.push({tagName: 'record'});
+        jsdocTags.push({tagName: 'struct'});
       }
+      if (writeJsDoc) this.emit(jsdoc.toString(jsdocTags));
       this.writeExternsFunction(name.getText(), paramNames, namespace);
     }
 
