@@ -13,9 +13,9 @@
  * to their API will be easier.  See e.g. ts.JSDocTag and ts.JSDocComment.
  */
 export interface Tag {
-  // tagName is e.g. "param" in an @param declaration.  It's absent
+  // tagName is e.g. "param" in an @param declaration.  It is the empty string
   // for the plain text documentation that occurs before any @foo lines.
-  tagName?: string;
+  tagName: string;
   // parameterName is the the name of the function parameter, e.g. "foo"
   // in
   //   @param foo The foo param.
@@ -32,20 +32,13 @@ export interface Tag {
   text?: string;
 }
 
-function arrayIncludes<T>(array: T[], key: T): boolean {
-  for (const elem of array) {
-    if (elem === key) return true;
-  }
-  return false;
-}
-
 /**
  * A list of all JSDoc tags allowed by the Closure compiler.
  * The public Closure docs don't list all the tags it allows; this list comes
  * from the compiler source itself.
  * https://github.com/google/closure-compiler/blob/master/src/com/google/javascript/jscomp/parsing/Annotation.java
  */
-const JSDOC_TAGS_WHITELIST = [
+const JSDOC_TAGS_WHITELIST = new Set([
   'ngInject',
   'abstract',
   'argument',
@@ -110,14 +103,14 @@ const JSDOC_TAGS_WHITELIST = [
   'unrestricted',
   'version',
   'wizaction',
-];
+]);
 
 /**
  * A list of JSDoc @tags that are never allowed in TypeScript source. These are Closure tags that
  * can be expressed in the TypeScript surface syntax. As tsickle's emit will mangle type names,
  * these will cause Closure Compiler issues and should not be used.
  */
-const JSDOC_TAGS_BLACKLIST = [
+const JSDOC_TAGS_BLACKLIST = new Set([
   'constructor',
   'enum',
   'extends',
@@ -131,22 +124,26 @@ const JSDOC_TAGS_BLACKLIST = [
   'this',
   'type',
   'typedef',
-];
+]);
 
 /**
  * A list of JSDoc @tags that might include a {type} after them. Only banned when a type is passed.
  */
-const JSDOC_TAGS_WITH_TYPES = [
+const JSDOC_TAGS_WITH_TYPES = new Set([
   'const',
   'export',
   'param',
   'return',
-];
+]);
 
 /**
  * parse parses JSDoc out of a comment string.
  * Returns null if comment is not JSDoc.
  */
+// TODO(martinprobst): representing JSDoc as a list of tags is too simplistic. We need functionality
+// such as merging (below), de-duplicating certain tags (@deprecated), and special treatment for
+// others (e.g. @suppress). We should introduce a proper model class with a more suitable data
+// strucure (e.g. a Map<TagName, Values[]>).
 export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null {
   // Make sure we have proper line endings before parsing on Windows.
   comment = comment.replace(/\r\n/g, '\n');
@@ -169,10 +166,10 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
         // A synonym for 'return'.
         tagName = 'return';
       }
-      if (arrayIncludes(JSDOC_TAGS_BLACKLIST, tagName)) {
+      if (JSDOC_TAGS_BLACKLIST.has(tagName)) {
         warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
         continue;  // Drop the tag so Closure won't process it.
-      } else if (arrayIncludes(JSDOC_TAGS_WITH_TYPES, tagName) && text[0] === '{') {
+      } else if (JSDOC_TAGS_WITH_TYPES.has(tagName) && text[0] === '{') {
         warnings.push(
             `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
             `remove the {...} part`);
@@ -197,7 +194,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
       // Text without a preceding @tag on it is either the plain text
       // documentation or a continuation of a previous tag.
       if (tags.length === 0) {
-        tags.push({text: line});
+        tags.push({tagName: '', text: line});
       } else {
         const lastTag = tags[tags.length - 1];
         lastTag.text = (lastTag.text || '') + '\n' + line;
@@ -214,11 +211,10 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
  * Serializes a Tag into a string usable in a comment.
  * Returns a string like " @foo {bar} baz" (note the whitespace).
  */
-function tagToString(tag: Tag, escapeExtraTags: string[] = []): string {
+function tagToString(tag: Tag, escapeExtraTags: Set<string> = new Set<string>()): string {
   let out = '';
   if (tag.tagName) {
-    if (!arrayIncludes(JSDOC_TAGS_WHITELIST, tag.tagName) ||
-        arrayIncludes(escapeExtraTags, tag.tagName)) {
+    if (!JSDOC_TAGS_WHITELIST.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
       // Escape tags we don't understand.  This is a subtle
       // compromise between multiple issues.
       // 1) If we pass through these non-Closure tags, the user will
@@ -255,8 +251,11 @@ function tagToString(tag: Tag, escapeExtraTags: string[] = []): string {
   return out;
 }
 
+/** Tags that must only occur onces in a comment (filtered below). */
+const SINGLETON_TAGS = new Set(['deprecated']);
+
 /** Serializes a Comment out to a string usable in source code. */
-export function toString(tags: Tag[], escapeExtraTags: string[] = []): string {
+export function toString(tags: Tag[], escapeExtraTags: Set<string> = new Set<string>()): string {
   if (tags.length === 0) return '';
   if (tags.length === 1) {
     let tag = tags[0];
@@ -270,7 +269,12 @@ export function toString(tags: Tag[], escapeExtraTags: string[] = []): string {
 
   let out = '';
   out += '/**\n';
+  const emitted = new Set<string>();
   for (let tag of tags) {
+    if (emitted.has(tag.tagName) && SINGLETON_TAGS.has(tag.tagName)) {
+      continue;
+    }
+    emitted.add(tag.tagName);
     out += ' *';
     // If the tagToString is multi-line, insert " * " prefixes on subsequent lines.
     out += tagToString(tag, escapeExtraTags).split('\n').join('\n * ');

@@ -17,7 +17,7 @@ describe('jsdoc.parse', () => {
   });
   it('grabs plain text from jsdoc', () => {
     let source = '/** jsdoc comment */';
-    expect(jsdoc.parse(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
+    expect(jsdoc.parse(source)).to.deep.equal({tags: [{tagName: '', text: 'jsdoc comment'}]});
   });
   it('gathers @tags from jsdoc', () => {
     let source = `/**
@@ -59,5 +59,18 @@ describe('jsdoc.parse', () => {
     expect(jsdoc.parse(source)).to.deep.equal({
       tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]
     });
+  });
+});
+
+describe('jsdoc.toString', () => {
+  it('filters duplicated @deprecated tags', () => {
+    expect(jsdoc.toString([
+      {tagName: 'deprecated'}, {tagName: 'param', parameterName: 'hello', text: 'world'},
+      {tagName: 'deprecated'}
+    ])).to.equal(`/**
+ * @deprecated
+ * @param hello world
+ */
+`);
   });
 });

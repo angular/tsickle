@@ -1132,7 +1132,7 @@ class Annotator extends ClosureRewriter {
     tags.push({tagName: 'type', type: this.typeToClosure(p)});
     // Avoid printing annotations that can conflict with @type
     // This avoids Closure's error "type annotation incompatible with other annotations"
-    this.emit(jsdoc.toString(tags, ['param', 'return']));
+    this.emit(jsdoc.toString(tags, new Set(['param', 'return'])));
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
   }
