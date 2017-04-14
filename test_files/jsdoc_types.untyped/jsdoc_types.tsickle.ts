@@ -3,7 +3,6 @@
  * ensuring that the type gets the proper name in JSDoc comments.
  */
 
-
 import * as module1 from './module1';
 import {ClassOne, value} from './module2';
 import {ClassOne as RenamedClassOne} from './module2';

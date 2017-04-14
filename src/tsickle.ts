@@ -879,18 +879,6 @@ class Annotator extends ClosureRewriter {
    */
   private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
     this.writeRange(decl.getFullStart(), decl.getStart());
-    // This is a load-bearing line break. TypeScript only emits imports that provide symbols used in
-    // value positions (as opposed to type positions). When TypeScript drops an import, it drops the
-    // comment together with it. However in Closure, some comments have semantic meaning, and must
-    // be retained. In particular file level comments are associated with the first import, so they
-    // would be dropped by TS if the import is type only. The additional line break before the
-    // import separates a potential comment from the import and makes sure it gets emitted.
-    // See also the "fileoverview" test.
-    if (decl.getFullStart() !== decl.getStart() &&
-        // Only emit if the trivia contain non-whitespace, i.e. a comment.
-        this.file.text.slice(decl.getFullStart(), decl.getStart()).match(/\S/)) {
-      this.emit('\n');
-    }
     this.emit('import');
     const importPath = this.resolveModuleSpecifier(decl.moduleSpecifier);
     const importClause = decl.importClause;

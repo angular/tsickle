@@ -3,7 +3,6 @@
  * ensuring that the type gets the proper name in JSDoc comments.
  */
 
-
 import * as module1 from './module1';
 import {ClassOne, value, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTwo, Interface, ClassWithParams} from './module2';
 const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.jsdoc_types.module2');
