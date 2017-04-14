@@ -1,4 +1,8 @@
 goog.module('test_files.decorator.decorator');var module = module || {id: 'test_files/decorator/decorator.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+/**
  * @param {!Object} a
  * @param {string} b
  * @return {void}

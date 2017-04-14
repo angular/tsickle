@@ -1,4 +1,8 @@
-goog.module('test_files.typedef.typedef');var module = module || {id: 'test_files/typedef/typedef.js'};
+goog.module('test_files.typedef.typedef');var module = module || {id: 'test_files/typedef/typedef.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 /** @typedef {number} */
 var MyType;
 var /** @type {number} */ y = 3;

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 declare class ClassAndNamespace {
   classFunction(x: string): void;
 }

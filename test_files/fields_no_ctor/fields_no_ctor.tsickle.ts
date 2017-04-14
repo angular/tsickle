@@ -1,3 +1,9 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 
 class NoCtor {
   field1: number;

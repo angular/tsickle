@@ -1,7 +1,11 @@
 /**
  * @fileoverview A source file that uses types that are used in .d.ts files, but
  * that are not available or use different names in Closure's externs.
+ * @suppress {checkTypes}
  */
+
+
+
 
 console.log('work around TS dropping consecutive comments');
 

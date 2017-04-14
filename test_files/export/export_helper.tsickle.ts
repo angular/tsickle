@@ -1,3 +1,9 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 // This file isn't itself a test case, but it is imported by the
 // export.in.ts test case.
 export {export4,TypeDef,Interface} from './export_helper_2';

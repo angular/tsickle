@@ -1,5 +1,11 @@
 Warning at test_files/enum/enum.ts:2:7: should not emit a 'never' type
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = []
 type EnumTest1 = number;

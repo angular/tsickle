@@ -1,4 +1,8 @@
-goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};
+goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 /**
  * Used by implement_import.ts
  * @record

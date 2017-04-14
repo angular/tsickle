@@ -1,2 +1,6 @@
-goog.module('test_files.underscore.export_underscore');var module = module || {id: 'test_files/underscore/export_underscore.js'};
+goog.module('test_files.underscore.export_underscore');var module = module || {id: 'test_files/underscore/export_underscore.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 exports.__test = 1;

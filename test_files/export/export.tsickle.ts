@@ -1,3 +1,9 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 export {export2,Bar,export5,RenamedTypeDef,export4,TypeDef,Interface} from './export_helper';
 const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.export.export_helper');
 /** @typedef {tsickle_forward_declare_1.TypeDef} */

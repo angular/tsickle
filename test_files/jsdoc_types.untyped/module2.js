@@ -1,4 +1,8 @@
-goog.module('test_files.jsdoc_types.untyped.module2');var module = module || {id: 'test_files/jsdoc_types.untyped/module2.js'};
+goog.module('test_files.jsdoc_types.untyped.module2');var module = module || {id: 'test_files/jsdoc_types.untyped/module2.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 class ClassOne {
 }
 exports.ClassOne = ClassOne;

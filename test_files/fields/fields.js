@@ -1,4 +1,8 @@
-goog.module('test_files.fields.fields');var module = module || {id: 'test_files/fields/fields.js'};class FieldsTest {
+goog.module('test_files.fields.fields');var module = module || {id: 'test_files/fields/fields.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+class FieldsTest {
     /**
      * @param {number} field3
      */

@@ -1,6 +1,12 @@
 Warning at test_files/type/type.ts:14:5: unhandled type literal
 Warning at test_files/type/type.ts:15:5: symbol has no declarations
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 // Ensure we still understand what Array is, even when it has been
 // monkeypatched -- issue #170.
 interface Array<T> {

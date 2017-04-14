@@ -585,6 +585,9 @@ class Annotator extends ClosureRewriter {
     }
 
     switch (node.kind) {
+      case ts.SyntaxKind.SourceFile:
+        this.handleSourceFile(node as ts.SourceFile);
+        return true;
       case ts.SyntaxKind.ImportDeclaration:
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
@@ -759,6 +762,55 @@ class Annotator extends ClosureRewriter {
         break;
     }
     return false;
+  }
+
+  private handleSourceFile(sf: ts.SourceFile) {
+    const comments = ts.getLeadingCommentRanges(sf.getFullText(), 0);
+    // Add a @suppress {checkTypes} tag to each source file's JSDoc comment.
+    // Be careful to retain an existing comment and its @suppress'ions
+    let fileoverviewTags: jsdoc.Tag[]|null = null;
+    if (comments && comments.length) {
+      // Find any existing @fileoverview comment and merge our @suppress tag with it.
+      // Closure Compiler considers the last comment with @fileoverview (or @externs or @nocompile)
+      // that has not been attached to some other tree node to be the file overview comment.
+      // AJD considers *any* comment mentioning @fileoverview.
+      const parseResult = jsdoc.parse(sf.getFullText().substring(comments[0].pos, comments[0].end));
+      if (parseResult && parseResult.tags.some(t => t.tagName === 'fileoverview')) {
+        fileoverviewTags = parseResult.tags;
+        // Do not emit the fileoverview comment again later, otherwise we'll end up with duplicated
+        // @fileoverview, @modName etc comments.
+        this.skipUpToOffset = comments[0].end;
+      }
+    }
+    if (fileoverviewTags) {
+      // Add @suppress {checkTypes}, or add to the list in an existing @suppress tag.
+      // Closure compiler barfs if there's a duplicated @suppress tag in a file, so the tag must
+      // only appear once and be merged.
+      const suppressIdx = fileoverviewTags.findIndex(t => t.tagName === 'suppress');
+      if (suppressIdx !== -1) {
+        const suppressions =
+            (fileoverviewTags[suppressIdx].text || '').replace(/^\{(.*)\}$/, '$1').split(',');
+        if (suppressions.indexOf('checkTypes') === -1) {
+          suppressions.push('checkTypes');
+        }
+        fileoverviewTags[suppressIdx].text = `{${suppressions.join(',')}}`;
+      } else {
+        fileoverviewTags.push({tagName: 'suppress', text: '{checkTypes}'});
+      }
+    } else {
+      fileoverviewTags = [
+        {tagName: 'fileoverview', text: 'added by tsickle'},
+        {tagName: 'suppress', text: '{checkTypes}'}
+      ];
+    }
+    this.emit(jsdoc.toString(fileoverviewTags));
+    this.emit('\n\n');  // separate from file body to avoid being dropped.
+    for (const stmt of sf.statements) {
+      this.visit(stmt);
+    }
+    if (sf.statements.length) {
+      this.writeRange(sf.statements[sf.statements.length - 1].getEnd(), sf.getEnd());
+    }
   }
 
   /**

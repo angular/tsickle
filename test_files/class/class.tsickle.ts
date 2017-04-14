@@ -1,5 +1,11 @@
 Warning at test_files/class/class.ts:125:1: type/symbol conflict for Zone, using {?} for now
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 
 /**
  * @record

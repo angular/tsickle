@@ -1,4 +1,8 @@
-goog.module('test_files.import_only_types.types_only');var module = module || {id: 'test_files/import_only_types/types_only.js'};
+goog.module('test_files.import_only_types.types_only');var module = module || {id: 'test_files/import_only_types/types_only.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 /**
  * @record
  */

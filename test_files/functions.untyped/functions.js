@@ -1,4 +1,8 @@
 goog.module('test_files.functions.untyped.functions');var module = module || {id: 'test_files/functions.untyped/functions.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+/**
  * @param {?} a
  * @return {?}
  */

@@ -92,10 +92,19 @@ export abstract class Rewriter {
     this.writeRange(pos, node.getEnd());
   }
 
-  // Write a span of the input file as expressed by absolute offsets.
-  // These offsets are found in attributes like node.getFullStart() and
-  // node.getEnd().
+  /**
+   * Skip emitting any code before the given offset. Used to avoid emitting @fileoverview comments
+   * twice.
+   */
+  protected skipUpToOffset = 0;
+
+  /**
+   * Write a span of the input file as expressed by absolute offsets.
+   * These offsets are found in attributes like node.getFullStart() and
+   * node.getEnd().
+   */
   writeRange(from: number, to: number) {
+    from = Math.max(from, this.skipUpToOffset);
     // getSourceFile().getText() is wrong here because it has the text of
     // the SourceFile node of the AST, which doesn't contain the comments
     // preceding that node.  Semantically these ranges are just offsets

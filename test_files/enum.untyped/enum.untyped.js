@@ -1,4 +1,8 @@
-goog.module('test_files.enum.untyped.enum.untyped');var module = module || {id: 'test_files/enum.untyped/enum.untyped.js'};
+goog.module('test_files.enum.untyped.enum.untyped');var module = module || {id: 'test_files/enum.untyped/enum.untyped.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 let EnumUntypedTest1 = {};
 EnumUntypedTest1.XYZ = 0;
 EnumUntypedTest1.PI = 3.14159;

@@ -1,4 +1,8 @@
-goog.module('test_files.nullable.nullable');var module = module || {id: 'test_files/nullable/nullable.js'};class Primitives {
+goog.module('test_files.nullable.nullable');var module = module || {id: 'test_files/nullable/nullable.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+class Primitives {
 }
 function Primitives_tsickle_Closure_declarations() {
     /** @type {(null|string)} */

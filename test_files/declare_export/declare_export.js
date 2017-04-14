@@ -1,4 +1,8 @@
-goog.module('test_files.declare_export.declare_export');var module = module || {id: 'test_files/declare_export/declare_export.js'};
+goog.module('test_files.declare_export.declare_export');var module = module || {id: 'test_files/declare_export/declare_export.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
 /** @typedef {ExportDeclaredIf} */
 exports.ExportDeclaredIf;
 exports.exportedDeclaredVar = window.exportedDeclaredVar;

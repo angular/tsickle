@@ -1,4 +1,8 @@
 goog.module('test_files.exporting_decorator.exporting');var module = module || {id: 'test_files/exporting_decorator/exporting.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+/**
  * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}
  */

@@ -1,4 +1,8 @@
 goog.module('test_files.optional.optional');var module = module || {id: 'test_files/optional/optional.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+/**
  * @param {number} x
  * @param {(undefined|string)=} y
  * @return {void}

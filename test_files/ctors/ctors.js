@@ -1,4 +1,8 @@
-goog.module('test_files.ctors.ctors');var module = module || {id: 'test_files/ctors/ctors.js'};let /** @type {function(new: (!Document)): ?} */ x = Document;
+goog.module('test_files.ctors.ctors');var module = module || {id: 'test_files/ctors/ctors.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+let /** @type {function(new: (!Document)): ?} */ x = Document;
 class X {
     /**
      * @param {number} a

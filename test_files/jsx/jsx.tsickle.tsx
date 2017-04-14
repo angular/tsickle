@@ -1,3 +1,9 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 // TypeScript compiles JSX into code that uses a special "JSX" module.
 // In a React app, this module is provided by the React typings.
 // For this test, just declare enough to make the code typecheck.

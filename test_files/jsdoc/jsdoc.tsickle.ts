@@ -19,6 +19,12 @@ Warning at test_files/jsdoc/jsdoc.ts:74:1: @extends annotations are redundant wi
 Warning at test_files/jsdoc/jsdoc.ts:81:3: @constructor annotations are redundant with TypeScript equivalents
 Warning at test_files/jsdoc/jsdoc.ts:41:3: unhandled anonymous type
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes}
+ */
+
+
 
 /**
  * @param {string} foo a string.
