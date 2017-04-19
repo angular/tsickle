@@ -41,6 +41,7 @@ describe('golden file tests', () => {
   it('generates correct Closure code', (done: (err?: Error) => void) => {
     let tests = goldenTests();
     let goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
+    goldenJs.push('src/closure_externs.js');
     goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
     goldenJs.push('test_files/clutz.no_externs/some_other.js');
     goldenJs.push('test_files/fileoverview/closure_FileOverview.js');
