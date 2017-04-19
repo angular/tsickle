@@ -2,7 +2,7 @@
 build
 
 # Dependency directory
-./node_modules
+/node_modules
 
 # WebStorm/IntelliJ directory
 .idea

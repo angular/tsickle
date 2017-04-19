@@ -860,12 +860,12 @@ class Annotator extends ClosureRewriter {
       if (resolved && resolved.resolvedModule) {
         const requestedModule = moduleId.replace(extension, '');
         const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
-        if (requestedModule.substr(requestedModule.lastIndexOf('/')) !==
-            resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
-          const relative = './' + path.relative(path.dirname(this.file.fileName), resolvedModule);
-          // moduleResolution=node support: if importing from under
-          // node_modules, omit the leading part of the path.
-          moduleId = relative.replace(/^(\.+\/)+node_modules\//, '');
+        if (resolvedModule.indexOf('node_modules') === -1 &&
+            requestedModule.substr(requestedModule.lastIndexOf('/')) !==
+                resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
+          moduleId = './' +
+              path.relative(path.dirname(this.file.fileName), resolvedModule)
+                  .replace(path.sep, '/');
         }
       }
     }
