@@ -194,7 +194,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   getSourceMapKeyForSourceFile(sourceFile: ts.SourceFile): string {
-    return this.getCanonicalFileName(path.resolve(sourceFile.path));
+    return this.getCanonicalFileName(path.resolve(sourceFile.fileName));
   }
 
   stripAndStoreExistingSourceMap(sourceFile: ts.SourceFile): ts.SourceFile {
@@ -328,7 +328,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     if (externs) {
       this.externs[fileName] = externs;
     }
-    if (this.environment.shouldIgnoreWarningsForPath(sourceFile.path)) {
+    if (this.environment.shouldIgnoreWarningsForPath(sourceFile.fileName)) {
       // All diagnostics (including warnings) are treated as errors.
       // If we've decided to ignore them, just discard them.
       // Warnings include stuff like "don't use @type in your jsdoc"; tsickle
