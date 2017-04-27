@@ -1406,7 +1406,11 @@ class ExternsWriter extends ClosureRewriter {
           let prop = <ts.PropertySignature>member;
           if (prop.name.kind === ts.SyntaxKind.Identifier) {
             this.emitJSDocType(prop);
-            this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
+            if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
+              this.emit(`\n${typeName}.${prop.name.getText()};\n`);
+            } else {
+              this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
+            }
             continue;
           }
           // TODO: For now property names other than Identifiers are not handled; e.g.

@@ -36,7 +36,7 @@ DeclareTestModule.Foo.prototype.method = function(a) {};
  */
 DeclareTestModule.Clazz = function(a) {};
  /** @type {number} */
-DeclareTestModule.Clazz.prototype.field;
+DeclareTestModule.Clazz.field;
 
 /**
  * Comment
