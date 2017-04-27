@@ -1439,7 +1439,6 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
-    namespace = namespace.concat([name.getText(), 'prototype']);
     for (const methodVariants of Array.from(methods.values())) {
       let firstMethodVariant = methodVariants[0];
       let parameterNames: string[];
@@ -1448,7 +1447,12 @@ class ExternsWriter extends ClosureRewriter {
       } else {
         parameterNames = this.emitFunctionType([firstMethodVariant]);
       }
-      this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, namespace);
+      let methodNamespace = namespace.concat([name.getText()]);
+      // If the method is static, don't add the prototype.
+      if (!hasModifierFlag(firstMethodVariant, ts.ModifierFlags.Static)) {
+        methodNamespace = methodNamespace.concat(['prototype']);
+      }
+      this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, methodNamespace);
     }
   }
 
