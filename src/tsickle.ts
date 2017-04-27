@@ -1454,7 +1454,7 @@ class ExternsWriter extends ClosureRewriter {
       let methodNamespace = namespace.concat([name.getText()]);
       // If the method is static, don't add the prototype.
       if (!hasModifierFlag(firstMethodVariant, ts.ModifierFlags.Static)) {
-        methodNamespace = methodNamespace.concat(['prototype']);
+        methodNamespace.push('prototype');
       }
       this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, methodNamespace);
     }
