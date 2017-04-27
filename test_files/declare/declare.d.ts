@@ -12,6 +12,8 @@ declare namespace DeclareTestModule {
     constructor(a: number);
     /** Comment */
     method(a: string): number;
+
+    static staticMethod(a: string): number;
   }
 
   interface NotYetHandled {
