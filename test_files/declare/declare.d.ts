@@ -16,6 +16,12 @@ declare namespace DeclareTestModule {
     static staticMethod(a: string): number;
   }
 
+  // TODO: static/non-static method signatures collide.
+  class Example {
+    static methodA(): number;
+    methodA(): string;
+  }
+
   interface NotYetHandled {
     [key: string]: string;
   }
