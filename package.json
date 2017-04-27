@@ -61,7 +61,8 @@
     "Evan Martin <evanm@google.com> (https://angular.io/)",
     "Alex Eagle <alexeagle@google.com> (https://angular.io/)",
     "Martin Probst <martinprobst@google.com> (https://angular.io/)",
-    "Rado Kirov <radokirov@google.com> (https://angular.io/)"
+    "Rado Kirov <radokirov@google.com> (https://angular.io/)",
+    "Thomas Deegan <tdeegan@google.com>"
   ],
   "license": "MIT",
   "bugs": {

@@ -1406,7 +1406,11 @@ class ExternsWriter extends ClosureRewriter {
           let prop = <ts.PropertySignature>member;
           if (prop.name.kind === ts.SyntaxKind.Identifier) {
             this.emitJSDocType(prop);
-            this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
+            if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
+              this.emit(`\n${typeName}.${prop.name.getText()};\n`);
+            } else {
+              this.emit(`\n${typeName}.prototype.${prop.name.getText()};\n`);
+            }
             continue;
           }
           // TODO: For now property names other than Identifiers are not handled; e.g.
@@ -1439,7 +1443,6 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
-    namespace = namespace.concat([name.getText(), 'prototype']);
     for (const methodVariants of Array.from(methods.values())) {
       let firstMethodVariant = methodVariants[0];
       let parameterNames: string[];
@@ -1448,7 +1451,12 @@ class ExternsWriter extends ClosureRewriter {
       } else {
         parameterNames = this.emitFunctionType([firstMethodVariant]);
       }
-      this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, namespace);
+      let methodNamespace = namespace.concat([name.getText()]);
+      // If the method is static, don't add the prototype.
+      if (!hasModifierFlag(firstMethodVariant, ts.ModifierFlags.Static)) {
+        methodNamespace.push('prototype');
+      }
+      this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, methodNamespace);
     }
   }
 

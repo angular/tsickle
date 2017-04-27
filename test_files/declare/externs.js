@@ -35,6 +35,8 @@ DeclareTestModule.Foo.prototype.method = function(a) {};
  * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};
+ /** @type {number} */
+DeclareTestModule.Clazz.field;
 
 /**
  * Comment
@@ -42,6 +44,20 @@ DeclareTestModule.Clazz = function(a) {};
  * @return {number}
  */
 DeclareTestModule.Clazz.prototype.method = function(a) {};
+
+/**
+ * @param {string} a
+ * @return {number}
+ */
+DeclareTestModule.Clazz.staticMethod = function(a) {};
+
+/** @constructor @struct */
+DeclareTestModule.Example = function() {};
+
+/**
+ * @return {number|string}
+ */
+DeclareTestModule.Example.methodA = function() {};
 
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};

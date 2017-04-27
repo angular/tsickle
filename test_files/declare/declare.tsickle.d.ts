@@ -1,4 +1,4 @@
-Warning at test_files/declare/declare.d.ts:92:1: anonymous type has no symbol
+Warning at test_files/declare/declare.d.ts:102:1: anonymous type has no symbol
 ====
 declare namespace DeclareTestModule {
   namespace inner {
@@ -14,6 +14,16 @@ declare namespace DeclareTestModule {
     constructor(a: number);
     /** Comment */
     method(a: string): number;
+
+    static staticMethod(a: string): number;
+
+    static field: number;
+  }
+
+  // TODO: static/non-static method signatures collide.
+  class Example {
+    static methodA(): number;
+    methodA(): string;
   }
 
   interface NotYetHandled {
