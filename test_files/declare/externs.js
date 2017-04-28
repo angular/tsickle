@@ -55,9 +55,14 @@ DeclareTestModule.Clazz.staticMethod = function(a) {};
 DeclareTestModule.Example = function() {};
 
 /**
- * @return {number|string}
+ * @return {number}
  */
 DeclareTestModule.Example.methodA = function() {};
+
+/**
+ * @return {string}
+ */
+DeclareTestModule.Example.prototype.methodA = function() {};
 
 /** @record @struct */
 DeclareTestModule.NotYetHandled = function() {};

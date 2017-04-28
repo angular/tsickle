@@ -1419,11 +1419,13 @@ class ExternsWriter extends ClosureRewriter {
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
           const method = member as ts.MethodDeclaration;
-          const methodName = method.name.getText();
-          if (methods.has(methodName)) {
-            methods.get(methodName)!.push(method);
+          const isStatic = hasModifierFlag(method, ts.ModifierFlags.Static);
+          const methodSignature = `${method.name.getText()}$$$${isStatic ? 'static' : 'instance'}`;
+
+          if (methods.has(methodSignature)) {
+            methods.get(methodSignature)!.push(method);
           } else {
-            methods.set(methodName, [method]);
+            methods.set(methodSignature, [method]);
           }
           continue;
         case ts.SyntaxKind.Constructor:
