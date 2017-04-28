@@ -186,6 +186,12 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         content = this.combineInlineSourceMaps(fileName, content);
       }
       if (this.options.googmodule && !isDtsFileName(fileName)) {
+        // Remove currentDirectory part from filename if it is absolute
+        if (path.isAbsolute(fileName)) {
+          // Normalize Windows backslash to URL forwardslash
+          const currDir = this.getCurrentDirectory().replace(/\\/g, '/');
+          fileName = fileName.replace(currDir + '/', '');
+        }
         content = this.convertCommonJsToGoogModule(fileName, content);
       }
     } else {
