@@ -439,7 +439,7 @@ export class TypeTranslator {
           indexable = true;
           break;
         default:
-          let member = type.symbol.members.get(field);
+          let member = type.symbol.members.get(field)!;
           // optional members are handled by the type including |undefined in a union type.
           let memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
