@@ -1038,8 +1038,6 @@ class Annotator extends ClosureRewriter {
   }
 
   private emitInterface(iface: ts.InterfaceDeclaration) {
-    if (this.options.untyped) return;
-
     // If this symbol is both a type and a value, we cannot emit both into Closure's
     // single namespace.
     let sym = this.program.getTypeChecker().getSymbolAtLocation(iface.name);
@@ -1047,8 +1045,10 @@ class Annotator extends ClosureRewriter {
 
     let docTags = this.getJSDoc(iface) || [];
     docTags.push({tagName: 'record'});
-    this.maybeAddTemplateClause(docTags, iface);
-    this.maybeAddHeritageClauses(docTags, iface);
+    if (!this.options.untyped) {
+      this.maybeAddTemplateClause(docTags, iface);
+      this.maybeAddHeritageClauses(docTags, iface);
+    }
 
     this.emit('\n');
     this.emit(jsdoc.toString(docTags));
@@ -1120,7 +1120,9 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.StringLiteral:
         // E.g. interface Foo { 'bar': number; }
         // If 'bar' is a name that is not valid in Closure then there's nothing we can do.
-        return (prop.name as ts.StringLiteral).text;
+        let text = (prop.name as ts.StringLiteral).text;
+        if (!isValidClosurePropertyName(text)) return null;
+        return text;
       default:
         return null;
     }

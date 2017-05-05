@@ -1,3 +1,16 @@
 
 export class Class {}
-export interface Interface { x: number }
+/**
+ * @record
+ */
+export function Interface() {}
+/** @type {?} */
+Interface.prototype.x;
+/* TODO: handle strange member:
+"quoted-bad-name": string;
+*/
+
+export interface Interface {
+  x: number;
+  "quoted-bad-name": string;
+}

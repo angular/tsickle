@@ -1,3 +1,10 @@
+
+/**
+ * @record
+ */
+function Interface() {}
+/** @type {?} */
+Interface.prototype.interfaceFunc;
 interface Interface {
   interfaceFunc(): void;
 }
