@@ -12,7 +12,7 @@ import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
-import {ANNOTATION_SUPPORT_CODE, convertDecorators} from '../src/decorator-annotator';
+import {convertDecorators} from '../src/decorator-annotator';
 import {toClosureJS} from '../src/main';
 import {getInlineSourceMapCount, setInlineSourceMap,} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
@@ -310,7 +310,6 @@ function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
   for (const fileName of toArray(sources.keys())) {
     let {output, sourceMap: preexistingSourceMap} =
         convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
-    output = output + ANNOTATION_SUPPORT_CODE;
     transformedSources.set(fileName, setInlineSourceMap(output, preexistingSourceMap.toString()));
   }
   return transformedSources;

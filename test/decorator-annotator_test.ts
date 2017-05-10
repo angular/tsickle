@@ -10,7 +10,7 @@ import {expect} from 'chai';
 import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
-import {ANNOTATION_SUPPORT_CODE, convertDecorators} from '../src/decorator-annotator';
+import {convertDecorators} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
@@ -27,7 +27,7 @@ function sources(sourceText: string): Map<string, string> {
 
 function verifyCompiles(sourceText: string) {
   // This throws an exception on error.
-  testSupport.createProgram(sources(ANNOTATION_SUPPORT_CODE + sourceText));
+  testSupport.createProgram(sources(sourceText));
 }
 
 describe(
@@ -101,12 +101,12 @@ let param: any;
 
 class Foo {
   field: string;
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test1 },
 { type: Test2, args: [param, ] },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }`);
         });
@@ -122,11 +122,11 @@ class Foo {
 
 class Foo {
   field: string;
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }`);
         });
@@ -142,11 +142,11 @@ class Foo {
 
 class Foo {
   field: string;
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }`);
         });
@@ -174,14 +174,14 @@ let param: any;
 
 
 class Foo {
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test1, args: [{name: 'percentPipe'}, class ZZZ {}, ] },
 { type: Test2 },
 { type: Test3 },
 { type: Test4, args: [param, ] },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }`);
         });
@@ -195,11 +195,11 @@ export class Foo {
 /** @Annotation */ let Test1: Function;
 
 export class Foo {
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }`);
         });
@@ -222,19 +222,19 @@ export class Foo {
 export class Foo {
   foo() {
     \n    class Bar {
-    static decorators: DecoratorInvocation[] = [
+    static decorators: {type: Function, args?: any[]}[] = [
 { type: Test2 },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }
   }
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 }`);
         });
@@ -266,7 +266,7 @@ class Foo {
   constructor( bar: AbstractService,  num: AnEnum) {
   }
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: AbstractService, decorators: [{ type: Inject }, ]},
 {type: AnEnum, decorators: [{ type: Inject, args: ['enum', ] }, ]},
 ];
@@ -288,11 +288,11 @@ import {BarService} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
   }
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: Test1 },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: BarService, },
 null,
 ];
@@ -315,7 +315,7 @@ class Foo {
   constructor( x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: bar.BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
 null,
 null,
@@ -336,7 +336,7 @@ let APP_ID: any;
 class ViewUtils {
   constructor( private _appId: string) {}
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: undefined, decorators: [{ type: Inject, args: [APP_ID, ] }, ]},
 ];
 }`);
@@ -354,7 +354,7 @@ class Foo {
   constructor( typed: Promise<string>) {
   }
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: Promise, decorators: [{ type: Inject }, ]},
 ];
 }`);
@@ -374,7 +374,7 @@ interface Iface {}
 class Foo {
   constructor( aClass: Class,  aIface: Iface) {}
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: Class, decorators: [{ type: Inject }, ]},
 {type: undefined, decorators: [{ type: Inject }, ]},
 ];
@@ -400,7 +400,7 @@ class Foo {
 /** @Annotation */ let Test1: Function;
 class Foo {
   \n  bar() {}
-static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 'bar': [{ type: Test1, args: ['somename', ] },],
 };
 }`);
@@ -422,7 +422,7 @@ class ClassWithDecorators {
   b;
 
   \n  set c(value) {}
-static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
 'c': [{ type: PropDecorator, args: ["p3", ] },],
 };
@@ -455,7 +455,7 @@ class Foo {
 class Foo {
   missingSemi = () => {}
    other: number;
-static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 'other': [{ type: PropDecorator },],
 };
 }`);

@@ -11,7 +11,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import {ANNOTATION_SUPPORT_CODE} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
@@ -113,7 +112,6 @@ testFn('golden tests', () => {
             tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
         expect(diagnostics).to.be.empty;
         if (output !== tsSources.get(tsPath)) {
-          output += ANNOTATION_SUPPORT_CODE;
           let decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
           expect(decoratedPath).to.not.equal(tsPath);
           compareAgainstGolden(output, decoratedPath);

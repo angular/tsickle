@@ -82,14 +82,6 @@ export interface TsickleHost {
   fileNameToModuleId(fileName: string): string;
 }
 
-const ANNOTATION_SUPPORT = `
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
-}
-`;
-
-
 /**
  * TsickleCompilerHost does tsickle processing of input files, including
  * closure type annotation processing, decorator downleveling and
@@ -314,7 +306,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       // No changes; reuse the existing parse.
       return sourceFile;
     }
-    fileContent = converted.output + ANNOTATION_SUPPORT;
+    fileContent = converted.output;
     this.decoratorDownlevelSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), converted.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
