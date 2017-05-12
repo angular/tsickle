@@ -122,7 +122,8 @@ class ClassRewriter extends Rewriter {
         // Verify that "Bar" is a value (e.g. a constructor) and not just a type.
         let sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
         if (sym && (sym.flags & ts.SymbolFlags.Value)) {
-          paramCtor = new TypeTranslator(this.typeChecker, param.type).symbolToString(sym);
+          paramCtor = new TypeTranslator(this.typeChecker, param.type)
+                          .symbolToString(sym, /* useFqn */ true);
         }
       }
       if (paramCtor || decorators) {

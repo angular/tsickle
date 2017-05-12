@@ -1297,7 +1297,7 @@ class ExternsWriter extends ClosureRewriter {
             this.emit(`// Derived from: declare module "${importName}"\n`);
             // We also don't care about the actual name of the module ("foo"
             // in the above example), except that we want it to not conflict.
-            importName = importName.replace(/[^A-Za-z]/g, '_');
+            importName = importName.replace(/_/, '__').replace(/[^A-Za-z]/g, '_');
             this.emit('/** @const */\n');
             this.writeExternsVariable(importName, namespace, '{}');
 

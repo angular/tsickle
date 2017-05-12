@@ -164,12 +164,24 @@ export class TypeTranslator {
    * - TypeChecker.typeToString translates Array as T[].
    * - TypeChecker.symbolToString emits types without their namespace,
    *   and doesn't let you pass the flag to control that.
+   * @param useFqn whether to scope the name using its fully qualified name.
    */
-  public symbolToString(sym: ts.Symbol): string {
+  public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
     let alias = this.symbolsToAliasedNames.get(sym);
     if (alias) return alias;
+    if (useFqn) {
+      const fqn = this.typeChecker.getFullyQualifiedName(sym);
+      if (!fqn.startsWith(`"`) && !fqn.startsWith(`'`)) {
+        // Non-quoted FQNs mean the name is a global symbol (e.g. from namespace).
+        return this.stripClutzNamespace(fqn);
+      } else {
+        // TODO(martinprobst): Quoted FQNs mean the name is from a module. We still need to scope it
+        // for ambient declarations in externs.
+      }
+    }
+
     let writeText = (text: string) => str += text;
     let doNothing = () => {
       return;
@@ -196,13 +208,17 @@ export class TypeTranslator {
       reportIllegalExtends: doNothing,
     };
     builder.buildSymbolDisplay(sym, writer, this.node);
-    // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special
-    // ಠ_ಠ.clutz namespace. While most code seen by Tsickle will only ever see local aliases, Clutz
-    // symbols can be written by users directly in code, and they can appear by dereferencing
-    // TypeAliases. The code below simply strips the prefix, the remaining type name then matches
-    // Closure's type.
-    if (str.startsWith('ಠ_ಠ.clutz.')) str = str.substring('ಠ_ಠ.clutz.'.length);
-    return str;
+    return this.stripClutzNamespace(str);
+  }
+
+  // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special
+  // ಠ_ಠ.clutz namespace. While most code seen by Tsickle will only ever see local aliases, Clutz
+  // symbols can be written by users directly in code, and they can appear by dereferencing
+  // TypeAliases. The code below simply strips the prefix, the remaining type name then matches
+  // Closure's type.
+  private stripClutzNamespace(name: string) {
+    if (name.startsWith('ಠ_ಠ.clutz.')) return name.substring('ಠ_ಠ.clutz.'.length);
+    return name;
   }
 
   translate(type: ts.Type): string {
@@ -250,7 +266,9 @@ export class TypeTranslator {
           this.warn(`TypeParameter without a symbol`);  // should not happen (tm)
           return '?';
         }
-        return this.symbolToString(type.symbol);
+        // In Closure Compiler, type parameters *are* scoped to their containing class.
+        const useFqn = false;
+        return this.symbolToString(type.symbol, useFqn);
       case ts.TypeFlags.Object:
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:
@@ -302,7 +320,7 @@ export class TypeTranslator {
         this.warn('class has no symbol');
         return '?';
       }
-      return '!' + this.symbolToString(type.symbol);
+      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
     } else if (type.objectFlags & ts.ObjectFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
@@ -324,7 +342,7 @@ export class TypeTranslator {
           return '?';
         }
       }
-      return '!' + this.symbolToString(type.symbol);
+      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
