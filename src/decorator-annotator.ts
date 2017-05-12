@@ -14,13 +14,6 @@ import {Rewriter} from './rewriter';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
 
-export const ANNOTATION_SUPPORT_CODE = `
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
-}
-`;
-
 // ClassRewriter rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
 // separately for each class we encounter.
@@ -204,8 +197,9 @@ class ClassRewriter extends Rewriter {
    * emitMetadata emits the various gathered metadata, as static fields.
    */
   private emitMetadata() {
+    const decoratorInvocations = '{type: Function, args?: any[]}[]';
     if (this.decorators) {
-      this.emit(`static decorators: DecoratorInvocation[] = [\n`);
+      this.emit(`static decorators: ${decoratorInvocations} = [\n`);
       for (let annotation of this.decorators) {
         this.emitDecorator(annotation);
         this.emit(',\n');
@@ -218,7 +212,8 @@ class ClassRewriter extends Rewriter {
       // ctorParameters may contain forward references in the type: field, so wrap in a function
       // closure
       this.emit(
-          `static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [\n`);
+          `static ctorParameters: () => ({type: any, decorators?: ` + decoratorInvocations +
+          `}|null)[] = () => [\n`);
       for (let param of this.ctorParameters || []) {
         if (!param) {
           this.emit('null,\n');
@@ -240,7 +235,7 @@ class ClassRewriter extends Rewriter {
     }
 
     if (this.propDecorators) {
-      this.emit('static propDecorators: {[key: string]: DecoratorInvocation[]} = {\n');
+      this.emit(`static propDecorators: {[key: string]: ` + decoratorInvocations + `} = {\n`);
       for (let name of toArray(this.propDecorators.keys())) {
         this.emit(`'${name}': [`);
 

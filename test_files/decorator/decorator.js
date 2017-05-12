@@ -39,14 +39,14 @@ __decorate([
     __metadata("design:type", Number)
 ], DecoratorTest.prototype, "x", void 0);
 function DecoratorTest_tsickle_Closure_declarations() {
-    /** @type {!Array<!DecoratorInvocation>} */
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
     DecoratorTest.decorators;
     /**
      * @nocollapse
-     * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>}
+     * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>)})>}
      */
     DecoratorTest.ctorParameters;
-    /** @type {!Object<string,!Array<!DecoratorInvocation>>} */
+    /** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
     DecoratorTest.propDecorators;
     /** @type {number} */
     DecoratorTest.prototype.x;
@@ -62,11 +62,3 @@ function DecoratedClass_tsickle_Closure_declarations() {
     /** @type {string} */
     DecoratedClass.prototype.z;
 }
-/**
- * @record
- */
-function DecoratorInvocation() { }
-/** @type {!Function} */
-DecoratorInvocation.prototype.type;
-/** @type {(undefined|!Array<?>)} */
-DecoratorInvocation.prototype.args;

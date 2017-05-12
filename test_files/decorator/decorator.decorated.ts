@@ -20,13 +20,13 @@ class DecoratorTest {
 
   
   private y: number;
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: classAnnotation },
 ];
 /** @nocollapse */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
-static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 'y': [{ type: annotationDecorator },],
 };
 }
@@ -34,9 +34,4 @@ static propDecorators: {[key: string]: DecoratorInvocation[]} = {
 @classDecorator
 class DecoratedClass {
   z: string;
-}
-
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
 }
