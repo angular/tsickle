@@ -763,6 +763,22 @@ class Annotator extends ClosureRewriter {
           return true;
         }
         break;
+      case ts.SyntaxKind.ElementAccessExpression:
+        // Convert quoted accesses to properties that have a symbol to dotted accesses, to get
+        // consistent Closure renaming. This can happen because TS allows quoted access with literal
+        // strings to properties.
+        const eae = node as ts.ElementAccessExpression;
+        if (!eae.argumentExpression ||
+            eae.argumentExpression.kind !== ts.SyntaxKind.StringLiteral) {
+          return false;
+        }
+        const quotedPropSym = this.typeChecker.getSymbolAtLocation(eae.argumentExpression);
+        // If it has a symbol, it's actually a regular declared property.
+        if (!quotedPropSym) return false;
+        const propName = (eae.argumentExpression as ts.StringLiteral).text;
+        this.writeNode(eae.expression);
+        this.emit(`.${propName}`);
+        return true;
       case ts.SyntaxKind.PropertyAccessExpression:
         // Convert dotted accesses to types that have an index type declared to quoted accesses, to
         // avoid Closure renaming one access but not the other.
@@ -770,6 +786,16 @@ class Annotator extends ClosureRewriter {
         const pae = node as ts.PropertyAccessExpression;
         const t = this.typeChecker.getTypeAtLocation(pae.expression);
         if (!t.getStringIndexType()) return false;
+        // Types can have string index signatures and declared properties (of the matching type).
+        // These properties have a symbol, as opposed to pure string index types.
+        const propSym = this.typeChecker.getSymbolAtLocation(pae.name);
+        // The decision to return below is a judgement call. Presumably, in most situations, dotted
+        // access to a property is correct, and should not be turned into quoted access even if
+        // there is a string index on the type. However it is possible to construct programs where
+        // this is incorrect, e.g. where user code assigns into a property through the index access
+        // in another location.
+        if (propSym) return false;
+
         this.debugWarn(
             pae,
             this.typeChecker.typeToString(t) +

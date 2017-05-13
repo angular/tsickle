@@ -21,7 +21,7 @@ EnumTest1[EnumTest1.PI] = "PI";
 // number.  Verify that the resulting TypeScript still allows you to
 // index into the enum with all the various ways allowed of enums.
 let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
-let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
+let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1.XYZ;
 let /** @type {string} */ enumNumIndex: string = EnumTest1[ /** @type {number} */(( /** @type {?} */((null as any)) as number))];
 let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} */(( /** @type {?} */((null as any)) as string))];
 /**
@@ -31,7 +31,8 @@ let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} *
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
-let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
+let /** @type {number} */ enumTestLookup = EnumTest1.XYZ;
+let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 export type EnumTest2 = number;
 export let EnumTest2: any = {};
 /** @type {number} */

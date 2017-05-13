@@ -1,9 +1,8 @@
-Warning at test_files/quote_props/quote.ts:6:13: Quoted has a string index type but is accessed using dotted access. Quoting the access.
-Warning at test_files/quote_props/quote.ts:7:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
-Warning at test_files/quote_props/quote.ts:18:13: QuotedMixed has a string index type but is accessed using dotted access. Quoting the access.
-Warning at test_files/quote_props/quote.ts:21:1: QuotedMixed has a string index type but is accessed using dotted access. Quoting the access.
+Warning at test_files/quote_props/quote.ts:9:13: Quoted has a string index type but is accessed using dotted access. Quoting the access.
+Warning at test_files/quote_props/quote.ts:10:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
 ====
-
+// silence warnings about redeclaring vars.
+export {};
 /**
  * @record
  */
@@ -11,6 +10,8 @@ function Quoted() {}
 /* TODO: handle strange member:
 [k: string]: number;
 */
+
+
 interface Quoted {
   [k: string]: number;
 }
@@ -34,11 +35,9 @@ interface QuotedMixed extends Quoted {
   // access this field in a mixed fashion.
   foo: number;
 }
-// TODO(martinprobst): should 'foo: 1' below be quoted?
 let /** @type {!QuotedMixed} */ quotedMixed: QuotedMixed = {foo: 1};
-console.log(quotedMixed['foo']);
+console.log(quotedMixed.foo);
 
-// TODO(martinprobst): should this access to a declared property be quoted?
-quotedMixed['foo'] = 1;
-// TODO(martinprobst): should this access to a declared property be un-quoted?
-quotedMixed['foo'] = 1;
+quotedMixed.foo = 1;
+// Should be converted to non-quoted access.
+quotedMixed.foo = 1;

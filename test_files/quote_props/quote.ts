@@ -1,3 +1,6 @@
+// silence warnings about redeclaring vars.
+export {};
+
 interface Quoted {
   [k: string]: number;
 }
@@ -13,11 +16,9 @@ interface QuotedMixed extends Quoted {
   // access this field in a mixed fashion.
   foo: number;
 }
-// TODO(martinprobst): should 'foo: 1' below be quoted?
 let quotedMixed: QuotedMixed = {foo: 1};
 console.log(quotedMixed.foo);
 
-// TODO(martinprobst): should this access to a declared property be quoted?
 quotedMixed.foo = 1;
-// TODO(martinprobst): should this access to a declared property be un-quoted?
+// Should be converted to non-quoted access.
 quotedMixed['foo'] = 1;

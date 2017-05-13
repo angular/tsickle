@@ -14,6 +14,7 @@ function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
 let enumTestLookup = EnumTest1["XYZ"];
+let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 
 // This additional exported enum is here to exercise the fix for issue #51.
 export enum EnumTest2 {XYZ, PI = 3.14159}

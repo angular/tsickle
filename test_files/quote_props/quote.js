@@ -1,4 +1,5 @@
-goog.module('test_files.quote_props.quote');var module = module || {id: 'test_files/quote_props/quote.js'};/**
+goog.module('test_files.quote_props.quote');var module = module || {id: 'test_files/quote_props/quote.js'};
+/**
  * @record
  */
 function Quoted() { }
@@ -13,10 +14,8 @@ quoted['hello'] = 1;
 function QuotedMixed() { }
 /** @type {number} */
 QuotedMixed.prototype.foo;
-// TODO(martinprobst): should 'foo: 1' below be quoted?
 let /** @type {!QuotedMixed} */ quotedMixed = { foo: 1 };
-console.log(quotedMixed['foo']);
-// TODO(martinprobst): should this access to a declared property be quoted?
-quotedMixed['foo'] = 1;
-// TODO(martinprobst): should this access to a declared property be un-quoted?
-quotedMixed['foo'] = 1;
+console.log(quotedMixed.foo);
+quotedMixed.foo = 1;
+// Should be converted to non-quoted access.
+quotedMixed.foo = 1;
