@@ -25,7 +25,6 @@ Warning at test_files/jsdoc/jsdoc.ts:41:3: unhandled anonymous type
  */
 
 
-
 /**
  * @param {string} foo a string.
  * @param {string} baz

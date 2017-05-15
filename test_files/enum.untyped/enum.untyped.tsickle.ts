@@ -4,7 +4,6 @@
  */
 
 
-
 type EnumUntypedTest1 = number;
 let EnumUntypedTest1: any = {};
 EnumUntypedTest1.XYZ = 0;

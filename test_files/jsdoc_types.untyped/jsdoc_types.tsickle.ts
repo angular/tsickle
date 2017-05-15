@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 /**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.

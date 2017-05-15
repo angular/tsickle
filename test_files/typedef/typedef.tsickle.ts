@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 type MyType = number;
 /** @typedef {number} */
 var MyType;

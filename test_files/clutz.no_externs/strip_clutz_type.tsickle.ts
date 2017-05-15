@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 import {ClutzedClass, clutzedFn} from 'goog:some.name.space';
 const tsickle_forward_declare_1 = goog.forwardDeclare('some.name.space');
 import {TypeAlias} from 'goog:some.other';

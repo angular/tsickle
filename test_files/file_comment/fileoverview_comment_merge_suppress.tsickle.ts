@@ -4,8 +4,6 @@
  */
 
 
-
-
 /** second comment here */
 
 console.log('code');

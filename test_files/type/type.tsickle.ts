@@ -6,7 +6,6 @@ Warning at test_files/type/type.ts:15:5: symbol has no declarations
  * @suppress {checkTypes}
  */
 
-
 // Ensure we still understand what Array is, even when it has been
 // monkeypatched -- issue #170.
 interface Array<T> {

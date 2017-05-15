@@ -4,7 +4,6 @@
  */
 
 
-
 class StructuralTest {
   field1: string;
 /**

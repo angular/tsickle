@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 export declare interface ExportDeclaredIf { x: number; }
 /** @typedef {ExportDeclaredIf} */
 exports.ExportDeclaredIf;
