@@ -4,7 +4,6 @@
  */
 
 
-
 /**
  * @param {!Object} a
  * @param {string} b

@@ -4,7 +4,6 @@
  */
 
 
-
 /**
  * @param {number} a
  * @return {number}

@@ -4,5 +4,4 @@
  */
 
 
-
 export default class DefaultClass {}

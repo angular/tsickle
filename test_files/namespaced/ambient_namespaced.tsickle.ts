@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 declare namespace decl.ns.one {
   export class NamespacedClass {
     x: decl.ns.two.NamespacedClass;

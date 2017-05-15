@@ -5,8 +5,6 @@
  */
 
 
-
-
 console.log('work around TS dropping consecutive comments');
 
 let /** @type {!NodeListOf<!HTMLParagraphElement>} */ x: NodeListOf<HTMLParagraphElement> = document.getElementsByTagName('p');

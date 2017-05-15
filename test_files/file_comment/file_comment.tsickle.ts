@@ -4,7 +4,6 @@
  */
 
 
-
 /**
  * @return {string}
  */

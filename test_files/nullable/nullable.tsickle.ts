@@ -4,7 +4,6 @@
  */
 
 
-
 class Primitives {
   nullable: string|null;
   undefinable: number|undefined;

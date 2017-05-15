@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 /** A comment without any tags. */
 
 // here comes code.

@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 import LocalName from 'goog:closure.Module';
 const tsickle_forward_declare_1 = goog.forwardDeclare('closure.Module');
 goog.require('closure.Module'); // force type-only module to be loaded

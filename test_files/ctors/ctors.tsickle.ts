@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 let /** @type {function(new: (!Document)): ?} */ x = Document;
 class X {
 /**

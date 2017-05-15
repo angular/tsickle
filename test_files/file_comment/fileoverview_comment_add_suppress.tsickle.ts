@@ -4,7 +4,5 @@
  */
 
 
-
-
 // here comes code.
 export let /** @type {number} */ x = 1;

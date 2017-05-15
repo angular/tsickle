@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 // A class with an overloaded constructor where constructor args are optional.
 declare class MultipleConstructorsOptional {
   constructor();

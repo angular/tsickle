@@ -4,7 +4,6 @@
  */
 
 
-
 /**
  * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}

@@ -3,5 +3,4 @@
  * @suppress {checkTypes}
  */
 
-
 export type TypeDef = number;

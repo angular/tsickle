@@ -4,7 +4,6 @@
  */
 
 
-
 class SuperTestBaseNoArg {
 constructor() {}
 }

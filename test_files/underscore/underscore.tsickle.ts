@@ -3,7 +3,6 @@
  * @suppress {checkTypes}
  */
 
-
 // Verify that double-underscored names in various places don't get corrupted.
 // See getIdentifierText() in tsickle.ts.
 
