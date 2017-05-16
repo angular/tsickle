@@ -1,6 +1,6 @@
 goog.module('test_files.functions.functions');var module = module || {id: 'test_files/functions/functions.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 /**
  * @param {number} a

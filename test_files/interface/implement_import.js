@@ -1,6 +1,6 @@
 goog.module('test_files.interface.implement_import');var module = module || {id: 'test_files/interface/implement_import.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 var interface_1 = goog.require('test_files.interface.interface');

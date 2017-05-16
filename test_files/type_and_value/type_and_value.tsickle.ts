@@ -3,7 +3,7 @@ Warning at test_files/type_and_value/type_and_value.ts:16:5: type/symbol conflic
 ====
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 import * as conflict from './module';

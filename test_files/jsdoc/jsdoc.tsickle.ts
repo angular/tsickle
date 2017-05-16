@@ -21,7 +21,7 @@ Warning at test_files/jsdoc/jsdoc.ts:41:3: unhandled anonymous type
 ====
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 

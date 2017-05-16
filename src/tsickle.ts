@@ -473,6 +473,9 @@ type HasTypeParameters =
 // Matches common extensions of TypeScript input filenames
 const extension = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
 
+const FILEOVERVIEW_COMMENTS: ReadonlySet<string> =
+    new Set(['fileoverview', 'externs', 'modName', 'mods', 'pintomodule']);
+
 /** Annotator translates a .ts to a .ts with Closure annotations. */
 class Annotator extends ClosureRewriter {
   /**
@@ -779,10 +782,11 @@ class Annotator extends ClosureRewriter {
    */
   private emitSuppressChecktypes(sf: ts.SourceFile) {
     const comments = ts.getLeadingCommentRanges(sf.getFullText(), 0) || [];
+
     let fileoverviewIdx = -1;
     for (let i = comments.length - 1; i >= 0; i--) {
       const parsed = jsdoc.parse(sf.getFullText().substring(comments[i].pos, comments[i].end));
-      if (parsed !== null && parsed.tags.some(t => t.tagName === 'fileoverview')) {
+      if (parsed !== null && parsed.tags.some(t => FILEOVERVIEW_COMMENTS.has(t.tagName))) {
         fileoverviewIdx = i;
         break;
       }
@@ -797,7 +801,7 @@ class Annotator extends ClosureRewriter {
       // No existing comment to merge with, just emit a new one.
       this.emit(jsdoc.toString([
         {tagName: 'fileoverview', text: 'added by tsickle'},
-        {tagName: 'suppress', text: '{checkTypes}'}
+        {tagName: 'suppress', type: 'checkTypes', text: 'checked by tsc'},
       ]));
       this.emit('\n');
       return;
@@ -815,14 +819,18 @@ class Annotator extends ClosureRewriter {
     // only appear once and be merged.
     const suppressIdx = tags.findIndex(t => t.tagName === 'suppress');
     if (suppressIdx !== -1) {
-      const suppressions =
-          (tags[suppressIdx].text || '').replace(/^\{(.*)\}$/, '$1').split(',').map(s => s.trim());
-      if (suppressions.indexOf('checkTypes') === -1) {
-        suppressions.push('checkTypes');
+      const suppressions = tags[suppressIdx].type || '';
+      const suppressionsList = suppressions.split(',').map(s => s.trim());
+      if (suppressionsList.indexOf('checkTypes') === -1) {
+        suppressionsList.push('checkTypes');
       }
-      tags[suppressIdx].text = `{${suppressions.join(',')}}`;
+      tags[suppressIdx].type = suppressionsList.join(',');
     } else {
-      tags.push({tagName: 'suppress', text: '{checkTypes}'});
+      tags.push({
+        tagName: 'suppress',
+        type: 'checkTypes',
+        text: 'checked by tsc',
+      });
     }
     this.emit(jsdoc.toString(tags));
     if (sf.getFullText().substring(comment.end, comment.end + 2) !== '\n\n') {

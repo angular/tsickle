@@ -1,6 +1,6 @@
 goog.module('test_files.static.static');var module = module || {id: 'test_files/static/static.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 class Static {
 }

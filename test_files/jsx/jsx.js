@@ -1,6 +1,6 @@
 goog.module('test_files.jsx.jsx');var module = module || {id: 'test_files/jsx/jsx.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 let /** @type {!JSX.Element} */ simple = React.createElement("div", null);
 let /** @type {string} */ hello = 'hello';

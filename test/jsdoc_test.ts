@@ -57,7 +57,12 @@ describe('jsdoc.parse', () => {
   it('allows @suppress annotations', () => {
     let source = `/** @suppress {checkTypes} I hate types */`;
     expect(jsdoc.parse(source)).to.deep.equal({
-      tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]
+      tags: [{tagName: 'suppress', type: 'checkTypes', text: ' I hate types'}]
+    });
+    let malformed = `/** @suppress malformed */`;
+    expect(jsdoc.parse(malformed)).to.deep.equal({
+      tags: [{tagName: 'suppress', text: 'malformed'}],
+      warnings: ['malformed @suppress tag: "malformed"'],
     });
   });
 });

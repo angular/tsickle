@@ -1,6 +1,6 @@
 /**
  * @fileoverview a comment without a suppress tag.
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 

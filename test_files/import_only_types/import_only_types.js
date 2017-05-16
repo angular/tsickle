@@ -1,6 +1,6 @@
 goog.module('test_files.import_only_types.import_only_types');var module = module || {id: 'test_files/import_only_types/import_only_types.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.import_only_types.types_only');

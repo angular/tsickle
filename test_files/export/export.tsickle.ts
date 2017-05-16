@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 export {export2,Bar,export5,RenamedTypeDef,export4,TypeDef,Interface} from './export_helper';

@@ -1,6 +1,6 @@
 goog.module('test_files.underscore.underscore');var module = module || {id: 'test_files/underscore/underscore.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 // Verify that double-underscored names in various places don't get corrupted.

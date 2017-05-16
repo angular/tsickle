@@ -1,6 +1,6 @@
 goog.module('test_files.export.export_helper');var module = module || {id: 'test_files/export/export_helper.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 // This file isn't itself a test case, but it is imported by the

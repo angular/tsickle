@@ -2,7 +2,7 @@ Warning at test_files/enum/enum.ts:2:7: should not emit a 'never' type
 ====
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 // Line with a missing semicolon should not break the following enum.

@@ -1,6 +1,6 @@
 goog.module('test_files.type.type');var module = module || {id: 'test_files/type/type.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 let /** @type {?} */ typeAny;
 let /** @type {!Array<?>} */ typeArr;

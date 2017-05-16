@@ -1,6 +1,6 @@
 goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 /**

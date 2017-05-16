@@ -1,6 +1,6 @@
 goog.module('test_files.clutz.no_externs.strip_clutz_type');var module = module || {id: 'test_files/clutz.no_externs/strip_clutz_type.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 var goog_some_name_space_1 = goog.require('some.name.space');

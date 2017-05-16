@@ -1,6 +1,6 @@
 goog.module('test_files.declare_export.declare_export');var module = module || {id: 'test_files/declare_export/declare_export.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 /** @typedef {ExportDeclaredIf} */

@@ -1,6 +1,6 @@
 goog.module('test_files.super.super');var module = module || {id: 'test_files/super/super.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 class SuperTestBaseNoArg {
     constructor() { }

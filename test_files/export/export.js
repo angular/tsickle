@@ -1,6 +1,6 @@
 goog.module('test_files.export.export');var module = module || {id: 'test_files/export/export.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 var export_helper_1 = goog.require('test_files.export.export_helper');

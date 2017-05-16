@@ -1,7 +1,7 @@
 /**
  * @fileoverview A source file that uses types that are used in .d.ts files, but
  * that are not available or use different names in Closure's externs.
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 

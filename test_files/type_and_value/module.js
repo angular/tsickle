@@ -1,6 +1,6 @@
 goog.module('test_files.type_and_value.module');var module = module || {id: 'test_files/type_and_value/module.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 
 exports.TypeAndValue = 3;

@@ -1,6 +1,6 @@
 goog.module('test_files.comments.comments');var module = module || {id: 'test_files/comments/comments.js'};/**
  * @fileoverview added by tsickle
- * @suppress {checkTypes}
+ * @suppress {checkTypes} checked by tsc
  */
 class Comments {
 }
