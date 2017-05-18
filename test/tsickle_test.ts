@@ -92,6 +92,7 @@ testFn('golden tests', () => {
       for (let tsFile of test.tsFiles) {
         let tsPath = path.join(test.path, tsFile);
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
+        tsSource = tsSource.replace(/\r\n/g, '\n');
         tsSources.set(tsPath, tsSource);
       }
       let program = testSupport.createProgram(tsSources);
