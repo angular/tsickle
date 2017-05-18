@@ -430,15 +430,13 @@ static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
         });
 
         it('errors on weird class members', () => {
-          let {diagnostics} = translate(
-              `
+          let {diagnostics} = translate(`
 /** @Annotation */ let Test1: Function;
 let param: any;
 class Foo {
   @Test1('somename')
   [param]() {}
-}`,
-              true /* allow errors */);
+}`, true /* allow errors */);
 
           expect(tsickle.formatDiagnostics(diagnostics))
               .to.equal(

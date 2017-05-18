@@ -459,7 +459,8 @@ class ClosureRewriter extends Rewriter {
     let diagnostic: ts.Diagnostic = {
       file: this.file,
       start: node.getStart(),
-      length: node.getEnd() - node.getStart(), messageText,
+      length: node.getEnd() - node.getStart(),
+      messageText,
       category: ts.DiagnosticCategory.Warning,
       code: 0,
     };
@@ -1392,10 +1393,8 @@ class ExternsWriter extends ClosureRewriter {
         }
         // Gather up all overloads of this function.
         const sym = this.program.getTypeChecker().getSymbolAtLocation(name);
-        const decls =
-            sym.declarations!.filter(
-                                 d => d.kind ===
-                                     ts.SyntaxKind.FunctionDeclaration) as ts.FunctionDeclaration[];
+        const decls = sym.declarations!.filter(d => d.kind === ts.SyntaxKind.FunctionDeclaration) as
+            ts.FunctionDeclaration[];
         // Only emit the first declaration of each overloaded function.
         if (fnDecl !== decls[0]) break;
         const params = this.emitFunctionType(decls);

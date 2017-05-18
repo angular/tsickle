@@ -171,9 +171,17 @@ chalk@^1.0.0, chalk@^1.1.1:
     strip-ansi "^3.0.0"
     supports-color "^2.0.0"
 
-clang-format@^1.0.32, clang-format@^1.0.48:
+clang-format@^1.0.32:
   version "1.0.48"
   resolved "https://registry.yarnpkg.com/clang-format/-/clang-format-1.0.48.tgz#44885525b8493b8ced7e1c59b5738808d6ff1f7a"
+  dependencies:
+    async "^1.5.2"
+    glob "^7.0.0"
+    resolve "^1.1.6"
+
+clang-format@^1.0.51:
+  version "1.0.51"
+  resolved "https://registry.yarnpkg.com/clang-format/-/clang-format-1.0.51.tgz#984e36a95b3bd0d5bec30c8ddeaf21611bcb4ad0"
   dependencies:
     async "^1.5.2"
     glob "^7.0.0"

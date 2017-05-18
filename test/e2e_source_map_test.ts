@@ -371,8 +371,8 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
   const fileNames = toArray(sources.keys());
 
   const tsickleHost: tsickle.TsickleHost = {
-    shouldSkipTsickleProcessing:
-        (fileName) => fileNames.indexOf(fileName) === -1 || options.filesNotToProcess.has(fileName),
+    shouldSkipTsickleProcessing: (fileName) =>
+        fileNames.indexOf(fileName) === -1 || options.filesNotToProcess.has(fileName),
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (fileName) => fileName,

@@ -29,7 +29,7 @@
     "@types/source-map": "^0.1.27",
     "@types/source-map-support": "^0.2.27",
     "chai": "^3.5.0",
-    "clang-format": "^1.0.48",
+    "clang-format": "^1.0.51",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20161024.1.0",
     "gulp": "^3.8.11",
