@@ -15,10 +15,13 @@ interface QuotedMixed extends Quoted {
   // It's unclear whether it's the right thing to do, user code might
   // access this field in a mixed fashion.
   foo: number;
+  'invalid-identifier': number;
 }
-let quotedMixed: QuotedMixed = {foo: 1};
+let quotedMixed: QuotedMixed = {foo: 1, 'invalid-identifier': 2};
 console.log(quotedMixed.foo);
 
 quotedMixed.foo = 1;
 // Should be converted to non-quoted access.
 quotedMixed['foo'] = 1;
+// Must not be converted to non-quoted access, as it's not valid JS.
+quotedMixed['invalid-identifier'] = 1;

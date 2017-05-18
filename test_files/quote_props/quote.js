@@ -1,4 +1,8 @@
-goog.module('test_files.quote_props.quote');var module = module || {id: 'test_files/quote_props/quote.js'};
+goog.module('test_files.quote_props.quote');var module = module || {id: 'test_files/quote_props/quote.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 /**
  * @record
  */
@@ -14,8 +18,10 @@ quoted['hello'] = 1;
 function QuotedMixed() { }
 /** @type {number} */
 QuotedMixed.prototype.foo;
-let /** @type {!QuotedMixed} */ quotedMixed = { foo: 1 };
+let /** @type {!QuotedMixed} */ quotedMixed = { foo: 1, 'invalid-identifier': 2 };
 console.log(quotedMixed.foo);
 quotedMixed.foo = 1;
 // Should be converted to non-quoted access.
 quotedMixed.foo = 1;
+// Must not be converted to non-quoted access, as it's not valid JS.
+quotedMixed['invalid-identifier'] = 1;

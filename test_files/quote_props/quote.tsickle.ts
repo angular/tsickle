@@ -1,6 +1,11 @@
 Warning at test_files/quote_props/quote.ts:9:13: Quoted has a string index type but is accessed using dotted access. Quoting the access.
 Warning at test_files/quote_props/quote.ts:10:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 // silence warnings about redeclaring vars.
 export {};
 /**
@@ -27,6 +32,9 @@ quoted['hello'] = 1;
 function QuotedMixed() {}
 /** @type {number} */
 QuotedMixed.prototype.foo;
+/* TODO: handle strange member:
+'invalid-identifier': number;
+*/
 
 
 interface QuotedMixed extends Quoted {
@@ -34,10 +42,13 @@ interface QuotedMixed extends Quoted {
   // It's unclear whether it's the right thing to do, user code might
   // access this field in a mixed fashion.
   foo: number;
+  'invalid-identifier': number;
 }
-let /** @type {!QuotedMixed} */ quotedMixed: QuotedMixed = {foo: 1};
+let /** @type {!QuotedMixed} */ quotedMixed: QuotedMixed = {foo: 1, 'invalid-identifier': 2};
 console.log(quotedMixed.foo);
 
 quotedMixed.foo = 1;
 // Should be converted to non-quoted access.
 quotedMixed.foo = 1;
+// Must not be converted to non-quoted access, as it's not valid JS.
+quotedMixed['invalid-identifier'] = 1;

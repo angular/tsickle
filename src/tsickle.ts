@@ -776,6 +776,8 @@ class Annotator extends ClosureRewriter {
         // If it has a symbol, it's actually a regular declared property.
         if (!quotedPropSym) return false;
         const propName = (eae.argumentExpression as ts.StringLiteral).text;
+        // Properties containing non-JS identifier names must not be unquoted.
+        if (!isValidClosurePropertyName(propName)) return false;
         this.writeNode(eae.expression);
         this.emit(`.${propName}`);
         return true;
