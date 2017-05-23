@@ -21,7 +21,11 @@ QuotedMixed.prototype.foo;
 let /** @type {!QuotedMixed} */ quotedMixed = { foo: 1, 'invalid-identifier': 2 };
 console.log(quotedMixed.foo);
 quotedMixed.foo = 1;
-// Should be converted to non-quoted access.
-quotedMixed.foo = 1;
+// Intentionally kept as a quoted access, but gives a warning.
+quotedMixed['foo'] = 1;
 // Must not be converted to non-quoted access, as it's not valid JS.
+// Does not give a warning.
 quotedMixed['invalid-identifier'] = 1;
+// any does not declare any symbols.
+let /** @type {?} */ anyTyped;
+anyTyped['token'];

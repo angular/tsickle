@@ -764,9 +764,11 @@ class Annotator extends ClosureRewriter {
         }
         break;
       case ts.SyntaxKind.ElementAccessExpression:
-        // Convert quoted accesses to properties that have a symbol to dotted accesses, to get
-        // consistent Closure renaming. This can happen because TS allows quoted access with literal
-        // strings to properties.
+        // Warn for quoted accesses to properties that have a symbol declared.
+        // Mixing quoted and non-quoted access to a symbol (x['foo'] and x.foo) risks breaking
+        // Closure Compiler renaming. Quoted access is more cumbersome to write than dotted access
+        // though, so chances are users did intend to avoid renaming. The better fix is to use
+        // `declare interface` though.
         const eae = node as ts.ElementAccessExpression;
         if (!eae.argumentExpression ||
             eae.argumentExpression.kind !== ts.SyntaxKind.StringLiteral) {
@@ -776,11 +778,18 @@ class Annotator extends ClosureRewriter {
         // If it has a symbol, it's actually a regular declared property.
         if (!quotedPropSym) return false;
         const propName = (eae.argumentExpression as ts.StringLiteral).text;
-        // Properties containing non-JS identifier names must not be unquoted.
+        // Properties containing non-JS identifier names can only be accessed with quotes.
         if (!isValidClosurePropertyName(propName)) return false;
-        this.writeNode(eae.expression);
-        this.emit(`.${propName}`);
-        return true;
+        const symName = this.typeChecker.symbolToString(quotedPropSym);
+        this.debugWarn(
+            eae,
+            `Declared property ${symName} accessed with quotes. ` +
+                `This can lead to renaming bugs. A better fix is to use 'declare interface' ` +
+                `on the declaration.`);
+        // Previously, the code below changed the quoted into a non-quoted access.
+        // this.writeNode(eae.expression);
+        // this.emit(`.${propName}`);
+        return false;
       case ts.SyntaxKind.PropertyAccessExpression:
         // Convert dotted accesses to types that have an index type declared to quoted accesses, to
         // avoid Closure renaming one access but not the other.

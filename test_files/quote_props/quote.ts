@@ -11,7 +11,8 @@ quoted.hello = 1;
 quoted['hello'] = 1;
 
 interface QuotedMixed extends Quoted {
-  // Assume that foo should be renamed, as it is explicitly declared.
+  // Even though foo is explicitly declared as a property, assume it should not
+  // be renamed.
   // It's unclear whether it's the right thing to do, user code might
   // access this field in a mixed fashion.
   foo: number;
@@ -21,7 +22,12 @@ let quotedMixed: QuotedMixed = {foo: 1, 'invalid-identifier': 2};
 console.log(quotedMixed.foo);
 
 quotedMixed.foo = 1;
-// Should be converted to non-quoted access.
+// Intentionally kept as a quoted access, but gives a warning.
 quotedMixed['foo'] = 1;
 // Must not be converted to non-quoted access, as it's not valid JS.
+// Does not give a warning.
 quotedMixed['invalid-identifier'] = 1;
+
+// any does not declare any symbols.
+let anyTyped: any;
+anyTyped['token'];

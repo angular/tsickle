@@ -1,4 +1,6 @@
 Warning at test_files/enum/enum.ts:2:7: should not emit a 'never' type
+Warning at test_files/enum/enum.ts:9:33: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
+Warning at test_files/enum/enum.ts:16:22: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 ====
 /**
  * @fileoverview added by tsickle
@@ -21,7 +23,7 @@ EnumTest1[EnumTest1.PI] = "PI";
 // number.  Verify that the resulting TypeScript still allows you to
 // index into the enum with all the various ways allowed of enums.
 let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
-let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1.XYZ;
+let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
 let /** @type {string} */ enumNumIndex: string = EnumTest1[ /** @type {number} */(( /** @type {?} */((null as any)) as number))];
 let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} */(( /** @type {?} */((null as any)) as string))];
 /**
@@ -31,7 +33,7 @@ let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} *
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
-let /** @type {number} */ enumTestLookup = EnumTest1.XYZ;
+let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
 let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 export type EnumTest2 = number;
 export let EnumTest2: any = {};
