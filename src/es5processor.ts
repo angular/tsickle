@@ -8,7 +8,9 @@
 
 import * as ts from 'typescript';
 
+import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
+import {SourceMapper} from './source_map_utils';
 import {toArray} from './util';
 
 /**
@@ -52,24 +54,24 @@ class ES5Processor extends Rewriter {
   unusedIndex = 0;
 
   constructor(
-      file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
-      private prelude: string) {
-    super(file);
+      private host: Host, private options: Options, file: ts.SourceFile,
+      sourceMapper?: SourceMapper) {
+    super(file, sourceMapper);
   }
 
-  process(moduleId: string, isES5: boolean): {output: string, referencedModules: string[]} {
+  process(moduleId: string): {output: string, referencedModules: string[]} {
     // TODO(evanm): only emit the goog.module *after* the first comment,
     // so that @suppress statements work.
-    const moduleName = this.pathToModuleName('', this.file.fileName);
+    const moduleName = this.host.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
-    if (this.prelude) this.emit(this.prelude);
+    if (this.options.prelude) this.emit(this.options.prelude);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
     // The following pattern ensures closure doesn't throw an error in advanced
     // optimizations mode.
-    if (isES5) {
+    if (this.options.es5Mode) {
       this.emit(`var module = module || {id: '${moduleId}'};`);
     } else {
       // The `exports = {}` serves as a default export to disable Closure Compiler's error checking
@@ -82,11 +84,11 @@ class ES5Processor extends Rewriter {
 
     let pos = 0;
     for (const stmt of this.file.statements) {
-      this.writeRange(pos, stmt.getFullStart());
+      this.writeRange(this.file, pos, stmt.getFullStart());
       this.visitTopLevel(stmt);
       pos = stmt.getEnd();
     }
-    this.writeRange(pos, this.file.getEnd());
+    this.writeRange(this.file, pos, this.file.getEnd());
 
     const referencedModules = toArray(this.moduleVariables.keys());
     // Note: don't sort referencedModules, as the keys are in the same order
@@ -140,7 +142,7 @@ class ES5Processor extends Rewriter {
    * comment(s).
    */
   emitCommentWithoutStatementBody(node: ts.Node) {
-    this.writeRange(node.getFullStart(), node.getStart());
+    this.writeRange(node, node.getFullStart(), node.getStart());
   }
 
   /** isUseStrict returns true if node is a "use strict"; statement. */
@@ -177,7 +179,7 @@ class ES5Processor extends Rewriter {
       const call = decl.initializer as ts.CallExpression;
       const require = this.isRequire(call);
       if (!require) return false;
-      this.writeRange(node.getFullStart(), node.getStart());
+      this.writeRange(node, node.getFullStart(), node.getStart());
       this.emitGoogRequire(varName, require);
       return true;
     } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
@@ -203,7 +205,7 @@ class ES5Processor extends Rewriter {
       }
       if (!require) return false;
 
-      this.writeRange(node.getFullStart(), node.getStart());
+      this.writeRange(node, node.getFullStart(), node.getStart());
       const varName = this.emitGoogRequire(null, require);
 
       if (isExport) {
@@ -239,7 +241,7 @@ class ES5Processor extends Rewriter {
       modName = nsImport;
       isNamespaceImport = true;
     } else {
-      modName = this.pathToModuleName(this.file.fileName, tsImport);
+      modName = this.host.pathToModuleName(this.file.fileName, tsImport);
     }
 
     if (!varName) {
@@ -321,7 +323,7 @@ class ES5Processor extends Rewriter {
         if (!this.namespaceImports.has(lhs)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
-        this.writeRange(node.getFullStart(), node.getStart());
+        this.writeRange(node, node.getFullStart(), node.getStart());
         this.emit(`${lhs}        `);
         return true;
       default:
@@ -334,6 +336,25 @@ class ES5Processor extends Rewriter {
   generateFreshVariableName(): string {
     return `tsickle_module_${this.unusedIndex++}_`;
   }
+}
+
+export interface Host {
+  /**
+   * Takes a context (the current file) and the path of the file to import
+   *  and generates a googmodule module name
+   */
+  pathToModuleName(context: string, importPath: string): string;
+  /**
+   * If we do googmodule processing, we polyfill module.id, since that's
+   * part of ES6 modules.  This function determines what the module.id will be
+   * for each file.
+   */
+  fileNameToModuleId(fileName: string): string;
+}
+
+export interface Options {
+  es5Mode?: boolean;
+  prelude?: string;
 }
 
 /**
@@ -350,10 +371,23 @@ class ES5Processor extends Rewriter {
  * @param prelude An additional prelude to insert after the `goog.module` call,
  *     e.g. with additional imports or requires.
  */
-export function processES5(
-    fileName: string, moduleId: string, content: string,
-    pathToModuleName: (context: string, fileName: string) => string, isES5 = true,
-    prelude = ''): {output: string, referencedModules: string[]} {
+export function processES5(host: Host, options: Options, fileName: string, content: string):
+    {output: string, referencedModules: string[]} {
   const file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new ES5Processor(file, pathToModuleName, prelude).process(moduleId, isES5);
+  const moduleId = host.fileNameToModuleId(fileName);
+  return new ES5Processor(host, options, file).process(moduleId);
+}
+
+export function convertCommonJsToGoogModule(
+    host: Host, options: Options, modulesManifest: ModulesManifest, fileName: string,
+    content: string): string {
+  const {output, referencedModules} = processES5(host, options, fileName, content);
+
+  const moduleName = host.pathToModuleName('', fileName);
+  modulesManifest.addModule(fileName, moduleName);
+  for (const referenced of referencedModules) {
+    modulesManifest.addReferencedModule(fileName, referenced);
+  }
+
+  return output;
 }

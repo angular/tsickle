@@ -16,8 +16,9 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import {convertDecorators} from '../src/decorator-annotator';
 import {toClosureJS} from '../src/main';
-import {getInlineSourceMapCount, setInlineSourceMap,} from '../src/source_map_utils';
+import {DefaultSourceMapper, getInlineSourceMapCount, setInlineSourceMap} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
+import * as tsickleCompilerHost from '../src/tsickle_compiler_host';
 import {toArray} from '../src/util';
 
 import * as testSupport from './test_support';
@@ -236,8 +237,9 @@ describe('source maps', () => {
 
     const closurizeSources = decoratorDownlevelAndAddInlineSourceMaps(decoratorDownlevelSources);
 
-    const {compiledJS, sourceMap} =
-        compile(closurizeSources, {inlineSourceMap: true, tsicklePasses: [tsickle.Pass.CLOSURIZE]});
+    const {compiledJS, sourceMap} = compile(
+        closurizeSources,
+        {inlineSourceMap: true, tsicklePasses: [tsickleCompilerHost.Pass.CLOSURIZE]});
 
     expect(getInlineSourceMapCount(compiledJS)).to.equal(1);
     const {line, column} = getLineAndColumn(compiledJS, 'methodName');
@@ -289,7 +291,7 @@ describe('source maps', () => {
       let z : string = x + y;`);
 
     const {compiledJS, sourceMap} =
-        compile(closurizeSources, {tsicklePasses: [tsickle.Pass.CLOSURIZE]});
+        compile(closurizeSources, {tsicklePasses: [tsickleCompilerHost.Pass.CLOSURIZE]});
 
     {
       const {line, column} = getLineAndColumn(compiledJS, 'methodName');
@@ -310,9 +312,10 @@ function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
   const transformedSources = new Map<string, string>();
   const program = testSupport.createProgram(sources);
   for (const fileName of toArray(sources.keys())) {
-    const {output, sourceMap: preexistingSourceMap} =
-        convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
-    transformedSources.set(fileName, setInlineSourceMap(output, preexistingSourceMap.toString()));
+    const sourceMapper = new DefaultSourceMapper(fileName);
+    const {output} =
+        convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName), sourceMapper);
+    transformedSources.set(fileName, setInlineSourceMap(output, sourceMapper.sourceMap.toString()));
   }
   return transformedSources;
 }
@@ -331,7 +334,7 @@ interface CompilerOptions {
   outFile: string;
   filesNotToProcess: Set<string>;
   inlineSourceMap: boolean;
-  tsicklePasses: tsickle.Pass[];
+  tsicklePasses: tsickleCompilerHost.Pass[];
   generateDTS: boolean;
 }
 
@@ -339,7 +342,7 @@ const DEFAULT_COMPILER_OPTIONS = {
   outFile: 'output.js',
   filesNotToProcess: new Set<string>(),
   inlineSourceMap: false,
-  tsicklePasses: [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE],
+  tsicklePasses: [tsickleCompilerHost.Pass.DECORATOR_DOWNLEVEL, tsickleCompilerHost.Pass.CLOSURIZE],
   generateDTS: false,
 };
 
@@ -372,7 +375,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
 
   const fileNames = toArray(sources.keys());
 
-  const tsickleHost: tsickle.TsickleHost = {
+  const tsickleHost: tsickleCompilerHost.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName) =>
         fileNames.indexOf(fileName) === -1 || options.filesNotToProcess.has(fileName),
     pathToModuleName: cliSupport.pathToModuleName,

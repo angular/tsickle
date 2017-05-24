@@ -16,6 +16,8 @@ import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
+import * as tsickleCompilerHost from './tsickle_compiler_host';
+
 import {toArray, createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from './util';
 /** Tsickle settings passed on the command line. */
 export interface Settings {
@@ -125,10 +127,10 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
 }
 
 export interface ClosureJSOptions {
-  tsickleCompilerHostOptions: tsickle.Options;
-  tsickleHost: tsickle.TsickleHost;
+  tsickleCompilerHostOptions: tsickleCompilerHost.Options;
+  tsickleHost: tsickleCompilerHost.TsickleHost;
   files: Map<string, string>;
-  tsicklePasses: tsickle.Pass[];
+  tsicklePasses: tsickleCompilerHost.Pass[];
 }
 
 function getDefaultClosureJSOptions(fileNames: string[], settings: Settings): ClosureJSOptions {
@@ -145,7 +147,7 @@ function getDefaultClosureJSOptions(fileNames: string[], settings: Settings): Cl
       fileNameToModuleId: (fileName) => fileName,
     },
     files: new Map<string, string>(),
-    tsicklePasses: [tsickle.Pass.CLOSURIZE],
+    tsicklePasses: [tsickleCompilerHost.Pass.CLOSURIZE],
   };
 }
 
@@ -172,7 +174,7 @@ export function toClosureJS(
   const sourceReplacingHost =
       createSourceReplacingCompilerHost(closureJSOptions.files, outputRetainingHost);
 
-  const tch = new tsickle.TsickleCompilerHost(
+  const tch = new tsickleCompilerHost.TsickleCompilerHost(
       sourceReplacingHost, options, closureJSOptions.tsickleCompilerHostOptions,
       closureJSOptions.tsickleHost);
 
@@ -187,13 +189,13 @@ export function toClosureJS(
 
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
-  if (closureJSOptions.tsicklePasses.indexOf(tsickle.Pass.DECORATOR_DOWNLEVEL) !== -1) {
-    tch.reconfigureForRun(program, tsickle.Pass.DECORATOR_DOWNLEVEL);
+  if (closureJSOptions.tsicklePasses.indexOf(tsickleCompilerHost.Pass.DECORATOR_DOWNLEVEL) !== -1) {
+    tch.reconfigureForRun(program, tsickleCompilerHost.Pass.DECORATOR_DOWNLEVEL);
     program = ts.createProgram(fileNames, options, tch);
   }
 
-  if (closureJSOptions.tsicklePasses.indexOf(tsickle.Pass.CLOSURIZE) !== -1) {
-    tch.reconfigureForRun(program, tsickle.Pass.CLOSURIZE);
+  if (closureJSOptions.tsicklePasses.indexOf(tsickleCompilerHost.Pass.CLOSURIZE) !== -1) {
+    tch.reconfigureForRun(program, tsickleCompilerHost.Pass.CLOSURIZE);
     program = ts.createProgram(fileNames, options, tch);
   }
 

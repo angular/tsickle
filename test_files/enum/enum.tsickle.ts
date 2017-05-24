@@ -35,8 +35,9 @@ enumTestFunction(enumTestValue);
 
 let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
 let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
-export type EnumTest2 = number;
-export let EnumTest2: any = {};
+type EnumTest2 = number;
+let EnumTest2: any = {};
+export {EnumTest2};
 /** @type {number} */
 EnumTest2.XYZ = 0;
 /** @type {number} */

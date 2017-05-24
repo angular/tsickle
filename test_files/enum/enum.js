@@ -27,13 +27,14 @@ function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
 let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
 let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
-exports.EnumTest2 = {};
+let EnumTest2 = {};
+exports.EnumTest2 = EnumTest2;
 /** @type {number} */
-exports.EnumTest2.XYZ = 0;
+EnumTest2.XYZ = 0;
 /** @type {number} */
-exports.EnumTest2.PI = 3.14159;
-exports.EnumTest2[exports.EnumTest2.XYZ] = "XYZ";
-exports.EnumTest2[exports.EnumTest2.PI] = "PI";
+EnumTest2.PI = 3.14159;
+EnumTest2[EnumTest2.XYZ] = "XYZ";
+EnumTest2[EnumTest2.PI] = "PI";
 let ComponentIndex = {};
 /** @type {number} */
 ComponentIndex.Scheme = 1;
