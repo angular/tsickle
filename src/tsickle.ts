@@ -72,7 +72,7 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
         let res = ts.DiagnosticCategory[d.category];
         if (d.file) {
           res += ' at ' + d.file.fileName + ':';
-          let {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
+          const {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
           res += (line + 1) + ':' + (character + 1) + ':';
         }
         res += ' ' + ts.flattenDiagnosticMessageText(d.messageText, '\n');
@@ -202,7 +202,7 @@ class ClosureRewriter extends Rewriter {
       // JSDoc without any change; @param/@return are handled specially.
       // TODO: there may be problems if an annotation doesn't apply to all overloads;
       // is it worth checking for this and erroring?
-      for (let tag of docTags) {
+      for (const tag of docTags) {
         if (tag.tagName === 'param' || tag.tagName === 'return') continue;
         newDoc.push(tag);
       }
@@ -229,7 +229,7 @@ class ClosureRewriter extends Rewriter {
         const name = getParameterName(paramNode, i);
         const isThisParam = name === 'this';
 
-        let newTag: jsdoc.Tag = {
+        const newTag: jsdoc.Tag = {
           tagName: isThisParam ? 'this' : 'param',
           optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
           parameterName: isThisParam ? undefined : name,
@@ -245,7 +245,7 @@ class ClosureRewriter extends Rewriter {
         }
         newTag.type = this.typeToClosure(fnDecl, type);
 
-        for (let {tagName, parameterName, text} of docTags) {
+        for (const {tagName, parameterName, text} of docTags) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
             newTag.text = text;
             break;
@@ -257,10 +257,10 @@ class ClosureRewriter extends Rewriter {
 
       // Return type.
       if (!isConstructor) {
-        let retType = typeChecker.getReturnTypeOfSignature(sig);
-        let retTypeString: string = this.typeToClosure(fnDecl, retType);
+        const retType = typeChecker.getReturnTypeOfSignature(sig);
+        const retTypeString: string = this.typeToClosure(fnDecl, retType);
         let returnDoc: string|undefined;
-        for (let {tagName, text} of docTags) {
+        for (const {tagName, text} of docTags) {
           if (tagName === 'return') {
             returnDoc = text;
             break;
@@ -281,10 +281,10 @@ class ClosureRewriter extends Rewriter {
     // Merge the JSDoc tags for each overloaded parameter.
     // Ensure each parameter has a unique name; the merging process can otherwise
     // accidentally generate the same parameter name twice.
-    let paramNames = new Set();
+    const paramNames = new Set();
     let foundOptional = false;
     for (let i = 0; i < maxArgsCount; i++) {
-      let paramTag = jsdoc.merge(paramTags[i]);
+      const paramTag = jsdoc.merge(paramTags[i]);
       if (paramNames.has(paramTag.parameterName)) {
         paramTag.parameterName += i.toString();
       }
@@ -317,15 +317,15 @@ class ClosureRewriter extends Rewriter {
    * Returns null if there is no existing comment.
    */
   getJSDoc(node: ts.Node): jsdoc.Tag[]|null {
-    let text = node.getFullText();
-    let comments = ts.getLeadingCommentRanges(text, 0);
+    const text = node.getFullText();
+    const comments = ts.getLeadingCommentRanges(text, 0);
 
     if (!comments || comments.length === 0) return null;
 
     // JS compiler only considers the last comment significant.
-    let {pos, end} = comments[comments.length - 1];
-    let comment = text.substring(pos, end);
-    let parsed = jsdoc.parse(comment);
+    const {pos, end} = comments[comments.length - 1];
+    const comment = text.substring(pos, end);
+    const parsed = jsdoc.parse(comment);
     if (!parsed) return null;
     if (parsed.warnings) {
       const start = node.getFullStart() + pos;
@@ -376,12 +376,12 @@ class ClosureRewriter extends Rewriter {
         // We can only @implements an interface, not a class.
         // But it's fine to translate TS "implements Class" into Closure
         // "@extends {Class}" because this is just a type hint.
-        let typeChecker = this.program.getTypeChecker();
+        const typeChecker = this.program.getTypeChecker();
         let sym = typeChecker.getSymbolAtLocation(impl.expression);
         if (sym.flags & ts.SymbolFlags.TypeAlias) {
           // It's implementing a type alias.  Follow the type alias back
           // to the original symbol to check whether it's a type or a value.
-          let type = typeChecker.getDeclaredTypeOfSymbol(sym);
+          const type = typeChecker.getDeclaredTypeOfSymbol(sym);
           if (!type.symbol) {
             // It's not clear when this can happen, but if it does all we
             // do is fail to emit the @implements, which isn't so harmful.
@@ -431,7 +431,7 @@ class ClosureRewriter extends Rewriter {
       return '?';
     }
 
-    let typeChecker = this.program.getTypeChecker();
+    const typeChecker = this.program.getTypeChecker();
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
@@ -456,7 +456,7 @@ class ClosureRewriter extends Rewriter {
   debugWarn(node: ts.Node, messageText: string) {
     if (!this.options.logWarning) return;
     // Use a ts.Diagnosic so that the warning includes context and file offets.
-    let diagnostic: ts.Diagnostic = {
+    const diagnostic: ts.Diagnostic = {
       file: this.file,
       start: node.getStart(),
       length: node.getEnd() - node.getStart(),
@@ -502,10 +502,10 @@ class Annotator extends ClosureRewriter {
   annotate(): Output {
     this.visit(this.file);
 
-    let annotated = this.getOutput();
+    const annotated = this.getOutput();
 
-    let externs = this.externsWriter.getOutput();
-    let externsSource = externs.output.length > 0 ? externs.output : null;
+    const externs = this.externsWriter.getOutput();
+    const externsSource = externs.output.length > 0 ? externs.output : null;
 
     return {
       output: annotated.output,
@@ -554,7 +554,7 @@ class Annotator extends ClosureRewriter {
       return;
     }
     const declNames = this.getExportDeclarationNames(node);
-    for (let decl of declNames) {
+    for (const decl of declNames) {
       const sym = this.typeChecker.getSymbolAtLocation(decl);
       const isValue = sym.flags & ts.SymbolFlags.Value;
       const declName = getIdentifierText(decl);
@@ -598,7 +598,7 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.ImportDeclaration:
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
-        let exportDecl = <ts.ExportDeclaration>node;
+        const exportDecl = node as ts.ExportDeclaration;
         this.writeRange(node.getFullStart(), node.getStart());
         this.emit('export');
         let exportedSymbols: NamedSymbol[] = [];
@@ -630,7 +630,7 @@ class Annotator extends ClosureRewriter {
         this.writeRange(node.getFullStart(), node.getEnd());
         return true;
       case ts.SyntaxKind.VariableDeclaration:
-        let varDecl = node as ts.VariableDeclaration;
+        const varDecl = node as ts.VariableDeclaration;
         // Only emit a type annotation when it's a plain variable and
         // not a binding pattern, as Closure doesn't(?) have a syntax
         // for annotating binding patterns.  See issue #128.
@@ -639,7 +639,7 @@ class Annotator extends ClosureRewriter {
         }
         return false;
       case ts.SyntaxKind.ClassDeclaration:
-        let classNode = <ts.ClassDeclaration>node;
+        const classNode = node as ts.ClassDeclaration;
         this.visitClassDeclaration(classNode);
         return true;
       case ts.SyntaxKind.PublicKeyword:
@@ -655,13 +655,13 @@ class Annotator extends ClosureRewriter {
         this.writeNode(node, /* skipComments */ true);
         return true;
       case ts.SyntaxKind.Constructor:
-        let ctor = <ts.ConstructorDeclaration>node;
+        const ctor = node as ts.ConstructorDeclaration;
         this.emitFunctionType([ctor]);
         // Write the "constructor(...) {" bit, but iterate through any
         // parameters if given so that we can examine them more closely.
         let offset = ctor.getStart();
         if (ctor.parameters.length) {
-          for (let param of ctor.parameters) {
+          for (const param of ctor.parameters) {
             this.writeRange(offset, param.getFullStart());
             this.visit(param);
             offset = param.getEnd();
@@ -678,32 +678,13 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.MethodDeclaration:
       case ts.SyntaxKind.GetAccessor:
       case ts.SyntaxKind.SetAccessor:
-        let fnDecl = <ts.FunctionLikeDeclaration>node;
-        let tags = hasExportingDecorator(node, this.typeChecker) ? [{tagName: 'export'}] : [];
+        const fnDecl = node as ts.FunctionLikeDeclaration;
+        const tags = hasExportingDecorator(node, this.typeChecker) ? [{tagName: 'export'}] : [];
 
         if (!fnDecl.body) {
-          if (hasModifierFlag(fnDecl, ts.ModifierFlags.Abstract)) {
-            this.emitFunctionType([fnDecl], tags);
-            // Abstract functions look like
-            //   abstract foo();
-            // Emit the function as normal, except:
-            // - remove the "abstract"
-            // - change the return type to "void"
-            // - replace the trailing semicolon with an empty block {}
-            // To do so, skip all modifiers before the function name, and
-            // emit up to the end of the parameter list / return type.
-            if (!fnDecl.name) {
-              // Can you even have an unnamed abstract function?
-              this.error(fnDecl, 'anonymous abstract function');
-              return false;
-            }
-            this.writeRange(fnDecl.name.getStart(), fnDecl.parameters.end);
-            this.emit(') {}');
-            return true;
-          }
-          // Functions are allowed to not have bodies in the presence
-          // of overloads.  It's not clear how to translate these overloads
-          // into Closure types, so skip them for now.
+          // Two cases: abstract methods and overloaded methods/functions.
+          // Abstract methods are handled in emitTypeAnnotationsHandler.
+          // Overloads are union-ized into the shared type in emitFunctionType.
           return false;
         }
 
@@ -713,14 +694,14 @@ class Annotator extends ClosureRewriter {
         return true;
       case ts.SyntaxKind.TypeAliasDeclaration:
         this.writeNode(node);
-        this.visitTypeAlias(<ts.TypeAliasDeclaration>node);
+        this.visitTypeAlias(node as ts.TypeAliasDeclaration);
         return true;
       case ts.SyntaxKind.EnumDeclaration:
-        return this.maybeProcessEnum(<ts.EnumDeclaration>node);
+        return this.maybeProcessEnum(node as ts.EnumDeclaration);
       case ts.SyntaxKind.TypeAssertionExpression:
       case ts.SyntaxKind.AsExpression:
         // Both of these cases are AssertionExpressions.
-        let typeAssertion = node as ts.AssertionExpression;
+        const typeAssertion = node as ts.AssertionExpression;
         this.emitJSDocType(typeAssertion);
         // When TypeScript emits JS, it removes one layer of "redundant"
         // parens, but we need them for the Closure type assertion.  Work
@@ -751,7 +732,7 @@ class Annotator extends ClosureRewriter {
         return true;
       case ts.SyntaxKind.PropertyDeclaration:
       case ts.SyntaxKind.VariableStatement:
-        let docTags = this.getJSDoc(node) || [];
+        const docTags = this.getJSDoc(node) || [];
         if (hasExportingDecorator(node, this.typeChecker)) {
           docTags.push({tagName: 'export'});
         }
@@ -873,7 +854,7 @@ class Annotator extends ClosureRewriter {
 
     const parsed = jsdoc.parse(sf.getFullText().substring(comment.pos, comment.end));
     if (!parsed) throw new Error('internal error: JSDoc comment does not parse');
-    let {tags} = parsed;
+    const {tags} = parsed;
 
     // Add @suppress {checkTypes}, or add to the list in an existing @suppress tag.
     // Closure compiler barfs if there's a duplicated @suppress tag in a file, so the tag must
@@ -918,10 +899,10 @@ class Annotator extends ClosureRewriter {
     // we must also query for "Alias", but that unfortunately also brings in
     //   import {foo} from ...
     // so the latter is filtered below.
-    let locals =
+    const locals =
         this.typeChecker.getSymbolsInScope(this.file, ts.SymbolFlags.Export | ts.SymbolFlags.Alias);
-    let localSet = new Set<string>();
-    for (let local of locals) {
+    const localSet = new Set<string>();
+    for (const local of locals) {
       if (local.declarations &&
           local.declarations.some(d => d.kind === ts.SyntaxKind.ImportSpecifier)) {
         continue;
@@ -931,11 +912,11 @@ class Annotator extends ClosureRewriter {
 
 
     // Expand the export list, then filter it to the symbols we want to reexport.
-    let exports =
+    const exports =
         this.typeChecker.getExportsOfModule(this.typeChecker.getSymbolAtLocation(moduleSpecifier));
     const reexports = new Set<ts.Symbol>();
-    for (let sym of exports) {
-      let name = unescapeName(sym.name);
+    for (const sym of exports) {
+      const name = unescapeName(sym.name);
       if (localSet.has(name)) {
         // This name is shadowed by a local definition, such as:
         // - export var foo ...
@@ -967,7 +948,7 @@ class Annotator extends ClosureRewriter {
    */
   private emitTypeDefExports(exports: NamedSymbol[]) {
     if (this.options.untyped) return;
-    for (let exp of exports) {
+    for (const exp of exports) {
       if (exp.sym.flags & ts.SymbolFlags.Alias)
         exp.sym = this.typeChecker.getAliasedSymbol(exp.sym);
       const isTypeAlias = (exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
@@ -1122,7 +1103,7 @@ class Annotator extends ClosureRewriter {
       // imported for their value in some place.
       this.emit(`\ngoog.require('${moduleNamespace}'); // force type-only module to be loaded`);
     }
-    for (let exp of exportedSymbols) {
+    for (const exp of exportedSymbols) {
       if (exp.sym.flags & ts.SymbolFlags.Alias)
         exp.sym = this.typeChecker.getAliasedSymbol(exp.sym);
       // goog: imports don't actually use the .default property that TS thinks they have.
@@ -1133,7 +1114,7 @@ class Annotator extends ClosureRewriter {
   }
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
-    let docTags = this.getJSDoc(classDecl) || [];
+    const docTags = this.getJSDoc(classDecl) || [];
     if (hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
       docTags.push({tagName: 'abstract'});
     }
@@ -1150,7 +1131,7 @@ class Annotator extends ClosureRewriter {
       // /** @export */ annotations that show up in the constructor
       // and to annotate methods.
       this.writeRange(classDecl.getStart(), classDecl.members[0].getFullStart());
-      for (let member of classDecl.members) {
+      for (const member of classDecl.members) {
         this.visit(member);
       }
     } else {
@@ -1164,10 +1145,10 @@ class Annotator extends ClosureRewriter {
   private emitInterface(iface: ts.InterfaceDeclaration) {
     // If this symbol is both a type and a value, we cannot emit both into Closure's
     // single namespace.
-    let sym = this.typeChecker.getSymbolAtLocation(iface.name);
+    const sym = this.typeChecker.getSymbolAtLocation(iface.name);
     if (sym.flags & ts.SymbolFlags.Value) return;
 
-    let docTags = this.getJSDoc(iface) || [];
+    const docTags = this.getJSDoc(iface) || [];
     docTags.push({tagName: 'record'});
     if (!this.options.untyped) {
       this.maybeAddTemplateClause(docTags, iface);
@@ -1178,60 +1159,83 @@ class Annotator extends ClosureRewriter {
     this.emit(jsdoc.toString(docTags));
 
     if (hasModifierFlag(iface, ts.ModifierFlags.Export)) this.emit('export ');
-    let name = getIdentifierText(iface.name);
+    const name = getIdentifierText(iface.name);
     this.emit(`function ${name}() {}\n`);
 
     const memberNamespace = [name, 'prototype'];
-    for (let elem of iface.members) {
+    for (const elem of iface.members) {
       this.visitProperty(memberNamespace, elem);
     }
   }
 
-  // emitTypeAnnotationsHelper produces a
-  // _tsickle_typeAnnotationsHelper() where none existed in the
-  // original source.  It's necessary in the case where TypeScript
-  // syntax specifies there are additional properties on the class,
-  // because to declare these in Closure you must declare these in a
-  // method somewhere.
+  /**
+   * emitTypeAnnotationsHelper produces a _tsickle_typeAnnotationsHelper() where
+   * none existed in the original source. It's necessary in the case where
+   * TypeScript syntax specifies there are additional properties on the class,
+   * because to declare these in Closure you must declare these in a method
+   * somewhere.
+   */
   private emitTypeAnnotationsHelper(classDecl: ts.ClassDeclaration) {
     // Gather parameter properties from the constructor, if it exists.
-    let ctors: ts.ConstructorDeclaration[] = [];
+    const ctors: ts.ConstructorDeclaration[] = [];
     let paramProps: ts.ParameterDeclaration[] = [];
-    let nonStaticProps: ts.PropertyDeclaration[] = [];
-    let staticProps: ts.PropertyDeclaration[] = [];
-    for (let member of classDecl.members) {
+    const nonStaticProps: ts.PropertyDeclaration[] = [];
+    const staticProps: ts.PropertyDeclaration[] = [];
+    const abstractMethods: ts.FunctionLikeDeclaration[] = [];
+    for (const member of classDecl.members) {
       if (member.kind === ts.SyntaxKind.Constructor) {
         ctors.push(member as ts.ConstructorDeclaration);
       } else if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
-        let prop = member as ts.PropertyDeclaration;
-        let isStatic = hasModifierFlag(prop, ts.ModifierFlags.Static);
+        const prop = member as ts.PropertyDeclaration;
+        const isStatic = hasModifierFlag(prop, ts.ModifierFlags.Static);
         if (isStatic) {
           staticProps.push(prop);
         } else {
           nonStaticProps.push(prop);
         }
+      } else if (
+          hasModifierFlag(member, ts.ModifierFlags.Abstract) &&
+          (member.kind === ts.SyntaxKind.MethodDeclaration ||
+           member.kind === ts.SyntaxKind.GetAccessor ||
+           member.kind === ts.SyntaxKind.SetAccessor)) {
+        abstractMethods.push(
+            member as ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration);
       }
     }
 
     if (ctors.length > 0) {
-      let ctor = ctors[0];
+      const ctor = ctors[0];
       paramProps = ctor.parameters.filter(p => hasModifierFlag(p, VISIBILITY_FLAGS));
     }
 
-    if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0) {
+    if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0 &&
+        abstractMethods.length === 0) {
       // There are no members so we don't need to emit any type
       // annotations helper.
       return;
     }
 
     if (!classDecl.name) return;
-    let className = getIdentifierText(classDecl.name);
+    const className = getIdentifierText(classDecl.name);
 
     this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
     staticProps.forEach(p => this.visitProperty([className], p));
-    let memberNamespace = [className, 'prototype'];
+    const memberNamespace = [className, 'prototype'];
     nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));
     paramProps.forEach((p) => this.visitProperty(memberNamespace, p));
+
+    for (const fnDecl of abstractMethods) {
+      const name = this.propertyName(fnDecl);
+      if (!name) {
+        this.error(fnDecl, 'anonymous abstract function');
+        continue;
+      }
+      const tags = hasExportingDecorator(fnDecl, this.typeChecker) ? [{tagName: 'export'}] : [];
+      const paramNames = this.emitFunctionType([fnDecl], tags);
+      // memberNamespace because abstract methods cannot be static in TypeScript.
+      this.emit(`${memberNamespace.join('.')}.${name} = function(${paramNames.join(', ')}) {};\n`);
+    }
+
     this.emit(`}\n`);
   }
 
@@ -1244,7 +1248,7 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.StringLiteral:
         // E.g. interface Foo { 'bar': number; }
         // If 'bar' is a name that is not valid in Closure then there's nothing we can do.
-        let text = (prop.name as ts.StringLiteral).text;
+        const text = (prop.name as ts.StringLiteral).text;
         if (!isValidClosurePropertyName(text)) return null;
         return text;
       default:
@@ -1253,13 +1257,13 @@ class Annotator extends ClosureRewriter {
   }
 
   private visitProperty(namespace: string[], p: ts.Declaration) {
-    let name = this.propertyName(p);
+    const name = this.propertyName(p);
     if (!name) {
       this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(p.getText())}\n*/\n`);
       return;
     }
 
-    let tags = this.getJSDoc(p) || [];
+    const tags = this.getJSDoc(p) || [];
     tags.push({tagName: 'type', type: this.typeToClosure(p)});
     // Avoid printing annotations that can conflict with @type
     // This avoids Closure's error "type annotation incompatible with other annotations"
@@ -1273,7 +1277,7 @@ class Annotator extends ClosureRewriter {
 
     // If the type is also defined as a value, skip emitting it. Closure collapses type & value
     // namespaces, the two emits would conflict if tsickle emitted both.
-    let sym = this.typeChecker.getSymbolAtLocation(node.name);
+    const sym = this.typeChecker.getSymbolAtLocation(node.name);
     if (sym.flags & ts.SymbolFlags.Value) return;
 
     // Write a Closure typedef, which involves an unused "var" declaration.
@@ -1303,9 +1307,9 @@ class Annotator extends ClosureRewriter {
     let members = new Map<string, number|ts.Node>();
     let i = 0;
     for (let member of node.members) {
-      let memberName = member.name.getText();
+      const memberName = member.name.getText();
       if (member.initializer) {
-        let enumConstValue = this.typeChecker.getConstantValue(member);
+        const enumConstValue = this.typeChecker.getConstantValue(member);
         if (enumConstValue !== undefined) {
           members.set(memberName, enumConstValue);
           i = enumConstValue + 1;
@@ -1353,10 +1357,10 @@ class Annotator extends ClosureRewriter {
     this.emit(`let ${name}: any = {};\n`);
 
     // Emit foo.BAR = 0; lines.
-    for (let member of toArray(members.keys())) {
+    for (const member of toArray(members.keys())) {
       if (!this.options.untyped) this.emit(`/** @type {number} */\n`);
       this.emit(`${name}.${member} = `);
-      let value = members.get(member)!;
+      const value = members.get(member)!;
       if (typeof value === 'number') {
         this.emit(value.toString());
       } else {
@@ -1366,7 +1370,7 @@ class Annotator extends ClosureRewriter {
     }
 
     // Emit foo[foo.BAR] = 'BAR'; lines.
-    for (let member of toArray(members.keys())) {
+    for (const member of toArray(members.keys())) {
       this.emit(`${name}[${name}.${member}] = "${member}";\n`);
     }
 
@@ -1380,17 +1384,17 @@ class ExternsWriter extends ClosureRewriter {
   public visit(node: ts.Node, namespace: string[] = []) {
     switch (node.kind) {
       case ts.SyntaxKind.SourceFile:
-        let sourceFile = node as ts.SourceFile;
-        for (let stmt of sourceFile.statements) {
+        const sourceFile = node as ts.SourceFile;
+        for (const stmt of sourceFile.statements) {
           this.visit(stmt, namespace);
         }
         break;
       case ts.SyntaxKind.ModuleDeclaration:
-        let decl = <ts.ModuleDeclaration>node;
+        const decl = node as ts.ModuleDeclaration;
         switch (decl.name.kind) {
           case ts.SyntaxKind.Identifier:
             // E.g. "declare namespace foo {"
-            let name = getIdentifierText(decl.name as ts.Identifier);
+            const name = getIdentifierText(decl.name as ts.Identifier);
             if (name === 'global') {
               // E.g. "declare global { ... }".  Reset to the outer namespace.
               namespace = [];
@@ -1433,14 +1437,14 @@ class ExternsWriter extends ClosureRewriter {
         }
         break;
       case ts.SyntaxKind.ModuleBlock:
-        let block = <ts.ModuleBlock>node;
-        for (let stmt of block.statements) {
+        const block = node as ts.ModuleBlock;
+        for (const stmt of block.statements) {
           this.visit(stmt, namespace);
         }
         break;
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
-        this.writeExternsType(<ts.InterfaceDeclaration|ts.ClassDeclaration>node, namespace);
+        this.writeExternsType(node as ts.InterfaceDeclaration | ts.ClassDeclaration, namespace);
         break;
       case ts.SyntaxKind.FunctionDeclaration:
         const fnDecl = node as ts.FunctionDeclaration;
@@ -1459,7 +1463,7 @@ class ExternsWriter extends ClosureRewriter {
         this.writeExternsFunction(name.getText(), params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
-        for (let decl of (<ts.VariableStatement>node).declarationList.declarations) {
+        for (const decl of (node as ts.VariableStatement).declarationList.declarations) {
           this.writeExternsVariableDecl(decl, namespace);
         }
         break;
@@ -1502,10 +1506,10 @@ class ExternsWriter extends ClosureRewriter {
     if (this.isFirstDeclaration(decl)) {
       let paramNames: string[] = [];
       if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
-        let ctors =
-            (<ts.ClassDeclaration>decl).members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
+        const ctors = (decl as ts.ClassDeclaration)
+                          .members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
-          let firstCtor: ts.ConstructorDeclaration = <ts.ConstructorDeclaration>ctors[0];
+          const firstCtor: ts.ConstructorDeclaration = ctors[0] as ts.ConstructorDeclaration;
           const ctorTags = [{tagName: 'constructor'}, {tagName: 'struct'}];
           if (ctors.length > 1) {
             paramNames = this.emitFunctionType(ctors as ts.ConstructorDeclaration[], ctorTags);
@@ -1522,12 +1526,12 @@ class ExternsWriter extends ClosureRewriter {
     }
 
     // Process everything except (MethodSignature|MethodDeclaration|Constructor)
-    let methods: Map<string, ts.MethodDeclaration[]> = new Map();
-    for (let member of decl.members) {
+    const methods = new Map<string, ts.MethodDeclaration[]>();
+    for (const member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
         case ts.SyntaxKind.PropertyDeclaration:
-          let prop = <ts.PropertySignature>member;
+          const prop = member as ts.PropertySignature;
           if (prop.name.kind === ts.SyntaxKind.Identifier) {
             this.emitJSDocType(prop);
             if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
@@ -1570,14 +1574,14 @@ class ExternsWriter extends ClosureRewriter {
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
     for (const methodVariants of Array.from(methods.values())) {
-      let firstMethodVariant = methodVariants[0];
+      const firstMethodVariant = methodVariants[0];
       let parameterNames: string[];
       if (methodVariants.length > 1) {
         parameterNames = this.emitFunctionType(methodVariants);
       } else {
         parameterNames = this.emitFunctionType([firstMethodVariant]);
       }
-      let methodNamespace = namespace.concat([name.getText()]);
+      const methodNamespace = namespace.concat([name.getText()]);
       // If the method is static, don't add the prototype.
       if (!hasModifierFlag(firstMethodVariant, ts.ModifierFlags.Static)) {
         methodNamespace.push('prototype');
@@ -1588,7 +1592,7 @@ class ExternsWriter extends ClosureRewriter {
 
   private writeExternsVariableDecl(decl: ts.VariableDeclaration, namespace: string[]) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
-      let name = getIdentifierText(decl.name as ts.Identifier);
+      const name = getIdentifierText(decl.name as ts.Identifier);
       if (closureExternsBlacklist.indexOf(name) >= 0) return;
       this.emitJSDocType(decl);
       this.emit('\n');
@@ -1599,7 +1603,7 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsVariable(name: string, namespace: string[], value?: string) {
-    let qualifiedName = namespace.concat([name]).join('.');
+    const qualifiedName = namespace.concat([name]).join('.');
     if (namespace.length === 0) this.emit(`var `);
     this.emit(qualifiedName);
     if (value) this.emit(` = ${value}`);
@@ -1607,7 +1611,7 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsFunction(name: string, params: string[], namespace: string[]) {
-    let paramsStr = params.join(', ');
+    const paramsStr = params.join(', ');
     if (namespace.length > 0) {
       name = namespace.concat([name]).join('.');
       this.emit(`${name} = function(${paramsStr}) {};\n`);
@@ -1621,14 +1625,14 @@ class ExternsWriter extends ClosureRewriter {
     this.emit('\n/** @const */\n');
     this.writeExternsVariable(name, namespace, '{}');
     namespace = namespace.concat([name]);
-    for (let member of decl.members) {
+    for (const member of decl.members) {
       let memberName: string|undefined;
       switch (member.name.kind) {
         case ts.SyntaxKind.Identifier:
           memberName = getIdentifierText(member.name as ts.Identifier);
           break;
         case ts.SyntaxKind.StringLiteral:
-          let text = (member.name as ts.StringLiteral).text;
+          const text = (member.name as ts.StringLiteral).text;
           if (isValidClosurePropertyName(text)) memberName = text;
           break;
         default:

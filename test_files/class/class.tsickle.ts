@@ -35,16 +35,22 @@ classFunc(): void {}
  * @abstract
  */
 abstract class AbstractClass {
-/**
- * @abstract
- * @return {void}
- */
-abstractFunc() {}
+  abstract abstractFunc(): void;
 /**
  * @return {void}
  */
 nonAbstractFunc(): void { }
 }
+
+function AbstractClass_tsickle_Closure_declarations() {
+
+/**
+ * @abstract
+ * @return {void}
+ */
+AbstractClass.prototype.abstractFunc = function() {};
+}
+
 /**
  * @record
  * @extends {Interface}

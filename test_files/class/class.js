@@ -19,14 +19,16 @@ class Class {
  */
 class AbstractClass {
     /**
-     * @abstract
-     * @return {void}
-     */
-    abstractFunc() { }
-    /**
      * @return {void}
      */
     nonAbstractFunc() { }
+}
+function AbstractClass_tsickle_Closure_declarations() {
+    /**
+     * @abstract
+     * @return {void}
+     */
+    AbstractClass.prototype.abstractFunc = function () { };
 }
 /**
  * @record
