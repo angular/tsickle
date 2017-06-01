@@ -779,10 +779,6 @@ class Annotator extends ClosureRewriter {
         if (!quotedPropSym) return false;
         const declarationHasQuotes =
             !quotedPropSym.declarations || quotedPropSym.declarations.some(decl => {
-              if (decl.kind !== ts.SyntaxKind.PropertySignature &&
-                  decl.kind !== ts.SyntaxKind.PropertyDeclaration) {
-                return false;
-              }
               if (!decl.name) return false;
               return decl.name.kind === ts.SyntaxKind.StringLiteral;
             });
