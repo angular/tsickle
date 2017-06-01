@@ -20,6 +20,7 @@ export function checkClosureCompile(
   let CLOSURE_COMPILER_OPTS: closure.CompileOptions = {
     'checks_only': true,
     'jscomp_error': 'checkTypes',
+    'warning_level': 'VERBOSE',
     'js': jsFiles,
     'externs': externsFiles,
     'language_in': 'ECMASCRIPT6_STRICT',
@@ -42,6 +43,7 @@ describe('golden file tests', () => {
     let tests = goldenTests();
     let goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
     goldenJs.push('src/closure_externs.js');
+    goldenJs.push('test_files/helpers.js');
     goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
     goldenJs.push('test_files/clutz.no_externs/some_other.js');
     goldenJs.push('test_files/import_from_goog/closure_Module.js');

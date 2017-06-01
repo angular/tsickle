@@ -35,4 +35,4 @@ quotedMixed['invalid-identifier'] = 1;
 quotedMixed['quotedIdent'] = 1;
 // any does not declare any symbols.
 let /** @type {?} */ anyTyped;
-anyTyped['token'];
+console.log(anyTyped['token']);

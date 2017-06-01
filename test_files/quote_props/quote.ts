@@ -33,4 +33,4 @@ quotedMixed['quotedIdent'] = 1;
 
 // any does not declare any symbols.
 let anyTyped: any;
-anyTyped['token'];
+console.log(anyTyped['token']);

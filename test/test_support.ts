@@ -118,8 +118,9 @@ export function goldenTests(): GoldenFileTest[] {
   let basePath = path.join(__dirname, '..', '..', 'test_files');
   let testNames = fs.readdirSync(basePath);
 
-  let tests = testNames.map(testName => {
-    let testDir = path.join(basePath, testName);
+  const testDirs = testNames.map(testName => path.join(basePath, testName))
+                       .filter(testDir => fs.statSync(testDir).isDirectory());
+  const tests = testDirs.map(testDir => {
     testDir = path.relative(process.cwd(), testDir);
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
