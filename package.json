@@ -1,10 +1,10 @@
 {
   "name": "tsickle",
-  "version": "0.21.6",
+  "version": "0.23.3",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
-  "main": "build/src/tsickle.js",
-  "typings": "build/definitions/tsickle.d.ts",
-  "bin": "build/src/main.js",
+  "main": "built/src/tsickle.js",
+  "typings": "built/definitions/tsickle.d.ts",
+  "bin": "built/src/main.js",
   "directories": {
     "test": "test"
   },
@@ -43,7 +43,7 @@
     "mocha": "^3.2.0",
     "temp": "^0.8.1",
     "tslint": "^3.15.1",
-    "typescript": "2.3.1"
+    "typescript": "~2.3.1"
   },
   "scripts": {
     "prepublish": "gulp compile",
