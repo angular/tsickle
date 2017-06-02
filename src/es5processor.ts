@@ -46,10 +46,10 @@ class ES5Processor extends Rewriter {
   moduleVariables = new Map<string, string>();
 
   /** strippedStrict is true once we've stripped a "use strict"; from the input. */
-  strippedStrict: boolean = false;
+  strippedStrict = false;
 
   /** unusedIndex is used to generate fresh symbols for unnamed imports. */
-  unusedIndex: number = 0;
+  unusedIndex = 0;
 
   constructor(
       file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
@@ -81,17 +81,17 @@ class ES5Processor extends Rewriter {
     }
 
     let pos = 0;
-    for (let stmt of this.file.statements) {
+    for (const stmt of this.file.statements) {
       this.writeRange(pos, stmt.getFullStart());
       this.visitTopLevel(stmt);
       pos = stmt.getEnd();
     }
     this.writeRange(pos, this.file.getEnd());
 
-    let referencedModules = toArray(this.moduleVariables.keys());
+    const referencedModules = toArray(this.moduleVariables.keys());
     // Note: don't sort referencedModules, as the keys are in the same order
     // they occur in the source file.
-    let {output} = this.getOutput();
+    const {output} = this.getOutput();
     return {output, referencedModules};
   }
 
@@ -146,10 +146,10 @@ class ES5Processor extends Rewriter {
   /** isUseStrict returns true if node is a "use strict"; statement. */
   isUseStrict(node: ts.Node): boolean {
     if (node.kind !== ts.SyntaxKind.ExpressionStatement) return false;
-    let exprStmt = node as ts.ExpressionStatement;
-    let expr = exprStmt.expression;
+    const exprStmt = node as ts.ExpressionStatement;
+    const expr = exprStmt.expression;
     if (expr.kind !== ts.SyntaxKind.StringLiteral) return false;
-    let literal = expr as ts.StringLiteral;
+    const literal = expr as ts.StringLiteral;
     return literal.text === 'use strict';
   }
 
@@ -164,18 +164,18 @@ class ES5Processor extends Rewriter {
     // - "require(...);".
     if (node.kind === ts.SyntaxKind.VariableStatement) {
       // It's possibly of the form "var x = require(...);".
-      let varStmt = node as ts.VariableStatement;
+      const varStmt = node as ts.VariableStatement;
 
       // Verify it's a single decl (and not "var x = ..., y = ...;").
       if (varStmt.declarationList.declarations.length !== 1) return false;
-      let decl = varStmt.declarationList.declarations[0];
+      const decl = varStmt.declarationList.declarations[0];
 
       // Grab the variable name (avoiding things like destructuring binds).
       if (decl.name.kind !== ts.SyntaxKind.Identifier) return false;
-      let varName = getIdentifierText(decl.name as ts.Identifier);
+      const varName = getIdentifierText(decl.name as ts.Identifier);
       if (!decl.initializer || decl.initializer.kind !== ts.SyntaxKind.CallExpression) return false;
-      let call = decl.initializer as ts.CallExpression;
-      let require = this.isRequire(call);
+      const call = decl.initializer as ts.CallExpression;
+      const require = this.isRequire(call);
       if (!require) return false;
       this.writeRange(node.getFullStart(), node.getStart());
       this.emitGoogRequire(varName, require);
@@ -185,10 +185,10 @@ class ES5Processor extends Rewriter {
       // - require(...);
       // - __export(require(...));
       // Both are CallExpressions.
-      let exprStmt = node as ts.ExpressionStatement;
-      let expr = exprStmt.expression;
+      const exprStmt = node as ts.ExpressionStatement;
+      const expr = exprStmt.expression;
       if (expr.kind !== ts.SyntaxKind.CallExpression) return false;
-      let call = expr as ts.CallExpression;
+      const call = expr as ts.CallExpression;
 
       let require = this.isRequire(call);
       let isExport = false;
@@ -204,7 +204,7 @@ class ES5Processor extends Rewriter {
       if (!require) return false;
 
       this.writeRange(node.getFullStart(), node.getStart());
-      let varName = this.emitGoogRequire(null, require);
+      const varName = this.emitGoogRequire(null, require);
 
       if (isExport) {
         this.emit(`__export(${varName});`);
@@ -243,7 +243,7 @@ class ES5Processor extends Rewriter {
     }
 
     if (!varName) {
-      let mv = this.moduleVariables.get(modName);
+      const mv = this.moduleVariables.get(modName);
       if (mv) {
         // Caller didn't request a specific variable name and we've already
         // imported the module, so just return the name we already have for this module.
@@ -273,12 +273,12 @@ class ES5Processor extends Rewriter {
   isRequire(call: ts.CallExpression): string|null {
     // Verify that the call is a call to require(...).
     if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
-    let ident = call.expression as ts.Identifier;
+    const ident = call.expression as ts.Identifier;
     if (getIdentifierText(ident) !== 'require') return null;
 
     // Verify the call takes a single string argument and grab it.
     if (call.arguments.length !== 1) return null;
-    let arg = call.arguments[0];
+    const arg = call.arguments[0];
     if (arg.kind !== ts.SyntaxKind.StringLiteral) return null;
     return (arg as ts.StringLiteral).text;
   }
@@ -289,12 +289,12 @@ class ES5Processor extends Rewriter {
    */
   isExportRequire(call: ts.CallExpression): string|null {
     if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
-    let ident = call.expression as ts.Identifier;
+    const ident = call.expression as ts.Identifier;
     if (ident.getText() !== '__export') return null;
 
     // Verify the call takes a single call argument and check it.
     if (call.arguments.length !== 1) return null;
-    let arg = call.arguments[0];
+    const arg = call.arguments[0];
     if (arg.kind !== ts.SyntaxKind.CallExpression) return null;
     return this.isRequire(arg as ts.CallExpression);
   }
@@ -312,12 +312,12 @@ class ES5Processor extends Rewriter {
   protected maybeProcess(node: ts.Node): boolean {
     switch (node.kind) {
       case ts.SyntaxKind.PropertyAccessExpression:
-        let propAccess = node as ts.PropertyAccessExpression;
+        const propAccess = node as ts.PropertyAccessExpression;
         // We're looking for an expression of the form:
         //   module_name_var.default
         if (getIdentifierText(propAccess.name) !== 'default') break;
         if (propAccess.expression.kind !== ts.SyntaxKind.Identifier) break;
-        let lhs = getIdentifierText(propAccess.expression as ts.Identifier);
+        const lhs = getIdentifierText(propAccess.expression as ts.Identifier);
         if (!this.namespaceImports.has(lhs)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
@@ -354,6 +354,6 @@ export function processES5(
     fileName: string, moduleId: string, content: string,
     pathToModuleName: (context: string, fileName: string) => string, isES5 = true,
     prelude = ''): {output: string, referencedModules: string[]} {
-  let file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
+  const file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
   return new ES5Processor(file, pathToModuleName, prelude).process(moduleId, isES5);
 }

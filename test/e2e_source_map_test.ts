@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+// tslint:disable:no-unused-expression mocha .to.be.empty getters.
+
 import {assert, expect} from 'chai';
 import * as path from 'path';
 import {SourceMapConsumer} from 'source-map';
@@ -21,7 +23,7 @@ import {toArray} from '../src/util';
 import * as testSupport from './test_support';
 
 describe('source maps', () => {
-  it('composes source maps with tsc', function() {
+  it('composes source maps with tsc', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
       class X { field: number; }
@@ -48,7 +50,7 @@ describe('source maps', () => {
     }
   });
 
-  it('composes sources maps with multiple input files', function() {
+  it('composes sources maps with multiple input files', () => {
     const sources = new Map<string, string>();
     sources.set('input1.ts', `
         class X { field: number; }
@@ -81,7 +83,7 @@ describe('source maps', () => {
     }
   });
 
-  it('handles files in different directories', function() {
+  it('handles files in different directories', () => {
     const sources = new Map<string, string>();
     sources.set('a/b/input1.ts', `
         class X { field: number; }
@@ -114,7 +116,7 @@ describe('source maps', () => {
     }
   });
 
-  it('works when not decorator downleveling some input', function() {
+  it('works when not decorator downleveling some input', () => {
     const sources = new Map<string, string>();
     sources.set('input1.ts', `
         /** @Annotation */
@@ -157,7 +159,7 @@ describe('source maps', () => {
     }
   });
 
-  it('handles decorators correctly', function() {
+  it('handles decorators correctly', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `/** @Annotation */
         function classAnnotation(t: any) { return t; }
@@ -174,7 +176,7 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
 
-  it('composes inline sources', function() {
+  it('composes inline sources', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
       class X { field: number; }
@@ -201,7 +203,7 @@ describe('source maps', () => {
     }
   });
 
-  it(`doesn't blow up trying to handle a source map in a .d.ts file`, function() {
+  it(`doesn't blow up trying to handle a source map in a .d.ts file`, () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
       class X { field: number; }
@@ -222,7 +224,7 @@ describe('source maps', () => {
     expect(dts).to.contain('declare let x: string;');
   });
 
-  it('handles input source maps', function() {
+  it('handles input source maps', () => {
     const decoratorDownlevelSources = new Map<string, string>();
     decoratorDownlevelSources.set('input.ts', `/** @Annotation */
         function classAnnotation(t: any) { return t; }
@@ -242,7 +244,7 @@ describe('source maps', () => {
     expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
 
-  it('handles input source maps with different file names than supplied to tsc', function() {
+  it('handles input source maps with different file names than supplied to tsc', () => {
     const sources = new Map<string, string>();
     const inputSourceMap =
         `{"version":3,"sources":["original.ts"],"names":[],"mappings":"AAAA,MAAM,EAAE,EAAE,CAAC","file":"foo/bar/intermediate.ts","sourceRoot":""}`;
@@ -258,7 +260,7 @@ describe('source maps', () => {
         .to.equal('original.ts', 'input file name');
   });
 
-  it(`doesn't blow up putting an inline source map in an empty file`, function() {
+  it(`doesn't blow up putting an inline source map in an empty file`, () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', ``);
 
@@ -269,7 +271,7 @@ describe('source maps', () => {
     expect(compiledJS).to.contain(`var module = {id: 'output.js'};`);
   });
 
-  it(`handles mixed source mapped and non source mapped input`, function() {
+  it(`handles mixed source mapped and non source mapped input`, () => {
     const decoratorDownlevelSources = new Map<string, string>();
     decoratorDownlevelSources.set('input1.ts', `/** @Annotation */
         function classAnnotation(t: any) { return t; }
@@ -306,9 +308,9 @@ describe('source maps', () => {
 function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
     Map<string, string> {
   const transformedSources = new Map<string, string>();
-  let program = testSupport.createProgram(sources);
+  const program = testSupport.createProgram(sources);
   for (const fileName of toArray(sources.keys())) {
-    let {output, sourceMap: preexistingSourceMap} =
+    const {output, sourceMap: preexistingSourceMap} =
         convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
     transformedSources.set(fileName, setInlineSourceMap(output, preexistingSourceMap.toString()));
   }
@@ -380,7 +382,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
 
   const closureJSOPtions = {
     files: resolvedSources,
-    tsickleHost: tsickleHost,
+    tsickleHost,
     tsicklePasses: options.tsicklePasses,
   };
 
@@ -390,6 +392,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
     console.error(tsickle.formatDiagnostics(diagnostics));
     assert.fail();
     // TODO(lucassloan): remove when the .d.ts has the correct types
+    // tslint:disable-next-line:no-any
     return {compiledJS: '', dts: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 
@@ -398,10 +401,12 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
   if (!compiledJS) {
     assert.fail();
     // TODO(lucassloan): remove when the .d.ts has the correct types
+    // tslint:disable-next-line:no-any
     return {compiledJS: '', dts: '', sourceMap: new SourceMapConsumer('' as any)};
   }
 
   // TODO(lucassloan): remove when the .d.ts has the correct types
+  // tslint:disable-next-line:no-any
   let sourceMapJson: any;
   if (options.inlineSourceMap) {
     sourceMapJson = extractInlineSourceMap(compiledJS);
@@ -434,7 +439,7 @@ function extractInlineSourceMap(source: string): string {
 }
 
 function getFileWithName(filename: string, files: Map<string, string>): string|undefined {
-  for (let filepath of toArray(files.keys())) {
+  for (const filepath of toArray(files.keys())) {
     if (path.parse(filepath).base === path.parse(filename).base) {
       return files.get(filepath);
     }

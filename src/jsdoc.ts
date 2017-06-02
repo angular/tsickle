@@ -132,10 +132,10 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
   comment = match[1].trim();
   // Strip all the " * " bits from the front of each line.
   comment = comment.replace(/^\s*\*? ?/gm, '');
-  let lines = comment.split('\n');
-  let tags: Tag[] = [];
-  let warnings: string[] = [];
-  for (let line of lines) {
+  const lines = comment.split('\n');
+  const tags: Tag[] = [];
+  const warnings: string[] = [];
+  for (const line of lines) {
     match = line.match(/^@(\S+) *(.*)/);
     if (match) {
       let [_, tagName, text] = match;
@@ -171,7 +171,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
         if (match) [_, parameterName, text] = match;
       }
 
-      let tag: Tag = {tagName};
+      const tag: Tag = {tagName};
       if (parameterName) tag.parameterName = parameterName;
       if (text) tag.text = text;
       if (type) tag.type = type;
@@ -197,7 +197,7 @@ export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null 
  * Serializes a Tag into a string usable in a comment.
  * Returns a string like " @foo {bar} baz" (note the whitespace).
  */
-function tagToString(tag: Tag, escapeExtraTags: Set<string> = new Set<string>()): string {
+function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
   let out = '';
   if (tag.tagName) {
     if (!JSDOC_TAGS_WHITELIST.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
@@ -241,10 +241,10 @@ function tagToString(tag: Tag, escapeExtraTags: Set<string> = new Set<string>())
 const SINGLETON_TAGS = new Set(['deprecated']);
 
 /** Serializes a Comment out to a string usable in source code. */
-export function toString(tags: Tag[], escapeExtraTags: Set<string> = new Set<string>()): string {
+export function toString(tags: Tag[], escapeExtraTags = new Set<string>()): string {
   if (tags.length === 0) return '';
   if (tags.length === 1) {
-    let tag = tags[0];
+    const tag = tags[0];
     if (tag.tagName === 'type' && (!tag.text || !tag.text.match('\n'))) {
       // Special-case one-liner "type" tags to fit on one line, e.g.
       //   /** @type {foo} */
@@ -256,7 +256,7 @@ export function toString(tags: Tag[], escapeExtraTags: Set<string> = new Set<str
   let out = '';
   out += '/**\n';
   const emitted = new Set<string>();
-  for (let tag of tags) {
+  for (const tag of tags) {
     if (emitted.has(tag.tagName) && SINGLETON_TAGS.has(tag.tagName)) {
       continue;
     }
@@ -272,10 +272,10 @@ export function toString(tags: Tag[], escapeExtraTags: Set<string> = new Set<str
 
 /** Merges multiple tags (of the same tagName type) into a single unified tag. */
 export function merge(tags: Tag[]): Tag {
-  let tagNames = new Set<string>();
-  let parameterNames = new Set<string>();
-  let types = new Set<string>();
-  let texts = new Set<string>();
+  const tagNames = new Set<string>();
+  const parameterNames = new Set<string>();
+  const types = new Set<string>();
+  const texts = new Set<string>();
   // If any of the tags are optional/rest, then the merged output is optional/rest.
   let optional = false;
   let restParam = false;
@@ -296,7 +296,7 @@ export function merge(tags: Tag[]): Tag {
       parameterNames.size > 0 ? Array.from(parameterNames).join('_or_') : undefined;
   const type = types.size > 0 ? Array.from(types).join('|') : undefined;
   const text = texts.size > 0 ? Array.from(texts).join(' / ') : undefined;
-  let tag: Tag = {tagName, parameterName, type, text};
+  const tag: Tag = {tagName, parameterName, type, text};
   if (optional) tag.optional = true;
   if (restParam) tag.restParam = true;
   return tag;

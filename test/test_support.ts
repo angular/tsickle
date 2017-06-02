@@ -34,10 +34,10 @@ export const compilerOptions: ts.CompilerOptions = {
   noImplicitUseStrict: true,
 };
 
-const {cachedLibPath, cachedLib} = (function() {
-  let host = ts.createCompilerHost(compilerOptions);
-  let fn = host.getDefaultLibFileName(compilerOptions);
-  let p = ts.getDefaultLibFilePath(compilerOptions);
+const {cachedLibPath, cachedLib} = (() => {
+  const host = ts.createCompilerHost(compilerOptions);
+  const fn = host.getDefaultLibFileName(compilerOptions);
+  const p = ts.getDefaultLibFilePath(compilerOptions);
   return {
     // Normalize path to fix mixed/wrong directory separators on Windows.
     cachedLibPath: path.normalize(p),
@@ -47,17 +47,16 @@ const {cachedLibPath, cachedLib} = (function() {
 
 /** Creates a ts.Program from a set of input files. */
 export function createProgram(sources: Map<string, string>): ts.Program {
-  let host = ts.createCompilerHost(compilerOptions);
+  const host = ts.createCompilerHost(compilerOptions);
 
-  host.getSourceFile = function(
-                           fileName: string, languageVersion: ts.ScriptTarget,
-                           onError?: (msg: string) => void): ts.SourceFile {
+  host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
+                        onError?: (msg: string) => void): ts.SourceFile => {
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
     fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
-    let contents = sources.get(fileName);
+    const contents = sources.get(fileName);
     if (contents !== undefined) {
       return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
     }
@@ -69,8 +68,8 @@ export function createProgram(sources: Map<string, string>): ts.Program {
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
 export function emit(program: ts.Program): {[fileName: string]: string} {
-  let transformed: {[fileName: string]: string} = {};
-  let {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
+  const transformed: {[fileName: string]: string} = {};
+  const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
     const moduleId = fileName.replace(/^\.\//, '');
     transformed[fileName] =
         tsickle.processES5(fileName, moduleId, data, cliSupport.pathToModuleName).output;
@@ -82,15 +81,7 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
 }
 
 export class GoldenFileTest {
-  // Path to directory containing test files.
-  path: string;
-  // Input .ts/.tsx/.d.ts file names.
-  tsFiles: string[];
-
-  constructor(path: string, tsFiles: string[]) {
-    this.path = path;
-    this.tsFiles = tsFiles;
-  }
+  constructor(public path: string, public tsFiles: string[]) {}
 
   get name(): string {
     return path.basename(this.path);
@@ -115,8 +106,8 @@ export class GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  let basePath = path.join(__dirname, '..', '..', 'test_files');
-  let testNames = fs.readdirSync(basePath);
+  const basePath = path.join(__dirname, '..', '..', 'test_files');
+  const testNames = fs.readdirSync(basePath);
 
   const testDirs = testNames.map(testName => path.join(basePath, testName))
                        .filter(testDir => fs.statSync(testDir).isDirectory());
@@ -125,7 +116,7 @@ export function goldenTests(): GoldenFileTest[] {
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
-    let tsFiles = tsPaths.map(f => path.relative(testDir, f));
+    const tsFiles = tsPaths.map(f => path.relative(testDir, f));
     return new GoldenFileTest(testDir, tsFiles);
   });
 

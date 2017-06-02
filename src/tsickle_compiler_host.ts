@@ -89,7 +89,7 @@ export interface TsickleHost {
  */
 export class TsickleCompilerHost implements ts.CompilerHost {
   // The manifest of JS modules output by the compiler.
-  public modulesManifest: ModulesManifest = new ModulesManifest();
+  public modulesManifest = new ModulesManifest();
 
   /** Error messages produced by tsickle, if any. */
   public diagnostics: ts.Diagnostic[] = [];
@@ -233,6 +233,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
+      // tslint:disable-next-line:no-any
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceMapKey)!;
@@ -243,6 +244,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     }
     if (this.decoratorDownlevelSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
+      // tslint:disable-next-line:no-any
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const decoratorDownlevelSourceMapGenerator =
@@ -254,6 +256,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     }
     if (this.preexistingSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
+      // tslint:disable-next-line:no-any
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
@@ -278,13 +281,13 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   convertCommonJsToGoogModule(fileName: string, content: string): string {
     const moduleId = this.environment.fileNameToModuleId(fileName);
 
-    let {output, referencedModules} = processES5(
+    const {output, referencedModules} = processES5(
         fileName, moduleId, content, this.environment.pathToModuleName.bind(this.environment),
         this.options.es5Mode, this.options.prelude);
 
     const moduleName = this.environment.pathToModuleName('', fileName);
     this.modulesManifest.addModule(fileName, moduleName);
-    for (let referenced of referencedModules) {
+    for (const referenced of referencedModules) {
       this.modulesManifest.addReferencedModule(fileName, referenced);
     }
 
@@ -317,14 +320,16 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       languageVersion: ts.ScriptTarget): ts.SourceFile {
     this.tsickleSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
-    let isDefinitions = isDtsFileName(fileName);
+    const isDefinitions = isDtsFileName(fileName);
     // Don't tsickle-process any d.ts that isn't a compilation target;
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} = tsickle.annotate(
+    const annotated = tsickle.annotate(
         program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
         this.delegate, this.tscOptions);
+    const {output, externs, sourceMap} = annotated;
+    let {diagnostics} = annotated;
     if (externs) {
       this.externs[fileName] = externs;
     }
@@ -343,7 +348,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   /** Concatenate all generated externs definitions together into a string. */
   getGeneratedExterns(): string {
     let allExterns = tsickle.EXTERNS_HEADER;
-    for (let fileName of Object.keys(this.externs)) {
+    for (const fileName of Object.keys(this.externs)) {
       allExterns += `// externs from ${fileName}:\n`;
       allExterns += this.externs[fileName];
     }
@@ -357,7 +362,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   getCurrentDirectory(): string {
     return this.delegate.getCurrentDirectory();
-  };
+  }
 
   useCaseSensitiveFileNames(): boolean {
     return this.delegate.useCaseSensitiveFileNames();

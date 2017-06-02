@@ -126,7 +126,7 @@ function getParameterName(param: ts.ParameterDeclaration, index: number): string
       return `__${index}`;
     default:
       // The above list of kinds is exhaustive.  param.name is 'never' at this point.
-      let paramName = param.name as ts.Node;
+      const paramName = param.name as ts.Node;
       throw new Error(`unhandled function parameter kind: ${ts.SyntaxKind[paramName.kind]}`);
   }
 }
@@ -178,7 +178,7 @@ class ClosureRewriter extends Rewriter {
    */
   emitFunctionType(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): string[] {
     const typeChecker = this.program.getTypeChecker();
-    let newDoc = extraTags;
+    const newDoc = extraTags;
     const lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
     const minArgsCount = Math.min(...lens);
     const maxArgsCount = Math.max(...lens);
@@ -192,11 +192,11 @@ class ClosureRewriter extends Rewriter {
     const returnTags: jsdoc.Tag[] = [];
     const typeParameterNames = new Set<string>();
 
-    for (let fnDecl of fnDecls) {
+    for (const fnDecl of fnDecls) {
       // Construct the JSDoc comment by reading the existing JSDoc, if
       // any, and merging it with the known types of the function
       // parameters and return type.
-      let docTags = this.getJSDoc(fnDecl) || [];
+      const docTags = this.getJSDoc(fnDecl) || [];
 
       // Copy all the tags other than @param/@return into the new
       // JSDoc without any change; @param/@return are handled specially.
@@ -1304,9 +1304,9 @@ class Annotator extends ClosureRewriter {
 
     // Gather the members of enum, saving the constant value or
     // initializer expression in the case of a non-constant value.
-    let members = new Map<string, number|ts.Node>();
+    const members = new Map<string, number|ts.Node>();
     let i = 0;
-    for (let member of node.members) {
+    for (const member of node.members) {
       const memberName = member.name.getText();
       if (member.initializer) {
         const enumConstValue = this.typeChecker.getConstantValue(member);
@@ -1349,7 +1349,7 @@ class Annotator extends ClosureRewriter {
     // also difficult to make work: for example, we can't make the name
     // both a typedef and an indexable object if we export it.
     this.emit('\n');
-    let name = node.name.getText();
+    const name = node.name.getText();
     const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
     if (isExported) this.emit('export ');
     this.emit(`type ${name} = number;\n`);
@@ -1500,7 +1500,7 @@ class ExternsWriter extends ClosureRewriter {
       this.error(decl, 'anonymous type in externs');
       return;
     }
-    let typeName = namespace.concat([name.getText()]).join('.');
+    const typeName = namespace.concat([name.getText()]).join('.');
     if (closureExternsBlacklist.indexOf(typeName) >= 0) return;
 
     if (this.isFirstDeclaration(decl)) {

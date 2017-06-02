@@ -172,7 +172,8 @@ foo_1.A, foo_2.B, foo_2        , foo_3.default;
   });
 
   it('gathers referenced modules', () => {
-    let {referencedModules} = es5processor.processES5('a/b', 'a/b', `
+    const {referencedModules} =
+        es5processor.processES5('a/b', 'a/b', `
 require('../foo/bare_require');
 var googRequire = require('goog:foo.bar');
 var es6RelativeRequire = require('./relative');

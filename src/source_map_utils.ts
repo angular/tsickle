@@ -86,11 +86,13 @@ export function sourceMapGeneratorToConsumer(
 }
 
 export function sourceMapTextToConsumer(sourceMapText: string): SourceMapConsumer {
+  // tslint:disable-next-line:no-any constructor actually supports text.
   const sourceMapJson: any = sourceMapText;
   return new SourceMapConsumer(sourceMapJson);
 }
 
 export function sourceMapTextToGenerator(sourceMapText: string): SourceMapGenerator {
+  // tslint:disable-next-line:no-any constructor actually supports text.
   const sourceMapJson: any = sourceMapText;
   return SourceMapGenerator.fromSourceMap(sourceMapTextToConsumer(sourceMapJson));
 }

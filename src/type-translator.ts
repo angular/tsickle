@@ -48,7 +48,7 @@ export function typeToDebugString(type: ts.Type): string {
     ts.TypeFlags.Object,        ts.TypeFlags.Union,          ts.TypeFlags.Intersection,
     ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,  ts.TypeFlags.NonPrimitive,
   ];
-  for (let flag of basicTypes) {
+  for (const flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
       debugString += ` ${ts.TypeFlags[flag]}`;
     }
@@ -68,7 +68,7 @@ export function typeToDebugString(type: ts.Type): string {
       ts.ObjectFlags.ObjectLiteral,
       ts.ObjectFlags.EvolvingArray,
     ];
-    for (let flag of objectFlags) {
+    for (const flag of objectFlags) {
       if ((objType.objectFlags & flag) !== 0) {
         debugString += ` object:${ts.ObjectFlags[flag]}`;
       }
@@ -149,8 +149,7 @@ export class TypeTranslator {
   constructor(
       private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
       private readonly pathBlackList?: Set<string>,
-      private readonly symbolsToAliasedNames:
-          Map<ts.Symbol, string> = new Map<ts.Symbol, string>()) {
+      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>()) {
     // Normalize paths to not break checks on Windows.
     if (this.pathBlackList != null) {
       this.pathBlackList =
@@ -169,7 +168,7 @@ export class TypeTranslator {
   public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
-    let alias = this.symbolsToAliasedNames.get(sym);
+    const alias = this.symbolsToAliasedNames.get(sym);
     if (alias) return alias;
     if (useFqn) {
       const fqn = this.typeChecker.getFullyQualifiedName(sym);
@@ -182,13 +181,13 @@ export class TypeTranslator {
       }
     }
 
-    let writeText = (text: string) => str += text;
-    let doNothing = () => {
+    const writeText = (text: string) => str += text;
+    const doNothing = () => {
       return;
     };
 
-    let builder = this.typeChecker.getSymbolDisplayBuilder();
-    let writer: ts.SymbolWriter = {
+    const builder = this.typeChecker.getSymbolDisplayBuilder();
+    const writer: ts.SymbolWriter = {
       writeKeyword: writeText,
       writeOperator: writeText,
       writePunctuation: writeText,
@@ -229,8 +228,8 @@ export class TypeTranslator {
     // up in the value of type.flags.  This mask limits the flag checks to
     // the ones in the public API.  "lastFlag" here is the last flag handled
     // in this switch statement, and should be kept in sync with typescript.d.ts.
-    let lastFlag = ts.TypeFlags.IndexedAccess;
-    let mask = (lastFlag << 1) - 1;
+    const lastFlag = ts.TypeFlags.IndexedAccess;
+    const mask = (lastFlag << 1) - 1;
     switch (type.flags & mask) {
       case ts.TypeFlags.Any:
         return '?';
@@ -346,7 +345,7 @@ export class TypeTranslator {
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
-      let referenceType = type as ts.TypeReference;
+      const referenceType = type as ts.TypeReference;
 
       // A tuple is a ReferenceType where the target is flagged Tuple and the
       // typeArguments are the tuple arguments.  Just treat it as a mystery
@@ -366,7 +365,7 @@ export class TypeTranslator {
       }
       typeStr += this.translate(referenceType.target);
       if (referenceType.typeArguments) {
-        let params = referenceType.typeArguments.map(t => this.translate(t));
+        const params = referenceType.typeArguments.map(t => this.translate(t));
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
@@ -385,7 +384,7 @@ export class TypeTranslator {
       } else if (
           type.symbol.flags === ts.SymbolFlags.Function ||
           type.symbol.flags === ts.SymbolFlags.Method) {
-        let sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
@@ -423,7 +422,7 @@ export class TypeTranslator {
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;
-    let fields: string[] = [];
+    const fields: string[] = [];
     if (!type.symbol || !type.symbol.members) {
       this.warn('type literal has no symbol');
       return '?';
@@ -448,7 +447,7 @@ export class TypeTranslator {
       return `function(new: (${constructedType})${paramsStr}): ?`;
     }
 
-    for (let field of toArray(type.symbol.members.keys())) {
+    for (const field of toArray(type.symbol.members.keys())) {
       switch (field) {
         case '__call':
           callable = true;
@@ -457,9 +456,9 @@ export class TypeTranslator {
           indexable = true;
           break;
         default:
-          let member = type.symbol.members.get(field)!;
+          const member = type.symbol.members.get(field)!;
           // optional members are handled by the type including |undefined in a union type.
-          let memberType =
+          const memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
           fields.push(`${field}: ${memberType}`);
       }
@@ -469,7 +468,7 @@ export class TypeTranslator {
     if (fields.length === 0) {
       if (callable && !indexable) {
         // A function type.
-        let sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
@@ -504,10 +503,10 @@ export class TypeTranslator {
 
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
-    let params = this.convertParams(sig);
+    const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
-    let retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
+    const retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
     if (retType) {
       typeStr += `: ${retType}`;
     }
@@ -517,7 +516,7 @@ export class TypeTranslator {
 
   private convertParams(sig: ts.Signature): string[] {
     return sig.parameters.map(param => {
-      let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      const paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
       return this.translate(paramType);
     });
   }

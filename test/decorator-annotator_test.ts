@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+// tslint:disable:no-unused-expression mocha .to.be.empty getters.
+
 import {expect} from 'chai';
 import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
@@ -33,8 +35,8 @@ function verifyCompiles(sourceText: string) {
 describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
-        let program = testSupport.createProgram(sources(sourceText));
-        let {output, diagnostics, sourceMap} =
+        const program = testSupport.createProgram(sources(sourceText));
+        const {output, diagnostics, sourceMap} =
             convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
         if (!allowErrors) expect(diagnostics).to.be.empty;
         verifyCompiles(output);
@@ -46,11 +48,11 @@ describe(
       }
 
       it('rejects non-typechecked inputs', () => {
-        let sourceText = 'let x = 3;';
-        let program = testSupport.createProgram(sources(sourceText));
-        let goodSourceFile = program.getSourceFile(testCaseFileName);
+        const sourceText = 'let x = 3;';
+        const program = testSupport.createProgram(sources(sourceText));
+        const goodSourceFile = program.getSourceFile(testCaseFileName);
         expect(() => convertDecorators(program.getTypeChecker(), goodSourceFile)).to.not.throw();
-        let badSourceFile =
+        const badSourceFile =
             ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES2015, true);
         expect(() => convertDecorators(program.getTypeChecker(), badSourceFile)).to.throw();
       });
@@ -430,7 +432,7 @@ static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
         });
 
         it('errors on weird class members', () => {
-          let {diagnostics} = translate(`
+          const {diagnostics} = translate(`
 /** @Annotation */ let Test1: Function;
 let param: any;
 class Foo {

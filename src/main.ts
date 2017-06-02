@@ -46,9 +46,9 @@ tsickle flags are:
  * the arguments to pass on to tsc.
  */
 function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: string[]} {
-  let settings: Settings = {};
-  let parsedArgs = minimist(args);
-  for (let flag of Object.keys(parsedArgs)) {
+  const settings: Settings = {};
+  const parsedArgs = minimist(args);
+  for (const flag of Object.keys(parsedArgs)) {
     switch (flag) {
       case 'h':
       case 'help':
@@ -74,7 +74,7 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
     }
   }
   // Arguments after the '--' arg are arguments to tsc.
-  let tscArgs = parsedArgs['_'];
+  const tscArgs = parsedArgs['_'];
   return {settings, tscArgs};
 }
 
@@ -92,6 +92,7 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
   // Gather tsc options/input files from command line.
   // Bypass visibilty of parseCommandLine, see
   // https://github.com/Microsoft/TypeScript/issues/2620
+  // tslint:disable-next-line:no-any
   let {options, fileNames, errors} = (ts as any).parseCommandLine(args);
   if (errors.length > 0) {
     allDiagnostics.push(...errors);
@@ -99,12 +100,12 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
   }
 
   // Store file arguments
-  let tsFileArguments = fileNames;
+  const tsFileArguments = fileNames;
 
   // Read further settings from tsconfig.json.
-  let projectDir = options.project || '.';
-  let configFileName = path.join(projectDir, 'tsconfig.json');
-  let {config: json, error} =
+  const projectDir = options.project || '.';
+  const configFileName = path.join(projectDir, 'tsconfig.json');
+  const {config: json, error} =
       ts.readConfigFile(configFileName, path => fs.readFileSync(path, 'utf-8'));
   if (error) {
     allDiagnostics.push(error);
@@ -177,7 +178,7 @@ export function toClosureJS(
 
   let program = ts.createProgram(fileNames, options, tch);
   {  // Scope for the "diagnostics" variable so we can use the name again later.
-    let diagnostics = ts.getPreEmitDiagnostics(program);
+    const diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length > 0) {
       allDiagnostics.push(...diagnostics);
       return null;
@@ -196,7 +197,7 @@ export function toClosureJS(
     program = ts.createProgram(fileNames, options, tch);
   }
 
-  let {diagnostics} = program.emit(undefined);
+  const {diagnostics} = program.emit(undefined);
   if (diagnostics.length > 0) {
     allDiagnostics.push(...diagnostics);
     return null;
@@ -206,9 +207,9 @@ export function toClosureJS(
 }
 
 function main(args: string[]): number {
-  let {settings, tscArgs} = loadSettingsFromArgs(args);
-  let diagnostics: ts.Diagnostic[] = [];
-  let config = loadTscConfig(tscArgs, diagnostics);
+  const {settings, tscArgs} = loadSettingsFromArgs(args);
+  const diagnostics: ts.Diagnostic[] = [];
+  const config = loadTscConfig(tscArgs, diagnostics);
   if (config === null) {
     console.error(tsickle.formatDiagnostics(diagnostics));
     return 1;
@@ -223,13 +224,13 @@ function main(args: string[]): number {
   }
 
   // Run tsickle+TSC to convert inputs to Closure JS files.
-  let closure = toClosureJS(config.options, config.fileNames, settings, diagnostics);
+  const closure = toClosureJS(config.options, config.fileNames, settings, diagnostics);
   if (closure === null) {
     console.error(tsickle.formatDiagnostics(diagnostics));
     return 1;
   }
 
-  for (let fileName of toArray(closure.jsFiles.keys())) {
+  for (const fileName of toArray(closure.jsFiles.keys())) {
     mkdirp.sync(path.dirname(fileName));
     fs.writeFileSync(fileName, closure.jsFiles.get(fileName));
   }
