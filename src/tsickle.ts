@@ -1164,7 +1164,7 @@ class Annotator extends ClosureRewriter {
 
     const memberNamespace = [name, 'prototype'];
     for (const elem of iface.members) {
-      let isOptional = elem.questionToken != null;
+      const isOptional = elem.questionToken != null;
       this.visitProperty(memberNamespace, elem, isOptional);
     }
   }
@@ -1261,7 +1261,7 @@ class Annotator extends ClosureRewriter {
    * @param optional If true, property is optional (e.g. written "foo?: string").
    */
   private visitProperty(namespace: string[], prop: ts.Declaration, optional = false) {
-    let name = this.propertyName(prop);
+    const name = this.propertyName(prop);
     if (!name) {
       this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(prop.getText())}\n*/\n`);
       return;
