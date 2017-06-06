@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 // TypeAndValue is both a type and a value, which is allowed in TypeScript
 // but disallowed in Closure.
 export interface TypeAndValue { z: number }

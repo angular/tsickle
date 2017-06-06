@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 class StructuralTest {
   field1: string;

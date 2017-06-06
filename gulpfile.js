@@ -25,8 +25,16 @@ var tsProject = ts.createProject('tsconfig.json', {
   typescript: typescript,
 });
 
+const formatted = ['*.js', 'src/**/*.ts', 'test/**/*.ts'];
+
+gulp.task('format', function() {
+  return gulp.src(formatted, {base: '.'})
+      .pipe(formatter.format('file', clangFormat))
+      .pipe(gulp.dest('.'));
+});
+
 gulp.task('test.check-format', function() {
-  return gulp.src(['*.js', 'src/**/*.ts', 'test/**/*.ts'])
+  return gulp.src(formatted)
       .pipe(formatter.checkFormat('file', clangFormat, {verbose: true}))
       .on('warning', onError);
 });
@@ -53,11 +61,11 @@ gulp.task('compile', function() {
   var tsResult =
       gulp.src(['src/**/*.ts']).pipe(sourcemaps.init()).pipe(tsProject()).on('error', onError);
   return merge([
-    tsResult.dts.pipe(gulp.dest('build/definitions')),
+    tsResult.dts.pipe(gulp.dest('built/definitions')),
     // Write external sourcemap next to the js file
     tsResult.js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../../src'}))
-        .pipe(gulp.dest('build/src')),
-    tsResult.js.pipe(gulp.dest('build/src')),
+        .pipe(gulp.dest('built/src')),
+    tsResult.js.pipe(gulp.dest('built/src')),
   ]);
 });
 
@@ -71,7 +79,7 @@ gulp.task('test.compile', ['compile'], function(done) {
       .pipe(tsProject())
       .on('error', onError)
       .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../..'}))
-      .pipe(gulp.dest('build/'));  // '/test/' comes from base above.
+      .pipe(gulp.dest('built/'));  // '/test/' comes from base above.
 });
 
 gulp.task('test.unit', ['test.compile'], function(done) {
@@ -79,7 +87,7 @@ gulp.task('test.unit', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['build/test/**/*.js', '!build/test/**/e2e*.js']).pipe(mocha({timeout: 1000}));
+  return gulp.src(['built/test/**/*.js', '!built/test/**/e2e*.js']).pipe(mocha({timeout: 1000}));
 });
 
 gulp.task('test.e2e', ['test.compile'], function(done) {
@@ -87,7 +95,7 @@ gulp.task('test.e2e', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['build/test/**/e2e*.js']).pipe(mocha({timeout: 25000}));
+  return gulp.src(['built/test/**/e2e*.js']).pipe(mocha({timeout: 25000}));
 });
 
 gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format', 'test.check-lint']);

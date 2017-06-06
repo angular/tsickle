@@ -14,13 +14,6 @@ import {Rewriter} from './rewriter';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
 
-export const ANNOTATION_SUPPORT_CODE = `
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
-}
-`;
-
 // ClassRewriter rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
 // separately for each class we encounter.
@@ -28,7 +21,7 @@ class ClassRewriter extends Rewriter {
   /** Decorators on the class itself. */
   decorators: ts.Decorator[];
   /** The constructor parameter list and decorators on each param. */
-  ctorParameters: ([string | undefined, ts.Decorator[]|undefined]|null)[];
+  ctorParameters: Array<[string | undefined, ts.Decorator[]|undefined]|null>;
   /** Per-method decorators. */
   propDecorators: Map<string, ts.Decorator[]>;
 
@@ -40,7 +33,7 @@ class ClassRewriter extends Rewriter {
    * Determines whether the given decorator should be re-written as an annotation.
    */
   private shouldLower(decorator: ts.Decorator) {
-    for (let d of getDecoratorDeclarations(decorator, this.typeChecker)) {
+    for (const d of getDecoratorDeclarations(decorator, this.typeChecker)) {
       // Switch to the TS JSDoc parser in the future to avoid false positives here.
       // For example using '@Annotation' in a true comment.
       // However, a new TS API would be needed, track at
@@ -59,10 +52,10 @@ class ClassRewriter extends Rewriter {
         if (!commentNode.parent) continue;
         commentNode = commentNode.parent;
       }
-      let range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
+      const range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
       if (!range) continue;
-      for (let {pos, end} of range) {
-        let jsDocText = commentNode.getFullText().substring(pos, end);
+      for (const {pos, end} of range) {
+        const jsDocText = commentNode.getFullText().substring(pos, end);
         if (jsDocText.includes('@Annotation')) return true;
       }
     }
@@ -81,7 +74,7 @@ class ClassRewriter extends Rewriter {
    */
   process(node: ts.ClassDeclaration): {output: string, diagnostics: ts.Diagnostic[]} {
     if (node.decorators) {
-      let toLower = this.decoratorsToLower(node);
+      const toLower = this.decoratorsToLower(node);
       if (toLower.length > 0) this.decorators = toLower;
     }
 
@@ -115,9 +108,9 @@ class ClassRewriter extends Rewriter {
    * constructor, and emits nothing.
    */
   private gatherConstructor(ctor: ts.ConstructorDeclaration) {
-    let ctorParameters: ([string | undefined, ts.Decorator[] | undefined]|null)[] = [];
+    const ctorParameters: Array<[string | undefined, ts.Decorator[] | undefined]|null> = [];
     let hasDecoratedParam = false;
-    for (let param of ctor.parameters) {
+    for (const param of ctor.parameters) {
       let paramCtor: string|undefined;
       let decorators: ts.Decorator[]|undefined;
       if (param.decorators) {
@@ -127,9 +120,10 @@ class ClassRewriter extends Rewriter {
       if (param.type) {
         // param has a type provided, e.g. "foo: Bar".
         // Verify that "Bar" is a value (e.g. a constructor) and not just a type.
-        let sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
+        const sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
         if (sym && (sym.flags & ts.SymbolFlags.Value)) {
-          paramCtor = new TypeTranslator(this.typeChecker, param.type).symbolToString(sym);
+          paramCtor = new TypeTranslator(this.typeChecker, param.type)
+                          .symbolToString(sym, /* useFqn */ true);
         }
       }
       if (paramCtor || decorators) {
@@ -157,8 +151,8 @@ class ClassRewriter extends Rewriter {
       return;
     }
 
-    let name = (method.name as ts.Identifier).text;
-    let decorators: ts.Decorator[] = this.decoratorsToLower(method);
+    const name = (method.name as ts.Identifier).text;
+    const decorators: ts.Decorator[] = this.decoratorsToLower(method);
     if (decorators.length === 0) return;
     if (!this.propDecorators) this.propDecorators = new Map<string, ts.Decorator[]>();
     this.propDecorators.set(name, decorators);
@@ -173,7 +167,7 @@ class ClassRewriter extends Rewriter {
       case ts.SyntaxKind.ClassDeclaration:
         // Encountered a new class while processing this class; use a new separate
         // rewriter to gather+emit its metadata.
-        let {output, diagnostics} =
+        const {output, diagnostics} =
             new ClassRewriter(this.typeChecker, this.file).process(node as ts.ClassDeclaration);
         this.diagnostics.push(...diagnostics);
         this.emit(output);
@@ -204,9 +198,10 @@ class ClassRewriter extends Rewriter {
    * emitMetadata emits the various gathered metadata, as static fields.
    */
   private emitMetadata() {
+    const decoratorInvocations = '{type: Function, args?: any[]}[]';
     if (this.decorators) {
-      this.emit(`static decorators: DecoratorInvocation[] = [\n`);
-      for (let annotation of this.decorators) {
+      this.emit(`static decorators: ${decoratorInvocations} = [\n`);
+      for (const annotation of this.decorators) {
         this.emitDecorator(annotation);
         this.emit(',\n');
       }
@@ -218,17 +213,18 @@ class ClassRewriter extends Rewriter {
       // ctorParameters may contain forward references in the type: field, so wrap in a function
       // closure
       this.emit(
-          `static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [\n`);
-      for (let param of this.ctorParameters || []) {
+          `static ctorParameters: () => ({type: any, decorators?: ` + decoratorInvocations +
+          `}|null)[] = () => [\n`);
+      for (const param of this.ctorParameters || []) {
         if (!param) {
           this.emit('null,\n');
           continue;
         }
-        let [ctor, decorators] = param;
+        const [ctor, decorators] = param;
         this.emit(`{type: ${ctor}, `);
         if (decorators) {
           this.emit('decorators: [');
-          for (let decorator of decorators) {
+          for (const decorator of decorators) {
             this.emitDecorator(decorator);
             this.emit(', ');
           }
@@ -240,11 +236,11 @@ class ClassRewriter extends Rewriter {
     }
 
     if (this.propDecorators) {
-      this.emit('static propDecorators: {[key: string]: DecoratorInvocation[]} = {\n');
-      for (let name of toArray(this.propDecorators.keys())) {
+      this.emit(`static propDecorators: {[key: string]: ` + decoratorInvocations + `} = {\n`);
+      for (const name of toArray(this.propDecorators.keys())) {
         this.emit(`'${name}': [`);
 
-        for (let decorator of this.propDecorators.get(name)!) {
+        for (const decorator of this.propDecorators.get(name)!) {
           this.emitDecorator(decorator);
           this.emit(',');
         }
@@ -256,7 +252,7 @@ class ClassRewriter extends Rewriter {
 
   private emitDecorator(decorator: ts.Decorator) {
     this.emit('{ type: ');
-    let expr = decorator.expression;
+    const expr = decorator.expression;
     switch (expr.kind) {
       case ts.SyntaxKind.Identifier:
         // The decorator was a plain @Foo.
@@ -264,11 +260,11 @@ class ClassRewriter extends Rewriter {
         break;
       case ts.SyntaxKind.CallExpression:
         // The decorator was a call, like @Foo(bar).
-        let call = expr as ts.CallExpression;
+        const call = expr as ts.CallExpression;
         this.visit(call.expression);
         if (call.arguments.length) {
           this.emit(', args: [');
-          for (let arg of call.arguments) {
+          for (const arg of call.arguments) {
             this.emit(arg.getText());
             this.emit(', ');
           }
@@ -296,7 +292,7 @@ class DecoratorRewriter extends Rewriter {
   protected maybeProcess(node: ts.Node): boolean {
     switch (node.kind) {
       case ts.SyntaxKind.ClassDeclaration:
-        let {output, diagnostics} =
+        const {output, diagnostics} =
             new ClassRewriter(this.typeChecker, this.file).process(node as ts.ClassDeclaration);
         this.diagnostics.push(...diagnostics);
         this.emit(output);

@@ -1,4 +1,8 @@
 goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+/**
  * @record
  */
 function Interface() { }
@@ -15,14 +19,16 @@ class Class {
  */
 class AbstractClass {
     /**
-     * @abstract
-     * @return {void}
-     */
-    abstractFunc() { }
-    /**
      * @return {void}
      */
     nonAbstractFunc() { }
+}
+function AbstractClass_tsickle_Closure_declarations() {
+    /**
+     * @abstract
+     * @return {void}
+     */
+    AbstractClass.prototype.abstractFunc = function () { };
 }
 /**
  * @record

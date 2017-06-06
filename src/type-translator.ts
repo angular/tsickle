@@ -6,7 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as path from 'path';
 import * as ts from 'typescript';
+import {toArray} from './util';
 
 export function assertTypeChecked(sourceFile: ts.SourceFile) {
   if (!('resolvedModules' in sourceFile)) {
@@ -36,6 +38,7 @@ function isClosureProvidedType(symbol: ts.Symbol): boolean {
 export function typeToDebugString(type: ts.Type): string {
   let debugString = `flags:0x${type.flags.toString(16)}`;
 
+  // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const basicTypes: ts.TypeFlags[] = [
     ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
     ts.TypeFlags.Boolean,       ts.TypeFlags.Enum,           ts.TypeFlags.StringLiteral,
@@ -43,9 +46,9 @@ export function typeToDebugString(type: ts.Type): string {
     ts.TypeFlags.ESSymbol,      ts.TypeFlags.Void,           ts.TypeFlags.Undefined,
     ts.TypeFlags.Null,          ts.TypeFlags.Never,          ts.TypeFlags.TypeParameter,
     ts.TypeFlags.Object,        ts.TypeFlags.Union,          ts.TypeFlags.Intersection,
-    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,
+    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,  ts.TypeFlags.NonPrimitive,
   ];
-  for (let flag of basicTypes) {
+  for (const flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
       debugString += ` ${ts.TypeFlags[flag]}`;
     }
@@ -53,6 +56,7 @@ export function typeToDebugString(type: ts.Type): string {
 
   if (type.flags === ts.TypeFlags.Object) {
     const objType = type as ts.ObjectType;
+    // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
     const objectFlags: ts.ObjectFlags[] = [
       ts.ObjectFlags.Class,
       ts.ObjectFlags.Interface,
@@ -63,9 +67,8 @@ export function typeToDebugString(type: ts.Type): string {
       ts.ObjectFlags.Instantiated,
       ts.ObjectFlags.ObjectLiteral,
       ts.ObjectFlags.EvolvingArray,
-      ts.ObjectFlags.ObjectLiteralPatternWithComputedProperties,
     ];
-    for (let flag of objectFlags) {
+    for (const flag of objectFlags) {
       if ((objType.objectFlags & flag) !== 0) {
         debugString += ` object:${ts.ObjectFlags[flag]}`;
       }
@@ -86,6 +89,7 @@ export function typeToDebugString(type: ts.Type): string {
 export function symbolToDebugString(sym: ts.Symbol): string {
   let debugString = `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
 
+  // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const symbolFlags = [
     ts.SymbolFlags.FunctionScopedVariable,
     ts.SymbolFlags.BlockScopedVariable,
@@ -111,13 +115,10 @@ export function symbolToDebugString(sym: ts.Symbol): string {
     ts.SymbolFlags.ExportType,
     ts.SymbolFlags.ExportNamespace,
     ts.SymbolFlags.Alias,
-    ts.SymbolFlags.Instantiated,
-    ts.SymbolFlags.Merged,
-    ts.SymbolFlags.Transient,
     ts.SymbolFlags.Prototype,
-    ts.SymbolFlags.SyntheticProperty,
-    ts.SymbolFlags.Optional,
     ts.SymbolFlags.ExportStar,
+    ts.SymbolFlags.Optional,
+    ts.SymbolFlags.Transient,
   ];
   for (const flag of symbolFlags) {
     if ((sym.flags & flag) !== 0) {
@@ -134,7 +135,7 @@ export class TypeTranslator {
    * A list of types we've encountered while emitting; used to avoid getting stuck in recursive
    * types.
    */
-  private seenTypes: ts.Type[] = [];
+  private readonly seenTypes: ts.Type[] = [];
 
   /**
    * @param node is the source AST ts.Node the type comes from.  This is used
@@ -146,9 +147,15 @@ export class TypeTranslator {
    *     (`tsickle_import.Foo`).
    */
   constructor(
-      private typeChecker: ts.TypeChecker, private node: ts.Node,
-      private pathBlackList?: Set<string>,
-      private symbolsToAliasedNames: Map<ts.Symbol, string> = new Map<ts.Symbol, string>()) {}
+      private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
+      private readonly pathBlackList?: Set<string>,
+      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>()) {
+    // Normalize paths to not break checks on Windows.
+    if (this.pathBlackList != null) {
+      this.pathBlackList =
+          new Set<string>(Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
+    }
+  }
 
   /**
    * Converts a ts.Symbol to a string.
@@ -156,19 +163,31 @@ export class TypeTranslator {
    * - TypeChecker.typeToString translates Array as T[].
    * - TypeChecker.symbolToString emits types without their namespace,
    *   and doesn't let you pass the flag to control that.
+   * @param useFqn whether to scope the name using its fully qualified name.
    */
-  public symbolToString(sym: ts.Symbol): string {
+  public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
-    let alias = this.symbolsToAliasedNames.get(sym);
+    const alias = this.symbolsToAliasedNames.get(sym);
     if (alias) return alias;
-    let writeText = (text: string) => str += text;
-    let doNothing = () => {
+    if (useFqn) {
+      const fqn = this.typeChecker.getFullyQualifiedName(sym);
+      if (!fqn.startsWith(`"`) && !fqn.startsWith(`'`)) {
+        // Non-quoted FQNs mean the name is a global symbol (e.g. from namespace).
+        return this.stripClutzNamespace(fqn);
+      } else {
+        // TODO(martinprobst): Quoted FQNs mean the name is from a module. We still need to scope it
+        // for ambient declarations in externs.
+      }
+    }
+
+    const writeText = (text: string) => str += text;
+    const doNothing = () => {
       return;
     };
 
-    let builder = this.typeChecker.getSymbolDisplayBuilder();
-    let writer: ts.SymbolWriter = {
+    const builder = this.typeChecker.getSymbolDisplayBuilder();
+    const writer: ts.SymbolWriter = {
       writeKeyword: writeText,
       writeOperator: writeText,
       writePunctuation: writeText,
@@ -185,9 +204,20 @@ export class TypeTranslator {
         return;
       },
       reportInaccessibleThisError: doNothing,
+      reportIllegalExtends: doNothing,
     };
     builder.buildSymbolDisplay(sym, writer, this.node);
-    return str;
+    return this.stripClutzNamespace(str);
+  }
+
+  // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special
+  // ಠ_ಠ.clutz namespace. While most code seen by Tsickle will only ever see local aliases, Clutz
+  // symbols can be written by users directly in code, and they can appear by dereferencing
+  // TypeAliases. The code below simply strips the prefix, the remaining type name then matches
+  // Closure's type.
+  private stripClutzNamespace(name: string) {
+    if (name.startsWith('ಠ_ಠ.clutz.')) return name.substring('ಠ_ಠ.clutz.'.length);
+    return name;
   }
 
   translate(type: ts.Type): string {
@@ -198,8 +228,8 @@ export class TypeTranslator {
     // up in the value of type.flags.  This mask limits the flag checks to
     // the ones in the public API.  "lastFlag" here is the last flag handled
     // in this switch statement, and should be kept in sync with typescript.d.ts.
-    let lastFlag = ts.TypeFlags.IndexedAccess;
-    let mask = (lastFlag << 1) - 1;
+    const lastFlag = ts.TypeFlags.IndexedAccess;
+    const mask = (lastFlag << 1) - 1;
     switch (type.flags & mask) {
       case ts.TypeFlags.Any:
         return '?';
@@ -235,7 +265,9 @@ export class TypeTranslator {
           this.warn(`TypeParameter without a symbol`);  // should not happen (tm)
           return '?';
         }
-        return this.symbolToString(type.symbol);
+        // In Closure Compiler, type parameters *are* scoped to their containing class.
+        const useFqn = false;
+        return this.symbolToString(type.symbol, useFqn);
       case ts.TypeFlags.Object:
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:
@@ -287,7 +319,7 @@ export class TypeTranslator {
         this.warn('class has no symbol');
         return '?';
       }
-      return '!' + this.symbolToString(type.symbol);
+      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
     } else if (type.objectFlags & ts.ObjectFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
@@ -309,11 +341,11 @@ export class TypeTranslator {
           return '?';
         }
       }
-      return '!' + this.symbolToString(type.symbol);
+      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
-      let referenceType = type as ts.TypeReference;
+      const referenceType = type as ts.TypeReference;
 
       // A tuple is a ReferenceType where the target is flagged Tuple and the
       // typeArguments are the tuple arguments.  Just treat it as a mystery
@@ -333,7 +365,7 @@ export class TypeTranslator {
       }
       typeStr += this.translate(referenceType.target);
       if (referenceType.typeArguments) {
-        let params = referenceType.typeArguments.map(t => this.translate(t));
+        const params = referenceType.typeArguments.map(t => this.translate(t));
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
@@ -352,7 +384,7 @@ export class TypeTranslator {
       } else if (
           type.symbol.flags === ts.SymbolFlags.Function ||
           type.symbol.flags === ts.SymbolFlags.Method) {
-        let sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
@@ -390,7 +422,7 @@ export class TypeTranslator {
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;
-    let fields: string[] = [];
+    const fields: string[] = [];
     if (!type.symbol || !type.symbol.members) {
       this.warn('type literal has no symbol');
       return '?';
@@ -415,7 +447,7 @@ export class TypeTranslator {
       return `function(new: (${constructedType})${paramsStr}): ?`;
     }
 
-    for (let field of Object.keys(type.symbol.members)) {
+    for (const field of toArray(type.symbol.members.keys())) {
       switch (field) {
         case '__call':
           callable = true;
@@ -424,9 +456,9 @@ export class TypeTranslator {
           indexable = true;
           break;
         default:
-          let member = type.symbol.members[field];
+          const member = type.symbol.members.get(field)!;
           // optional members are handled by the type including |undefined in a union type.
-          let memberType =
+          const memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
           fields.push(`${field}: ${memberType}`);
       }
@@ -436,7 +468,7 @@ export class TypeTranslator {
     if (fields.length === 0) {
       if (callable && !indexable) {
         // A function type.
-        let sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
@@ -471,10 +503,10 @@ export class TypeTranslator {
 
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
-    let params = this.convertParams(sig);
+    const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
-    let retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
+    const retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
     if (retType) {
       typeStr += `: ${retType}`;
     }
@@ -484,7 +516,7 @@ export class TypeTranslator {
 
   private convertParams(sig: ts.Signature): string[] {
     return sig.parameters.map(param => {
-      let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      const paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
       return this.translate(paramType);
     });
   }
@@ -503,8 +535,8 @@ export class TypeTranslator {
       return true;
     }
     return symbol.declarations.every(n => {
-      const path = n.getSourceFile().fileName;
-      return pathBlackList.has(path);
+      const fileName = path.normalize(n.getSourceFile().fileName);
+      return pathBlackList.has(fileName);
     });
   }
 }

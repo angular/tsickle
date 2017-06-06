@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 type MyType = number;
 /** @typedef {number} */
 var MyType;

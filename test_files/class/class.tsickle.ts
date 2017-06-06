@@ -1,5 +1,10 @@
 Warning at test_files/class/class.ts:125:1: type/symbol conflict for Zone, using {?} for now
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 /**
  * @record
@@ -30,16 +35,22 @@ classFunc(): void {}
  * @abstract
  */
 abstract class AbstractClass {
-/**
- * @abstract
- * @return {void}
- */
-abstractFunc() {}
+  abstract abstractFunc(): void;
 /**
  * @return {void}
  */
 nonAbstractFunc(): void { }
 }
+
+function AbstractClass_tsickle_Closure_declarations() {
+
+/**
+ * @abstract
+ * @return {void}
+ */
+AbstractClass.prototype.abstractFunc = function() {};
+}
+
 /**
  * @record
  * @extends {Interface}

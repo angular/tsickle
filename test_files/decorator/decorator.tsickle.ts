@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 /**
  * @param {!Object} a
@@ -29,28 +34,28 @@ class DecoratorTest {
   @decorator
 private x: number;
 private y: number;
-static decorators: DecoratorInvocation[] = [
+static decorators: {type: Function, args?: any[]}[] = [
 { type: classAnnotation },
 ];
 /**
  * @nocollapse
  */
-static ctorParameters: () => ({type: any, decorators?: DecoratorInvocation[]}|null)[] = () => [
+static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
-static propDecorators: {[key: string]: DecoratorInvocation[]} = {
+static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 'y': [{ type: annotationDecorator },],
 };
 }
 
 function DecoratorTest_tsickle_Closure_declarations() {
-/** @type {!Array<!DecoratorInvocation>} */
+/** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
 DecoratorTest.decorators;
 /**
  * @nocollapse
- * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<!DecoratorInvocation>)})>}
+ * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>)})>}
  */
 DecoratorTest.ctorParameters;
-/** @type {!Object<string,!Array<!DecoratorInvocation>>} */
+/** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
 DecoratorTest.propDecorators;
 /** @type {number} */
 DecoratorTest.prototype.x;
@@ -68,17 +73,3 @@ function DecoratedClass_tsickle_Closure_declarations() {
 DecoratedClass.prototype.z;
 }
 
-/**
- * @record
- */
-function DecoratorInvocation() {}
-/** @type {!Function} */
-DecoratorInvocation.prototype.type;
-/** @type {(undefined|!Array<?>)} */
-DecoratorInvocation.prototype.args;
-
-
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
-}

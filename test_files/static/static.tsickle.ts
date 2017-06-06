@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 class Static {
   // This should not become a stub declaration.

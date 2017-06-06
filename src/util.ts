@@ -50,8 +50,8 @@ export function createSourceReplacingCompilerHost(
   function getSourceFile(
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void): ts.SourceFile {
-    let path: string = ts.sys.resolvePath(fileName);
-    let sourceText = substituteSource.get(path);
+    const path: string = ts.sys.resolvePath(fileName);
+    const sourceText = substituteSource.get(path);
     if (sourceText !== undefined) {
       return ts.createSourceFile(fileName, sourceText, languageVersion);
     }
@@ -71,7 +71,7 @@ export function createOutputRetainingCompilerHost(
     getSourceFile: delegate.getSourceFile,
     getCancellationToken: delegate.getCancellationToken,
     getDefaultLibFileName: delegate.getDefaultLibFileName,
-    writeFile: writeFile,
+    writeFile,
     getCurrentDirectory: delegate.getCurrentDirectory,
     getCanonicalFileName: delegate.getCanonicalFileName,
     useCaseSensitiveFileNames: delegate.useCaseSensitiveFileNames,

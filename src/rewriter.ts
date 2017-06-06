@@ -26,7 +26,7 @@ export abstract class Rewriter {
    * The current level of recursion through TypeScript Nodes.  Used in formatting internal debug
    * print statements.
    */
-  private indent: number = 0;
+  private indent = 0;
 
   constructor(protected file: ts.SourceFile) {
     this.sourceMap = new SourceMapGenerator({file: file.fileName});
@@ -92,15 +92,24 @@ export abstract class Rewriter {
     this.writeRange(pos, node.getEnd());
   }
 
-  // Write a span of the input file as expressed by absolute offsets.
-  // These offsets are found in attributes like node.getFullStart() and
-  // node.getEnd().
+  /**
+   * Skip emitting any code before the given offset. Used to avoid emitting @fileoverview comments
+   * twice.
+   */
+  protected skipUpToOffset = 0;
+
+  /**
+   * Write a span of the input file as expressed by absolute offsets.
+   * These offsets are found in attributes like node.getFullStart() and
+   * node.getEnd().
+   */
   writeRange(from: number, to: number) {
+    from = Math.max(from, this.skipUpToOffset);
     // getSourceFile().getText() is wrong here because it has the text of
     // the SourceFile node of the AST, which doesn't contain the comments
     // preceding that node.  Semantically these ranges are just offsets
     // into the original source file text, so slice from that.
-    let text = this.file.text.slice(from, to);
+    const text = this.file.text.slice(from, to);
     if (text) {
       // Add a source mapping. writeRange(from, to) always corresponds to
       // original source code, so add a mapping at the current location that
@@ -137,7 +146,7 @@ export abstract class Rewriter {
   /* tslint:disable: no-unused-variable */
   logWithIndent(message: string) {
     /* tslint:enable: no-unused-variable */
-    let prefix = new Array(this.indent + 1).join('| ');
+    const prefix = new Array(this.indent + 1).join('| ');
     console.log(prefix + message);
   }
 
@@ -155,7 +164,7 @@ export abstract class Rewriter {
       file: this.file,
       start: node.getStart(),
       length: node.getEnd() - node.getStart(),
-      messageText: messageText,
+      messageText,
       category: ts.DiagnosticCategory.Error,
       code: 0,
     });

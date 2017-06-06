@@ -12,15 +12,15 @@ import * as jsdoc from '../src/jsdoc';
 
 describe('jsdoc.parse', () => {
   it('does not get non-jsdoc values', () => {
-    let source = '/* ordinary comment */';
+    const source = '/* ordinary comment */';
     expect(jsdoc.parse(source)).to.equal(null);
   });
   it('grabs plain text from jsdoc', () => {
-    let source = '/** jsdoc comment */';
-    expect(jsdoc.parse(source)).to.deep.equal({tags: [{text: 'jsdoc comment'}]});
+    const source = '/** jsdoc comment */';
+    expect(jsdoc.parse(source)).to.deep.equal({tags: [{tagName: '', text: 'jsdoc comment'}]});
   });
   it('gathers @tags from jsdoc', () => {
-    let source = `/**
+    const source = `/**
   * @param foo
   * @param bar multiple
   *    line comment
@@ -37,7 +37,7 @@ describe('jsdoc.parse', () => {
     });
   });
   it('warns on type annotations in parameters', () => {
-    let source = `/**
+    const source = `/**
   * @param {string} foo
 */`;
     expect(jsdoc.parse(source)).to.deep.equal({
@@ -48,16 +48,34 @@ describe('jsdoc.parse', () => {
     });
   });
   it('warns on @type annotations', () => {
-    let source = `/** @type {string} foo */`;
+    const source = `/** @type {string} foo */`;
     expect(jsdoc.parse(source)).to.deep.equal({
       tags: [],
       warnings: ['@type annotations are redundant with TypeScript equivalents']
     });
   });
   it('allows @suppress annotations', () => {
-    let source = `/** @suppress {checkTypes} I hate types */`;
+    const source = `/** @suppress {checkTypes} I hate types */`;
     expect(jsdoc.parse(source)).to.deep.equal({
-      tags: [{tagName: 'suppress', text: '{checkTypes} I hate types'}]
+      tags: [{tagName: 'suppress', type: 'checkTypes', text: ' I hate types'}]
     });
+    const malformed = `/** @suppress malformed */`;
+    expect(jsdoc.parse(malformed)).to.deep.equal({
+      tags: [{tagName: 'suppress', text: 'malformed'}],
+      warnings: ['malformed @suppress tag: "malformed"'],
+    });
+  });
+});
+
+describe('jsdoc.toString', () => {
+  it('filters duplicated @deprecated tags', () => {
+    expect(jsdoc.toString([
+      {tagName: 'deprecated'}, {tagName: 'param', parameterName: 'hello', text: 'world'},
+      {tagName: 'deprecated'}
+    ])).to.equal(`/**
+ * @deprecated
+ * @param hello world
+ */
+`);
   });
 });

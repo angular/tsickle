@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 
 /**
@@ -64,20 +72,27 @@ export function sourceMapConsumerToGenerator(sourceMapConsumer: SourceMapConsume
  * own source maps, we patch them with the file name from the tsc source maps
  * before composing them.
  */
-export function sourceMapGeneratorToConsumerWithFileName(
-    sourceMapGenerator: SourceMapGenerator, fileName: string): SourceMapConsumer {
+export function sourceMapGeneratorToConsumer(
+    sourceMapGenerator: SourceMapGenerator, fileName?: string,
+    sourceName?: string): SourceMapConsumer {
   const rawSourceMap = sourceMapGenerator.toJSON();
-  rawSourceMap.sources = [fileName];
-  rawSourceMap.file = fileName;
+  if (sourceName) {
+    rawSourceMap.sources = [sourceName];
+  }
+  if (fileName) {
+    rawSourceMap.file = fileName;
+  }
   return new SourceMapConsumer(rawSourceMap);
 }
 
 export function sourceMapTextToConsumer(sourceMapText: string): SourceMapConsumer {
+  // tslint:disable-next-line:no-any constructor actually supports text.
   const sourceMapJson: any = sourceMapText;
   return new SourceMapConsumer(sourceMapJson);
 }
 
 export function sourceMapTextToGenerator(sourceMapText: string): SourceMapGenerator {
+  // tslint:disable-next-line:no-any constructor actually supports text.
   const sourceMapJson: any = sourceMapText;
   return SourceMapGenerator.fromSourceMap(sourceMapTextToConsumer(sourceMapJson));
 }

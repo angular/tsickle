@@ -8,7 +8,7 @@ import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} fr
 
 const tsickleHost = {
   shouldSkipTsickleProcessing: (fileName: string) => false,
-  pathToModuleName: pathToModuleName,
+  pathToModuleName,
   shouldIgnoreWarningsForPath: (filePath: string) => false,
   fileNameToModuleId: (fileName: string) => fileName,
 };
@@ -38,13 +38,13 @@ describe('tsickle compiler host', () => {
     // TsickleCompilerHost wants a ts.Program, which is the result of
     // parsing and typechecking the code before tsickle processing.
     // So we must create and run the entire stack of CompilerHost.
-    let options: ts.CompilerOptions = {target: ts.ScriptTarget.ES5};
-    let compilerHostDelegate = ts.createCompilerHost(options);
-    let compilerHost = createSourceReplacingCompilerHost(sources, compilerHostDelegate);
-    let program =
+    const options: ts.CompilerOptions = {target: ts.ScriptTarget.ES5};
+    const compilerHostDelegate = ts.createCompilerHost(options);
+    const compilerHost = createSourceReplacingCompilerHost(sources, compilerHostDelegate);
+    const program =
         ts.createProgram(Array.from(sources.keys()), {experimentalDecorators: true}, compilerHost);
     // To get types resolved, you must first call getPreEmitDiagnostics.
-    let diags = formatDiagnostics(ts.getPreEmitDiagnostics(program));
+    const diags = formatDiagnostics(ts.getPreEmitDiagnostics(program));
     expect(diags).to.equal('');
     return [program, compilerHost, options];
   }

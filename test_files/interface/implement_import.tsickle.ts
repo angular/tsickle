@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 import {Point, User} from './interface';
 const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.interface.interface');
 /**

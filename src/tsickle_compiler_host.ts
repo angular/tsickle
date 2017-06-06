@@ -1,12 +1,21 @@
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+
 import * as path from 'path';
-import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from './decorator-annotator';
 import {processES5} from './es5processor';
 import {ModulesManifest} from './modules_manifest';
 import * as sourceMapUtils from './source_map_utils';
-import {annotate, isDtsFileName} from './tsickle';
+import * as tsickle from './tsickle';
+import {isDtsFileName} from './tsickle';
 
 /**
  * Tsickle can perform 2 different precompilation transforms - decorator downleveling
@@ -73,14 +82,6 @@ export interface TsickleHost {
   fileNameToModuleId(fileName: string): string;
 }
 
-const ANNOTATION_SUPPORT = `
-interface DecoratorInvocation {
-  type: Function;
-  args?: any[];
-}
-`;
-
-
 /**
  * TsickleCompilerHost does tsickle processing of input files, including
  * closure type annotation processing, decorator downleveling and
@@ -88,7 +89,7 @@ interface DecoratorInvocation {
  */
 export class TsickleCompilerHost implements ts.CompilerHost {
   // The manifest of JS modules output by the compiler.
-  public modulesManifest: ModulesManifest = new ModulesManifest();
+  public modulesManifest = new ModulesManifest();
 
   /** Error messages produced by tsickle, if any. */
   public diagnostics: ts.Diagnostic[] = [];
@@ -193,7 +194,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   getSourceMapKeyForSourceFile(sourceFile: ts.SourceFile): string {
-    return this.getCanonicalFileName(path.resolve(sourceFile.path));
+    return this.getCanonicalFileName(path.resolve(sourceFile.fileName));
   }
 
   stripAndStoreExistingSourceMap(sourceFile: ts.SourceFile): ts.SourceFile {
@@ -232,34 +233,36 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
+      // tslint:disable-next-line:no-any
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceMapKey)!;
-        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-            tsickleSourceMapGenerator, sourceFileName);
+        const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+            tsickleSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
       }
     }
     if (this.decoratorDownlevelSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
+      // tslint:disable-next-line:no-any
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const decoratorDownlevelSourceMapGenerator =
             this.decoratorDownlevelSourceMaps.get(sourceMapKey)!;
-        const decoratorDownlevelSourceMapConsumer =
-            sourceMapUtils.sourceMapGeneratorToConsumerWithFileName(
-                decoratorDownlevelSourceMapGenerator, sourceFileName);
+        const decoratorDownlevelSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+            decoratorDownlevelSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
       }
     }
     if (this.preexistingSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
+      // tslint:disable-next-line:no-any
       for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
         if (preexistingSourceMapGenerator) {
-          const preexistingSourceMapConsumer =
-              new SourceMapConsumer(preexistingSourceMapGenerator.toJSON());
+          const preexistingSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
+              preexistingSourceMapGenerator, sourceFileName);
           tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
         }
       }
@@ -278,13 +281,13 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   convertCommonJsToGoogModule(fileName: string, content: string): string {
     const moduleId = this.environment.fileNameToModuleId(fileName);
 
-    let {output, referencedModules} = processES5(
+    const {output, referencedModules} = processES5(
         fileName, moduleId, content, this.environment.pathToModuleName.bind(this.environment),
         this.options.es5Mode, this.options.prelude);
 
     const moduleName = this.environment.pathToModuleName('', fileName);
     this.modulesManifest.addModule(fileName, moduleName);
-    for (let referenced of referencedModules) {
+    for (const referenced of referencedModules) {
       this.modulesManifest.addReferencedModule(fileName, referenced);
     }
 
@@ -306,7 +309,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       // No changes; reuse the existing parse.
       return sourceFile;
     }
-    fileContent = converted.output + ANNOTATION_SUPPORT;
+    fileContent = converted.output;
     this.decoratorDownlevelSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), converted.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
@@ -317,18 +320,20 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       languageVersion: ts.ScriptTarget): ts.SourceFile {
     this.tsickleSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
-    let isDefinitions = isDtsFileName(fileName);
+    const isDefinitions = isDtsFileName(fileName);
     // Don't tsickle-process any d.ts that isn't a compilation target;
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
-    let {output, externs, diagnostics, sourceMap} = annotate(
+    const annotated = tsickle.annotate(
         program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
         this.delegate, this.tscOptions);
+    const {output, externs, sourceMap} = annotated;
+    let {diagnostics} = annotated;
     if (externs) {
       this.externs[fileName] = externs;
     }
-    if (this.environment.shouldIgnoreWarningsForPath(sourceFile.path)) {
+    if (this.environment.shouldIgnoreWarningsForPath(sourceFile.fileName)) {
       // All diagnostics (including warnings) are treated as errors.
       // If we've decided to ignore them, just discard them.
       // Warnings include stuff like "don't use @type in your jsdoc"; tsickle
@@ -342,8 +347,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   /** Concatenate all generated externs definitions together into a string. */
   getGeneratedExterns(): string {
-    let allExterns = '';
-    for (let fileName of Object.keys(this.externs)) {
+    let allExterns = tsickle.EXTERNS_HEADER;
+    for (const fileName of Object.keys(this.externs)) {
       allExterns += `// externs from ${fileName}:\n`;
       allExterns += this.externs[fileName];
     }
@@ -357,7 +362,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   getCurrentDirectory(): string {
     return this.delegate.getCurrentDirectory();
-  };
+  }
 
   useCaseSensitiveFileNames(): boolean {
     return this.delegate.useCaseSensitiveFileNames();

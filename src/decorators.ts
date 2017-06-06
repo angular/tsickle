@@ -44,11 +44,11 @@ export function hasExportingDecorator(node: ts.Node, typeChecker: ts.TypeChecker
  */
 function isExportingDecorator(decorator: ts.Decorator, typeChecker: ts.TypeChecker) {
   return getDecoratorDeclarations(decorator, typeChecker).some(declaration => {
-    let range = ts.getLeadingCommentRanges(declaration.getFullText(), 0);
+    const range = ts.getLeadingCommentRanges(declaration.getFullText(), 0);
     if (!range) {
       return false;
     }
-    for (let {pos, end} of range) {
+    for (const {pos, end} of range) {
       if (/@ExportDecoratedItems\b/.test(declaration.getFullText().substring(pos, end))) {
         return true;
       }

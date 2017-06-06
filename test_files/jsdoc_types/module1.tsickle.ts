@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 export class Class {}
 /**
@@ -6,5 +11,11 @@ export class Class {}
 export function Interface() {}
 /** @type {number} */
 Interface.prototype.x;
+/* TODO: handle strange member:
+"quoted-bad-name": string;
+*/
 
-export interface Interface { x: number }
+export interface Interface {
+  x: number;
+  "quoted-bad-name": string;
+}

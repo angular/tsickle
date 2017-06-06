@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 // A class with an overloaded constructor where constructor args are optional.
 declare class MultipleConstructorsOptional {
   constructor();

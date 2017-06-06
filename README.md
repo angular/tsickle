@@ -1,4 +1,4 @@
-# Tsickle - TypeScript to Closure Translator [![Build Status](https://travis-ci.org/angular/tsickle.svg?branch=master)](https://travis-ci.org/angular/tsickle)
+# Tsickle - TypeScript to Closure Translator [![Linux build](https://travis-ci.org/angular/tsickle.svg?branch=master)](https://travis-ci.org/angular/tsickle) [![Windows build](https://ci.appveyor.com/api/projects/status/puxdblmlqbofqqt1/branch/master?svg=true)](https://ci.appveyor.com/project/alexeagle/tsickle/branch/master)
 
 Tsickle converts TypeScript code into a form acceptable to the [Closure
 Compiler].  This allows using TypeScript to transpile your sources, and then
@@ -21,6 +21,15 @@ A (non-exhaustive) list of the sorts of transformations Tsickle applies:
 
 In general the goal is that you write valid TypeScript and Tsickle handles
 making it valid Closure Compiler code.
+
+## Warning: work in progress
+
+We already use tsickle within Google to minify our apps (including those using
+Angular), but we have less experience using tsickle with the various JavaScript
+builds that are seen outside of Google.
+
+We would like to make tsickle usable for everyone but right now if you'd like
+to try it you should expect to spend some time debugging and reporting bugs.
 
 ## Installation
 
@@ -78,8 +87,8 @@ pure TypeScript.)
 An exporting decorator is a decorator that has `@ExportDecoratedItems` in its
 JSDoc.
 
-The name of the element that have an exporting decorator are preserved through
-the Closure compilation process.
+The names of elements that have an exporting decorator are preserved through
+the Closure compilation process by applying an `@export` tag to them.
 
 Example:
 

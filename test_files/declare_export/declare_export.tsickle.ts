@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 export declare interface ExportDeclaredIf { x: number; }
 /** @typedef {ExportDeclaredIf} */
 exports.ExportDeclaredIf;

@@ -1,3 +1,15 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
+
+/**
+ * @record
+ */
+function Interface() {}
+/** @type {?} */
+Interface.prototype.interfaceFunc;
 interface Interface {
   interfaceFunc(): void;
 }

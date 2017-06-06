@@ -6,12 +6,13 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+// tslint:disable:no-unused-expression mocha .to.be.empty getters.
+
 import {expect} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import {ANNOTATION_SUPPORT_CODE} from '../src/decorator-annotator';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
@@ -48,6 +49,10 @@ function compareAgainstGolden(output: string|null, path: string) {
     }
   }
 
+  // Make sure we have proper line endings when testing on Windows.
+  if (golden != null) golden = golden.replace(/\r\n/g, '\n');
+  if (output != null) output = output.replace(/\r\n/g, '\n');
+
   if (UPDATE_GOLDENS && output !== golden) {
     console.log('Updating golden file for', path);
     if (output !== null) {
@@ -75,7 +80,7 @@ testFn('golden tests', () => {
       it.skip(test.name);
       return;
     }
-    let options: tsickle.Options = {
+    const options: tsickle.Options = {
       // See test_files/jsdoc_types/nevertyped.ts.
       typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
       convertIndexImportShorthand: true,
@@ -85,15 +90,16 @@ testFn('golden tests', () => {
     }
     it(test.name, () => {
       // Read all the inputs into a map, and create a ts.Program from them.
-      let tsSources = new Map<string, string>();
-      for (let tsFile of test.tsFiles) {
-        let tsPath = path.join(test.path, tsFile);
+      const tsSources = new Map<string, string>();
+      for (const tsFile of test.tsFiles) {
+        const tsPath = path.join(test.path, tsFile);
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
+        tsSource = tsSource.replace(/\r\n/g, '\n');
         tsSources.set(tsPath, tsSource);
       }
       let program = testSupport.createProgram(tsSources);
       {
-        let diagnostics = ts.getPreEmitDiagnostics(program);
+        const diagnostics = ts.getPreEmitDiagnostics(program);
         if (diagnostics.length) {
           throw new Error(tsickle.formatDiagnostics(diagnostics));
         }
@@ -102,15 +108,14 @@ testFn('golden tests', () => {
       // Run TypeScript through the decorator annotator and emit goldens if
       // it changed anything.
       let convertDecoratorsMadeChange = false;
-      for (let tsPath of toArray(tsSources.keys())) {
+      for (const tsPath of toArray(tsSources.keys())) {
         // Run TypeScript through the decorator annotator and emit goldens if
         // it changed anything.
-        let {output, diagnostics} =
+        const {output, diagnostics} =
             tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
         expect(diagnostics).to.be.empty;
         if (output !== tsSources.get(tsPath)) {
-          output += ANNOTATION_SUPPORT_CODE;
-          let decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
+          const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
           expect(decoratedPath).to.not.equal(tsPath);
           compareAgainstGolden(output, decoratedPath);
           tsSources.set(tsPath, output);
@@ -125,26 +130,29 @@ testFn('golden tests', () => {
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
       // generated externs and tsickle-processed sources.
       let allExterns: string|null = null;
-      let tsickleSources = new Map<string, string>();
-      for (let tsPath of toArray(tsSources.keys())) {
-        let warnings: ts.Diagnostic[] = [];
+      const tsickleSources = new Map<string, string>();
+      for (const tsPath of toArray(tsSources.keys())) {
+        const warnings: ts.Diagnostic[] = [];
         options.logWarning = (diag: ts.Diagnostic) => {
           warnings.push(diag);
         };
         // Run TypeScript through tsickle and compare against goldens.
-        let {output, externs, diagnostics} = tsickle.annotate(
+        const {output, externs, diagnostics} = tsickle.annotate(
             program, program.getSourceFile(tsPath),
             (context, importPath) => {
               importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
               if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-              return importPath.replace(/\//g, '.');
+              return importPath.replace(/\/|\\/g, '.');
             },
             options, {
               fileExists: ts.sys.fileExists,
               readFile: ts.sys.readFile,
             },
             testSupport.compilerOptions);
-        if (externs) allExterns = externs;
+        if (externs && !test.name.endsWith('.no_externs')) {
+          if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
+          allExterns += externs;
+        }
 
         // If there were any diagnostics, convert them into strings for
         // the golden output.
@@ -153,13 +161,13 @@ testFn('golden tests', () => {
         if (diagnostics.length > 0) {
           // Munge the filenames in the diagnostics so that they don't include
           // the tsickle checkout path.
-          for (let diag of diagnostics) {
-            let fileName = diag.file.fileName;
+          for (const diag of diagnostics) {
+            const fileName = diag.file.fileName;
             diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
           }
           fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
         }
-        let tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
+        const tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
         expect(tsicklePath).to.not.equal(tsPath);
         compareAgainstGolden(fileOutput, tsicklePath);
         tsickleSources.set(tsPath, output);
@@ -169,8 +177,8 @@ testFn('golden tests', () => {
       // Run tsickled TypeScript through TypeScript compiler
       // and compare against goldens.
       program = testSupport.createProgram(tsickleSources);
-      let jsSources = testSupport.emit(program);
-      for (let jsPath of Object.keys(jsSources)) {
+      const jsSources = testSupport.emit(program);
+      for (const jsPath of Object.keys(jsSources)) {
         compareAgainstGolden(jsSources[jsPath], jsPath);
       }
     });

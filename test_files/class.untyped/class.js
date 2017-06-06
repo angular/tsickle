@@ -1,4 +1,14 @@
-goog.module('test_files.class.untyped.class');var module = module || {id: 'test_files/class.untyped/class.js'};class Super {
+goog.module('test_files.class.untyped.class');var module = module || {id: 'test_files/class.untyped/class.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+/**
+ * @record
+ */
+function Interface() { }
+/** @type {?} */
+Interface.prototype.interfaceFunc;
+class Super {
     /**
      * @return {?}
      */

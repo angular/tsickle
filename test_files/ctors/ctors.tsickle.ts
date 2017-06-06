@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 let /** @type {function(new: (!Document)): ?} */ x = Document;
 class X {
 /**

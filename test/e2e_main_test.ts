@@ -12,7 +12,7 @@ import * as ts from 'typescript';
 import {toClosureJS} from '../src/main';
 
 describe('toClosureJS', () => {
-  it('creates externs, adds type comments and rewrites imports', function() {
+  it('creates externs, adds type comments and rewrites imports', () => {
     const diagnostics: ts.Diagnostic[] = [];
 
     const closure = toClosureJS(

@@ -1,33 +1,11 @@
 goog.module('test_files.abstract.abstract');var module = module || {id: 'test_files/abstract/abstract.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+/**
  * @abstract
  */
 class Base {
-    /**
-     * @abstract
-     * @return {void}
-     */
-    simple() { }
-    /**
-     * @abstract
-     * @return {void}
-     */
-    publicAbstract() { }
-    /**
-     * @abstract
-     * @param {!Array<number>} x
-     * @return {void}
-     */
-    params(x) { }
-    /**
-     * @abstract
-     * @return {?}
-     */
-    noReturnType() { }
-    /**
-     * @abstract
-     * @return {number}
-     */
-    hasReturnType() { }
     /**
      * @return {void}
      */
@@ -38,6 +16,34 @@ class Base {
         this.noReturnType();
         this.hasReturnType();
     }
+}
+function Base_tsickle_Closure_declarations() {
+    /**
+     * @abstract
+     * @return {void}
+     */
+    Base.prototype.simple = function () { };
+    /**
+     * @abstract
+     * @return {void}
+     */
+    Base.prototype.publicAbstract = function () { };
+    /**
+     * @abstract
+     * @param {!Array<number>} x
+     * @return {void}
+     */
+    Base.prototype.params = function (x) { };
+    /**
+     * @abstract
+     * @return {?}
+     */
+    Base.prototype.noReturnType = function () { };
+    /**
+     * @abstract
+     * @return {number}
+     */
+    Base.prototype.hasReturnType = function () { };
 }
 class Derived extends Base {
     constructor() {

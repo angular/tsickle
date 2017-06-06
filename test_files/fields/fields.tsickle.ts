@@ -1,5 +1,10 @@
 Warning at test_files/fields/fields.ts:22:5: unhandled anonymous type
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 class FieldsTest {
   field1: string;

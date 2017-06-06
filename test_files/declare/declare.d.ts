@@ -12,6 +12,16 @@ declare namespace DeclareTestModule {
     constructor(a: number);
     /** Comment */
     method(a: string): number;
+
+    static staticMethod(a: string): number;
+
+    static field: number;
+  }
+
+  // TODO: static/non-static method signatures collide.
+  class Example {
+    static methodA(): number;
+    methodA(): string;
   }
 
   interface NotYetHandled {

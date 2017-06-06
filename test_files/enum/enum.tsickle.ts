@@ -1,5 +1,12 @@
 Warning at test_files/enum/enum.ts:2:7: should not emit a 'never' type
+Warning at test_files/enum/enum.ts:9:33: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
+Warning at test_files/enum/enum.ts:16:22: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 ====
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = []
 type EnumTest1 = number;
@@ -27,6 +34,7 @@ function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
 let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
+let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 export type EnumTest2 = number;
 export let EnumTest2: any = {};
 /** @type {number} */

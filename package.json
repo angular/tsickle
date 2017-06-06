@@ -1,10 +1,10 @@
 {
   "name": "tsickle",
-  "version": "0.21.5",
+  "version": "0.23.3",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
-  "main": "build/src/tsickle.js",
-  "typings": "build/definitions/tsickle.d.ts",
-  "bin": "build/src/main.js",
+  "main": "built/src/tsickle.js",
+  "typings": "built/definitions/tsickle.d.ts",
+  "bin": "built/src/main.js",
   "directories": {
     "test": "test"
   },
@@ -15,7 +15,7 @@
     "source-map-support": "^0.4.2"
   },
   "peerDependencies": {
-    "typescript": "^2.1.0"
+    "typescript": "2.3.1"
   },
   "devDependencies": {
     "@types/chai": "^3.4.32",
@@ -29,21 +29,21 @@
     "@types/source-map": "^0.1.27",
     "@types/source-map-support": "^0.2.27",
     "chai": "^3.5.0",
-    "clang-format": "^1.0.48",
+    "clang-format": "^1.0.51",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20161024.1.0",
     "gulp": "^3.8.11",
     "gulp-clang-format": "^1.0.22",
     "gulp-mocha": "^3.0.1",
     "gulp-sourcemaps": "^1.5.0",
-    "gulp-tslint": "^6.1.1",
+    "gulp-tslint": "^8.1.0",
     "gulp-typescript": "^3.0.0",
     "gulp-util": "^3.0.4",
     "merge2": "^1.0.2",
     "mocha": "^3.2.0",
     "temp": "^0.8.1",
-    "tslint": "^3.15.1",
-    "typescript": "2.1.5"
+    "tslint": "^5.4.2",
+    "typescript": "~2.3.1"
   },
   "scripts": {
     "prepublish": "gulp compile",
@@ -61,7 +61,8 @@
     "Evan Martin <evanm@google.com> (https://angular.io/)",
     "Alex Eagle <alexeagle@google.com> (https://angular.io/)",
     "Martin Probst <martinprobst@google.com> (https://angular.io/)",
-    "Rado Kirov <radokirov@google.com> (https://angular.io/)"
+    "Rado Kirov <radokirov@google.com> (https://angular.io/)",
+    "Thomas Deegan <tdeegan@google.com>"
   ],
   "license": "MIT",
   "bugs": {

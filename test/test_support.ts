@@ -24,39 +24,39 @@ export const compilerOptions: ts.CompilerOptions = {
   noEmitHelpers: true,
   module: ts.ModuleKind.CommonJS,
   jsx: ts.JsxEmit.React,
+  // Disable searching for @types typings. This prevents TS from looking
+  // around for a node_modules directory.
+  types: [],
   // Flags below are needed to make sure source paths are correctly set on write calls.
   rootDir: path.resolve(process.cwd()),
   outDir: '.',
   strictNullChecks: true,
+  noImplicitUseStrict: true,
 };
 
-const {cachedLibPath, cachedLib} = (function() {
-  let host = ts.createCompilerHost(compilerOptions);
-  let fn = host.getDefaultLibFileName(compilerOptions);
-  let p = ts.getDefaultLibFilePath(compilerOptions);
-  return {cachedLibPath: p, cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)};
+const {cachedLibPath, cachedLib} = (() => {
+  const host = ts.createCompilerHost(compilerOptions);
+  const fn = host.getDefaultLibFileName(compilerOptions);
+  const p = ts.getDefaultLibFilePath(compilerOptions);
+  return {
+    // Normalize path to fix mixed/wrong directory separators on Windows.
+    cachedLibPath: path.normalize(p),
+    cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)
+  };
 })();
 
 /** Creates a ts.Program from a set of input files. */
 export function createProgram(sources: Map<string, string>): ts.Program {
-  let host = ts.createCompilerHost(compilerOptions);
+  const host = ts.createCompilerHost(compilerOptions);
 
-  // Fake out host.directoryExists so that it doesn't read through node_modules/@types.
-  let realDirectoryExists = host.directoryExists;
-  host.directoryExists = dirName => {
-    if (path.isAbsolute(dirName)) {
-      let relName = path.relative(process.cwd(), dirName);
-      if (relName === 'node_modules/@types') return false;
-    }
-    return realDirectoryExists ? realDirectoryExists(dirName) : false;
-  };
-
-  host.getSourceFile = function(
-                           fileName: string, languageVersion: ts.ScriptTarget,
-                           onError?: (msg: string) => void): ts.SourceFile {
+  host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
+                        onError?: (msg: string) => void): ts.SourceFile => {
+    // Normalize path to fix wrong directory separators on Windows which
+    // would break the equality check.
+    fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
-    let contents = sources.get(fileName);
+    const contents = sources.get(fileName);
     if (contents !== undefined) {
       return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
     }
@@ -68,8 +68,8 @@ export function createProgram(sources: Map<string, string>): ts.Program {
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
 export function emit(program: ts.Program): {[fileName: string]: string} {
-  let transformed: {[fileName: string]: string} = {};
-  let {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
+  const transformed: {[fileName: string]: string} = {};
+  const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
     const moduleId = fileName.replace(/^\.\//, '');
     transformed[fileName] =
         tsickle.processES5(fileName, moduleId, data, cliSupport.pathToModuleName).output;
@@ -81,15 +81,7 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
 }
 
 export class GoldenFileTest {
-  // Path to directory containing test files.
-  path: string;
-  // Input .ts/.tsx/.d.ts file names.
-  tsFiles: string[];
-
-  constructor(path: string, tsFiles: string[]) {
-    this.path = path;
-    this.tsFiles = tsFiles;
-  }
+  constructor(public path: string, public tsFiles: string[]) {}
 
   get name(): string {
     return path.basename(this.path);
@@ -114,16 +106,17 @@ export class GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  let basePath = path.join(__dirname, '..', '..', 'test_files');
-  let testNames = fs.readdirSync(basePath);
+  const basePath = path.join(__dirname, '..', '..', 'test_files');
+  const testNames = fs.readdirSync(basePath);
 
-  let tests = testNames.map(testName => {
-    let testDir = path.join(basePath, testName);
+  const testDirs = testNames.map(testName => path.join(basePath, testName))
+                       .filter(testDir => fs.statSync(testDir).isDirectory());
+  const tests = testDirs.map(testDir => {
     testDir = path.relative(process.cwd(), testDir);
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
-    let tsFiles = tsPaths.map(f => path.relative(testDir, f));
+    const tsFiles = tsPaths.map(f => path.relative(testDir, f));
     return new GoldenFileTest(testDir, tsFiles);
   });
 

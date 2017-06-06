@@ -1,3 +1,8 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 
 type EnumUntypedTest1 = number;
 let EnumUntypedTest1: any = {};

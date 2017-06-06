@@ -1,4 +1,8 @@
-goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum/enum.js'};
+goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum/enum.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
 let EnumTest1 = {};
@@ -22,6 +26,7 @@ let /** @type {number} */ enumStrIndex = EnumTest1[((null))];
 function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
 let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
+let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 exports.EnumTest2 = {};
 /** @type {number} */
 exports.EnumTest2.XYZ = 0;

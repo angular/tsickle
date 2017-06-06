@@ -1,11 +1,14 @@
 # Compiled JS
-build
+/built
 
 # Dependency directory
-node_modules
+/node_modules
 
 # WebStorm/IntelliJ directory
 .idea
 
 # VSCode directory
 .vscode
+
+# Bazel working directories
+/bazel-*

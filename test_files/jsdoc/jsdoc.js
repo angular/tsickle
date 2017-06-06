@@ -1,4 +1,8 @@
 goog.module('test_files.jsdoc.jsdoc');var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.
