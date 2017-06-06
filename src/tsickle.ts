@@ -1268,18 +1268,18 @@ class Annotator extends ClosureRewriter {
     }
 
     let type = this.typeToClosure(prop);
-    // Interesting special case:
     // When a property is optional, e.g.
     //   foo?: string;
-    // Then the type of the property is string|undefined and the typeToClosure
-    // translation handles it correctly.
+    // Then the TypeScript type of the property is string|undefined, the
+    // typeToClosure translation handles it correctly, and string|undefined is
+    // how you write an optional property in Closure.
     //
-    // But in the special case of an optional any property:
+    // But in the special case of an optional property with type any:
     //   foo?: any;
-    // The type of the property is just "any" (because any includes undefined as
-    // well) and our default translation of the type is just "?".
-    // For optional properties (unlike e.g. variables) Closure wants it to
-    // instead be ?|undefined.
+    // The TypeScript type of the property is just "any" (because any includes
+    // undefined as well) so our default translation of the type is just "?".
+    // To mark the property as optional in Closure it must have "|undefined",
+    // so the Closure type must be ?|undefined.
     if (optional && type === '?') type += '|undefined';
 
     const tags = this.getJSDoc(prop) || [];
