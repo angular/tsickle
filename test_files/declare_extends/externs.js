@@ -50,3 +50,22 @@ function ImplementingClass() {}
  * @return {void}
  */
 ImplementingClass.prototype.foo = function() {};
+/** @const */
+var foo = {};
+/**
+ * @constructor
+ * @struct
+ */
+foo.NamespacedParent = function() {};
+ /** @type {number} */
+foo.NamespacedParent.prototype.x;
+/** @const */
+var bar = {};
+/**
+ * @extends {foo.NamespacedParent}
+ * @constructor
+ * @struct
+ */
+bar.NamespacedChild = function() {};
+ /** @type {number} */
+bar.NamespacedChild.prototype.y;

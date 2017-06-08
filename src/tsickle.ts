@@ -106,6 +106,16 @@ function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean {
   return (ts.getCombinedModifierFlags(node) & flag) !== 0;
 }
 
+/** @return true if node has the specified modifier flag set. */
+function isAmbient(node: ts.Node): boolean {
+  let current: ts.Node|undefined = node;
+  while (current) {
+    if (hasModifierFlag(current, ts.ModifierFlags.Ambient)) return true;
+    current = current.parent;
+  }
+  return false;
+}
+
 /**
  * TypeScript allows you to write identifiers quoted, like:
  *   interface Foo {
@@ -385,8 +395,7 @@ class ClosureRewriter extends Rewriter {
     for (const heritage of decl.heritageClauses!) {
       if (!heritage.types) continue;
       if (decl.kind === ts.SyntaxKind.ClassDeclaration &&
-          heritage.token !== ts.SyntaxKind.ImplementsKeyword &&
-          !hasModifierFlag(decl, ts.ModifierFlags.Ambient)) {
+          heritage.token !== ts.SyntaxKind.ImplementsKeyword && !isAmbient(decl)) {
         // If a class has "extends Foo", that is preserved in the ES6 output
         // and we don't need to do anything.  But if it has "implements Foo",
         // that is a TS-specific thing and we need to translate it to the
@@ -400,7 +409,8 @@ class ClosureRewriter extends Rewriter {
         // But it's fine to translate TS "implements Class" into Closure
         // "@extends {Class}" because this is just a type hint.
         const typeChecker = this.typeChecker;
-        let sym = typeChecker.getSymbolAtLocation(impl.expression);
+        const sym = typeChecker.getSymbolAtLocation(impl.expression);
+        let alias: ts.Symbol = sym;
         if (sym.flags & ts.SymbolFlags.TypeAlias) {
           // It's implementing a type alias.  Follow the type alias back
           // to the original symbol to check whether it's a type or a value.
@@ -410,25 +420,25 @@ class ClosureRewriter extends Rewriter {
             // do is fail to emit the @implements, which isn't so harmful.
             continue;
           }
-          sym = type.symbol;
+          alias = type.symbol;
         }
-        if (sym.flags & ts.SymbolFlags.Alias) {
-          sym = typeChecker.getAliasedSymbol(sym);
+        if (alias.flags & ts.SymbolFlags.Alias) {
+          alias = typeChecker.getAliasedSymbol(alias);
         }
-        if (this.newTypeTranslator(impl.expression).isBlackListed(sym)) {
+        const typeTranslator = this.newTypeTranslator(impl.expression);
+        if (typeTranslator.isBlackListed(alias)) {
           continue;
         }
-        if (sym.flags & ts.SymbolFlags.Class) {
+        if (alias.flags & ts.SymbolFlags.Class) {
           tagName = 'extends';
-        } else if (sym.flags & ts.SymbolFlags.Value) {
+        } else if (alias.flags & ts.SymbolFlags.Value) {
           // If the symbol was already in the value namespace, then it will
           // not be a type in the Closure output (because Closure collapses
           // the type and value namespaces).  Just ignore the implements.
           continue;
         }
-        // typeToClosure includes nullability modifiers, so getText() directly here.
-        const alias = this.symbolsToAliasedNames.get(sym);
-        docTags.push({tagName, type: alias || impl.getText()});
+        // typeToClosure includes nullability modifiers, so call symbolToString directly here.
+        docTags.push({tagName, type: typeTranslator.symbolToString(sym, true)});
       }
     }
   }

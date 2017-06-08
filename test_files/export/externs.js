@@ -6,8 +6,10 @@
 
 /** @typedef {{a: number}} */
 var DeclaredType;
-
-/** @record @struct */
+/**
+ * @record
+ * @struct
+ */
 function DeclaredInterface() {}
  /** @type {number} */
 DeclaredInterface.prototype.a;

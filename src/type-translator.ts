@@ -168,7 +168,11 @@ export class TypeTranslator {
   public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
-    const alias = this.symbolsToAliasedNames.get(sym);
+    let symAlias = sym;
+    if (symAlias.flags & ts.SymbolFlags.Alias) {
+      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
+    }
+    const alias = this.symbolsToAliasedNames.get(symAlias);
     if (alias) return alias;
     if (useFqn) {
       const fqn = this.typeChecker.getFullyQualifiedName(sym);
