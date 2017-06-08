@@ -1519,7 +1519,7 @@ class ExternsWriter extends ClosureRewriter {
         // Only emit the first declaration of each overloaded function.
         if (fnDecl !== decls[0]) break;
         const params = this.emitFunctionType(decls);
-        this.writeExternsFunction(name.getText(), params, namespace);
+        this.writeExternsFunction(name, params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
         for (const decl of (node as ts.VariableStatement).declarationList.declarations) {
@@ -1587,7 +1587,7 @@ class ExternsWriter extends ClosureRewriter {
         jsdocTags.push({tagName: 'struct'});
       }
       if (writeJsDoc) this.emit(jsdoc.toString(jsdocTags));
-      this.writeExternsFunction(name.getText(), paramNames, namespace);
+      this.writeExternsFunction(name, paramNames, namespace);
     }
 
     // Process everything except (MethodSignature|MethodDeclaration|Constructor)
@@ -1651,7 +1651,7 @@ class ExternsWriter extends ClosureRewriter {
       if (!hasModifierFlag(firstMethodVariant, ts.ModifierFlags.Static)) {
         methodNamespace.push('prototype');
       }
-      this.writeExternsFunction(firstMethodVariant.name.getText(), parameterNames, methodNamespace);
+      this.writeExternsFunction(firstMethodVariant.name, parameterNames, methodNamespace);
     }
   }
 
@@ -1675,13 +1675,20 @@ class ExternsWriter extends ClosureRewriter {
     this.emit(';\n');
   }
 
-  private writeExternsFunction(name: string, params: string[], namespace: string[]) {
+  private writeExternsFunction(name: ts.Node, params: string[], namespace: string[]) {
     const paramsStr = params.join(', ');
     if (namespace.length > 0) {
-      name = namespace.concat([name]).join('.');
-      this.emit(`${name} = function(${paramsStr}) {};\n`);
+      let fqn = namespace.join('.');
+      if (name.kind === ts.SyntaxKind.Identifier) {
+        fqn += '.';  // computed names include [ ] in their getText() representation.
+      }
+      fqn += name.getText();
+      this.emit(`${fqn} = function(${paramsStr}) {};\n`);
     } else {
-      this.emit(`function ${name}(${paramsStr}) {}\n`);
+      if (name.kind !== ts.SyntaxKind.Identifier) {
+        this.error(name, 'Non-namespaced computed name in externs');
+      }
+      this.emit(`function ${name.getText()}(${paramsStr}) {}\n`);
     }
   }
 
