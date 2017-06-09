@@ -1,4 +1,4 @@
-Warning at test_files/class/class.ts:125:1: type/symbol conflict for Zone, using {?} for now
+Warning at test_files/class/class.ts:129:1: type/symbol conflict for Zone, using {?} for now
 ====
 /**
  * @fileoverview added by tsickle
@@ -75,8 +75,7 @@ InterfaceExtendsInterface.prototype.interfaceFunc2;
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
-// Note: interfaces can only extend interfaces, so there's no
-// InterfaceExtendsClass etc.
+
 let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface: InterfaceExtendsInterface = {
 /**
  * @return {void}
@@ -87,6 +86,18 @@ interfaceFunc() {},
  */
 interfaceFunc2() {}
 };
+/**
+ * @record
+ */
+function InterfaceExtendsClass() {}
+/** @type {function(): void} */
+InterfaceExtendsClass.prototype.interfaceFunc3;
+
+
+// Permutation 2: interface extends class.
+interface InterfaceExtendsClass extends Class {
+  interfaceFunc3(): void;
+}
 /**
  * @implements {Interface}
  */
@@ -247,3 +258,4 @@ function ZoneImplementsAlias_tsickle_Closure_declarations() {
 /** @type {string} */
 ZoneImplementsAlias.prototype.zone;
 }
+

@@ -37,8 +37,6 @@ function AbstractClass_tsickle_Closure_declarations() {
 function InterfaceExtendsInterface() { }
 /** @type {function(): void} */
 InterfaceExtendsInterface.prototype.interfaceFunc2;
-// Note: interfaces can only extend interfaces, so there's no
-// InterfaceExtendsClass etc.
 let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
     /**
      * @return {void}
@@ -49,6 +47,12 @@ let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
      */
     interfaceFunc2() { }
 };
+/**
+ * @record
+ */
+function InterfaceExtendsClass() { }
+/** @type {function(): void} */
+InterfaceExtendsClass.prototype.interfaceFunc3;
 /**
  * @implements {Interface}
  */

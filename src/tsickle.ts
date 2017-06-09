@@ -394,12 +394,14 @@ class ClosureRewriter extends Rewriter {
     if (!decl.heritageClauses) return;
     for (const heritage of decl.heritageClauses!) {
       if (!heritage.types) continue;
-      if (decl.kind === ts.SyntaxKind.ClassDeclaration &&
-          heritage.token !== ts.SyntaxKind.ImplementsKeyword && !isAmbient(decl)) {
+      const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
+      if (isClass && heritage.token !== ts.SyntaxKind.ImplementsKeyword && !isAmbient(decl)) {
         // If a class has "extends Foo", that is preserved in the ES6 output
         // and we don't need to do anything.  But if it has "implements Foo",
         // that is a TS-specific thing and we need to translate it to the
         // the Closure "@implements {Foo}".
+        // However for ambient declarations, we only emit externs, and in those we do need to
+        // add "@extends {Foo}" as they use ES5 syntax.
         continue;
       }
       for (const impl of heritage.types) {
@@ -430,6 +432,11 @@ class ClosureRewriter extends Rewriter {
           continue;
         }
         if (alias.flags & ts.SymbolFlags.Class) {
+          if (!isClass) {
+            // Only classes can extend classes in TS. Ignoring the heritage clause should be safe,
+            // as interfaces are @record anyway, so should prevent property disambiguation.
+            continue;
+          }
           tagName = 'extends';
         } else if (alias.flags & ts.SymbolFlags.Value) {
           // If the symbol was already in the value namespace, then it will
