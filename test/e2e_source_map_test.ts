@@ -16,7 +16,7 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import {convertDecorators} from '../src/decorator-annotator';
 import {toClosureJS} from '../src/main';
-import {getInlineSourceMapCount, setInlineSourceMap,} from '../src/source_map_utils';
+import {DefaultSourceMapper, getInlineSourceMapCount, setInlineSourceMap} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
@@ -310,9 +310,9 @@ function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
   const transformedSources = new Map<string, string>();
   const program = testSupport.createProgram(sources);
   for (const fileName of toArray(sources.keys())) {
-    const {output, sourceMap: preexistingSourceMap} =
-        convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
-    transformedSources.set(fileName, setInlineSourceMap(output, preexistingSourceMap.toString()));
+    const sourceMapper = new DefaultSourceMapper(fileName);
+    const {output} = convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
+    transformedSources.set(fileName, setInlineSourceMap(output, sourceMapper.sourceMap.toString()));
   }
   return transformedSources;
 }

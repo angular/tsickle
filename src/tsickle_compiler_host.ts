@@ -301,7 +301,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
     if (this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
     let fileContent = sourceFile.text;
-    const converted = convertDecorators(program.getTypeChecker(), sourceFile);
+    const sourceMapper = new sourceMapUtils.DefaultSourceMapper(sourceFile.fileName);
+    const converted = convertDecorators(program.getTypeChecker(), sourceFile, sourceMapper);
     if (converted.diagnostics) {
       this.diagnostics.push(...converted.diagnostics);
     }
@@ -311,7 +312,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     }
     fileContent = converted.output;
     this.decoratorDownlevelSourceMaps.set(
-        this.getSourceMapKeyForSourceFile(sourceFile), converted.sourceMap);
+        this.getSourceMapKeyForSourceFile(sourceFile), sourceMapper.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
   }
 
@@ -325,10 +326,11 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
+    const sourceMapper = new sourceMapUtils.DefaultSourceMapper(sourceFile.fileName);
     const annotated = tsickle.annotate(
         program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
-        this.delegate, this.tscOptions);
-    const {output, externs, sourceMap} = annotated;
+        this.delegate, this.tscOptions, sourceMapper);
+    const {output, externs} = annotated;
     let {diagnostics} = annotated;
     if (externs) {
       this.externs[fileName] = externs;
@@ -341,7 +343,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
     }
     this.diagnostics = diagnostics;
-    this.tsickleSourceMaps.set(this.getSourceMapKeyForSourceFile(sourceFile), sourceMap);
+    this.tsickleSourceMaps.set(
+        this.getSourceMapKeyForSourceFile(sourceFile), sourceMapper.sourceMap);
     return ts.createSourceFile(fileName, output, languageVersion, true);
   }
 

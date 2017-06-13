@@ -82,11 +82,11 @@ class ES5Processor extends Rewriter {
 
     let pos = 0;
     for (const stmt of this.file.statements) {
-      this.writeRange(pos, stmt.getFullStart());
+      this.writeRange(this.file, pos, stmt.getFullStart());
       this.visitTopLevel(stmt);
       pos = stmt.getEnd();
     }
-    this.writeRange(pos, this.file.getEnd());
+    this.writeRange(this.file, pos, this.file.getEnd());
 
     const referencedModules = toArray(this.moduleVariables.keys());
     // Note: don't sort referencedModules, as the keys are in the same order
@@ -140,7 +140,7 @@ class ES5Processor extends Rewriter {
    * comment(s).
    */
   emitCommentWithoutStatementBody(node: ts.Node) {
-    this.writeRange(node.getFullStart(), node.getStart());
+    this.writeRange(node, node.getFullStart(), node.getStart());
   }
 
   /** isUseStrict returns true if node is a "use strict"; statement. */
@@ -177,7 +177,7 @@ class ES5Processor extends Rewriter {
       const call = decl.initializer as ts.CallExpression;
       const require = this.isRequire(call);
       if (!require) return false;
-      this.writeRange(node.getFullStart(), node.getStart());
+      this.writeRange(node, node.getFullStart(), node.getStart());
       this.emitGoogRequire(varName, require);
       return true;
     } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
@@ -203,7 +203,7 @@ class ES5Processor extends Rewriter {
       }
       if (!require) return false;
 
-      this.writeRange(node.getFullStart(), node.getStart());
+      this.writeRange(node, node.getFullStart(), node.getStart());
       const varName = this.emitGoogRequire(null, require);
 
       if (isExport) {
@@ -321,7 +321,7 @@ class ES5Processor extends Rewriter {
         if (!this.namespaceImports.has(lhs)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
-        this.writeRange(node.getFullStart(), node.getStart());
+        this.writeRange(node, node.getFullStart(), node.getStart());
         this.emit(`${lhs}        `);
         return true;
       default:
