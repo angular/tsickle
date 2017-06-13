@@ -75,6 +75,15 @@ function compareAgainstGolden(output: string|null, path: string) {
 const testFn = TEST_FILTER ? describe.only : describe;
 
 testFn('golden tests', () => {
+  testFn('with separate passes', () => {
+    runGoldenTests(true);
+  });
+  testFn('with one pass', () => {
+    runGoldenTests(false);
+  });
+});
+
+function runGoldenTests(useSeparatePasses: boolean) {
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
@@ -107,24 +116,26 @@ testFn('golden tests', () => {
 
       // Run TypeScript through the decorator annotator and emit goldens if
       // it changed anything.
-      let convertDecoratorsMadeChange = false;
-      for (const tsPath of toArray(tsSources.keys())) {
-        // Run TypeScript through the decorator annotator and emit goldens if
-        // it changed anything.
-        const {output, diagnostics} =
-            tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
-        expect(diagnostics).to.be.empty;
-        if (output !== tsSources.get(tsPath)) {
-          const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
-          expect(decoratedPath).to.not.equal(tsPath);
-          compareAgainstGolden(output, decoratedPath);
-          tsSources.set(tsPath, output);
-          convertDecoratorsMadeChange = true;
+      if (useSeparatePasses) {
+        let convertDecoratorsMadeChange = false;
+        for (const tsPath of toArray(tsSources.keys())) {
+          // Run TypeScript through the decorator annotator and emit goldens if
+          // it changed anything.
+          const {output, diagnostics} =
+              tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
+          expect(diagnostics).to.be.empty;
+          if (output !== tsSources.get(tsPath)) {
+            const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
+            expect(decoratedPath).to.not.equal(tsPath);
+            compareAgainstGolden(output, decoratedPath);
+            tsSources.set(tsPath, output);
+            convertDecoratorsMadeChange = true;
+          }
         }
-      }
-      if (convertDecoratorsMadeChange) {
-        // A file changed; reload the program on the new output.
-        program = testSupport.createProgram(tsSources);
+        if (convertDecoratorsMadeChange) {
+          // A file changed; reload the program on the new output.
+          program = testSupport.createProgram(tsSources);
+        }
       }
 
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
@@ -153,7 +164,9 @@ testFn('golden tests', () => {
               fileExists: ts.sys.fileExists,
               readFile: ts.sys.readFile,
             },
-            testSupport.compilerOptions);
+            testSupport.compilerOptions, undefined,
+            useSeparatePasses ? tsickle.AnnotatorFeatures.Default :
+                                tsickle.AnnotatorFeatures.LowerDecorators);
         const externs =
             tsickle.writeExterns(program.getTypeChecker(), sourceFile, annotatorHost, options);
         const diagnostics = externs.diagnostics.concat(annotated.diagnostics);
@@ -177,7 +190,11 @@ testFn('golden tests', () => {
         }
         const tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
         expect(tsicklePath).to.not.equal(tsPath);
-        compareAgainstGolden(fileOutput, tsicklePath);
+        if (useSeparatePasses) {
+          // Don't compare the output of tsickle if we
+          // do a single pass as whitespaces might be different.
+          compareAgainstGolden(fileOutput, tsicklePath);
+        }
         tsickleSources.set(tsPath, annotated.output);
       }
       compareAgainstGolden(allExterns, test.externsPath);
@@ -191,4 +208,4 @@ testFn('golden tests', () => {
       }
     });
   });
-});
+}

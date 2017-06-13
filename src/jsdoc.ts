@@ -245,8 +245,9 @@ export function toString(tags: Tag[], escapeExtraTags = new Set<string>()): stri
   if (tags.length === 0) return '';
   if (tags.length === 1) {
     const tag = tags[0];
-    if (tag.tagName === 'type' && (!tag.text || !tag.text.match('\n'))) {
-      // Special-case one-liner "type" tags to fit on one line, e.g.
+    if ((tag.tagName === 'type' || tag.tagName === 'nocollapse') &&
+        (!tag.text || !tag.text.match('\n'))) {
+      // Special-case one-liner "type" and "nocollapse" tags to fit on one line, e.g.
       //   /** @type {foo} */
       return '/**' + tagToString(tag, escapeExtraTags) + ' */\n';
     }

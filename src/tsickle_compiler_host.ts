@@ -26,8 +26,17 @@ import {isDtsFileName} from './tsickle';
  */
 export enum Pass {
   NONE,
+  /**
+   * Note that we can do decorator downlevel and closurize in one pass,
+   * so this should not be used anymore.
+   */
   DECORATOR_DOWNLEVEL,
-  CLOSURIZE
+  /**
+   * Note that we can do decorator downlevel and closurize in one pass,
+   * so this should not be used anymore.
+   */
+  CLOSURIZE,
+  DECORATOR_DOWNLEVEL_AND_CLOSURIZE,
 }
 
 export interface Options extends Es5ProcessorOptions, tsickle.AnnotatorOptions {
@@ -138,7 +147,12 @@ export class TsickleCompilerHost implements ts.CompilerHost {
             sourceFile, this.runConfiguration.oldProgram, fileName, languageVersion);
       case Pass.CLOSURIZE:
         return this.closurize(
-            sourceFile, this.runConfiguration.oldProgram, fileName, languageVersion);
+            sourceFile, this.runConfiguration.oldProgram, fileName, languageVersion,
+            /* downlevelDecorators */ false);
+      case Pass.DECORATOR_DOWNLEVEL_AND_CLOSURIZE:
+        return this.closurize(
+            sourceFile, this.runConfiguration.oldProgram, fileName, languageVersion,
+            /* downlevelDecorators */ true);
       default:
         throw new Error('tried to use TsickleCompilerHost with unknown pass enum');
     }
@@ -279,7 +293,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
   private closurize(
       sourceFile: ts.SourceFile, program: ts.Program, fileName: string,
-      languageVersion: ts.ScriptTarget): ts.SourceFile {
+      languageVersion: ts.ScriptTarget, downlevelDecorators: boolean): ts.SourceFile {
     this.tsickleSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
     const isDefinitions = isDtsFileName(fileName);
@@ -290,7 +304,9 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     const sourceMapper = new sourceMapUtils.DefaultSourceMapper(sourceFile.fileName);
     const annotated = tsickle.annotate(
         program.getTypeChecker(), sourceFile, this.environment, this.options, this.delegate,
-        this.tscOptions, sourceMapper);
+        this.tscOptions, sourceMapper,
+        downlevelDecorators ? tsickle.AnnotatorFeatures.LowerDecorators :
+                              tsickle.AnnotatorFeatures.Default);
     const externs =
         tsickle.writeExterns(program.getTypeChecker(), sourceFile, this.environment, this.options);
     let diagnostics = externs.diagnostics.concat(annotated.diagnostics);
