@@ -37,9 +37,7 @@ private y: number;
 static decorators: {type: Function, args?: any[]}[] = [
 { type: classAnnotation },
 ];
-/**
- * @nocollapse
- */
+/** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 ];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {

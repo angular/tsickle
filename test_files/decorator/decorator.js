@@ -31,9 +31,7 @@ class DecoratorTest {
 DecoratorTest.decorators = [
     { type: classAnnotation },
 ];
-/**
- * @nocollapse
- */
+/** @nocollapse */
 DecoratorTest.ctorParameters = () => [];
 DecoratorTest.propDecorators = {
     'y': [{ type: annotationDecorator },],
