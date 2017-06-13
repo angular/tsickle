@@ -136,32 +136,35 @@ testFn('golden tests', () => {
         options.logWarning = (diag: ts.Diagnostic) => {
           warnings.push(diag);
         };
+        const annotatorHost: tsickle.AnnotatorHost = {
+          logWarning: (diag: ts.Diagnostic) => {
+            warnings.push(diag);
+          },
+          pathToModuleName: (context, importPath) => {
+            importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
+            if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
+            return importPath.replace(/\/|\\/g, '.');
+          }
+        };
         // Run TypeScript through tsickle and compare against goldens.
-        const {output, externs, diagnostics} = tsickle.annotate(
-            program.getTypeChecker(), program.getSourceFile(tsPath), {
-              logWarning: (diag: ts.Diagnostic) => {
-                warnings.push(diag);
-              },
-              pathToModuleName: (context, importPath) => {
-                importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
-                if (importPath[0] === '.')
-                  importPath = path.join(path.dirname(context), importPath);
-                return importPath.replace(/\/|\\/g, '.');
-              }
-            },
-            options, {
+        const sourceFile = program.getSourceFile(tsPath);
+        const annotated = tsickle.annotate(
+            program.getTypeChecker(), sourceFile, annotatorHost, options, {
               fileExists: ts.sys.fileExists,
               readFile: ts.sys.readFile,
             },
             testSupport.compilerOptions);
-        if (externs && !test.name.endsWith('.no_externs')) {
+        const externs =
+            tsickle.writeExterns(program.getTypeChecker(), sourceFile, annotatorHost, options);
+        const diagnostics = externs.diagnostics.concat(annotated.diagnostics);
+        if (externs.output && !test.name.endsWith('.no_externs')) {
           if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
-          allExterns += externs;
+          allExterns += externs.output;
         }
 
         // If there were any diagnostics, convert them into strings for
         // the golden output.
-        let fileOutput = output;
+        let fileOutput = annotated.output;
         diagnostics.push(...warnings);
         if (diagnostics.length > 0) {
           // Munge the filenames in the diagnostics so that they don't include
@@ -170,12 +173,12 @@ testFn('golden tests', () => {
             const fileName = diag.file.fileName;
             diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
           }
-          fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
+          fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + annotated.output;
         }
         const tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
         expect(tsicklePath).to.not.equal(tsPath);
         compareAgainstGolden(fileOutput, tsicklePath);
-        tsickleSources.set(tsPath, output);
+        tsickleSources.set(tsPath, annotated.output);
       }
       compareAgainstGolden(allExterns, test.externsPath);
 

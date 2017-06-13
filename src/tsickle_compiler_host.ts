@@ -291,10 +291,11 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     const annotated = tsickle.annotate(
         program.getTypeChecker(), sourceFile, this.environment, this.options, this.delegate,
         this.tscOptions, sourceMapper);
-    const {output, externs} = annotated;
-    let {diagnostics} = annotated;
+    const externs =
+        tsickle.writeExterns(program.getTypeChecker(), sourceFile, this.environment, this.options);
+    let diagnostics = externs.diagnostics.concat(annotated.diagnostics);
     if (externs) {
-      this.externs[fileName] = externs;
+      this.externs[fileName] = externs.output;
     }
     if (this.environment.shouldIgnoreWarningsForPath(sourceFile.fileName)) {
       // All diagnostics (including warnings) are treated as errors.
@@ -306,17 +307,12 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     this.diagnostics = diagnostics;
     this.tsickleSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), sourceMapper.sourceMap);
-    return ts.createSourceFile(fileName, output, languageVersion, true);
+    return ts.createSourceFile(fileName, annotated.output, languageVersion, true);
   }
 
   /** Concatenate all generated externs definitions together into a string. */
   getGeneratedExterns(): string {
-    let allExterns = tsickle.EXTERNS_HEADER;
-    for (const fileName of Object.keys(this.externs)) {
-      allExterns += `// externs from ${fileName}:\n`;
-      allExterns += this.externs[fileName];
-    }
-    return allExterns;
+    return tsickle.getGeneratedExterns(this.externs);
   }
 
   // Delegate everything else to the original compiler host.
