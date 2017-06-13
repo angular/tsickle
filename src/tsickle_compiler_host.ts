@@ -289,8 +289,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
 
     const sourceMapper = new sourceMapUtils.DefaultSourceMapper(sourceFile.fileName);
     const annotated = tsickle.annotate(
-        program, sourceFile, this.environment, this.options, this.delegate, this.tscOptions,
-        sourceMapper);
+        program.getTypeChecker(), sourceFile, this.environment, this.options, this.delegate,
+        this.tscOptions, sourceMapper);
     const {output, externs} = annotated;
     let {diagnostics} = annotated;
     if (externs) {

@@ -22,8 +22,8 @@ describe('source maps', () => {
     const program = createProgram(sources);
     const sourceMapper = new DefaultSourceMapper('input.ts');
     const annotated = annotate(
-        program, program.getSourceFile('input.ts'), {pathToModuleName: () => 'input'}, {},
-        undefined, undefined, sourceMapper);
+        program.getTypeChecker(), program.getSourceFile('input.ts'),
+        {pathToModuleName: () => 'input'}, {}, undefined, undefined, sourceMapper);
     const rawMap = sourceMapper.sourceMap.toJSON();
     const consumer = new SourceMapConsumer(rawMap);
     const lines = annotated.output.split('\n');

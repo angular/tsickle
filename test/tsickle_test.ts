@@ -138,7 +138,7 @@ testFn('golden tests', () => {
         };
         // Run TypeScript through tsickle and compare against goldens.
         const {output, externs, diagnostics} = tsickle.annotate(
-            program, program.getSourceFile(tsPath), {
+            program.getTypeChecker(), program.getSourceFile(tsPath), {
               logWarning: (diag: ts.Diagnostic) => {
                 warnings.push(diag);
               },
