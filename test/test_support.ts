@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
+import * as es5processor from '../src/es5processor';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
@@ -46,8 +47,12 @@ const {cachedLibPath, cachedLib} = (() => {
 })();
 
 /** Creates a ts.Program from a set of input files. */
-export function createProgram(sources: Map<string, string>): ts.Program {
-  const host = ts.createCompilerHost(compilerOptions);
+export function createProgram(
+    sources: Map<string, string>, host?: ts.CompilerHost,
+    tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.Program {
+  if (!host) {
+    host = ts.createCompilerHost(tsCompilerOptions);
+  }
 
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
                         onError?: (msg: string) => void): ts.SourceFile => {
@@ -63,17 +68,22 @@ export function createProgram(sources: Map<string, string>): ts.Program {
     throw new Error('unexpected file read of ' + fileName + ' not in ' + toArray(sources.keys()));
   };
 
-  return ts.createProgram(toArray(sources.keys()), compilerOptions, host);
+  return ts.createProgram(toArray(sources.keys()), tsCompilerOptions, host);
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
-export function emit(program: ts.Program): {[fileName: string]: string} {
+export function emit(
+    program: ts.Program,
+    transformers: Array<ts.TransformerFactory<ts.SourceFile>> = []): {[fileName: string]: string} {
   const transformed: {[fileName: string]: string} = {};
   const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
-    const moduleId = fileName.replace(/^\.\//, '');
-    transformed[fileName] =
-        tsickle.processES5(fileName, moduleId, data, cliSupport.pathToModuleName).output;
-  });
+    const options: es5processor.Options = {es5Mode: true, prelude: ''};
+    const host: es5processor.Host = {
+      fileNameToModuleId: (fn) => fn.replace(/^\.\//, ''),
+      pathToModuleName: cliSupport.pathToModuleName
+    };
+    transformed[fileName] = es5processor.processES5(host, options, fileName, data).output;
+  }, undefined, undefined, {before: transformers});
   if (diagnostics.length > 0) {
     throw new Error(tsickle.formatDiagnostics(diagnostics));
   }

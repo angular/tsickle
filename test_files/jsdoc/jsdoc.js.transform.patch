@@ -1,0 +1,16 @@
+Index: ./test_files/jsdoc/jsdoc.js
+===================================================================
+--- ./test_files/jsdoc/jsdoc.js	golden
++++ ./test_files/jsdoc/jsdoc.js	tsickle with transformer
+@@ -32,11 +32,8 @@
+         /** @const {string} */
+         this.badConstThing = 'a';
+     }
+ }
+-/**
+- * \@internal
+- */
+ JSDocTest.X = [];
+ function JSDocTest_tsickle_Closure_declarations() {
+     /**
+      * \@internal

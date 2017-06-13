@@ -11,7 +11,7 @@ import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from './decorator-annotator';
-import {processES5} from './es5processor';
+import * as es5processor from './es5processor';
 import {ModulesManifest} from './modules_manifest';
 import * as sourceMapUtils from './source_map_utils';
 import * as tsickle from './tsickle';
@@ -30,56 +30,27 @@ export enum Pass {
   CLOSURIZE
 }
 
-export interface Options {
-  googmodule?: boolean;
-  es5Mode?: boolean;
-  prelude?: string;
-  /**
-   * If true, convert every type to the Closure {?} type, which means
-   * "don't check types".
-   */
-  untyped?: boolean;
-  /**
-   * If provided a function that logs an internal warning.
-   * These warnings are not actionable by an end user and should be hidden
-   * by default.
-   */
-  logWarning?: (warning: ts.Diagnostic) => void;
-  /** If provided, a set of paths whose types should always generate as {?}. */
-  typeBlackListPaths?: Set<string>;
-  /**
-   * Convert shorthand "/index" imports to full path (include the "/index").
-   * Annotation will be slower because every import must be resolved.
-   */
-  convertIndexImportShorthand?: boolean;
+export interface Options extends es5processor.Options, tsickle.Options {
+  // This method here for backwards compatibility. Don't use it anymore,
+  // but rather use the corresponding method in the TsickleHost.
+  logWarning?: TsickleHost['logWarning'];
 }
 
 /**
  *  Provides hooks to customize TsickleCompilerHost's behavior for different
  *  compilation environments.
  */
-export interface TsickleHost {
+export interface TsickleHost extends es5processor.Host, tsickle.Host {
   /**
    * If true, tsickle and decorator downlevel processing will be skipped for
    * that file.
    */
   shouldSkipTsickleProcessing(fileName: string): boolean;
   /**
-   * Takes a context (the current file) and the path of the file to import
-   *  and generates a googmodule module name
-   */
-  pathToModuleName(context: string, importPath: string): string;
-  /**
    * Tsickle treats warnings as errors, if true, ignore warnings.  This might be
    * useful for e.g. third party code.
    */
   shouldIgnoreWarningsForPath(filePath: string): boolean;
-  /**
-   * If we do googmodule processing, we polyfill module.id, since that's
-   * part of ES6 modules.  This function determines what the module.id will be
-   * for each file.
-   */
-  fileNameToModuleId(fileName: string): string;
 }
 
 /**
@@ -107,6 +78,9 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   constructor(
       private delegate: ts.CompilerHost, private tscOptions: ts.CompilerOptions,
       private options: Options, private environment: TsickleHost) {
+    if (options.logWarning && !environment.logWarning) {
+      environment.logWarning = options.logWarning;
+    }
     // ts.CompilerHost includes a bunch of optional methods.  If they're
     // present on the delegate host, we want to delegate them.
     if (this.delegate.getCancellationToken) {
@@ -279,19 +253,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   convertCommonJsToGoogModule(fileName: string, content: string): string {
-    const moduleId = this.environment.fileNameToModuleId(fileName);
-
-    const {output, referencedModules} = processES5(
-        fileName, moduleId, content, this.environment.pathToModuleName.bind(this.environment),
-        this.options.es5Mode, this.options.prelude);
-
-    const moduleName = this.environment.pathToModuleName('', fileName);
-    this.modulesManifest.addModule(fileName, moduleName);
-    for (const referenced of referencedModules) {
-      this.modulesManifest.addReferencedModule(fileName, referenced);
-    }
-
-    return output;
+    return es5processor.convertCommonJsToGoogModule(
+        this.environment, this.options, this.modulesManifest, fileName, content);
   }
 
   private downlevelDecorators(
@@ -301,7 +264,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         this.getSourceMapKeyForSourceFile(sourceFile), new SourceMapGenerator());
     if (this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
     let fileContent = sourceFile.text;
-    const converted = convertDecorators(program.getTypeChecker(), sourceFile);
+    const sourceMapper = new sourceMapUtils.DefaultSourceMapper(sourceFile.fileName);
+    const converted = convertDecorators(program.getTypeChecker(), sourceFile, sourceMapper);
     if (converted.diagnostics) {
       this.diagnostics.push(...converted.diagnostics);
     }
@@ -311,7 +275,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     }
     fileContent = converted.output;
     this.decoratorDownlevelSourceMaps.set(
-        this.getSourceMapKeyForSourceFile(sourceFile), converted.sourceMap);
+        this.getSourceMapKeyForSourceFile(sourceFile), sourceMapper.sourceMap);
     return ts.createSourceFile(fileName, fileContent, languageVersion, true);
   }
 
@@ -325,13 +289,16 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     // this means we don't process e.g. lib.d.ts.
     if (isDefinitions && this.environment.shouldSkipTsickleProcessing(fileName)) return sourceFile;
 
+    const sourceMapper = new sourceMapUtils.DefaultSourceMapper(sourceFile.fileName);
     const annotated = tsickle.annotate(
-        program, sourceFile, this.environment.pathToModuleName.bind(this.environment), this.options,
-        this.delegate, this.tscOptions);
-    const {output, externs, sourceMap} = annotated;
-    let {diagnostics} = annotated;
-    if (externs) {
-      this.externs[fileName] = externs;
+        program.getTypeChecker(), sourceFile, this.environment, this.options, this.delegate,
+        this.tscOptions, sourceMapper);
+    const externs =
+        tsickle.writeExterns(program.getTypeChecker(), sourceFile, this.environment, this.options);
+    let diagnostics = externs.diagnostics.concat(annotated.diagnostics);
+
+    if (externs.output.length > 0) {
+      this.externs[fileName] = externs.output;
     }
     if (this.environment.shouldIgnoreWarningsForPath(sourceFile.fileName)) {
       // All diagnostics (including warnings) are treated as errors.
@@ -341,18 +308,14 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
     }
     this.diagnostics = diagnostics;
-    this.tsickleSourceMaps.set(this.getSourceMapKeyForSourceFile(sourceFile), sourceMap);
-    return ts.createSourceFile(fileName, output, languageVersion, true);
+    this.tsickleSourceMaps.set(
+        this.getSourceMapKeyForSourceFile(sourceFile), sourceMapper.sourceMap);
+    return ts.createSourceFile(fileName, annotated.output, languageVersion, true);
   }
 
   /** Concatenate all generated externs definitions together into a string. */
   getGeneratedExterns(): string {
-    let allExterns = tsickle.EXTERNS_HEADER;
-    for (const fileName of Object.keys(this.externs)) {
-      allExterns += `// externs from ${fileName}:\n`;
-      allExterns += this.externs[fileName];
-    }
-    return allExterns;
+    return tsickle.getGeneratedExterns(this.externs);
   }
 
   // Delegate everything else to the original compiler host.

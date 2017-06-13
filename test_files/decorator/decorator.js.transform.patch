@@ -1,0 +1,14 @@
+Index: ./test_files/decorator/decorator.js
+===================================================================
+--- ./test_files/decorator/decorator.js	golden
++++ ./test_files/decorator/decorator.js	tsickle with transformer
+@@ -44,9 +44,8 @@
+ }
+ DecoratorTest.decorators = [
+     { type: classAnnotation },
+ ];
+-/** @nocollapse */
+ DecoratorTest.ctorParameters = () => [
+     { type: Array, },
+     null, null,
+     { type: Promise, },

@@ -11,7 +11,7 @@ import * as ts from 'typescript';
 import {toArray} from './util';
 
 export function assertTypeChecked(sourceFile: ts.SourceFile) {
-  if (!('resolvedModules' in sourceFile)) {
+  if (!('resolvedModules' in ts.getOriginalNode(sourceFile))) {
     throw new Error('must provide typechecked program');
   }
 }
