@@ -1,3 +1,5 @@
+import {AClass, AType, AClassWithGenerics} from './external';
+
 function decorator(a: Object, b: string) {}
 
 /** @Annotation */
@@ -15,17 +17,28 @@ function classAnnotation(t: any) { return t; }
 
 
 class DecoratorTest {
+  constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
+
   @decorator
   private x: number;
 
   
   private y: number;
+
+  @decorator
+  private z: AClass;
 static decorators: {type: Function, args?: any[]}[] = [
 { type: classAnnotation },
 ];
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
-];
+{type: Array, },
+null, null,
+{type: Promise, },
+{type: Array, },
+{type: AClass, },
+{type: AClassWithGenerics, },
+null,];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 "y": [{ type: annotationDecorator },],
 };

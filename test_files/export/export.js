@@ -14,12 +14,15 @@ const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_
 exports.RenamedTypeDef; // re-export typedef
 /** @typedef {tsickle_forward_declare_1.TypeDef} */
 exports.TypeDef; // re-export typedef
+/** @typedef {tsickle_forward_declare_1.DeclaredType} */
+exports.DeclaredType; // re-export typedef
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");
 // These conflict with an export discovered via the above exports,
 // so the above export's versions should not show up.
 exports.export1 = 'wins';
 var export_helper_2 = export_helper_1;
 exports.export3 = export_helper_2.export4;
+exports.RenamedInterface = export_helper_2.Interface;
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.export.export_helper");
 // This local should be fine to export.
 exports.exportLocal = 3;

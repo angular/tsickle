@@ -11,6 +11,8 @@ exports.Interface = export_helper_2_1.Interface;
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper_2");
 /** @typedef {tsickle_forward_declare_1.TypeDef} */
 exports.TypeDef; // re-export typedef
+/** @typedef {tsickle_forward_declare_1.DeclaredType} */
+exports.DeclaredType; // re-export typedef
 exports.export1 = 3;
 exports.export2 = 3;
 /**

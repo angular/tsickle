@@ -2,6 +2,9 @@ goog.module('test_files.decorator.decorator');var module = module || {id: 'test_
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
+
+var external_1 = goog.require('test_files.decorator.external');
+const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.external");
 /**
  * @param {!Object} a
  * @param {string} b
@@ -27,12 +30,31 @@ function classDecorator(t) { return t; }
  */
 function classAnnotation(t) { return t; }
 class DecoratorTest {
+    /**
+     * @param {!Array<?>} a
+     * @param {number} n
+     * @param {boolean} b
+     * @param {!Promise<string>} promise
+     * @param {!Array<string>} arr
+     * @param {!tsickle_forward_declare_1.AClass} aClass
+     * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
+     * @param {!tsickle_forward_declare_1.AType} aType
+     */
+    constructor(a, n, b, promise, arr, aClass, aClassWithGenerics, aType) { }
 }
 DecoratorTest.decorators = [
     { type: classAnnotation },
 ];
 /** @nocollapse */
-DecoratorTest.ctorParameters = () => [];
+DecoratorTest.ctorParameters = () => [
+    { type: Array, },
+    null, null,
+    { type: Promise, },
+    { type: Array, },
+    { type: external_1.AClass, },
+    { type: external_1.AClassWithGenerics, },
+    null,
+];
 DecoratorTest.propDecorators = {
     "y": [{ type: annotationDecorator },],
 };
@@ -40,6 +62,10 @@ __decorate([
     decorator,
     __metadata("design:type", Number)
 ], DecoratorTest.prototype, "x", void 0);
+__decorate([
+    decorator,
+    __metadata("design:type", external_1.AClass)
+], DecoratorTest.prototype, "z", void 0);
 function DecoratorTest_tsickle_Closure_declarations() {
     /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
     DecoratorTest.decorators;
@@ -54,6 +80,8 @@ function DecoratorTest_tsickle_Closure_declarations() {
     DecoratorTest.prototype.x;
     /** @type {number} */
     DecoratorTest.prototype.y;
+    /** @type {!tsickle_forward_declare_1.AClass} */
+    DecoratorTest.prototype.z;
 }
 let DecoratedClass = class DecoratedClass {
 };
