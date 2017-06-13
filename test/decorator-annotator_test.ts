@@ -298,8 +298,7 @@ static decorators: {type: Function, args?: any[]}[] = [
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: BarService, },
-null,
-];
+null,];
 }`);
         });
 
@@ -321,8 +320,7 @@ class Foo {
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: bar.BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
-null,
-null,
+null, null,
 {type: bar.BarService, },
 ];
 }`);

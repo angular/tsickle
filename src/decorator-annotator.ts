@@ -205,10 +205,19 @@ export class DecoratorClassVisitor {
       this.rewriter.emit(
           `static ctorParameters: () => ({type: any, decorators?: ` + decoratorInvocations +
           `}|null)[] = () => [\n`);
+      let emittedInline = false;
       for (const param of this.ctorParameters || []) {
         if (!param) {
-          this.rewriter.emit('null,\n');
+          if (emittedInline) {
+            this.rewriter.emit(' ');
+          }
+          this.rewriter.emit('null,');
+          emittedInline = true;
           continue;
+        }
+        if (emittedInline) {
+          this.rewriter.emit('\n');
+          emittedInline = false;
         }
         const [ctor, decorators] = param;
         this.rewriter.emit(`{type: ${ctor}, `);
