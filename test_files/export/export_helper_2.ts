@@ -6,3 +6,15 @@ export let export4 = 3;
 
 export type TypeDef = string|number;
 export interface Interface { x: string; }
+
+export const enum ConstEnum {
+  AValue = 1
+}
+
+export declare type DeclaredType = {
+  a: number
+}
+
+export declare interface DeclaredInterface {
+  a: number;
+}

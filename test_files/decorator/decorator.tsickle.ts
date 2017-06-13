@@ -3,7 +3,8 @@
  * @suppress {checkTypes} checked by tsc
  */
 
-
+import {AClass, AType, AClassWithGenerics} from './external';
+const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.external");
 /**
  * @param {!Object} a
  * @param {string} b
@@ -31,15 +32,36 @@ type classAnnotation = {};
  */
 function classAnnotation(t: any) { return t; }
 class DecoratorTest {
+/**
+ * @param {!Array<?>} a
+ * @param {number} n
+ * @param {boolean} b
+ * @param {!Promise<string>} promise
+ * @param {!Array<string>} arr
+ * @param {!tsickle_forward_declare_1.AClass} aClass
+ * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
+ * @param {!tsickle_forward_declare_1.AType} aType
+ */
+constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
+
   @decorator
 private x: number;
 private y: number;
+
+  @decorator
+private z: AClass;
 static decorators: {type: Function, args?: any[]}[] = [
 { type: classAnnotation },
 ];
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
-];
+{type: Array, },
+null, null,
+{type: Promise, },
+{type: Array, },
+{type: AClass, },
+{type: AClassWithGenerics, },
+null,];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 "y": [{ type: annotationDecorator },],
 };
@@ -59,6 +81,8 @@ DecoratorTest.propDecorators;
 DecoratorTest.prototype.x;
 /** @type {number} */
 DecoratorTest.prototype.y;
+/** @type {!tsickle_forward_declare_1.AClass} */
+DecoratorTest.prototype.z;
 }
 
 @classDecorator
@@ -70,4 +94,3 @@ function DecoratedClass_tsickle_Closure_declarations() {
 /** @type {string} */
 DecoratedClass.prototype.z;
 }
-

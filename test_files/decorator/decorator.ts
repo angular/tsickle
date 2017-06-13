@@ -1,3 +1,5 @@
+import {AClass, AType, AClassWithGenerics} from './external';
+
 function decorator(a: Object, b: string) {}
 
 /** @Annotation */
@@ -15,11 +17,16 @@ function classAnnotation(t: any) { return t; }
 
 @classAnnotation
 class DecoratorTest {
+  constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
+
   @decorator
   private x: number;
 
   @annotationDecorator
   private y: number;
+
+  @decorator
+  private z: AClass;
 }
 
 @classDecorator

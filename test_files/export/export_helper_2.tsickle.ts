@@ -21,3 +21,20 @@ export function Interface() {}
 Interface.prototype.x;
 
 export interface Interface { x: string; }
+
+export const enum ConstEnum {
+  AValue = 1
+}
+
+export declare type DeclaredType = {
+  a: number
+}
+/** @typedef {DeclaredType} */
+exports.DeclaredType;
+
+
+export declare interface DeclaredInterface {
+  a: number;
+}
+/** @typedef {DeclaredInterface} */
+exports.DeclaredInterface;
