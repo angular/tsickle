@@ -405,7 +405,7 @@ class Foo {
 class Foo {
   \n  bar() {}
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
-'bar': [{ type: Test1, args: ['somename', ] },],
+"bar": [{ type: Test1, args: ['somename', ] },],
 };
 }`);
         });
@@ -427,8 +427,8 @@ class ClassWithDecorators {
 
   \n  set c(value) {}
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
-'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
-'c': [{ type: PropDecorator, args: ["p3", ] },],
+"a": [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
+"c": [{ type: PropDecorator, args: ["p3", ] },],
 };
 }`);
         });
@@ -458,7 +458,7 @@ class Foo {
   missingSemi = () => {}
    other: number;
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
-'other': [{ type: PropDecorator },],
+"other": [{ type: PropDecorator },],
 };
 }`);
 
