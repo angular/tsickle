@@ -15,14 +15,37 @@ import {extractGoogNamespaceImport} from './es5processor';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
 import {SourceMapper} from './source_map_utils';
-import {Options} from './tsickle_compiler_host';
 import * as typeTranslator from './type-translator';
 import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
-export {processES5} from './es5processor';
 export {FileMap, ModulesManifest} from './modules_manifest';
 export {Options, Pass, TsickleCompilerHost, TsickleHost} from './tsickle_compiler_host';
+
+export interface AnnotatorHost {
+  /**
+   * If provided a function that logs an internal warning.
+   * These warnings are not actionable by an end user and should be hidden
+   * by default.
+   */
+  logWarning?: (warning: ts.Diagnostic) => void;
+  pathToModuleName: (context: string, importPath: string) => string;
+}
+
+export interface AnnotatorOptions {
+  /**
+   * If true, convert every type to the Closure {?} type, which means
+   * "don't check types".
+   */
+  untyped?: boolean;
+  /** If provided, a set of paths whose types should always generate as {?}. */
+  typeBlackListPaths?: Set<string>;
+  /**
+   * Convert shorthand "/index" imports to full path (include the "/index").
+   * Annotation will be slower because every import must be resolved.
+   */
+  convertIndexImportShorthand?: boolean;
+}
 
 export interface Output {
   /** The TypeScript source with Closure annotations inserted. */
@@ -161,8 +184,8 @@ class ClosureRewriter extends Rewriter {
   symbolsToAliasedNames = new Map<ts.Symbol, string>();
 
   constructor(
-      protected program: ts.Program, file: ts.SourceFile, protected options: Options,
-      sourceMapper?: SourceMapper) {
+      protected program: ts.Program, file: ts.SourceFile, protected host: AnnotatorHost,
+      protected options: AnnotatorOptions, sourceMapper?: SourceMapper) {
     super(file, sourceMapper);
   }
 
@@ -455,7 +478,7 @@ class ClosureRewriter extends Rewriter {
    * for tsickle to debug itself.
    */
   debugWarn(node: ts.Node, messageText: string) {
-    if (!this.options.logWarning) return;
+    if (!this.host.logWarning) return;
     // Use a ts.Diagnosic so that the warning includes context and file offets.
     const diagnostic: ts.Diagnostic = {
       file: this.file,
@@ -465,7 +488,7 @@ class ClosureRewriter extends Rewriter {
       category: ts.DiagnosticCategory.Warning,
       code: 0,
     };
-    this.options.logWarning(diagnostic);
+    this.host.logWarning(diagnostic);
   }
 }
 
@@ -492,12 +515,11 @@ class Annotator extends ClosureRewriter {
   private typeChecker: ts.TypeChecker;
 
   constructor(
-      program: ts.Program, file: ts.SourceFile, options: Options,
-      private pathToModuleName: (context: string, importPath: string) => string,
-      private host?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions,
+      program: ts.Program, file: ts.SourceFile, host: AnnotatorHost, options: AnnotatorOptions,
+      private tsHost?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions,
       sourceMapper?: SourceMapper) {
-    super(program, file, options, sourceMapper);
-    this.externsWriter = new ExternsWriter(program, file, options);
+    super(program, file, host, options, sourceMapper);
+    this.externsWriter = new ExternsWriter(program, file, host, options);
     this.typeChecker = program.getTypeChecker();
   }
 
@@ -971,11 +993,11 @@ class Annotator extends ClosureRewriter {
     }
     let moduleId = (moduleSpecifier as ts.StringLiteral).text;
     if (this.options.convertIndexImportShorthand) {
-      if (!this.tsOpts || !this.host) {
+      if (!this.tsOpts || !this.tsHost) {
         throw new Error(
             'option convertIndexImportShorthand requires that annotate be called with a TypeScript host and options.');
       }
-      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.host);
+      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.tsHost);
       if (resolved && resolved.resolvedModule) {
         const requestedModule = moduleId.replace(extension, '');
         const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
@@ -1081,7 +1103,7 @@ class Annotator extends ClosureRewriter {
     const nsImport = extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
     const moduleNamespace =
-        nsImport !== null ? nsImport : this.pathToModuleName(this.file.fileName, importPath);
+        nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
     const exports =
         this.typeChecker.getExportsOfModule(this.typeChecker.getSymbolAtLocation(specifier));
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
@@ -1655,11 +1677,9 @@ class ExternsWriter extends ClosureRewriter {
 }
 
 export function annotate(
-    program: ts.Program, file: ts.SourceFile,
-    pathToModuleName: (context: string, importPath: string) => string, options: Options = {},
-    host?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
+    program: ts.Program, file: ts.SourceFile, host: AnnotatorHost, options: AnnotatorOptions = {},
+    tsHost?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
     sourceMapper?: SourceMapper): Output {
   typeTranslator.assertTypeChecked(file);
-  return new Annotator(program, file, options, pathToModuleName, host, tsOpts, sourceMapper)
-      .annotate();
+  return new Annotator(program, file, host, options, tsHost, tsOpts, sourceMapper).annotate();
 }
