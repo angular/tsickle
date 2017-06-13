@@ -8,8 +8,30 @@
 
 import * as ts from 'typescript';
 
+import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
+import {isDtsFileName} from './tsickle';
 import {toArray} from './util';
+
+export interface Es5ProcessorHost {
+  /**
+   * Takes a context (the current file) and the path of the file to import
+   *  and generates a googmodule module name
+   */
+  pathToModuleName(context: string, importPath: string): string;
+  /**
+   * If we do googmodule processing, we polyfill module.id, since that's
+   * part of ES6 modules.  This function determines what the module.id will be
+   * for each file.
+   */
+  fileNameToModuleId(fileName: string): string;
+}
+
+export interface Es5ProcessorOptions {
+  googmodule?: boolean;
+  es5Mode?: boolean;
+  prelude?: string;
+}
 
 /**
  * Extracts the namespace part of a goog: import, or returns null if the given
@@ -52,24 +74,24 @@ class ES5Processor extends Rewriter {
   unusedIndex = 0;
 
   constructor(
-      file: ts.SourceFile, private pathToModuleName: (context: string, fileName: string) => string,
-      private prelude: string) {
+      private host: Es5ProcessorHost, private options: Es5ProcessorOptions, file: ts.SourceFile) {
     super(file);
   }
 
-  process(moduleId: string, isES5: boolean): {output: string, referencedModules: string[]} {
+  process(): {output: string, referencedModules: string[]} {
+    const moduleId = this.host.fileNameToModuleId(this.file.fileName);
     // TODO(evanm): only emit the goog.module *after* the first comment,
     // so that @suppress statements work.
-    const moduleName = this.pathToModuleName('', this.file.fileName);
+    const moduleName = this.host.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
-    if (this.prelude) this.emit(this.prelude);
+    if (this.options.prelude) this.emit(this.options.prelude);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
     // The following pattern ensures closure doesn't throw an error in advanced
     // optimizations mode.
-    if (isES5) {
+    if (this.options.es5Mode) {
       this.emit(`var module = module || {id: '${moduleId}'};`);
     } else {
       // The `exports = {}` serves as a default export to disable Closure Compiler's error checking
@@ -239,7 +261,7 @@ class ES5Processor extends Rewriter {
       modName = nsImport;
       isNamespaceImport = true;
     } else {
-      modName = this.pathToModuleName(this.file.fileName, tsImport);
+      modName = this.host.pathToModuleName(this.file.fileName, tsImport);
     }
 
     if (!varName) {
@@ -351,9 +373,25 @@ class ES5Processor extends Rewriter {
  *     e.g. with additional imports or requires.
  */
 export function processES5(
-    fileName: string, moduleId: string, content: string,
-    pathToModuleName: (context: string, fileName: string) => string, isES5 = true,
-    prelude = ''): {output: string, referencedModules: string[]} {
+    host: Es5ProcessorHost, options: Es5ProcessorOptions, fileName: string,
+    content: string): {output: string, referencedModules: string[]} {
   const file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new ES5Processor(file, pathToModuleName, prelude).process(moduleId, isES5);
+  return new ES5Processor(host, options, file).process();
+}
+
+export function convertCommonJsToGoogModuleIfNeeded(
+    host: Es5ProcessorHost, options: Es5ProcessorOptions, modulesManifest: ModulesManifest,
+    fileName: string, content: string): string {
+  if (!options.googmodule || isDtsFileName(fileName)) {
+    return content;
+  }
+  const {output, referencedModules} = processES5(host, options, fileName, content);
+
+  const moduleName = host.pathToModuleName('', fileName);
+  modulesManifest.addModule(fileName, moduleName);
+  for (const referenced of referencedModules) {
+    modulesManifest.addReferencedModule(fileName, referenced);
+  }
+
+  return output;
 }

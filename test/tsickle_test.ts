@@ -138,11 +138,16 @@ testFn('golden tests', () => {
         };
         // Run TypeScript through tsickle and compare against goldens.
         const {output, externs, diagnostics} = tsickle.annotate(
-            program, program.getSourceFile(tsPath),
-            (context, importPath) => {
-              importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
-              if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-              return importPath.replace(/\/|\\/g, '.');
+            program, program.getSourceFile(tsPath), {
+              logWarning: (diag: ts.Diagnostic) => {
+                warnings.push(diag);
+              },
+              pathToModuleName: (context, importPath) => {
+                importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
+                if (importPath[0] === '.')
+                  importPath = path.join(path.dirname(context), importPath);
+                return importPath.replace(/\/|\\/g, '.');
+              }
             },
             options, {
               fileExists: ts.sys.fileExists,

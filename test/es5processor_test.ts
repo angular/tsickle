@@ -12,11 +12,17 @@ import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
 describe('convertCommonJsToGoogModule', () => {
+  function processES5(fileName: string, content: string, isES5 = true, prelude = '') {
+    const options: es5processor.Es5ProcessorOptions = {es5Mode: isES5, prelude};
+    const host: es5processor.Es5ProcessorHost = {
+      fileNameToModuleId: (fn) => fn,
+      pathToModuleName: cliSupport.pathToModuleName
+    };
+    return es5processor.processES5(host, options, fileName, content);
+  }
+
   function expectCommonJs(fileName: string, content: string, isES5 = true, prelude = '') {
-    return expect(
-        es5processor
-            .processES5(fileName, fileName, content, cliSupport.pathToModuleName, isES5, prelude)
-            .output);
+    return expect(processES5(fileName, content, isES5, prelude).output);
   }
 
   it('adds a goog.module call', () => {
@@ -172,14 +178,13 @@ foo_1.A, foo_2.B, foo_2        , foo_3.default;
   });
 
   it('gathers referenced modules', () => {
-    const {referencedModules} =
-        es5processor.processES5('a/b', 'a/b', `
+    const {referencedModules} = processES5('a/b', `
 require('../foo/bare_require');
 var googRequire = require('goog:foo.bar');
 var es6RelativeRequire = require('./relative');
 var es6NonRelativeRequire = require('non/relative');
 __export(require('./export_star');
-`, cliSupport.pathToModuleName);
+`);
 
     return expect(referencedModules).to.deep.equal([
       'foo.bare_require',
