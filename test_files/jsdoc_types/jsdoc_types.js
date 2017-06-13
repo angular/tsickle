@@ -9,11 +9,11 @@ goog.module('test_files.jsdoc_types.jsdoc_types');var module = module || {id: 't
  */
 var module1 = goog.require('test_files.jsdoc_types.module1');
 var module2_1 = goog.require('test_files.jsdoc_types.module2');
-const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.jsdoc_types.module2');
+const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.jsdoc_types.module2");
 var default_1 = goog.require('test_files.jsdoc_types.default');
-const tsickle_forward_declare_2 = goog.forwardDeclare('test_files.jsdoc_types.default');
-const tsickle_forward_declare_3 = goog.forwardDeclare('test_files.jsdoc_types.nevertyped');
-goog.require('test_files.jsdoc_types.nevertyped'); // force type-only module to be loaded
+const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.jsdoc_types.default");
+const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.jsdoc_types.nevertyped");
+goog.require("test_files.jsdoc_types.nevertyped"); // force type-only module to be loaded
 // Check that imported types get the proper names in JSDoc.
 let /** @type {!module1.Class} */ useNamespacedClass = new module1.Class();
 let /** @type {!module1.Class} */ useNamespacedClassAsType;

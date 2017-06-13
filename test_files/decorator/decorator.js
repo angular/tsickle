@@ -34,7 +34,7 @@ DecoratorTest.decorators = [
 /** @nocollapse */
 DecoratorTest.ctorParameters = () => [];
 DecoratorTest.propDecorators = {
-    'y': [{ type: annotationDecorator },],
+    "y": [{ type: annotationDecorator },],
 };
 __decorate([
     decorator,

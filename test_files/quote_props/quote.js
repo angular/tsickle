@@ -8,8 +8,8 @@ goog.module('test_files.quote_props.quote');var module = module || {id: 'test_fi
  */
 function Quoted() { }
 let /** @type {!Quoted} */ quoted = {};
-console.log(quoted['hello']);
-quoted['hello'] = 1;
+console.log(quoted["hello"]);
+quoted["hello"] = 1;
 quoted['hello'] = 1;
 /**
  * @record
