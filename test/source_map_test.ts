@@ -8,7 +8,7 @@
 
 import {expect} from 'chai';
 import {SourceMapConsumer} from 'source-map';
-
+import {DefaultSourceMapper} from '../src/source_map_utils';
 import {annotate} from '../src/tsickle';
 
 import {createProgram} from './test_support';
@@ -20,8 +20,11 @@ describe('source maps', () => {
       class X { field: number; }
       class Y { field2: string; }`);
     const program = createProgram(sources);
-    const annotated = annotate(program, program.getSourceFile('input.ts'), () => 'input');
-    const rawMap = annotated.sourceMap.toJSON();
+    const sourceMapper = new DefaultSourceMapper('input.ts');
+    const annotated = annotate(
+        program, program.getSourceFile('input.ts'), () => 'input', {}, undefined, undefined,
+        sourceMapper);
+    const rawMap = sourceMapper.sourceMap.toJSON();
     const consumer = new SourceMapConsumer(rawMap);
     const lines = annotated.output.split('\n');
     // Uncomment to debug contents:

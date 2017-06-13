@@ -11,6 +11,7 @@ import * as ts from 'typescript';
 
 import {getDecoratorDeclarations} from './decorators';
 import {Rewriter} from './rewriter';
+import {SourceMapper} from './source_map_utils';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
 
@@ -84,7 +85,7 @@ class ClassRewriter extends Rewriter {
     ts.forEachChild(node, child => {
       // This forEachChild handles emitting the text between each child, while child.visit
       // recursively emits the children themselves.
-      this.writeRange(pos, child.getFullStart());
+      this.writeRange(node, pos, child.getFullStart());
       this.visit(child);
       pos = child.getEnd();
     });
@@ -97,7 +98,7 @@ class ClassRewriter extends Rewriter {
     if (this.file.text[node.getEnd() - 1] !== '}') {
       this.error(node, 'unexpected class terminator');
     }
-    this.writeRange(pos, node.getEnd() - 1);
+    this.writeRange(this.file, pos, node.getEnd() - 1);
     this.emitMetadata();
     this.emit('}');
     return this.getOutput();
@@ -185,7 +186,7 @@ class ClassRewriter extends Rewriter {
         if (this.shouldLower(node as ts.Decorator)) {
           // Return true to signal that this node should not be emitted,
           // but still emit the whitespace *before* the node.
-          this.writeRange(node.getFullStart(), node.getStart());
+          this.writeRange(node, node.getFullStart(), node.getStart());
           return true;
         }
         return false;
@@ -280,11 +281,12 @@ class ClassRewriter extends Rewriter {
 }
 
 class DecoratorRewriter extends Rewriter {
-  constructor(private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile) {
-    super(sourceFile);
+  constructor(
+      private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, sourceMapper?: SourceMapper) {
+    super(sourceFile, sourceMapper);
   }
 
-  process(): {output: string, diagnostics: ts.Diagnostic[], sourceMap: SourceMapGenerator} {
+  process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.visit(this.file);
     return this.getOutput();
   }
@@ -303,8 +305,9 @@ class DecoratorRewriter extends Rewriter {
   }
 }
 
-export function convertDecorators(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile):
-    {output: string, diagnostics: ts.Diagnostic[], sourceMap: SourceMapGenerator} {
+export function convertDecorators(
+    typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
+    sourceMapper?: SourceMapper): {output: string, diagnostics: ts.Diagnostic[]} {
   assertTypeChecked(sourceFile);
-  return new DecoratorRewriter(typeChecker, sourceFile).process();
+  return new DecoratorRewriter(typeChecker, sourceFile, sourceMapper).process();
 }

@@ -14,6 +14,7 @@ import {hasExportingDecorator} from './decorators';
 import {extractGoogNamespaceImport} from './es5processor';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
+import {SourceMapper} from './source_map_utils';
 import {Options} from './tsickle_compiler_host';
 import * as typeTranslator from './type-translator';
 import {toArray} from './util';
@@ -30,8 +31,6 @@ export interface Output {
   externs: string|null;
   /** Error messages, if any. */
   diagnostics: ts.Diagnostic[];
-  /** A source map mapping back into the original sources. */
-  sourceMap: SourceMapGenerator;
 }
 
 /**
@@ -161,8 +160,10 @@ class ClosureRewriter extends Rewriter {
    */
   symbolsToAliasedNames = new Map<ts.Symbol, string>();
 
-  constructor(protected program: ts.Program, file: ts.SourceFile, protected options: Options) {
-    super(file);
+  constructor(
+      protected program: ts.Program, file: ts.SourceFile, protected options: Options,
+      sourceMapper?: SourceMapper) {
+    super(file, sourceMapper);
   }
 
   /**
@@ -493,8 +494,9 @@ class Annotator extends ClosureRewriter {
   constructor(
       program: ts.Program, file: ts.SourceFile, options: Options,
       private pathToModuleName: (context: string, importPath: string) => string,
-      private host?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions) {
-    super(program, file, options);
+      private host?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions,
+      sourceMapper?: SourceMapper) {
+    super(program, file, options, sourceMapper);
     this.externsWriter = new ExternsWriter(program, file, options);
     this.typeChecker = program.getTypeChecker();
   }
@@ -511,7 +513,6 @@ class Annotator extends ClosureRewriter {
       output: annotated.output,
       externs: externsSource,
       diagnostics: externs.diagnostics.concat(annotated.diagnostics),
-      sourceMap: annotated.sourceMap,
     };
   }
 
@@ -585,7 +586,7 @@ class Annotator extends ClosureRewriter {
       this.externsWriter.visit(node);
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
-      this.writeRange(node.getFullStart(), node.getEnd());
+      this.writeRange(node, node.getFullStart(), node.getEnd());
       // ... but it might need to be exported for downstream importing code.
       this.maybeEmitAmbientDeclarationExport(node);
       return true;
@@ -599,7 +600,7 @@ class Annotator extends ClosureRewriter {
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
-        this.writeRange(node.getFullStart(), node.getStart());
+        this.writeRange(node, node.getFullStart(), node.getStart());
         this.emit('export');
         let exportedSymbols: NamedSymbol[] = [];
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
@@ -627,7 +628,7 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.InterfaceDeclaration:
         this.emitInterface(node as ts.InterfaceDeclaration);
         // Emit the TS interface verbatim, with no tsickle processing of properties.
-        this.writeRange(node.getFullStart(), node.getEnd());
+        this.writeRange(node, node.getFullStart(), node.getEnd());
         return true;
       case ts.SyntaxKind.VariableDeclaration:
         const varDecl = node as ts.VariableDeclaration;
@@ -662,12 +663,12 @@ class Annotator extends ClosureRewriter {
         let offset = ctor.getStart();
         if (ctor.parameters.length) {
           for (const param of ctor.parameters) {
-            this.writeRange(offset, param.getFullStart());
+            this.writeRange(node, offset, param.getFullStart());
             this.visit(param);
             offset = param.getEnd();
           }
         }
-        this.writeRange(offset, node.getEnd());
+        this.writeRange(node, offset, node.getEnd());
         return true;
       case ts.SyntaxKind.ArrowFunction:
         // It's difficult to annotate arrow functions due to a bug in
@@ -689,7 +690,7 @@ class Annotator extends ClosureRewriter {
         }
 
         this.emitFunctionType([fnDecl], tags);
-        this.writeRange(fnDecl.getStart(), fnDecl.body.getFullStart());
+        this.writeRange(fnDecl, fnDecl.getStart(), fnDecl.body.getFullStart());
         this.visit(fnDecl.body);
         return true;
       case ts.SyntaxKind.TypeAliasDeclaration:
@@ -740,7 +741,7 @@ class Annotator extends ClosureRewriter {
         if (docTags.length > 0 && node.getFirstToken()) {
           this.emit('\n');
           this.emit(jsdoc.toString(docTags));
-          this.writeRange(node.getFirstToken().getStart(), node.getEnd());
+          this.writeRange(node, node.getFirstToken().getStart(), node.getEnd());
           return true;
         }
         break;
@@ -815,7 +816,7 @@ class Annotator extends ClosureRewriter {
       this.visit(stmt);
     }
     if (sf.statements.length) {
-      this.writeRange(sf.statements[sf.statements.length - 1].getEnd(), sf.getEnd());
+      this.writeRange(sf, sf.statements[sf.statements.length - 1].getEnd(), sf.getEnd());
     }
   }
 
@@ -849,7 +850,7 @@ class Annotator extends ClosureRewriter {
       return;
     }
     const comment = comments[fileoverviewIdx];
-    this.writeRange(0, comment.pos);
+    this.writeRange(sf, 0, comment.pos);
     this.skipUpToOffset = comment.end;
 
     const parsed = jsdoc.parse(sf.getFullText().substring(comment.pos, comment.end));
@@ -997,7 +998,7 @@ class Annotator extends ClosureRewriter {
    * @return true if the decl was handled, false to allow default processing.
    */
   private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
-    this.writeRange(decl.getFullStart(), decl.getStart());
+    this.writeRange(decl, decl.getFullStart(), decl.getStart());
     this.emit('import');
     const importPath = this.resolveModuleSpecifier(decl.moduleSpecifier);
     const importClause = decl.importClause;
@@ -1130,12 +1131,12 @@ class Annotator extends ClosureRewriter {
       // We must visit all members individually, to strip out any
       // /** @export */ annotations that show up in the constructor
       // and to annotate methods.
-      this.writeRange(classDecl.getStart(), classDecl.members[0].getFullStart());
+      this.writeRange(classDecl, classDecl.getStart(), classDecl.members[0].getFullStart());
       for (const member of classDecl.members) {
         this.visit(member);
       }
     } else {
-      this.writeRange(classDecl.getStart(), classDecl.getLastToken().getFullStart());
+      this.writeRange(classDecl, classDecl.getStart(), classDecl.getLastToken().getFullStart());
     }
     this.writeNode(classDecl.getLastToken());
     this.emitTypeAnnotationsHelper(classDecl);
@@ -1656,7 +1657,9 @@ class ExternsWriter extends ClosureRewriter {
 export function annotate(
     program: ts.Program, file: ts.SourceFile,
     pathToModuleName: (context: string, importPath: string) => string, options: Options = {},
-    host?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions): Output {
+    host?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
+    sourceMapper?: SourceMapper): Output {
   typeTranslator.assertTypeChecked(file);
-  return new Annotator(program, file, options, pathToModuleName, host, tsOpts).annotate();
+  return new Annotator(program, file, options, pathToModuleName, host, tsOpts, sourceMapper)
+      .annotate();
 }

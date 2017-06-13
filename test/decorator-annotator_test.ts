@@ -13,6 +13,7 @@ import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from '../src/decorator-annotator';
+import {DefaultSourceMapper} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
@@ -36,11 +37,12 @@ describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
         const program = testSupport.createProgram(sources(sourceText));
-        const {output, diagnostics, sourceMap} =
-            convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
+        const sourceMapper = new DefaultSourceMapper(testCaseFileName);
+        const {output, diagnostics} = convertDecorators(
+            program.getTypeChecker(), program.getSourceFile(testCaseFileName), sourceMapper);
         if (!allowErrors) expect(diagnostics).to.be.empty;
         verifyCompiles(output);
-        return {output, diagnostics, sourceMap};
+        return {output, diagnostics, sourceMap: sourceMapper.sourceMap};
       }
 
       function expectUnchanged(sourceText: string) {
