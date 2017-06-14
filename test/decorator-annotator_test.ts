@@ -49,16 +49,6 @@ describe(
         expect(translate(sourceText).output).to.equal(sourceText);
       }
 
-      it('rejects non-typechecked inputs', () => {
-        const sourceText = 'let x = 3;';
-        const program = testSupport.createProgram(sources(sourceText));
-        const goodSourceFile = program.getSourceFile(testCaseFileName);
-        expect(() => convertDecorators(program.getTypeChecker(), goodSourceFile)).to.not.throw();
-        const badSourceFile =
-            ts.createSourceFile(testCaseFileName, sourceText, ts.ScriptTarget.ES2015, true);
-        expect(() => convertDecorators(program.getTypeChecker(), badSourceFile)).to.throw();
-      });
-
       it('generates a source map', () => {
         const {output, sourceMap} = translate(`
 /** @Annotation */ let Test1: Function;

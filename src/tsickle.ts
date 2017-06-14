@@ -1861,7 +1861,6 @@ export function annotate(
     options: AnnotatorOptions = {}, tsHost?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
     sourceMapper?: SourceMapper,
     features = AnnotatorFeatures.Default): {output: string, diagnostics: ts.Diagnostic[]} {
-  typeTranslator.assertTypeChecked(file);
   return new Annotator(typeChecker, file, host, options, tsHost, tsOpts, sourceMapper, features)
       .annotate();
 }
@@ -1869,7 +1868,6 @@ export function annotate(
 export function writeExterns(
     typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
     options: AnnotatorOptions = {}): {output: string, diagnostics: ts.Diagnostic[]} {
-  typeTranslator.assertTypeChecked(file);
   return new ExternsWriter(typeChecker, file, host, options).process();
 }
 
