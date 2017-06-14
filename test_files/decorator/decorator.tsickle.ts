@@ -44,7 +44,16 @@ class DecoratorTest {
  */
 constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
 
-  @decorator
+/**
+ * @return {number}
+ */
+get w(): number {
+    return 1;
+  }
+/**
+ * Some comment
+ */
+@decorator
 private x: number;
 private y: number;
 
@@ -63,6 +72,7 @@ null, null,
 {type: AClassWithGenerics, },
 null,];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
+"w": [{ type: annotationDecorator },],
 "y": [{ type: annotationDecorator },],
 };
 }
@@ -77,7 +87,10 @@ DecoratorTest.decorators;
 DecoratorTest.ctorParameters;
 /** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
 DecoratorTest.propDecorators;
-/** @type {number} */
+/**
+ * Some comment
+ * @type {number}
+ */
 DecoratorTest.prototype.x;
 /** @type {number} */
 DecoratorTest.prototype.y;

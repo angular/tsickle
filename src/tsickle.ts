@@ -525,6 +525,7 @@ class Annotator extends ClosureRewriter {
   private generatedExports = new Set<string>();
   /** DecoratorClassVisitor when lowering decorators while closure annotating */
   private currentDecoratorConverter: DecoratorClassVisitor|undefined;
+  private polymerBehaviorStackCount = 0;
 
   constructor(
       typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
@@ -659,7 +660,11 @@ class Annotator extends ClosureRewriter {
         // Only emit a type annotation when it's a plain variable and
         // not a binding pattern, as Closure doesn't(?) have a syntax
         // for annotating binding patterns.  See issue #128.
-        if (varDecl.name.kind === ts.SyntaxKind.Identifier) {
+        // Don't emit type annotation when the variable statement is a @polymerBehavior,
+        // as otherweise the polymer closure checker will fail.
+        // TODO(tbosch): file an issue for this!
+        if (this.polymerBehaviorStackCount === 0 &&
+            varDecl.name.kind === ts.SyntaxKind.Identifier) {
           this.emitJSDocType(varDecl);
         }
         return false;
@@ -684,15 +689,7 @@ class Annotator extends ClosureRewriter {
         this.emitFunctionType([ctor]);
         // Write the "constructor(...) {" bit, but iterate through any
         // parameters if given so that we can examine them more closely.
-        let offset = ctor.getStart();
-        if (ctor.parameters.length) {
-          for (const param of ctor.parameters) {
-            this.writeRange(node, offset, param.getFullStart());
-            this.visit(param);
-            offset = param.getEnd();
-          }
-        }
-        this.writeRange(node, offset, node.getEnd());
+        this.writeNodeFrom(ctor, ctor.getStart());
         return true;
       case ts.SyntaxKind.ArrowFunction:
         // It's difficult to annotate arrow functions due to a bug in
@@ -714,8 +711,7 @@ class Annotator extends ClosureRewriter {
         }
 
         this.emitFunctionType([fnDecl], tags);
-        this.writeRange(fnDecl, fnDecl.getStart(), fnDecl.body.getFullStart());
-        this.visit(fnDecl.body);
+        this.writeNodeFrom(fnDecl, fnDecl.getStart());
         return true;
       case ts.SyntaxKind.TypeAliasDeclaration:
         this.writeNode(node);
@@ -765,7 +761,14 @@ class Annotator extends ClosureRewriter {
         if (docTags.length > 0 && node.getFirstToken()) {
           this.emit('\n');
           this.emit(jsdoc.toString(docTags));
-          this.writeRange(node, node.getFirstToken().getStart(), node.getEnd());
+          const isPolymerBehavior = docTags.some(t => t.tagName === 'polymerBehavior');
+          if (isPolymerBehavior) {
+            this.polymerBehaviorStackCount++;
+          }
+          this.writeNodeFrom(node, node.getStart());
+          if (isPolymerBehavior) {
+            this.polymerBehaviorStackCount--;
+          }
           return true;
         }
         break;
@@ -840,19 +843,15 @@ class Annotator extends ClosureRewriter {
   }
 
   private handleSourceFile(sf: ts.SourceFile) {
-    this.emitSuppressChecktypes(sf);
-    for (const stmt of sf.statements) {
-      this.visit(stmt);
-    }
-    if (sf.statements.length) {
-      this.writeRange(sf, sf.statements[sf.statements.length - 1].getEnd(), sf.getEnd());
-    }
+    const start = this.emitSuppressChecktypes(sf);
+    this.writeNodeFrom(sf, start);
   }
 
   /**
    * Emits an \@suppress {checkTypes} fileoverview comment.
+   * Returns the place from where to start emitting the source file.
    */
-  private emitSuppressChecktypes(sf: ts.SourceFile) {
+  private emitSuppressChecktypes(sf: ts.SourceFile): number {
     const comments = ts.getLeadingCommentRanges(sf.getFullText(), 0) || [];
 
     let fileoverviewIdx = -1;
@@ -876,11 +875,10 @@ class Annotator extends ClosureRewriter {
         {tagName: 'suppress', type: 'checkTypes', text: 'checked by tsc'},
       ]));
       this.emit('\n');
-      return;
+      return sf.getFullStart();
     }
     const comment = comments[fileoverviewIdx];
     this.writeRange(sf, 0, comment.pos);
-    this.skipUpToOffset = comment.end;
 
     const parsed = jsdoc.parse(sf.getFullText().substring(comment.pos, comment.end));
     if (!parsed) throw new Error('internal error: JSDoc comment does not parse');
@@ -908,6 +906,7 @@ class Annotator extends ClosureRewriter {
     if (sf.getFullText().substring(comment.end, comment.end + 2) !== '\n\n') {
       this.emit('\n\n');  // separate from file body to avoid being dropped by tsc.
     }
+    return comment.end;
   }
 
   /**

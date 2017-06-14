@@ -98,3 +98,11 @@ function JSDocWithBadTag() {}
  * @madeUpTag
  */
 const c = 'c';
+
+/**
+ * Don't emit type comments for Polymer behaviors,
+ * as this breaks their closure plugin :-(
+ *
+ * @polymerBehavior
+ */
+const somePolymerBehavior = {};
