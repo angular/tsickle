@@ -7,6 +7,7 @@
  */
 
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import * as ts from 'typescript';
 
 /**
  * Return a new RegExp object every time we want one because the
@@ -95,4 +96,48 @@ export function sourceMapTextToGenerator(sourceMapText: string): SourceMapGenera
   // tslint:disable-next-line:no-any constructor actually supports text.
   const sourceMapJson: any = sourceMapText;
   return SourceMapGenerator.fromSourceMap(sourceMapTextToConsumer(sourceMapJson));
+}
+
+export interface SourcePosition {
+  // 0 based
+  column: number;
+  // 0 based
+  line: number;
+  // 0 based
+  position: number;
+}
+
+export interface SourceMapper {
+  addMapping(
+      originalNode: ts.Node, original: SourcePosition, generated: SourcePosition,
+      length: number): void;
+}
+
+export const NOOP_SOURCE_MAPPER: SourceMapper = {
+  // tslint:disable-next-line:no-empty
+  addMapping() {}
+};
+
+export class DefaultSourceMapper implements SourceMapper {
+  /** The source map that's generated while rewriting this file. */
+  public sourceMap = new SourceMapGenerator();
+
+  constructor(private fileName: string) {
+    this.sourceMap.addMapping({
+      original: {line: 1, column: 1},
+      generated: {line: 1, column: 1},
+      source: this.fileName,
+    });
+  }
+
+  addMapping(node: ts.Node, original: SourcePosition, generated: SourcePosition, length: number):
+      void {
+    if (length > 0) {
+      this.sourceMap.addMapping({
+        original: {line: original.line + 1, column: original.column + 1},
+        generated: {line: generated.line + 1, column: generated.column + 1},
+        source: this.fileName,
+      });
+    }
+  }
 }

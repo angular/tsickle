@@ -17,3 +17,7 @@ function Interface() { }
 exports.Interface = Interface;
 /** @type {string} */
 Interface.prototype.x;
+/** @typedef {DeclaredType} */
+exports.DeclaredType;
+/** @typedef {DeclaredInterface} */
+exports.DeclaredInterface;

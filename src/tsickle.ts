@@ -10,28 +10,48 @@ import * as path from 'path';
 import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
+import {DecoratorClassVisitor, visitClassContentIncludingDecorators} from './decorator-annotator';
 import {hasExportingDecorator} from './decorators';
 import {extractGoogNamespaceImport} from './es5processor';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
-import {Options} from './tsickle_compiler_host';
+import {SourceMapper} from './source_map_utils';
 import * as typeTranslator from './type-translator';
 import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
-export {processES5} from './es5processor';
 export {FileMap, ModulesManifest} from './modules_manifest';
 export {Options, Pass, TsickleCompilerHost, TsickleHost} from './tsickle_compiler_host';
 
-export interface Output {
-  /** The TypeScript source with Closure annotations inserted. */
-  output: string;
-  /** Generated externs declarations, if any. */
-  externs: string|null;
-  /** Error messages, if any. */
-  diagnostics: ts.Diagnostic[];
-  /** A source map mapping back into the original sources. */
-  sourceMap: SourceMapGenerator;
+export interface AnnotatorHost {
+  /**
+   * If provided a function that logs an internal warning.
+   * These warnings are not actionable by an end user and should be hidden
+   * by default.
+   */
+  logWarning?: (warning: ts.Diagnostic) => void;
+  pathToModuleName: (context: string, importPath: string) => string;
+}
+
+export interface AnnotatorOptions {
+  /**
+   * If true, convert every type to the Closure {?} type, which means
+   * "don't check types".
+   */
+  untyped?: boolean;
+  /** If provided, a set of paths whose types should always generate as {?}. */
+  typeBlackListPaths?: Set<string>;
+  /**
+   * Convert shorthand "/index" imports to full path (include the "/index").
+   * Annotation will be slower because every import must be resolved.
+   */
+  convertIndexImportShorthand?: boolean;
+}
+
+export enum AnnotatorFeatures {
+  LowerDecorators = 1 << 0,
+
+  Default = 0
 }
 
 /**
@@ -161,8 +181,10 @@ class ClosureRewriter extends Rewriter {
    */
   symbolsToAliasedNames = new Map<ts.Symbol, string>();
 
-  constructor(protected program: ts.Program, file: ts.SourceFile, protected options: Options) {
-    super(file);
+  constructor(
+      protected typeChecker: ts.TypeChecker, file: ts.SourceFile, protected host: AnnotatorHost,
+      protected options: AnnotatorOptions, sourceMapper?: SourceMapper) {
+    super(file, sourceMapper);
   }
 
   /**
@@ -177,7 +199,7 @@ class ClosureRewriter extends Rewriter {
    *    function statement; for overloads, name will have been merged.
    */
   emitFunctionType(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): string[] {
-    const typeChecker = this.program.getTypeChecker();
+    const typeChecker = this.typeChecker;
     const newDoc = extraTags;
     const lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
     const minArgsCount = Math.min(...lens);
@@ -376,7 +398,7 @@ class ClosureRewriter extends Rewriter {
         // We can only @implements an interface, not a class.
         // But it's fine to translate TS "implements Class" into Closure
         // "@extends {Class}" because this is just a type hint.
-        const typeChecker = this.program.getTypeChecker();
+        const typeChecker = this.typeChecker;
         let sym = typeChecker.getSymbolAtLocation(impl.expression);
         if (sym.flags & ts.SymbolFlags.TypeAlias) {
           // It's implementing a type alias.  Follow the type alias back
@@ -431,7 +453,7 @@ class ClosureRewriter extends Rewriter {
       return '?';
     }
 
-    const typeChecker = this.program.getTypeChecker();
+    const typeChecker = this.typeChecker;
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
@@ -440,8 +462,7 @@ class ClosureRewriter extends Rewriter {
 
   newTypeTranslator(context: ts.Node) {
     const translator = new typeTranslator.TypeTranslator(
-        this.program.getTypeChecker(), context, this.options.typeBlackListPaths,
-        this.symbolsToAliasedNames);
+        this.typeChecker, context, this.options.typeBlackListPaths, this.symbolsToAliasedNames);
     translator.warn = msg => this.debugWarn(context, msg);
     return translator;
   }
@@ -454,7 +475,7 @@ class ClosureRewriter extends Rewriter {
    * for tsickle to debug itself.
    */
   debugWarn(node: ts.Node, messageText: string) {
-    if (!this.options.logWarning) return;
+    if (!this.host.logWarning) return;
     // Use a ts.Diagnosic so that the warning includes context and file offets.
     const diagnostic: ts.Diagnostic = {
       file: this.file,
@@ -464,7 +485,7 @@ class ClosureRewriter extends Rewriter {
       category: ts.DiagnosticCategory.Warning,
       code: 0,
     };
-    this.options.logWarning(diagnostic);
+    this.host.logWarning(diagnostic);
   }
 }
 
@@ -479,40 +500,22 @@ const FILEOVERVIEW_COMMENTS: ReadonlySet<string> =
 
 /** Annotator translates a .ts to a .ts with Closure annotations. */
 class Annotator extends ClosureRewriter {
-  /**
-   * Generated externs, if any. Any "declare" blocks encountered in the source
-   * are forwarded to the ExternsWriter to be translated into externs.
-   */
-  private externsWriter: ExternsWriter;
-
   /** Exported symbol names that have been generated by expanding an "export * from ...". */
   private generatedExports = new Set<string>();
-
-  private typeChecker: ts.TypeChecker;
+  /** DecoratorClassVisitor when lowering decorators while closure annotating */
+  private currentDecoratorConverter: DecoratorClassVisitor|undefined;
 
   constructor(
-      program: ts.Program, file: ts.SourceFile, options: Options,
-      private pathToModuleName: (context: string, importPath: string) => string,
-      private host?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions) {
-    super(program, file, options);
-    this.externsWriter = new ExternsWriter(program, file, options);
-    this.typeChecker = program.getTypeChecker();
+      typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
+      options: AnnotatorOptions, private tsHost?: ts.ModuleResolutionHost,
+      private tsOpts?: ts.CompilerOptions, sourceMapper?: SourceMapper,
+      private features = AnnotatorFeatures.Default) {
+    super(typeChecker, file, host, options, sourceMapper);
   }
 
-  annotate(): Output {
+  annotate() {
     this.visit(this.file);
-
-    const annotated = this.getOutput();
-
-    const externs = this.externsWriter.getOutput();
-    const externsSource = externs.output.length > 0 ? externs.output : null;
-
-    return {
-      output: annotated.output,
-      externs: externsSource,
-      diagnostics: externs.diagnostics.concat(annotated.diagnostics),
-      sourceMap: annotated.sourceMap,
-    };
+    return this.getOutput();
   }
 
   getExportDeclarationNames(node: ts.Node): ts.Identifier[] {
@@ -582,15 +585,16 @@ class Annotator extends ClosureRewriter {
    */
   maybeProcess(node: ts.Node): boolean {
     if (hasModifierFlag(node, ts.ModifierFlags.Ambient) || isDtsFileName(this.file.fileName)) {
-      this.externsWriter.visit(node);
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
-      this.writeRange(node.getFullStart(), node.getEnd());
+      this.writeRange(node, node.getFullStart(), node.getEnd());
       // ... but it might need to be exported for downstream importing code.
       this.maybeEmitAmbientDeclarationExport(node);
       return true;
     }
-
+    if (this.currentDecoratorConverter) {
+      this.currentDecoratorConverter.beforeProcessNode(node);
+    }
     switch (node.kind) {
       case ts.SyntaxKind.SourceFile:
         this.handleSourceFile(node as ts.SourceFile);
@@ -599,7 +603,7 @@ class Annotator extends ClosureRewriter {
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
-        this.writeRange(node.getFullStart(), node.getStart());
+        this.writeRange(node, node.getFullStart(), node.getStart());
         this.emit('export');
         let exportedSymbols: NamedSymbol[] = [];
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
@@ -627,7 +631,7 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.InterfaceDeclaration:
         this.emitInterface(node as ts.InterfaceDeclaration);
         // Emit the TS interface verbatim, with no tsickle processing of properties.
-        this.writeRange(node.getFullStart(), node.getEnd());
+        this.writeRange(node, node.getFullStart(), node.getEnd());
         return true;
       case ts.SyntaxKind.VariableDeclaration:
         const varDecl = node as ts.VariableDeclaration;
@@ -662,12 +666,12 @@ class Annotator extends ClosureRewriter {
         let offset = ctor.getStart();
         if (ctor.parameters.length) {
           for (const param of ctor.parameters) {
-            this.writeRange(offset, param.getFullStart());
+            this.writeRange(node, offset, param.getFullStart());
             this.visit(param);
             offset = param.getEnd();
           }
         }
-        this.writeRange(offset, node.getEnd());
+        this.writeRange(node, offset, node.getEnd());
         return true;
       case ts.SyntaxKind.ArrowFunction:
         // It's difficult to annotate arrow functions due to a bug in
@@ -689,7 +693,7 @@ class Annotator extends ClosureRewriter {
         }
 
         this.emitFunctionType([fnDecl], tags);
-        this.writeRange(fnDecl.getStart(), fnDecl.body.getFullStart());
+        this.writeRange(fnDecl, fnDecl.getStart(), fnDecl.body.getFullStart());
         this.visit(fnDecl.body);
         return true;
       case ts.SyntaxKind.TypeAliasDeclaration:
@@ -740,7 +744,7 @@ class Annotator extends ClosureRewriter {
         if (docTags.length > 0 && node.getFirstToken()) {
           this.emit('\n');
           this.emit(jsdoc.toString(docTags));
-          this.writeRange(node.getFirstToken().getStart(), node.getEnd());
+          this.writeRange(node, node.getFirstToken().getStart(), node.getEnd());
           return true;
         }
         break;
@@ -801,8 +805,13 @@ class Annotator extends ClosureRewriter {
                 ` has a string index type but is accessed using dotted access. ` +
                 `Quoting the access.`);
         this.writeNode(pae.expression);
-        this.emit(`['${getIdentifierText(pae.name)}']`);
+        this.emit(`["${getIdentifierText(pae.name)}"]`);
         return true;
+      case ts.SyntaxKind.Decorator:
+        if (this.currentDecoratorConverter) {
+          return this.currentDecoratorConverter.maybeProcessDecorator(node as ts.Decorator);
+        }
+        return false;
       default:
         break;
     }
@@ -815,7 +824,7 @@ class Annotator extends ClosureRewriter {
       this.visit(stmt);
     }
     if (sf.statements.length) {
-      this.writeRange(sf.statements[sf.statements.length - 1].getEnd(), sf.getEnd());
+      this.writeRange(sf, sf.statements[sf.statements.length - 1].getEnd(), sf.getEnd());
     }
   }
 
@@ -849,7 +858,7 @@ class Annotator extends ClosureRewriter {
       return;
     }
     const comment = comments[fileoverviewIdx];
-    this.writeRange(0, comment.pos);
+    this.writeRange(sf, 0, comment.pos);
     this.skipUpToOffset = comment.end;
 
     const parsed = jsdoc.parse(sf.getFullText().substring(comment.pos, comment.end));
@@ -970,11 +979,11 @@ class Annotator extends ClosureRewriter {
     }
     let moduleId = (moduleSpecifier as ts.StringLiteral).text;
     if (this.options.convertIndexImportShorthand) {
-      if (!this.tsOpts || !this.host) {
+      if (!this.tsOpts || !this.tsHost) {
         throw new Error(
             'option convertIndexImportShorthand requires that annotate be called with a TypeScript host and options.');
       }
-      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.host);
+      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.tsHost);
       if (resolved && resolved.resolvedModule) {
         const requestedModule = moduleId.replace(extension, '');
         const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
@@ -997,7 +1006,7 @@ class Annotator extends ClosureRewriter {
    * @return true if the decl was handled, false to allow default processing.
    */
   private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
-    this.writeRange(decl.getFullStart(), decl.getStart());
+    this.writeRange(decl, decl.getFullStart(), decl.getStart());
     this.emit('import');
     const importPath = this.resolveModuleSpecifier(decl.moduleSpecifier);
     const importClause = decl.importClause;
@@ -1080,7 +1089,7 @@ class Annotator extends ClosureRewriter {
     const nsImport = extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
     const moduleNamespace =
-        nsImport !== null ? nsImport : this.pathToModuleName(this.file.fileName, importPath);
+        nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
     const exports =
         this.typeChecker.getExportsOfModule(this.typeChecker.getSymbolAtLocation(specifier));
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
@@ -1088,7 +1097,7 @@ class Annotator extends ClosureRewriter {
     // here would cause a change in load order, which is observable (and can lead to errors).
     // Instead, goog.forwardDeclare types, which allows using them in type annotations without
     // causing a load. See below for the exception to the rule.
-    this.emit(`\nconst ${forwardDeclarePrefix} = goog.forwardDeclare('${moduleNamespace}');`);
+    this.emit(`\nconst ${forwardDeclarePrefix} = goog.forwardDeclare("${moduleNamespace}");`);
     const hasValues = exports.some(e => (e.flags & ts.SymbolFlags.Value) !== 0);
     if (!hasValues) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
@@ -1101,7 +1110,7 @@ class Annotator extends ClosureRewriter {
       // This is a heuristic - if the module exports some values, but those are never imported,
       // the file will still end up not being imported. Hopefully modules that export values are
       // imported for their value in some place.
-      this.emit(`\ngoog.require('${moduleNamespace}'); // force type-only module to be loaded`);
+      this.emit(`\ngoog.require("${moduleNamespace}"); // force type-only module to be loaded`);
     }
     for (const exp of exportedSymbols) {
       if (exp.sym.flags & ts.SymbolFlags.Alias)
@@ -1114,6 +1123,11 @@ class Annotator extends ClosureRewriter {
   }
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
+    const oldDecoratorConverter = this.currentDecoratorConverter;
+    if (this.features & AnnotatorFeatures.LowerDecorators) {
+      this.currentDecoratorConverter = new DecoratorClassVisitor(this.typeChecker, this, classDecl);
+    }
+
     const docTags = this.getJSDoc(classDecl) || [];
     if (hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
       docTags.push({tagName: 'abstract'});
@@ -1126,19 +1140,10 @@ class Annotator extends ClosureRewriter {
 
     this.emit('\n');
     if (docTags.length > 0) this.emit(jsdoc.toString(docTags));
-    if (classDecl.members.length > 0) {
-      // We must visit all members individually, to strip out any
-      // /** @export */ annotations that show up in the constructor
-      // and to annotate methods.
-      this.writeRange(classDecl.getStart(), classDecl.members[0].getFullStart());
-      for (const member of classDecl.members) {
-        this.visit(member);
-      }
-    } else {
-      this.writeRange(classDecl.getStart(), classDecl.getLastToken().getFullStart());
-    }
-    this.writeNode(classDecl.getLastToken());
+    visitClassContentIncludingDecorators(classDecl, this, this.currentDecoratorConverter);
     this.emitTypeAnnotationsHelper(classDecl);
+
+    this.currentDecoratorConverter = oldDecoratorConverter;
     return true;
   }
 
@@ -1220,6 +1225,9 @@ class Annotator extends ClosureRewriter {
     const className = getIdentifierText(classDecl.name);
 
     this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
+    if (this.currentDecoratorConverter) {
+      this.currentDecoratorConverter.emitMetadataTypeAnnotationsHelpers();
+    }
     staticProps.forEach(p => this.visitProperty([className], p));
     const memberNamespace = [className, 'prototype'];
     nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));
@@ -1399,6 +1407,18 @@ class Annotator extends ClosureRewriter {
 
 /** ExternsWriter generates Closure externs from TypeScript source. */
 class ExternsWriter extends ClosureRewriter {
+  process(): {output: string, diagnostics: ts.Diagnostic[]} {
+    this.findExternRoots().forEach(node => this.visit(node));
+    return this.getOutput();
+  }
+
+  private findExternRoots(): ts.Node[] {
+    if (isDtsFileName(this.file.fileName)) {
+      return [this.file];
+    }
+    return this.file.statements.filter(stmt => hasModifierFlag(stmt, ts.ModifierFlags.Ambient));
+  }
+
   /** visit is the main entry point.  It generates externs from a ts.Node. */
   public visit(node: ts.Node, namespace: string[] = []) {
     switch (node.kind) {
@@ -1473,7 +1493,7 @@ class ExternsWriter extends ClosureRewriter {
           break;
         }
         // Gather up all overloads of this function.
-        const sym = this.program.getTypeChecker().getSymbolAtLocation(name);
+        const sym = this.typeChecker.getSymbolAtLocation(name);
         const decls = sym.declarations!.filter(d => d.kind === ts.SyntaxKind.FunctionDeclaration) as
             ts.FunctionDeclaration[];
         // Only emit the first declaration of each overloaded function.
@@ -1507,7 +1527,7 @@ class ExternsWriter extends ClosureRewriter {
    */
   private isFirstDeclaration(decl: ts.DeclarationStatement): boolean {
     if (!decl.name) return true;
-    const typeChecker = this.program.getTypeChecker();
+    const typeChecker = this.typeChecker;
     const sym = typeChecker.getSymbolAtLocation(decl.name);
     if (!sym.declarations || sym.declarations.length < 2) return true;
     return decl === sym.declarations[0];
@@ -1673,9 +1693,28 @@ class ExternsWriter extends ClosureRewriter {
 }
 
 export function annotate(
-    program: ts.Program, file: ts.SourceFile,
-    pathToModuleName: (context: string, importPath: string) => string, options: Options = {},
-    host?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions): Output {
+    typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
+    options: AnnotatorOptions = {}, tsHost?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
+    sourceMapper?: SourceMapper,
+    features = AnnotatorFeatures.Default): {output: string, diagnostics: ts.Diagnostic[]} {
   typeTranslator.assertTypeChecked(file);
-  return new Annotator(program, file, options, pathToModuleName, host, tsOpts).annotate();
+  return new Annotator(typeChecker, file, host, options, tsHost, tsOpts, sourceMapper, features)
+      .annotate();
+}
+
+export function writeExterns(
+    typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
+    options: AnnotatorOptions = {}): {output: string, diagnostics: ts.Diagnostic[]} {
+  typeTranslator.assertTypeChecked(file);
+  return new ExternsWriter(typeChecker, file, host, options).process();
+}
+
+/** Concatenate all generated externs definitions together into a string. */
+export function getGeneratedExterns(externs: {[fileName: string]: string}): string {
+  let allExterns = EXTERNS_HEADER;
+  for (const fileName of Object.keys(externs)) {
+    allExterns += `// externs from ${fileName}:\n`;
+    allExterns += externs[fileName];
+  }
+  return allExterns;
 }

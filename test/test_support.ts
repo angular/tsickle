@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
+import * as es5processor from '../src/es5processor';
 import * as tsickle from '../src/tsickle';
 import {toArray} from '../src/util';
 
@@ -70,9 +71,12 @@ export function createProgram(sources: Map<string, string>): ts.Program {
 export function emit(program: ts.Program): {[fileName: string]: string} {
   const transformed: {[fileName: string]: string} = {};
   const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
-    const moduleId = fileName.replace(/^\.\//, '');
-    transformed[fileName] =
-        tsickle.processES5(fileName, moduleId, data, cliSupport.pathToModuleName).output;
+    const options: es5processor.Es5ProcessorOptions = {es5Mode: true, prelude: ''};
+    const host: es5processor.Es5ProcessorHost = {
+      fileNameToModuleId: (fn) => fn.replace(/^\.\//, ''),
+      pathToModuleName: cliSupport.pathToModuleName
+    };
+    transformed[fileName] = es5processor.processES5(host, options, fileName, data).output;
   });
   if (diagnostics.length > 0) {
     throw new Error(tsickle.formatDiagnostics(diagnostics));

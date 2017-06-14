@@ -75,6 +75,15 @@ function compareAgainstGolden(output: string|null, path: string) {
 const testFn = TEST_FILTER ? describe.only : describe;
 
 testFn('golden tests', () => {
+  testFn('with separate passes', () => {
+    runGoldenTests(true);
+  });
+  testFn('with one pass', () => {
+    runGoldenTests(false);
+  });
+});
+
+function runGoldenTests(useSeparatePasses: boolean) {
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
@@ -107,24 +116,26 @@ testFn('golden tests', () => {
 
       // Run TypeScript through the decorator annotator and emit goldens if
       // it changed anything.
-      let convertDecoratorsMadeChange = false;
-      for (const tsPath of toArray(tsSources.keys())) {
-        // Run TypeScript through the decorator annotator and emit goldens if
-        // it changed anything.
-        const {output, diagnostics} =
-            tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
-        expect(diagnostics).to.be.empty;
-        if (output !== tsSources.get(tsPath)) {
-          const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
-          expect(decoratedPath).to.not.equal(tsPath);
-          compareAgainstGolden(output, decoratedPath);
-          tsSources.set(tsPath, output);
-          convertDecoratorsMadeChange = true;
+      if (useSeparatePasses) {
+        let convertDecoratorsMadeChange = false;
+        for (const tsPath of toArray(tsSources.keys())) {
+          // Run TypeScript through the decorator annotator and emit goldens if
+          // it changed anything.
+          const {output, diagnostics} =
+              tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
+          expect(diagnostics).to.be.empty;
+          if (output !== tsSources.get(tsPath)) {
+            const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
+            expect(decoratedPath).to.not.equal(tsPath);
+            compareAgainstGolden(output, decoratedPath);
+            tsSources.set(tsPath, output);
+            convertDecoratorsMadeChange = true;
+          }
         }
-      }
-      if (convertDecoratorsMadeChange) {
-        // A file changed; reload the program on the new output.
-        program = testSupport.createProgram(tsSources);
+        if (convertDecoratorsMadeChange) {
+          // A file changed; reload the program on the new output.
+          program = testSupport.createProgram(tsSources);
+        }
       }
 
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
@@ -136,27 +147,37 @@ testFn('golden tests', () => {
         options.logWarning = (diag: ts.Diagnostic) => {
           warnings.push(diag);
         };
+        const annotatorHost: tsickle.AnnotatorHost = {
+          logWarning: (diag: ts.Diagnostic) => {
+            warnings.push(diag);
+          },
+          pathToModuleName: (context, importPath) => {
+            importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
+            if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
+            return importPath.replace(/\/|\\/g, '.');
+          }
+        };
         // Run TypeScript through tsickle and compare against goldens.
-        const {output, externs, diagnostics} = tsickle.annotate(
-            program, program.getSourceFile(tsPath),
-            (context, importPath) => {
-              importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
-              if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-              return importPath.replace(/\/|\\/g, '.');
-            },
-            options, {
+        const sourceFile = program.getSourceFile(tsPath);
+        const annotated = tsickle.annotate(
+            program.getTypeChecker(), sourceFile, annotatorHost, options, {
               fileExists: ts.sys.fileExists,
               readFile: ts.sys.readFile,
             },
-            testSupport.compilerOptions);
-        if (externs && !test.name.endsWith('.no_externs')) {
+            testSupport.compilerOptions, undefined,
+            useSeparatePasses ? tsickle.AnnotatorFeatures.Default :
+                                tsickle.AnnotatorFeatures.LowerDecorators);
+        const externs =
+            tsickle.writeExterns(program.getTypeChecker(), sourceFile, annotatorHost, options);
+        const diagnostics = externs.diagnostics.concat(annotated.diagnostics);
+        if (externs.output && !test.name.endsWith('.no_externs')) {
           if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
-          allExterns += externs;
+          allExterns += externs.output;
         }
 
         // If there were any diagnostics, convert them into strings for
         // the golden output.
-        let fileOutput = output;
+        let fileOutput = annotated.output;
         diagnostics.push(...warnings);
         if (diagnostics.length > 0) {
           // Munge the filenames in the diagnostics so that they don't include
@@ -165,12 +186,16 @@ testFn('golden tests', () => {
             const fileName = diag.file.fileName;
             diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
           }
-          fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + output;
+          fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + annotated.output;
         }
         const tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
         expect(tsicklePath).to.not.equal(tsPath);
-        compareAgainstGolden(fileOutput, tsicklePath);
-        tsickleSources.set(tsPath, output);
+        if (useSeparatePasses) {
+          // Don't compare the output of tsickle if we
+          // do a single pass as whitespaces might be different.
+          compareAgainstGolden(fileOutput, tsicklePath);
+        }
+        tsickleSources.set(tsPath, annotated.output);
       }
       compareAgainstGolden(allExterns, test.externsPath);
 
@@ -183,4 +208,4 @@ testFn('golden tests', () => {
       }
     });
   });
-});
+}

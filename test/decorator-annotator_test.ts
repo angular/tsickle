@@ -13,6 +13,7 @@ import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import {convertDecorators} from '../src/decorator-annotator';
+import {DefaultSourceMapper} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
@@ -36,11 +37,12 @@ describe(
     'decorator-annotator', () => {
       function translate(sourceText: string, allowErrors = false) {
         const program = testSupport.createProgram(sources(sourceText));
-        const {output, diagnostics, sourceMap} =
-            convertDecorators(program.getTypeChecker(), program.getSourceFile(testCaseFileName));
+        const sourceMapper = new DefaultSourceMapper(testCaseFileName);
+        const {output, diagnostics} = convertDecorators(
+            program.getTypeChecker(), program.getSourceFile(testCaseFileName), sourceMapper);
         if (!allowErrors) expect(diagnostics).to.be.empty;
         verifyCompiles(output);
-        return {output, diagnostics, sourceMap};
+        return {output, diagnostics, sourceMap: sourceMapper.sourceMap};
       }
 
       function expectUnchanged(sourceText: string) {
@@ -296,8 +298,7 @@ static decorators: {type: Function, args?: any[]}[] = [
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: BarService, },
-null,
-];
+null,];
 }`);
         });
 
@@ -319,8 +320,7 @@ class Foo {
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: bar.BarService, decorators: [{ type: Inject, args: [param, ] }, ]},
-null,
-null,
+null, null,
 {type: bar.BarService, },
 ];
 }`);
@@ -403,7 +403,7 @@ class Foo {
 class Foo {
   \n  bar() {}
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
-'bar': [{ type: Test1, args: ['somename', ] },],
+"bar": [{ type: Test1, args: ['somename', ] },],
 };
 }`);
         });
@@ -425,8 +425,8 @@ class ClassWithDecorators {
 
   \n  set c(value) {}
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
-'a': [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
-'c': [{ type: PropDecorator, args: ["p3", ] },],
+"a": [{ type: PropDecorator, args: ["p1", ] },{ type: PropDecorator, args: ["p2", ] },],
+"c": [{ type: PropDecorator, args: ["p3", ] },],
 };
 }`);
         });
@@ -456,7 +456,7 @@ class Foo {
   missingSemi = () => {}
    other: number;
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
-'other': [{ type: PropDecorator },],
+"other": [{ type: PropDecorator },],
 };
 }`);
 

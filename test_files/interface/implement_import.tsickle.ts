@@ -4,7 +4,7 @@
  */
 
 import {Point, User} from './interface';
-const tsickle_forward_declare_1 = goog.forwardDeclare('test_files.interface.interface');
+const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.interface.interface");
 /**
  * @implements {tsickle_forward_declare_1.Point}
  */
