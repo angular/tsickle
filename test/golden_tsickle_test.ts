@@ -183,8 +183,10 @@ function runGoldenTests(useSeparatePasses: boolean) {
           // Munge the filenames in the diagnostics so that they don't include
           // the tsickle checkout path.
           for (const diag of diagnostics) {
-            const fileName = diag.file.fileName;
-            diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
+            if (diag.file) {
+              const fileName = diag.file.fileName;
+              diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
+            }
           }
           fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + annotated.output;
         }

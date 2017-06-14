@@ -116,8 +116,10 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
         let res = ts.DiagnosticCategory[d.category];
         if (d.file) {
           res += ' at ' + d.file.fileName + ':';
-          const {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
-          res += (line + 1) + ':' + (character + 1) + ':';
+          if (d.start) {
+            const {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
+            res += (line + 1) + ':' + (character + 1) + ':';
+          }
         }
         res += ' ' + ts.flattenDiagnosticMessageText(d.messageText, '\n');
         return res;
@@ -291,6 +293,7 @@ class ClosureRewriter extends Rewriter {
       }
       // Merge the parameters into a single list of merged names and list of types
       const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
+      if (!sig) throw new Error(`invalid signature ${fnDecl.name}`);
       for (let i = 0; i < sig.declaration.parameters.length; i++) {
         const paramNode = sig.declaration.parameters[i];
 
@@ -309,7 +312,9 @@ class ClosureRewriter extends Rewriter {
           // In TypeScript you write "...x: number[]", but in Closure
           // you don't write the array: "@param {...number} x".  Unwrap
           // the Array<> wrapper.
-          type = (type as ts.TypeReference).typeArguments[0];
+          const typeRef = type as ts.TypeReference;
+          if (!typeRef.typeArguments) throw new Error('invalid rest param');
+          type = typeRef.typeArguments![0];
         }
         newTag.type = this.typeToClosure(fnDecl, type);
 

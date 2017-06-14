@@ -28,7 +28,7 @@ export function getDecoratorDeclarations(decorator: ts.Decorator, typeChecker: t
   if (decSym.flags & ts.SymbolFlags.Alias) {
     decSym = typeChecker.getAliasedSymbol(decSym);
   }
-  return decSym.getDeclarations();
+  return decSym.getDeclarations() || [];
 }
 
 /**
