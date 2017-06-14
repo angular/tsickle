@@ -317,40 +317,15 @@ class DecoratorRewriter extends Rewriter {
 
 export function visitClassContentIncludingDecorators(
     classDecl: ts.ClassDeclaration, rewriter: Rewriter, decoratorVisitor?: DecoratorClassVisitor) {
-  let pos = classDecl.getStart();
-  if (decoratorVisitor) {
-    // visit decorators if needed
-    ts.forEachChild(classDecl, child => {
-      if (child.kind !== ts.SyntaxKind.Decorator) {
-        return;
-      }
-      // Note: The getFullStart() of the first decorator is the same
-      // as the getFullStart() of the class declaration.
-      // Therefore, we need to use Math.max to not print the whitespace
-      // of the class again.
-      const childStart = Math.max(pos, child.getFullStart());
-      rewriter.writeRange(classDecl, pos, childStart);
-      if (decoratorVisitor.maybeProcessDecorator(child as ts.Decorator, childStart)) {
-        pos = child.getEnd();
-      }
-    });
+  if (rewriter.file.text[classDecl.getEnd() - 1] !== '}') {
+    rewriter.error(classDecl, 'unexpected class terminator');
   }
-  if (classDecl.members.length > 0) {
-    rewriter.writeRange(classDecl, pos, classDecl.members[0].getFullStart());
-    for (const member of classDecl.members) {
-      rewriter.visit(member);
-    }
-    pos = classDecl.getLastToken().getFullStart();
-  }
+  rewriter.writeNodeFrom(classDecl, classDecl.getStart(), classDecl.getEnd() - 1);
   // At this point, we've emitted up through the final child of the class, so all that
   // remains is the trailing whitespace and closing curly brace.
   // The final character owned by the class node should always be a '}',
   // or we somehow got the AST wrong and should report an error.
   // (Any whitespace or semicolon following the '}' will be part of the next Node.)
-  if (rewriter.file.text[classDecl.getEnd() - 1] !== '}') {
-    rewriter.error(classDecl, 'unexpected class terminator');
-  }
-  rewriter.writeRange(classDecl, pos, classDecl.getEnd() - 1);
   if (decoratorVisitor) {
     decoratorVisitor.emitMetadataAsStaticProperties();
   }

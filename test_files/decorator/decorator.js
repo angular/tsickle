@@ -41,6 +41,12 @@ class DecoratorTest {
      * @param {!tsickle_forward_declare_1.AType} aType
      */
     constructor(a, n, b, promise, arr, aClass, aClassWithGenerics, aType) { }
+    /**
+     * @return {number}
+     */
+    get w() {
+        return 1;
+    }
 }
 DecoratorTest.decorators = [
     { type: classAnnotation },
@@ -56,6 +62,7 @@ DecoratorTest.ctorParameters = () => [
     null,
 ];
 DecoratorTest.propDecorators = {
+    "w": [{ type: annotationDecorator },],
     "y": [{ type: annotationDecorator },],
 };
 __decorate([
@@ -76,7 +83,10 @@ function DecoratorTest_tsickle_Closure_declarations() {
     DecoratorTest.ctorParameters;
     /** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
     DecoratorTest.propDecorators;
-    /** @type {number} */
+    /**
+     * Some comment
+     * @type {number}
+     */
     DecoratorTest.prototype.x;
     /** @type {number} */
     DecoratorTest.prototype.y;

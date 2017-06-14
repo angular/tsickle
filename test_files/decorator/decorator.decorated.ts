@@ -19,6 +19,12 @@ function classAnnotation(t: any) { return t; }
 class DecoratorTest {
   constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
 
+  
+  get w(): number {
+    return 1;
+  }
+
+  /** Some comment */
   @decorator
   private x: number;
 
@@ -40,6 +46,7 @@ null, null,
 {type: AClassWithGenerics, },
 null,];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
+"w": [{ type: annotationDecorator },],
 "y": [{ type: annotationDecorator },],
 };
 }

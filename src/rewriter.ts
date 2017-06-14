@@ -27,10 +27,10 @@ export abstract class Rewriter {
    */
   private indent = 0;
   /**
-   * Skip emitting any code before the given offset. Used to avoid emitting @fileoverview comments
-   * twice.
+   * Skip emitting any code before the given offset. E.g. used to avoid emitting @fileoverview
+   * comments twice.
    */
-  public skipUpToOffset = 0;
+  private skipUpToOffset = -1;
 
   constructor(public file: ts.SourceFile, private sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
   }
@@ -84,13 +84,19 @@ export abstract class Rewriter {
     this.writeNodeFrom(node, pos);
   }
 
-  writeNodeFrom(node: ts.Node, pos: number) {
+  writeNodeFrom(node: ts.Node, pos: number, end = Number.MAX_SAFE_INTEGER) {
+    if (node.getEnd() <= this.skipUpToOffset) {
+      return;
+    }
+    const oldSkipUpToOffset = this.skipUpToOffset;
+    this.skipUpToOffset = Math.max(this.skipUpToOffset, pos);
     ts.forEachChild(node, child => {
       this.writeRange(node, pos, child.getFullStart());
       this.visit(child);
       pos = child.getEnd();
     });
-    this.writeRange(node, pos, node.getEnd());
+    this.writeRange(node, pos, Math.min(end, node.getEnd()));
+    this.skipUpToOffset = oldSkipUpToOffset;
   }
 
   /**
@@ -100,7 +106,7 @@ export abstract class Rewriter {
    */
   writeRange(node: ts.Node, from: number, to: number) {
     from = Math.max(from, this.skipUpToOffset);
-    if (this.skipUpToOffset > 0 && to <= this.skipUpToOffset) {
+    if (from !== to && to <= this.skipUpToOffset) {
       return;
     }
     // Add a source mapping. writeRange(from, to) always corresponds to

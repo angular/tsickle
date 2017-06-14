@@ -19,6 +19,12 @@ function classAnnotation(t: any) { return t; }
 class DecoratorTest {
   constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
 
+  @annotationDecorator
+  get w(): number {
+    return 1;
+  }
+
+  /** Some comment */
   @decorator
   private x: number;
 
