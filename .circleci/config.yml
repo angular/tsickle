@@ -8,11 +8,10 @@ jobs:
       - checkout
       - restore_cache:
           key: tsickle-{{ .Branch }}-{{ checksum "yarn.lock" }}
-      # Build twice, workaround for
-      # https://github.com/bazelbuild/bazel/issues/3114
       # Turn off sandboxing, workaround for
       # https://github.com/alexeagle/ngcontainer/issues/1
-      - run: bazel build --spawn_strategy=standalone ... || bazel build --spawn_strategy=standalone ...
+      - run: bazel run @yarn_pkg//:bin/yarn
+      - run: bazel build --spawn_strategy=standalone ...
       - save_cache:
           key: tsickle-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
