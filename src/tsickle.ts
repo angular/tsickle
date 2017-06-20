@@ -1169,7 +1169,8 @@ class Annotator extends ClosureRewriter {
 
     const memberNamespace = [name, 'prototype'];
     for (const elem of iface.members) {
-      this.visitProperty(memberNamespace, elem);
+      const isOptional = elem.questionToken != null;
+      this.visitProperty(memberNamespace, elem, isOptional);
     }
   }
 
@@ -1264,15 +1265,33 @@ class Annotator extends ClosureRewriter {
     }
   }
 
-  private visitProperty(namespace: string[], p: ts.Declaration) {
-    const name = this.propertyName(p);
+  /**
+   * @param optional If true, property is optional (e.g. written "foo?: string").
+   */
+  private visitProperty(namespace: string[], prop: ts.Declaration, optional = false) {
+    const name = this.propertyName(prop);
     if (!name) {
-      this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(p.getText())}\n*/\n`);
+      this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(prop.getText())}\n*/\n`);
       return;
     }
 
-    const tags = this.getJSDoc(p) || [];
-    tags.push({tagName: 'type', type: this.typeToClosure(p)});
+    let type = this.typeToClosure(prop);
+    // When a property is optional, e.g.
+    //   foo?: string;
+    // Then the TypeScript type of the property is string|undefined, the
+    // typeToClosure translation handles it correctly, and string|undefined is
+    // how you write an optional property in Closure.
+    //
+    // But in the special case of an optional property with type any:
+    //   foo?: any;
+    // The TypeScript type of the property is just "any" (because any includes
+    // undefined as well) so our default translation of the type is just "?".
+    // To mark the property as optional in Closure it must have "|undefined",
+    // so the Closure type must be ?|undefined.
+    if (optional && type === '?') type += '|undefined';
+
+    const tags = this.getJSDoc(prop) || [];
+    tags.push({tagName: 'type', type});
     // Avoid printing annotations that can conflict with @type
     // This avoids Closure's error "type annotation incompatible with other annotations"
     this.emit(jsdoc.toString(tags, new Set(['param', 'return'])));

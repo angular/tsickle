@@ -21,9 +21,7 @@ export interface Point {
 /**
  * Used by implement_import.ts
  */
-export class User {
-  shoeSize: number;
-}
+export class User { shoeSize: number; }
 
 function User_tsickle_Closure_declarations() {
 /** @type {number} */
@@ -56,6 +54,8 @@ TrickyInterface.prototype.foo;
 */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/** @type {?|undefined} */
+TrickyInterface.prototype.optAny;
 /**
  * \@param a some string value
  * \@return some number value
@@ -80,8 +80,9 @@ interface TrickyInterface {
   'foo': number;
   (x: number): /* yuck */
       number;
-  // TODO: handle optional members.  Should have |undefined type.
   'foobar'?: 'true'|'false';
+  // Note: this should be type ?|undefined, which is different(!) than just {?}.
+  optAny?: any|string;
   /**
    * @param a some string value
    * @return some number value
