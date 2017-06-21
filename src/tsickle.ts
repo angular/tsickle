@@ -923,22 +923,8 @@ class Annotator extends ClosureRewriter {
 
     // Gather the names of local exports, to avoid reexporting any
     // names that are already locally exported.
-    // To find symbols declared like
-    //   export {foo} from ...
-    // we must also query for "Alias", but that unfortunately also brings in
-    //   import {foo} from ...
-    // so the latter is filtered below.
-    const locals =
-        this.typeChecker.getSymbolsInScope(this.file, ts.SymbolFlags.Export | ts.SymbolFlags.Alias);
-    const localSet = new Set<string>();
-    for (const local of locals) {
-      if (local.declarations &&
-          local.declarations.some(d => d.kind === ts.SyntaxKind.ImportSpecifier)) {
-        continue;
-      }
-      localSet.add(local.name);
-    }
-
+    const moduleSymbol = this.typeChecker.getSymbolAtLocation(this.file);
+    const moduleExports = moduleSymbol && moduleSymbol.exports || new Map<string, ts.Symbol>();
 
     // Expand the export list, then filter it to the symbols we want to reexport.
     const exports =
@@ -946,10 +932,11 @@ class Annotator extends ClosureRewriter {
     const reexports = new Set<ts.Symbol>();
     for (const sym of exports) {
       const name = unescapeName(sym.name);
-      if (localSet.has(name)) {
+      if (moduleExports.has(name)) {
         // This name is shadowed by a local definition, such as:
         // - export var foo ...
         // - export {foo} from ...
+        // - export {bar as foo} from ...
         continue;
       }
       if (this.generatedExports.has(name)) {
