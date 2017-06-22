@@ -3,8 +3,10 @@
 // "declare global" should show up in the global namespace.
 declare global {
   var globalX: string;
-  namespace subnamespace {
+  export class GlobalClass {}
+  export namespace globalNamespace {
     var Y: string;
+    export class GlobalNamespaced {}
   }
 }
 

@@ -578,6 +578,7 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.FunctionDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
       case ts.SyntaxKind.ClassDeclaration:
+      case ts.SyntaxKind.ModuleDeclaration:
         const decl = node as ts.Declaration;
         if (!decl.name || decl.name.kind !== ts.SyntaxKind.Identifier) {
           break;
@@ -618,6 +619,10 @@ class Annotator extends ClosureRewriter {
         // understand that "var foo" in externs corresponds to "window.foo".
         this.emit(`\nexports.${declName} = window.${declName};\n`);
       } else if (!isValue) {
+        // Do not emit re-exports for ModuleDeclarations.
+        // Ambient ModuleDeclarations are always referenced as global symbols, so they don't need to
+        // be exported.
+        if (node.kind === ts.SyntaxKind.ModuleDeclaration) continue;
         // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
         // exists in externs). Export them as a typedef, which forwards to the type in externs.
         this.emit(`\n/** @typedef {${declName}} */\nexports.${declName};\n`);
@@ -1547,6 +1552,12 @@ class ExternsWriter extends ClosureRewriter {
   process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.findExternRoots().forEach(node => this.visit(node));
     return this.getOutput();
+  }
+
+  newTypeTranslator(context: ts.Node) {
+    const tt = super.newTypeTranslator(context);
+    tt.isForExterns = true;
+    return tt;
   }
 
   private findExternRoots(): ts.Node[] {

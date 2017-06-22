@@ -16,3 +16,5 @@ declare namespace decl.ns.two {
     y: decl.ns.one.NamespacedClass;
   }
 }
+
+let /** @type {!decl.ns.one.NamespacedClass} */ user: decl.ns.one.NamespacedClass;

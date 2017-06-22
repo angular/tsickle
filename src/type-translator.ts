@@ -138,6 +138,12 @@ export class TypeTranslator {
   private readonly seenTypes: ts.Type[] = [];
 
   /**
+   * Whether to write types suitable for an \@externs file. Externs types must not refer to
+   * non-externs types (i.e. non ambient types) and need to use fully qualified names.
+   */
+  isForExterns = false;
+
+  /**
    * @param node is the source AST ts.Node the type comes from.  This is used
    *     in some cases (e.g. anonymous types) for looking up field names.
    * @param pathBlackList is a set of paths that should never get typed;
@@ -163,7 +169,9 @@ export class TypeTranslator {
    * - TypeChecker.typeToString translates Array as T[].
    * - TypeChecker.symbolToString emits types without their namespace,
    *   and doesn't let you pass the flag to control that.
-   * @param useFqn whether to scope the name using its fully qualified name.
+   * @param useFqn whether to scope the name using its fully qualified name. Closure's template
+   *     arguments are always scoped to the class containing them, where TypeScript's template args
+   *     would be fully qualified. I.e. this flag is false for generic types.
    */
   public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
@@ -174,17 +182,39 @@ export class TypeTranslator {
     }
     const alias = this.symbolsToAliasedNames.get(symAlias);
     if (alias) return alias;
-    if (useFqn) {
-      const fqn = this.typeChecker.getFullyQualifiedName(sym);
-      if (!fqn.startsWith(`"`) && !fqn.startsWith(`'`)) {
-        // Non-quoted FQNs mean the name is a global symbol (e.g. from namespace).
-        return this.stripClutzNamespace(fqn);
-      } else {
-        // TODO(martinprobst): Quoted FQNs mean the name is from a module. We still need to scope it
-        // for ambient declarations in externs.
+    if (useFqn && this.isForExterns) {
+      // For regular type emit, we can use TypeScript's naming rules, as they match Closure's name
+      // scoping rules. However when emitting externs files for ambients, naming rules change. As
+      // Closure doesn't support externs modules, all names must be global and use global fully
+      // qualified names. The code below uses TypeScript to convert a symbol to a full qualified
+      // name and then emits that.
+      let fqn = this.typeChecker.getFullyQualifiedName(sym);
+      if (fqn.startsWith(`"`) || fqn.startsWith(`'`)) {
+        // Quoted FQNs mean the name is from a module, e.g. `'path/to/module'.some.qualified.Name`.
+        // tsickle generally re-scopes names in modules that are moved to externs into the global
+        // namespace. That does not quite match TS' semantics where ambient types from modules are
+        // local. However value declarations that are local to modules but not defined do not make
+        // sense if not global, e.g. "declare class X {}; new X();" cannot work unless `X` is
+        // actually a global.
+        // So this code strips the module path from the type and uses the FQN as a global.
+        fqn = fqn.replace(/^["'][^"']+['"]\./, '');
       }
+      // Declarations in module can re-open global types using "declare global { ... }". The fqn
+      // then contains the prefix "global." here. As we're mapping to global types, just strip the
+      // prefix.
+      const isInGlobal = (sym.declarations || []).some(d => {
+        let current: ts.Node|undefined = d;
+        while (current) {
+          if (current.flags & ts.NodeFlags.GlobalAugmentation) return true;
+          current = current.parent;
+        }
+        return false;
+      });
+      if (isInGlobal) {
+        fqn = fqn.replace(/^global\./, '');
+      }
+      return this.stripClutzNamespace(fqn);
     }
-
     const writeText = (text: string) => str += text;
     const doNothing = () => {
       return;
@@ -237,6 +267,29 @@ export class TypeTranslator {
 
     // NonPrimitive occurs on its own on the lower case "object" type. Special case to "!Object".
     if (type.flags === ts.TypeFlags.NonPrimitive) return '!Object';
+
+    let isAmbient = false;
+    let isNamespace = false;
+    let isModule = false;
+    if (type.symbol) {
+      for (const decl of type.symbol.declarations || []) {
+        if (ts.isExternalModule(decl.getSourceFile())) isModule = true;
+        let current: ts.Node|undefined = decl;
+        while (current) {
+          if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
+          if (current.kind === ts.SyntaxKind.ModuleDeclaration) isNamespace = true;
+          current = current.parent;
+        }
+      }
+    }
+
+    // tsickle cannot generate types for non-ambient namespaces.
+    if (isNamespace && !isAmbient) return '?';
+
+    // Types in externs cannot reference types from external modules.
+    // However ambient types in modules get moved to externs, too, so type references work and we
+    // can emit a precise type.
+    if (this.isForExterns && isModule && !isAmbient) return '?';
 
     const lastFlag = ts.TypeFlags.IndexedAccess;
     const mask = (lastFlag << 1) - 1;
