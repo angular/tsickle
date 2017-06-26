@@ -161,8 +161,9 @@ function getParameterName(param: ts.ParameterDeclaration, index: number): string
   }
 }
 
-const VISIBILITY_FLAGS: ts.ModifierFlags =
-    ts.ModifierFlags.Private | ts.ModifierFlags.Protected | ts.ModifierFlags.Public;
+/** Flags that declare a field of the same name if set on a ctor parameter. */
+const FIELD_DECLARATION_MODIFIERS: ts.ModifierFlags = ts.ModifierFlags.Private |
+    ts.ModifierFlags.Protected | ts.ModifierFlags.Public | ts.ModifierFlags.Readonly;
 
 /**
  * A symbol combined with its name in the local file. Symbols can be renamed on import or export
@@ -1218,7 +1219,7 @@ class Annotator extends ClosureRewriter {
 
     if (ctors.length > 0) {
       const ctor = ctors[0];
-      paramProps = ctor.parameters.filter(p => hasModifierFlag(p, VISIBILITY_FLAGS));
+      paramProps = ctor.parameters.filter(p => hasModifierFlag(p, FIELD_DECLARATION_MODIFIERS));
     }
 
     if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0 &&
