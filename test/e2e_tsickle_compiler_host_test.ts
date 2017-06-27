@@ -117,4 +117,38 @@ describe('tsickle compiler host', () => {
             `var module = {id: 'foo.js'};` +
             `console.log('hello');`);
   });
+
+  it(`reports tsickle errors from multiple files`, () => {
+    const sources = new Map<string, string>([
+      [ts.sys.resolvePath('a.ts'), '/** @return {number} */ function a(): number { return 1; }'],
+      [ts.sys.resolvePath('b.ts'), '/** @return {number} */ function b(): number { return 1; }'],
+    ]);
+    const [program, compilerHost, options] = makeMultiFileProgram(sources);
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
+    host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
+    host.getSourceFile(program.getRootFileNames()[1], ts.ScriptTarget.ES5);
+
+    expect(host.diagnostics.length).to.eq(2);
+    expect(host.diagnostics[0].file.fileName).to.match(/a\.ts$/);
+    expect(host.diagnostics[1].file.fileName).to.match(/b\.ts$/);
+  });
+
+  it(`resets tsickle errors on reconfigure`, () => {
+    const sources = new Map<string, string>([
+      [ts.sys.resolvePath('a.ts'), '/** @return {number} */ function a(): number { return 1; }'],
+    ]);
+    const [program, compilerHost, options] = makeMultiFileProgram(sources);
+    const host =
+        new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
+    host.getSourceFile(program.getRootFileNames()[0], ts.ScriptTarget.ES5);
+    expect(host.diagnostics.length).to.eq(1);
+
+    host.reconfigureForRun(program, Pass.CLOSURIZE);
+
+    expect(host.diagnostics.length).to.eq(0);
+  });
 });

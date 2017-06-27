@@ -130,6 +130,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
    */
   public reconfigureForRun(oldProgram: ts.Program, pass: Pass) {
     this.runConfiguration = {oldProgram, pass};
+    this.diagnostics = [];
   }
 
   getSourceFile(
@@ -320,7 +321,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       // warns and then fixes up the code to be Closure-compatible anyway.
       diagnostics = diagnostics.filter(d => d.category === ts.DiagnosticCategory.Error);
     }
-    this.diagnostics = diagnostics;
+    this.diagnostics.push(...diagnostics);
     this.tsickleSourceMaps.set(
         this.getSourceMapKeyForSourceFile(sourceFile), sourceMapper.sourceMap);
     return ts.createSourceFile(fileName, annotated.output, languageVersion, true);
