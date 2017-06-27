@@ -15,7 +15,7 @@
     "source-map-support": "^0.4.2"
   },
   "peerDependencies": {
-    "typescript": "2.3.1"
+    "typescript": "2.3.4"
   },
   "devDependencies": {
     "@types/chai": "^3.4.32",
@@ -43,7 +43,7 @@
     "mocha": "^3.2.0",
     "temp": "^0.8.1",
     "tslint": "^5.4.2",
-    "typescript": "~2.3.1"
+    "typescript": "~2.3.4"
   },
   "scripts": {
     "prepublish": "gulp compile",
