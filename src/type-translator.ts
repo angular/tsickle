@@ -168,7 +168,11 @@ export class TypeTranslator {
   public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
-    const alias = this.symbolsToAliasedNames.get(sym);
+    let symAlias = sym;
+    if (symAlias.flags & ts.SymbolFlags.Alias) {
+      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
+    }
+    const alias = this.symbolsToAliasedNames.get(symAlias);
     if (alias) return alias;
     if (useFqn) {
       const fqn = this.typeChecker.getFullyQualifiedName(sym);
@@ -379,11 +383,11 @@ export class TypeTranslator {
         return '?';
       }
 
-      if (type.symbol.flags === ts.SymbolFlags.TypeLiteral) {
+      if (type.symbol.flags & ts.SymbolFlags.TypeLiteral) {
         return this.translateTypeLiteral(type);
       } else if (
-          type.symbol.flags === ts.SymbolFlags.Function ||
-          type.symbol.flags === ts.SymbolFlags.Method) {
+          type.symbol.flags & ts.SymbolFlags.Function ||
+          type.symbol.flags & ts.SymbolFlags.Method) {
         const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
@@ -461,6 +465,7 @@ export class TypeTranslator {
           const memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
           fields.push(`${field}: ${memberType}`);
+          break;
       }
     }
 
@@ -530,10 +535,8 @@ export class TypeTranslator {
   isBlackListed(symbol: ts.Symbol): boolean {
     if (this.pathBlackList === undefined) return false;
     const pathBlackList = this.pathBlackList;
-    if (symbol.declarations === undefined) {
-      this.warn('symbol has no declarations');
-      return true;
-    }
+    // Some builtin types, such as {}, get represented by a symbol that has no declarations.
+    if (symbol.declarations === undefined) return false;
     return symbol.declarations.every(n => {
       const fileName = path.normalize(n.getSourceFile().fileName);
       return pathBlackList.has(fileName);

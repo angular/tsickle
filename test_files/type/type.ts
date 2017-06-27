@@ -10,8 +10,8 @@ let typeArr2: any[];
 let typeNestedArr: {a:any}[][];
 
 let typeObject: {a:number, b:string} = {a:3, b:'b'};
-let typeObject2: {[key:string]: number};
-let typeObject3: {a:number, [key:string]: number};
+let typeObjectIndexable: {[key:string]: number};
+let typeObjectMixedIndexProperty: {a:number, [key:string]: number};
 let typeObjectEmpty: {};
 
 let typeTuple: [number, number] = [1, 2];

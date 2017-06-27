@@ -4,12 +4,20 @@ goog.module('test_files.parameter_properties.parameter_properties');var module =
  */
 class ParamProps {
     /**
-     * @param {string} bar
-     * @param {string} bar2
+     * @param {string} publicExportedP
+     * @param {string} publicP
+     * @param {string} protectedP
+     * @param {string} privateP
+     * @param {string} readonlyP
+     * @param {string} publicReadonlyP
      */
-    constructor(bar, bar2) {
-        this.bar = bar;
-        this.bar2 = bar2;
+    constructor(publicExportedP, publicP, protectedP, privateP, readonlyP, publicReadonlyP) {
+        this.publicExportedP = publicExportedP;
+        this.publicP = publicP;
+        this.protectedP = protectedP;
+        this.privateP = privateP;
+        this.readonlyP = readonlyP;
+        this.publicReadonlyP = publicReadonlyP;
     }
 }
 function ParamProps_tsickle_Closure_declarations() {
@@ -17,7 +25,15 @@ function ParamProps_tsickle_Closure_declarations() {
      * @export
      * @type {string}
      */
-    ParamProps.prototype.bar;
+    ParamProps.prototype.publicExportedP;
     /** @type {string} */
-    ParamProps.prototype.bar2;
+    ParamProps.prototype.publicP;
+    /** @type {string} */
+    ParamProps.prototype.protectedP;
+    /** @type {string} */
+    ParamProps.prototype.privateP;
+    /** @type {string} */
+    ParamProps.prototype.readonlyP;
+    /** @type {string} */
+    ParamProps.prototype.publicReadonlyP;
 }

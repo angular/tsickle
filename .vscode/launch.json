@@ -9,7 +9,7 @@
       "args": [
         "--colors",
         "--timeout=0",
-        "./build/test"
+        "./built/test"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeArgs": [
@@ -20,7 +20,7 @@
       },
       "console": "internalConsole",
       "sourceMaps": true,
-      "outDir": "${workspaceRoot}/build"
+      "outDir": "${workspaceRoot}/built"
     },
     {
       "name": "Run file based tests",
@@ -30,7 +30,7 @@
       "args": [
         "--colors",
         "--timeout=0",
-        "./build/test/tsickle_test.js"
+        "./built/test/tsickle_test.js"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeArgs": [
@@ -38,11 +38,11 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "TEST_FILTER": "^export$"
+        "TEST_FILTER": "^class$"
       },
       "console": "internalConsole",
       "sourceMaps": true,
-      "outDir": "${workspaceRoot}/build"
+      "outDir": "${workspaceRoot}/built"
     }
 
   ]

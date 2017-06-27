@@ -34,12 +34,16 @@ abstract class AbstractClass {
 interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
-// Note: interfaces can only extend interfaces, so there's no
-// InterfaceExtendsClass etc.
+
 let interfaceExtendsInterface: InterfaceExtendsInterface = {
   interfaceFunc() {},
   interfaceFunc2() {}
 };
+
+// Permutation 2: interface extends class.
+interface InterfaceExtendsClass extends Class {
+  interfaceFunc3(): void;
+}
 
 // Permutation 3: class implements.
 class ClassImplementsInterface implements Interface {

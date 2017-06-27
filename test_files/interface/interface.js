@@ -48,6 +48,8 @@ TrickyInterface.prototype.foo;
 */
 /** @type {(undefined|string)} */
 TrickyInterface.prototype.foobar;
+/** @type {?|undefined} */
+TrickyInterface.prototype.optAny;
 /**
  * \@param a some string value
  * \@return some number value
