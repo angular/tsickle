@@ -1,6 +1,7 @@
 Warning at test_files/quote_props/quote.ts:9:13: Quoted has a string index type but is accessed using dotted access. Quoting the access.
 Warning at test_files/quote_props/quote.ts:10:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
-Warning at test_files/quote_props/quote.ts:27:1: Declared property foo accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
+Warning at test_files/quote_props/quote.ts:13:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
+Warning at test_files/quote_props/quote.ts:29:1: Declared property foo accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 ====
 /**
  * @fileoverview added by tsickle
@@ -26,6 +27,8 @@ let /** @type {!Quoted} */ quoted: Quoted = {};
 console.log(quoted["hello"]);
 quoted["hello"] = 1;
 quoted['hello'] = 1;
+/** some comment */
+quoted["hello"] = 1;
 /**
  * @record
  * @extends {Quoted}

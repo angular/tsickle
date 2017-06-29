@@ -26,6 +26,9 @@ class JSDocTest {
   /** @internal */
   static X: string[] = [];
 
+  /** @internal */
+  x: string[] = [];
+
   /** @export */
   exported: string;
 

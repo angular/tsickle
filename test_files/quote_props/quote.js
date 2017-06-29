@@ -11,6 +11,8 @@ let /** @type {!Quoted} */ quoted = {};
 console.log(quoted["hello"]);
 quoted["hello"] = 1;
 quoted['hello'] = 1;
+/** some comment */
+quoted["hello"] = 1;
 /**
  * @record
  * @extends {Quoted}

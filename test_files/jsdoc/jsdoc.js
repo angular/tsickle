@@ -27,6 +27,10 @@ function jsDocTestBadDoc(foo) { }
  */
 class JSDocTest {
     constructor() {
+        /**
+         * \@internal
+         */
+        this.x = [];
         /** @enum {string} */
         this.badEnumThing = { A: 'a' };
         /** @const {string} */
@@ -43,6 +47,11 @@ function JSDocTest_tsickle_Closure_declarations() {
      * @type {!Array<string>}
      */
     JSDocTest.X;
+    /**
+     * \@internal
+     * @type {!Array<string>}
+     */
+    JSDocTest.prototype.x;
     /**
      * @export
      * @type {string}
