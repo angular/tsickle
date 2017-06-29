@@ -74,7 +74,7 @@ function compareAgainstGolden(output: string|null, path: string) {
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? describe.only : describe;
 
-testFn('golden tests', () => {
+testFn('golden tests with TsickleCompilerHost', () => {
   testFn('with separate passes', () => {
     runGoldenTests(true);
   });

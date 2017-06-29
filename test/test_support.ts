@@ -47,8 +47,16 @@ const {cachedLibPath, cachedLib} = (() => {
 })();
 
 /** Creates a ts.Program from a set of input files. */
-export function createProgram(sources: Map<string, string>): ts.Program {
-  const host = ts.createCompilerHost(compilerOptions);
+export function createProgram(
+    sources: Map<string, string>,
+    tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.Program {
+  return createProgramAndHost(sources, tsCompilerOptions).program;
+}
+
+export function createProgramAndHost(
+    sources: Map<string, string>, tsCompilerOptions: ts.CompilerOptions = compilerOptions):
+    {host: ts.CompilerHost, program: ts.Program} {
+  const host = ts.createCompilerHost(tsCompilerOptions);
 
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
                         onError?: (msg: string) => void): ts.SourceFile => {
@@ -64,7 +72,8 @@ export function createProgram(sources: Map<string, string>): ts.Program {
     throw new Error('unexpected file read of ' + fileName + ' not in ' + toArray(sources.keys()));
   };
 
-  return ts.createProgram(toArray(sources.keys()), compilerOptions, host);
+  const program = ts.createProgram(toArray(sources.keys()), tsCompilerOptions, host);
+  return {program, host};
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */

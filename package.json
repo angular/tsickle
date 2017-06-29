@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/chai": "^3.4.32",
+    "@types/diff": "^3.2.0",
     "@types/glob": "^5.0.29",
     "@types/google-closure-compiler": "0.0.18",
     "@types/minimatch": "^2.0.28",
@@ -30,6 +31,7 @@
     "@types/source-map-support": "^0.2.27",
     "chai": "^3.5.0",
     "clang-format": "^1.0.51",
+    "diff": "^3.2.0",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20161024.1.0",
     "gulp": "^3.8.11",

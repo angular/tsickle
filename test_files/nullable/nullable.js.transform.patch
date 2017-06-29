@@ -1,0 +1,14 @@
+Index: ./test_files/nullable/nullable.js
+===================================================================
+--- ./test_files/nullable/nullable.js	golden
++++ ./test_files/nullable/nullable.js	tsickle with transformer
+@@ -36,7 +36,7 @@
+  */
+ function takesNonNullable(val) { }
+ let /** @type {{field: (null|string|number)}} */ x = { field: null };
+ takesNonNullable(/** @type {(string|number)} */ ((x.field)));
+-takesNonNullable(`${(((x.field)))}`);
++takesNonNullable(`${(/** @type {(string|number)} */ ((x.field)))}`);
+ let /** @type {?} */ ctx;
+-takesNonNullable(`org/${(((ctx.getTargetOrganization()))).key}/admin/folders`);
++takesNonNullable(`org/${(/** @type {?} */ ((ctx.getTargetOrganization()))).key}/admin/folders`);

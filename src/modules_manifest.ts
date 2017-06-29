@@ -15,6 +15,11 @@ export class ModulesManifest {
   /** Map of file name to arrays of imported googmodule module names */
   private referencedModules: FileMap<string[]> = {};
 
+  addManifest(other: ModulesManifest) {
+    Object.assign(this.moduleToFileName, other.moduleToFileName);
+    Object.assign(this.referencedModules, other.referencedModules);
+  }
+
   addModule(fileName: string, module: string): void {
     this.moduleToFileName[module] = fileName;
     this.referencedModules[fileName] = [];
