@@ -9,6 +9,8 @@ let quoted: Quoted = {};
 console.log(quoted.hello);
 quoted.hello = 1;
 quoted['hello'] = 1;
+/** some comment */
+quoted.hello = 1;
 
 interface QuotedMixed extends Quoted {
   // Even though foo is explicitly declared as a property, assume it should not

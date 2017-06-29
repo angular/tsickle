@@ -1,23 +1,23 @@
 Warning at test_files/jsdoc/jsdoc.ts:16:1: the type annotation on @param is redundant with its TypeScript type, remove the {...} part
-Warning at test_files/jsdoc/jsdoc.ts:32:3: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
-Warning at test_files/jsdoc/jsdoc.ts:37:3: @type annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:40:3: @enum annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:43:3: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
-Warning at test_files/jsdoc/jsdoc.ts:46:3: @typedef annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:32:3: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
-Warning at test_files/jsdoc/jsdoc.ts:37:3: @type annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:40:3: @enum annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:43:3: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
-Warning at test_files/jsdoc/jsdoc.ts:46:3: @typedef annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:50:1: @template annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:53:1: use index signatures (`[k: string]: type`) instead of @dict
-Warning at test_files/jsdoc/jsdoc.ts:56:1: @lends annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:62:1: @this annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:65:1: @interface annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:74:1: @extends annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:35:3: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
+Warning at test_files/jsdoc/jsdoc.ts:40:3: @type annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:43:3: @enum annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:46:3: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
+Warning at test_files/jsdoc/jsdoc.ts:49:3: @typedef annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:35:3: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
+Warning at test_files/jsdoc/jsdoc.ts:40:3: @type annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:43:3: @enum annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:46:3: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
+Warning at test_files/jsdoc/jsdoc.ts:49:3: @typedef annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:53:1: @template annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:56:1: use index signatures (`[k: string]: type`) instead of @dict
+Warning at test_files/jsdoc/jsdoc.ts:59:1: @lends annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:65:1: @this annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:68:1: @interface annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:77:1: @extends annotations are redundant with TypeScript equivalents
 @implements annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:81:3: @constructor annotations are redundant with TypeScript equivalents
-Warning at test_files/jsdoc/jsdoc.ts:41:3: unhandled anonymous type
+Warning at test_files/jsdoc/jsdoc.ts:84:3: @constructor annotations are redundant with TypeScript equivalents
+Warning at test_files/jsdoc/jsdoc.ts:44:3: unhandled anonymous type
 ====
 /**
  * @fileoverview added by tsickle
@@ -54,6 +54,10 @@ class JSDocTest {
  */
 static X: string[] = [];
 /**
+ * \@internal
+ */
+x: string[] = [];
+/**
  * @export
  */
 exported: string;
@@ -82,6 +86,11 @@ function JSDocTest_tsickle_Closure_declarations() {
  * @type {!Array<string>}
  */
 JSDocTest.X;
+/**
+ * \@internal
+ * @type {!Array<string>}
+ */
+JSDocTest.prototype.x;
 /**
  * @export
  * @type {string}

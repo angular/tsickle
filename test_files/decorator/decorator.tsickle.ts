@@ -3,7 +3,7 @@
  * @suppress {checkTypes} checked by tsc
  */
 
-import {AClass, AType, AClassWithGenerics} from './external';
+import {AClass, AClass as ARenamedClass, AType, AClassWithGenerics} from './external';
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.external");
 /**
  * @param {!Object} a
@@ -39,11 +39,12 @@ class DecoratorTest {
  * @param {!Promise<string>} promise
  * @param {!Array<string>} arr
  * @param {!tsickle_forward_declare_1.AClass} aClass
+ * @param {!tsickle_forward_declare_1.AClass} AClass
+ * @param {!tsickle_forward_declare_1.AClass} aRanmedClass
  * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
  * @param {!tsickle_forward_declare_1.AType} aType
  */
-constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
-
+constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, AClass: AClass, aRanmedClass: ARenamedClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
 /**
  * @return {number}
  */
@@ -69,6 +70,8 @@ null,
 null,
 {type: Promise, },
 {type: Array, },
+{type: AClass, },
+{type: AClass, },
 {type: AClass, },
 {type: AClassWithGenerics, },
 null,

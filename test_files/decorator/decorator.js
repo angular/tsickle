@@ -37,10 +37,12 @@ class DecoratorTest {
      * @param {!Promise<string>} promise
      * @param {!Array<string>} arr
      * @param {!tsickle_forward_declare_1.AClass} aClass
+     * @param {!tsickle_forward_declare_1.AClass} AClass
+     * @param {!tsickle_forward_declare_1.AClass} aRanmedClass
      * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
      * @param {!tsickle_forward_declare_1.AType} aType
      */
-    constructor(a, n, b, promise, arr, aClass, aClassWithGenerics, aType) { }
+    constructor(a, n, b, promise, arr, aClass, AClass, aRanmedClass, aClassWithGenerics, aType) { }
     /**
      * @return {number}
      */
@@ -58,6 +60,8 @@ DecoratorTest.ctorParameters = () => [
     null,
     { type: Promise, },
     { type: Array, },
+    { type: external_1.AClass, },
+    { type: external_1.AClass, },
     { type: external_1.AClass, },
     { type: external_1.AClassWithGenerics, },
     null,
