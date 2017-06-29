@@ -16,13 +16,20 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import {convertDecorators} from '../src/decorator-annotator';
 import {toClosureJS} from '../src/main';
-import {DefaultSourceMapper, getInlineSourceMapCount, setInlineSourceMap} from '../src/source_map_utils';
+import {DefaultSourceMapper, getInlineSourceMapCount, setInlineSourceMap, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {toArray} from '../src/util';
+import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost, toArray} from '../src/util';
 
 import * as testSupport from './test_support';
 
-describe('source maps', () => {
+describe('source maps with TsickleCompilerHost', () => {
+  createTests(false);
+});
+describe('source maps with transformer', () => {
+  createTests(true);
+});
+
+function createTests(useTransformer: boolean) {
   it('composes source maps with tsc', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
@@ -32,7 +39,7 @@ describe('source maps', () => {
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources);
+    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
 
     {
       const {line, column} = getLineAndColumn(compiledJS, 'a string');
@@ -65,7 +72,7 @@ describe('source maps', () => {
         let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources);
+    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
 
     {
       const {line, column} = getLineAndColumn(compiledJS, 'a string');
@@ -98,7 +105,7 @@ describe('source maps', () => {
         let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {outFile: 'a/d/output.js'});
+    const {compiledJS, sourceMap} = compile(sources, {outFile: 'a/d/output.js', useTransformer});
 
     {
       const {line, column} = getLineAndColumn(compiledJS, 'a string');
@@ -138,11 +145,11 @@ describe('source maps', () => {
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, sourceMap} =
-        compile(sources, {filesNotToProcess: new Set<string>(['input2.ts'])});
+        compile(sources, {filesNotToProcess: new Set<string>(['input2.ts']), useTransformer});
 
     // Check that we decorator downleveled input1, but not input2
-    expect(compiledJS).to.contain('DecoratorTest1_tsickle_Closure_declarations');
-    expect(compiledJS).not.to.contain('DecoratorTest2_tsickle_Closure_declarations');
+    expect(compiledJS).to.contain('DecoratorTest1.decorators');
+    expect(compiledJS).not.to.contain('DecoratorTest2.decorators');
 
     // Check that the source maps work
     {
@@ -169,7 +176,7 @@ describe('source maps', () => {
           public methodName(s: string): string { return s; }
         }`);
 
-    const {compiledJS, sourceMap} = compile(sources);
+    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
 
     const {line, column} = getLineAndColumn(compiledJS, 'methodName');
 
@@ -185,7 +192,7 @@ describe('source maps', () => {
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true});
+    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true, useTransformer});
 
     {
       const {line, column} = getLineAndColumn(compiledJS, 'a string');
@@ -213,7 +220,7 @@ describe('source maps', () => {
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
     const {compiledJS, dts, sourceMap} =
-        compile(sources, {inlineSourceMap: true, generateDTS: true});
+        compile(sources, {inlineSourceMap: true, generateDTS: true, useTransformer});
 
     const {line, column} = getLineAndColumn(compiledJS, 'a string');
     expect(sourceMap.originalPositionFor({line, column}).line)
@@ -237,7 +244,7 @@ describe('source maps', () => {
     const closurizeSources = decoratorDownlevelAndAddInlineSourceMaps(decoratorDownlevelSources);
 
     const {compiledJS, sourceMap} =
-        compile(closurizeSources, {inlineSourceMap: true, tsicklePasses: [tsickle.Pass.CLOSURIZE]});
+        compile(closurizeSources, {inlineSourceMap: true, useTransformer});
 
     expect(getInlineSourceMapCount(compiledJS)).to.equal(1);
     const {line, column} = getLineAndColumn(compiledJS, 'methodName');
@@ -252,10 +259,11 @@ describe('source maps', () => {
     sources.set('intermediate.ts', `const x = 3;
 //# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
 
-    const {compiledJS, sourceMap} = compile(sources);
+    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
+    expect(getInlineSourceMapCount(compiledJS)).to.equal(0);
 
-    const {line, column} = getLineAndColumn(compiledJS, 'x');
-    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'x definition');
+    const {line, column} = getLineAndColumn(compiledJS, 'x = 3');
+    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'x = 3 definition');
     expect(sourceMap.originalPositionFor({line, column}).source)
         .to.equal('original.ts', 'input file name');
   });
@@ -265,7 +273,7 @@ describe('source maps', () => {
     sources.set('input.ts', ``);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true});
+    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true, useTransformer});
 
     expect(sourceMap).to.exist;
     expect(compiledJS).to.contain(`var module = {id: 'output.js'};`);
@@ -288,8 +296,7 @@ describe('source maps', () => {
       let y : string = 'another string';
       let z : string = x + y;`);
 
-    const {compiledJS, sourceMap} =
-        compile(closurizeSources, {tsicklePasses: [tsickle.Pass.CLOSURIZE]});
+    const {compiledJS, sourceMap} = compile(closurizeSources, {useTransformer});
 
     {
       const {line, column} = getLineAndColumn(compiledJS, 'methodName');
@@ -303,7 +310,7 @@ describe('source maps', () => {
           .to.equal('input2.ts', 'input file name');
     }
   });
-});
+}
 
 function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
     Map<string, string> {
@@ -328,10 +335,10 @@ function getLineAndColumn(source: string, token: string): {line: number, column:
 }
 
 interface CompilerOptions {
+  useTransformer: boolean;
   outFile: string;
   filesNotToProcess: Set<string>;
   inlineSourceMap: boolean;
-  tsicklePasses: tsickle.Pass[];
   generateDTS: boolean;
 }
 
@@ -339,19 +346,17 @@ const DEFAULT_COMPILER_OPTIONS = {
   outFile: 'output.js',
   filesNotToProcess: new Set<string>(),
   inlineSourceMap: false,
-  tsicklePasses: [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE],
   generateDTS: false,
 };
 
-function compile(sources: Map<string, string>, partialOptions = {} as Partial<CompilerOptions>):
-    {compiledJS: string, dts: string | undefined, sourceMap: SourceMapConsumer} {
+function compile(sources: Map<string, string>, partialOptions: Partial<CompilerOptions>&{
+  useTransformer: boolean
+}): {compiledJS: string, dts: string | undefined, sourceMap: SourceMapConsumer} {
   const options: CompilerOptions = {...DEFAULT_COMPILER_OPTIONS, ...partialOptions};
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
     resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName)!);
   }
-
-  const diagnostics: ts.Diagnostic[] = [];
 
   let compilerOptions: ts.CompilerOptions;
   if (options.inlineSourceMap) {
@@ -372,7 +377,7 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
 
   const fileNames = toArray(sources.keys());
 
-  const tsickleHost: tsickle.TsickleHost = {
+  const tsickleHost: tsickle.TsickleHost&tsickle.TransformerHost = {
     shouldSkipTsickleProcessing: (fileName) =>
         fileNames.indexOf(fileName) === -1 || options.filesNotToProcess.has(fileName),
     pathToModuleName: cliSupport.pathToModuleName,
@@ -380,43 +385,33 @@ function compile(sources: Map<string, string>, partialOptions = {} as Partial<Co
     fileNameToModuleId: (fileName) => fileName,
   };
 
-  const closureJSOPtions = {
-    files: resolvedSources,
-    tsickleHost,
-    tsicklePasses: options.tsicklePasses,
-  };
+  const {jsFiles, diagnostics} = options.useTransformer ?
+      compileWithTransfromer(resolvedSources, fileNames, tsickleHost, compilerOptions) :
+      compileWithTsickleCompilerHost(resolvedSources, fileNames, tsickleHost, compilerOptions);
 
-  const closure = toClosureJS(compilerOptions, fileNames, {}, diagnostics, closureJSOPtions);
-
-  if (!closure) {
+  if (diagnostics.length) {
     console.error(tsickle.formatDiagnostics(diagnostics));
     assert.fail();
-    // TODO(lucassloan): remove when the .d.ts has the correct types
-    // tslint:disable-next-line:no-any
-    return {compiledJS: '', dts: '', sourceMap: new SourceMapConsumer('' as any)};
+    return {compiledJS: '', dts: '', sourceMap: sourceMapTextToConsumer('')};
   }
 
-  const compiledJS = getFileWithName(options.outFile, closure.jsFiles);
+  const compiledJS = getFileWithName(options.outFile, jsFiles);
 
   if (!compiledJS) {
     assert.fail();
-    // TODO(lucassloan): remove when the .d.ts has the correct types
-    // tslint:disable-next-line:no-any
-    return {compiledJS: '', dts: '', sourceMap: new SourceMapConsumer('' as any)};
+    return {compiledJS: '', dts: '', sourceMap: sourceMapTextToConsumer('')};
   }
 
-  // TODO(lucassloan): remove when the .d.ts has the correct types
-  // tslint:disable-next-line:no-any
-  let sourceMapJson: any;
+  let sourceMapJson: string;
   if (options.inlineSourceMap) {
     sourceMapJson = extractInlineSourceMap(compiledJS);
   } else {
-    sourceMapJson = getFileWithName(options.outFile + '.map', closure.jsFiles);
+    sourceMapJson = getFileWithName(options.outFile + '.map', jsFiles) || '';
   }
-  const sourceMap = new SourceMapConsumer(sourceMapJson);
+  const sourceMap = sourceMapTextToConsumer(sourceMapJson);
 
-  const dts = getFileWithName(
-      options.outFile.substring(0, options.outFile.length - 3) + '.d.ts', closure.jsFiles);
+  const dts =
+      getFileWithName(options.outFile.substring(0, options.outFile.length - 3) + '.d.ts', jsFiles);
 
   return {compiledJS, dts, sourceMap};
 }
@@ -445,4 +440,45 @@ function getFileWithName(filename: string, files: Map<string, string>): string|u
     }
   }
   return undefined;
+}
+
+function compileWithTsickleCompilerHost(
+    resolvedSources: Map<string, string>, fileNames: string[], tsickleHost: tsickle.TsickleHost,
+    compilerOptions: ts.CompilerOptions):
+    {jsFiles: Map<string, string>, diagnostics: ts.Diagnostic[]} {
+  const closureJSOPtions = {
+    files: resolvedSources,
+    tsickleHost,
+    tsicklePasses: [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE],
+  };
+
+  const diagnostics: ts.Diagnostic[] = [];
+  const closure = toClosureJS(compilerOptions, fileNames, {}, diagnostics, closureJSOPtions);
+  return {jsFiles: closure ? closure.jsFiles : new Map<string, string>(), diagnostics};
+}
+
+function compileWithTransfromer(
+    resolvedSources: Map<string, string>, fileNames: string[],
+    transformerHost: tsickle.TransformerHost, compilerOptions: ts.CompilerOptions) {
+  const jsFiles = new Map<string, string>();
+  const tsHost = createSourceReplacingCompilerHost(
+      resolvedSources,
+      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(compilerOptions)));
+  const program = ts.createProgram(fileNames, compilerOptions, tsHost);
+
+  const allDiagnostics: ts.Diagnostic[] = [];
+  allDiagnostics.push(...ts.getPreEmitDiagnostics(program));
+  if (allDiagnostics.length === 0) {
+    const {diagnostics} = tsickle.emitWithTsickle(
+        program, transformerHost, {
+          transformDecorators: true,
+          transformTypesToClosure: true,
+          googmodule: true,
+          es5Mode: false,
+          untyped: true,
+        },
+        tsHost, compilerOptions);
+    allDiagnostics.push(...diagnostics);
+  }
+  return {jsFiles, diagnostics: allDiagnostics};
 }

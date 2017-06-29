@@ -1,0 +1,11 @@
+Index: ./test_files/coerce/coerce.js
+===================================================================
+--- ./test_files/coerce/coerce.js	golden
++++ ./test_files/coerce/coerce.js	tsickle with transformer
+@@ -8,5 +8,5 @@
+  */
+ function acceptString(arg) { return arg; }
+ acceptString(/** @type {?} */ (3));
+ acceptString(/** @type {?} */ (3));
+-acceptString(`${((3))}`);
++acceptString(`${(/** @type {?} */ (3))}`);

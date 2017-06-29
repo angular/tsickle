@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 /**
@@ -60,6 +60,17 @@ export function setInlineSourceMap(source: string, sourceMap: string): string {
   } else {
     return `${source}\n//# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`;
   }
+}
+
+export function parseSourceMap(text: string, fileName?: string, sourceName?: string): RawSourceMap {
+  const rawSourceMap = JSON.parse(text) as RawSourceMap;
+  if (sourceName) {
+    rawSourceMap.sources = [sourceName];
+  }
+  if (fileName) {
+    rawSourceMap.file = fileName;
+  }
+  return rawSourceMap;
 }
 
 export function sourceMapConsumerToGenerator(sourceMapConsumer: SourceMapConsumer):
