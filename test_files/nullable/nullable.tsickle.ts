@@ -52,3 +52,6 @@ function takesNonNullable(val: string|number) {}
 
 let /** @type {{field: (null|string|number)}} */ x: {field: string | null | number} = {field: null};
 takesNonNullable( /** @type {(string|number)} */((x.field)));
+takesNonNullable(`${( /** @type {(string|number)} */((x.field)))}`);
+let /** @type {?} */ ctx: any;
+takesNonNullable(`org/${( /** @type {?} */((ctx.getTargetOrganization()))).key}/admin/folders`);

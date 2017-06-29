@@ -525,6 +525,8 @@ class Annotator extends ClosureRewriter {
   private generatedExports = new Set<string>();
   /** DecoratorClassVisitor when lowering decorators while closure annotating */
   private currentDecoratorConverter: DecoratorClassVisitor|undefined;
+
+  private templateSpanStackCount = 0;
   private polymerBehaviorStackCount = 0;
 
   constructor(
@@ -719,10 +721,21 @@ class Annotator extends ClosureRewriter {
         return true;
       case ts.SyntaxKind.EnumDeclaration:
         return this.maybeProcessEnum(node as ts.EnumDeclaration);
+      case ts.SyntaxKind.TemplateSpan:
+        this.templateSpanStackCount++;
+        this.writeNode(node);
+        this.templateSpanStackCount--;
+        return true;
       case ts.SyntaxKind.TypeAssertionExpression:
       case ts.SyntaxKind.AsExpression:
         // Both of these cases are AssertionExpressions.
         const typeAssertion = node as ts.AssertionExpression;
+        // When using a type casts in template expressions,
+        // closure requires another pair of parens, otherwise it will
+        // complain with "Misplaced type annotation. Type annotations are not allowed here."
+        if (this.templateSpanStackCount > 0) {
+          this.emit('(');
+        }
         this.emitJSDocType(typeAssertion);
         // When TypeScript emits JS, it removes one layer of "redundant"
         // parens, but we need them for the Closure type assertion.  Work
@@ -732,6 +745,9 @@ class Annotator extends ClosureRewriter {
         this.emit('((');
         this.writeNode(node);
         this.emit('))');
+        if (this.templateSpanStackCount > 0) {
+          this.emit(')');
+        }
         return true;
       case ts.SyntaxKind.NonNullExpression:
         const nnexpr = node as ts.NonNullExpression;
@@ -745,11 +761,18 @@ class Annotator extends ClosureRewriter {
           typeCopy.types = nonNullUnion;
           type = typeCopy;
         }
+        // See comment above.
+        if (this.templateSpanStackCount > 0) {
+          this.emit('(');
+        }
         this.emitJSDocType(nnexpr, undefined, type);
         // See comment above.
         this.emit('((');
         this.writeNode(nnexpr.expression);
         this.emit('))');
+        if (this.templateSpanStackCount > 0) {
+          this.emit(')');
+        }
         return true;
       case ts.SyntaxKind.PropertyDeclaration:
       case ts.SyntaxKind.VariableStatement:
