@@ -22,13 +22,14 @@ export class DecoratorClassVisitor {
   /** Decorators on the class itself. */
   decorators: ts.Decorator[];
   /** The constructor parameter list and decorators on each param. */
-  ctorParameters: Array<[string | undefined, ts.Decorator[]|undefined]|null>;
+  ctorParameters: Array<[[ts.Symbol, string] | undefined, ts.Decorator[]|undefined]|null>;
   /** Per-method decorators. */
   propDecorators: Map<string, ts.Decorator[]>;
 
   constructor(
       private typeChecker: ts.TypeChecker, private rewriter: Rewriter,
-      private classDecl: ts.ClassDeclaration) {
+      private classDecl: ts.ClassDeclaration,
+      private importedNames: Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}>) {
     if (classDecl.decorators) {
       const toLower = this.decoratorsToLower(classDecl);
       if (toLower.length > 0) this.decorators = toLower;
@@ -80,10 +81,11 @@ export class DecoratorClassVisitor {
    * constructor, and emits nothing.
    */
   private gatherConstructor(ctor: ts.ConstructorDeclaration) {
-    const ctorParameters: Array<[string | undefined, ts.Decorator[] | undefined]|null> = [];
+    const ctorParameters:
+        Array<[[ts.Symbol, string] | undefined, ts.Decorator[] | undefined]|null> = [];
     let hasDecoratedParam = false;
     for (const param of ctor.parameters) {
-      let paramCtor: string|undefined;
+      let paramCtor: [ts.Symbol, string]|undefined;
       let decorators: ts.Decorator[]|undefined;
       if (param.decorators) {
         decorators = this.decoratorsToLower(param);
@@ -94,8 +96,9 @@ export class DecoratorClassVisitor {
         // Verify that "Bar" is a value (e.g. a constructor) and not just a type.
         const sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
         if (sym && (sym.flags & ts.SymbolFlags.Value)) {
-          paramCtor = new TypeTranslator(this.typeChecker, param.type)
-                          .symbolToString(sym, /* useFqn */ true);
+          const typeStr = new TypeTranslator(this.typeChecker, param.type)
+                              .symbolToString(sym, /* useFqn */ true);
+          paramCtor = [sym, typeStr];
         }
       }
       if (paramCtor || decorators) {
@@ -128,6 +131,26 @@ export class DecoratorClassVisitor {
     if (decorators.length === 0) return;
     if (!this.propDecorators) this.propDecorators = new Map<string, ts.Decorator[]>();
     this.propDecorators.set(name, decorators);
+  }
+
+  private getValueIdentifierForType(typeSymbol: ts.Symbol): ts.Identifier|null {
+    if (!typeSymbol.valueDeclaration) {
+      return null;
+    }
+    const valueName = typeSymbol.valueDeclaration.name;
+    if (!valueName || valueName.kind !== ts.SyntaxKind.Identifier) {
+      return null;
+    }
+    if (valueName.getSourceFile() === this.rewriter.file) {
+      return valueName;
+    }
+    for (let i = 0; i < this.importedNames.length; i++) {
+      const {name, declarationNames} = this.importedNames[i];
+      if (declarationNames.some(d => d === valueName)) {
+        return name;
+      }
+    }
+    return null;
   }
 
   beforeProcessNode(node: ts.Node) {
@@ -211,7 +234,22 @@ export class DecoratorClassVisitor {
           continue;
         }
         const [ctor, decorators] = param;
-        this.rewriter.emit(`{type: ${ctor}, `);
+        this.rewriter.emit(`{type: `);
+        if (!ctor) {
+          this.rewriter.emit(`undefined`);
+        } else {
+          const [typeSymbol, typeStr] = ctor;
+          let emitNode: ts.Identifier|null|undefined;
+          if (typeSymbol) {
+            emitNode = this.getValueIdentifierForType(typeSymbol);
+          }
+          if (emitNode) {
+            this.rewriter.writeRange(emitNode, emitNode.getStart(), emitNode.getEnd());
+          } else {
+            this.rewriter.emit(typeStr);
+          }
+        }
+        this.rewriter.emit(`, `);
         if (decorators) {
           this.rewriter.emit('decorators: [');
           for (const decorator of decorators) {
@@ -256,7 +294,7 @@ export class DecoratorClassVisitor {
         if (call.arguments.length) {
           this.rewriter.emit(', args: [');
           for (const arg of call.arguments) {
-            this.rewriter.emit(arg.getText());
+            this.rewriter.writeNodeFrom(arg, arg.getStart());
             this.rewriter.emit(', ');
           }
           this.rewriter.emit(']');
@@ -294,7 +332,7 @@ class DecoratorRewriter extends Rewriter {
       case ts.SyntaxKind.ClassDeclaration:
         const oldDecoratorConverter = this.currentDecoratorConverter;
         this.currentDecoratorConverter =
-            new DecoratorClassVisitor(this.typeChecker, this, node as ts.ClassDeclaration);
+            new DecoratorClassVisitor(this.typeChecker, this, node as ts.ClassDeclaration, []);
         this.writeRange(node, node.getFullStart(), node.getStart());
         visitClassContentIncludingDecorators(
             node as ts.ClassDeclaration, this, this.currentDecoratorConverter);

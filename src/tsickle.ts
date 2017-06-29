@@ -21,6 +21,7 @@ import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
 export {FileMap, ModulesManifest} from './modules_manifest';
+export {EmitResult, EmitTransformers, emitWithTsickle, mergeEmitResults, TransformerHost, TransformerOptions} from './transformer';
 export {Options, Pass, TsickleCompilerHost, TsickleHost} from './tsickle_compiler_host';
 
 export interface AnnotatorHost {
@@ -50,8 +51,43 @@ export interface AnnotatorOptions {
 
 export enum AnnotatorFeatures {
   LowerDecorators = 1 << 0,
+  /**
+   * filter out types when expanding `export * from ...`
+   */
+  FilterTypesInExportStart = 1 << 1,
+  /**
+   * emit enums as
+   * ```
+   * type EnumX = number;
+   * const EnumX = {};
+   * export {EnumX};
+   * ```
+   * and not as
+   * ```
+   * export type EnumX = number;
+   * export const EnumX = {};
+   * ```
+   */
+  SimpleEnum = 1 << 2,
+  /**
+   * Generated @typedefs for reexported interfaces.
+   */
+  TypeDefReexportForInterfaces = 1 << 3,
 
-  Default = 0
+  Default = 0,
+  /**
+   * Transformers need:
+   * - FilterTypesInExportStart as the generated code does no longer have TypeScript typechecker
+   *   information and therefore typescript does not elide exports for types.
+   * - SimpleEnum as the changed enum declarations also no longer have TypeScript typechecker
+   *   information and thefore typescript no longer generates `export.` for all property accesses
+   *   to the exported symbols.
+   * - TypeDefReexportForInterfaces as the .d.ts is generated before running tsickle,
+   *   and therefore does no longer contain the reexports for the interfaces, even if
+   *   tsickle changes them into functions.
+   */
+  Transformer =
+      LowerDecorators | FilterTypesInExportStart | SimpleEnum | TypeDefReexportForInterfaces,
 }
 
 /**
@@ -102,7 +138,7 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
 }
 
 /** @return true if node has the specified modifier flag set. */
-function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean {
+export function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean {
   return (ts.getCombinedModifierFlags(node) & flag) !== 0;
 }
 
@@ -525,6 +561,8 @@ class Annotator extends ClosureRewriter {
   private generatedExports = new Set<string>();
   /** DecoratorClassVisitor when lowering decorators while closure annotating */
   private currentDecoratorConverter: DecoratorClassVisitor|undefined;
+  /** Collection of imported names with their Symbol */
+  private importedNames: Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}> = [];
 
   private templateSpanStackCount = 0;
   private polymerBehaviorStackCount = 0;
@@ -624,6 +662,7 @@ class Annotator extends ClosureRewriter {
         this.handleSourceFile(node as ts.SourceFile);
         return true;
       case ts.SyntaxKind.ImportDeclaration:
+        this.collectImportNames(node as ts.ImportDeclaration);
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
@@ -634,7 +673,9 @@ class Annotator extends ClosureRewriter {
           // It's an "export * from ..." statement.
           // Rewrite it to re-export each exported symbol directly.
           exportedSymbols = this.expandSymbolsFromExportStar(exportDecl);
-          this.emit(` {${exportedSymbols.map(e => unescapeName(e.name)).join(',')}}`);
+          const exportSymbolsToEmit =
+              exportedSymbols.filter(s => this.shouldEmitExportSymbol(s.sym));
+          this.emit(` {${exportSymbolsToEmit.map(e => unescapeName(e.name)).join(',')}}`);
         } else {
           if (exportDecl.exportClause) {
             exportedSymbols = this.getNamedSymbols(exportDecl.exportClause.elements);
@@ -643,10 +684,13 @@ class Annotator extends ClosureRewriter {
         }
         if (exportDecl.moduleSpecifier) {
           this.emit(` from '${this.resolveModuleSpecifier(exportDecl.moduleSpecifier)}';`);
-          this.forwardDeclare(exportDecl.moduleSpecifier, exportedSymbols);
         } else {
           // export {...};
           this.emit(';');
+        }
+        this.writeRange(node, node.getEnd(), node.getEnd());
+        if (exportDecl.moduleSpecifier) {
+          this.forwardDeclare(exportDecl.moduleSpecifier, exportedSymbols);
         }
         if (exportedSymbols.length) {
           this.emitTypeDefExports(exportedSymbols);
@@ -852,7 +896,9 @@ class Annotator extends ClosureRewriter {
                 ` has a string index type but is accessed using dotted access. ` +
                 `Quoting the access.`);
         this.writeNode(pae.expression);
-        this.emit(`["${getIdentifierText(pae.name)}"]`);
+        this.emit('["');
+        this.writeNode(pae.name);
+        this.emit('"]');
         return true;
       case ts.SyntaxKind.Decorator:
         if (this.currentDecoratorConverter) {
@@ -863,6 +909,23 @@ class Annotator extends ClosureRewriter {
         break;
     }
     return false;
+  }
+
+  private shouldEmitExportSymbol(sym: ts.Symbol): boolean {
+    if (!(this.features & AnnotatorFeatures.FilterTypesInExportStart)) {
+      return true;
+    }
+    if (sym.flags & ts.SymbolFlags.Alias) {
+      sym = this.typeChecker.getAliasedSymbol(sym);
+    }
+    if ((sym.flags & ts.SymbolFlags.Value) === 0) {
+      // Note: We create explicit reexports via closure at another place in tsickle.
+      return false;
+    }
+    if (sym.flags & ts.SymbolFlags.ConstEnum) {
+      return false;
+    }
+    return true;
   }
 
   private handleSourceFile(sf: ts.SourceFile) {
@@ -990,8 +1053,13 @@ class Annotator extends ClosureRewriter {
     for (const exp of exports) {
       if (exp.sym.flags & ts.SymbolFlags.Alias)
         exp.sym = this.typeChecker.getAliasedSymbol(exp.sym);
-      const isTypeAlias = (exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
+      let isTypeAlias = (exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
           (exp.sym.flags & ts.SymbolFlags.Value) === 0;
+      if (this.features & AnnotatorFeatures.TypeDefReexportForInterfaces) {
+        isTypeAlias = isTypeAlias ||
+            (exp.sym.flags & ts.SymbolFlags.Interface) !== 0 &&
+                (exp.sym.flags & ts.SymbolFlags.Value) === 0;
+      }
       if (!isTypeAlias) continue;
       const typeName = this.symbolsToAliasedNames.get(exp.sym) || exp.sym.name;
       this.emit(`\n/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef`);
@@ -1043,6 +1111,7 @@ class Annotator extends ClosureRewriter {
     if (!importClause) {
       // import './foo';
       this.emit(`'${importPath}';`);
+      this.writeRange(decl, decl.getEnd(), decl.getEnd());
       return true;
     } else if (
         importClause.name ||
@@ -1050,6 +1119,7 @@ class Annotator extends ClosureRewriter {
          importClause.namedBindings.kind === ts.SyntaxKind.NamedImports)) {
       this.visit(importClause);
       this.emit(` from '${importPath}';`);
+      this.writeRange(decl, decl.getEnd(), decl.getEnd());
 
       // importClause.name implies
       //   import a from ...;
@@ -1088,11 +1158,45 @@ class Annotator extends ClosureRewriter {
       // import * as foo from ...;
       this.visit(importClause);
       this.emit(` from '${importPath}';`);
+      this.writeRange(decl, decl.getEnd(), decl.getEnd());
       return true;
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
       return false;  // Use default processing.
     }
+  }
+
+  private collectImportNames(decl: ts.ImportDeclaration) {
+    const importClause = decl.importClause;
+    if (!importClause) {
+      return;
+    }
+    const names: ts.Identifier[] = [];
+    if (importClause.name) {
+      names.push(importClause.name);
+    }
+    if (importClause.namedBindings &&
+        importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+      const namedImports = importClause.namedBindings as ts.NamedImports;
+      names.push(...namedImports.elements.map(e => e.name));
+    }
+    names.forEach(name => {
+      let symbol = this.typeChecker.getSymbolAtLocation(name);
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = this.typeChecker.getAliasedSymbol(symbol);
+      }
+      const declarationNames: ts.Identifier[] = [];
+      if (symbol.declarations) {
+        symbol.declarations.forEach(d => {
+          if (d.name && d.name.kind === ts.SyntaxKind.Identifier) {
+            declarationNames.push(d.name as ts.Identifier);
+          }
+        });
+      }
+      if (symbol.declarations) {
+        this.importedNames.push({name, declarationNames});
+      }
+    });
   }
 
   private getNamedSymbols(specifiers: Array<ts.ImportSpecifier|ts.ExportSpecifier>): NamedSymbol[] {
@@ -1153,9 +1257,11 @@ class Annotator extends ClosureRewriter {
   }
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
+    this.writeRange(classDecl, classDecl.getFullStart(), classDecl.getFullStart());
     const oldDecoratorConverter = this.currentDecoratorConverter;
     if (this.features & AnnotatorFeatures.LowerDecorators) {
-      this.currentDecoratorConverter = new DecoratorClassVisitor(this.typeChecker, this, classDecl);
+      this.currentDecoratorConverter =
+          new DecoratorClassVisitor(this.typeChecker, this, classDecl, this.importedNames);
     }
 
     const docTags = this.getJSDoc(classDecl) || [];
@@ -1408,10 +1514,24 @@ class Annotator extends ClosureRewriter {
     this.emit('\n');
     const name = node.name.getText();
     const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
-    if (isExported) this.emit('export ');
-    this.emit(`type ${name} = number;\n`);
-    if (isExported) this.emit('export ');
-    this.emit(`let ${name}: any = {};\n`);
+    if (this.features & AnnotatorFeatures.SimpleEnum) {
+      // Note: this is semantically different
+      // than the version below, in that the ordering
+      // matters: if a file declares an interfaces
+      // that uses an enum, now the enum has to be declared
+      // before the interface or otherwise TypeScript will
+      // complain about "...of exported interface has or is using private name..."
+      this.emit(`type ${name} = number;\n`);
+      this.emit(`let ${name}: any = {};\n`);
+      if (isExported) {
+        this.emit(`export {${name}};\n`);
+      }
+    } else {
+      if (isExported) this.emit('export ');
+      this.emit(`type ${name} = number;\n`);
+      if (isExported) this.emit('export ');
+      this.emit(`let ${name}: any = {};\n`);
+    }
 
     // Emit foo.BAR = 0; lines.
     for (const member of toArray(members.keys())) {
