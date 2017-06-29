@@ -54,7 +54,8 @@ DecoratorTest.decorators = [
 /** @nocollapse */
 DecoratorTest.ctorParameters = () => [
     { type: Array, },
-    null, null,
+    null,
+    null,
     { type: Promise, },
     { type: Array, },
     { type: external_1.AClass, },

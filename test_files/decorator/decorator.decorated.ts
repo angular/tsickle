@@ -39,12 +39,14 @@ static decorators: {type: Function, args?: any[]}[] = [
 /** @nocollapse */
 static ctorParameters: () => ({type: any, decorators?: {type: Function, args?: any[]}[]}|null)[] = () => [
 {type: Array, },
-null, null,
+null,
+null,
 {type: Promise, },
 {type: Array, },
 {type: AClass, },
 {type: AClassWithGenerics, },
-null,];
+null,
+];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 "w": [{ type: annotationDecorator },],
 "y": [{ type: annotationDecorator },],
