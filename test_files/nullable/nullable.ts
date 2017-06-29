@@ -20,3 +20,6 @@ function takesNonNullable(val: string|number) {}
 
 let x: {field: string | null | number} = {field: null};
 takesNonNullable(x.field!);
+takesNonNullable(`${x.field!}`);
+let ctx: any;
+takesNonNullable(`org/${ctx.getTargetOrganization()!.key}/admin/folders`);
