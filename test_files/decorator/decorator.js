@@ -38,11 +38,11 @@ class DecoratorTest {
      * @param {!Array<string>} arr
      * @param {!tsickle_forward_declare_1.AClass} aClass
      * @param {!tsickle_forward_declare_1.AClass} AClass
-     * @param {!tsickle_forward_declare_1.AClass} aRanmedClass
+     * @param {!tsickle_forward_declare_1.AClass} aRenamedClass
      * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
      * @param {!tsickle_forward_declare_1.AType} aType
      */
-    constructor(a, n, b, promise, arr, aClass, AClass, aRanmedClass, aClassWithGenerics, aType) { }
+    constructor(a, n, b, promise, arr, aClass, AClass, aRenamedClass, aClassWithGenerics, aType) { }
     /**
      * @return {number}
      */

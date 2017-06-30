@@ -11,6 +11,11 @@ import * as ts from 'typescript';
 import {SourceMapper, SourcePosition} from './source_map_utils';
 import {isTypeNodeKind, updateSourceFileNode, visitEachChild, visitNodeWithSynthesizedComments} from './transformer_util';
 
+/**
+ * @fileoverview Creates a TypeScript transformer that parses code into a new `ts.SourceFile`,
+ * marks the nodes as synthetic and where possible maps the new nodes back to the original nodes
+ * via sourcemap information.
+ */
 export function createTransformerFromSourceMap(
     operator: (sourceFile: ts.SourceFile, sourceMapper: SourceMapper) =>
         string): ts.TransformerFactory<ts.SourceFile> {
@@ -49,9 +54,13 @@ export function createTransformerFromSourceMap(
       ts.setTextRange(node, originalNode ? originalNode : {pos: -1, end: -1});
       ts.setOriginalNode(node, originalNode);
 
-      // tslint:disable-next-line:no-any
+      // Loop over all nested ts.NodeArrays /
+      // ts.Nodes that were not visited and set their
+      // text range to -1 to not emit their whitespace.
+      // Sadly, TypeScript does not have an API for this...
+      // tslint:disable-next-line:no-any To read all properties
       const nodeAny = node as {[key: string]: any};
-      // tslint:disable-next-line:no-any
+      // tslint:disable-next-line:no-any To read all properties
       const originalNodeAny = originalNode as {[key: string]: any};
       for (const prop in nodeAny) {
         if (nodeAny.hasOwnProperty(prop)) {
@@ -77,6 +86,10 @@ export function createTransformerFromSourceMap(
   };
 }
 
+/**
+ * Implementation of the `SourceMapper` that stores and retrieves mappings
+ * to original nodes.
+ */
 class NodeSourceMapper implements SourceMapper {
   private originalNodeByGeneratedRange = new Map<string, ts.Node>();
   private genStartPositions = new Map<ts.Node, number>();

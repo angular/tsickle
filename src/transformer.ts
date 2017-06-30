@@ -48,13 +48,13 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
   const emittedFiles: string[] = [];
   const externs: {[fileName: string]: string} = {};
   const modulesManifest = new ModulesManifest();
-  emitResults.forEach(er => {
+  for (const er of emitResults) {
     diagnostics.push(...er.diagnostics);
     emitSkipped = emitSkipped || er.emitSkipped;
     emittedFiles.push(...er.emittedFiles);
     Object.assign(externs, er.externs);
     modulesManifest.addManifest(er.modulesManifest);
-  });
+  }
   return {diagnostics, emitSkipped, emittedFiles, externs, modulesManifest};
 }
 
@@ -161,7 +161,7 @@ export function emitWithTsickle(
     });
   }
   // All diagnostics (including warnings) are treated as errors.
-  // If we've decided to ignore them, just discard them.
+  // If the host decides to ignore warnings, just discard them.
   // Warnings include stuff like "don't use @type in your jsdoc"; tsickle
   // warns and then fixes up the code to be Closure-compatible anyway.
   tsickleDiagnostics = tsickleDiagnostics.filter(

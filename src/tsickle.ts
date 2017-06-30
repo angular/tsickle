@@ -52,11 +52,18 @@ export interface AnnotatorOptions {
 export enum AnnotatorFeatures {
   LowerDecorators = 1 << 0,
   /**
-   * filter out types when expanding `export * from ...`
+   * Filter out types when expanding `export * from ...`.
+   *
+   * Needed by the transformer version as TypeScript collects symbol information before
+   * running the transformers, and the generated identifiers therefore have no
+   * TypeScript symbol information associated. Because of this, Typescript does not
+   * elide exports for types in this case.
+   *
+   * This flag will be removed and always set once we drop the on transformer version of tsickle.
    */
   FilterTypesInExportStart = 1 << 1,
   /**
-   * emit enums as
+   * Emit enums as
    * ```
    * type EnumX = number;
    * const EnumX = {};
@@ -67,25 +74,37 @@ export enum AnnotatorFeatures {
    * export type EnumX = number;
    * export const EnumX = {};
    * ```
+   *
+   * Needed for the transformer version of tsickle as the changed enum declarations no longer
+   * have TypeScript symbol
+   * information and thefore typescript no longer generates `export.` for all property accesses
+   * to the exported symbols.
+   *
+   * This flag cannot be used in the non transformer version of tsickle,
+   * as then the ordering of enum declaration and usage of the enum matters:
+   * if a file declares an interfaces
+   * that uses an enum, now the enum has to be declared
+   * before the interface or otherwise TypeScript will
+   * complain about "...of exported interface has or is using private name...".
+   * TODO(tbosch): file an issue with TypeScript, tracked in
+   * https://github.com/angular/tsickle/issues/528.
+   *
+   * This flag will be removed and always set once we drop the on transformer version of tsickle.
    */
   SimpleEnum = 1 << 2,
   /**
    * Generated @typedefs for reexported interfaces.
+   *
+   * Needed for the transformer version of tsickle as the .d.ts is generated before running tsickle,
+   * and therefore does no longer contain the reexports for the interfaces, even if
+   * tsickle changes them into functions.
+   *
+   * This flag will be removed and always set once we drop the on transformer version of tsickle.
    */
   TypeDefReexportForInterfaces = 1 << 3,
 
   Default = 0,
-  /**
-   * Transformers need:
-   * - FilterTypesInExportStart as the generated code does no longer have TypeScript typechecker
-   *   information and therefore typescript does not elide exports for types.
-   * - SimpleEnum as the changed enum declarations also no longer have TypeScript typechecker
-   *   information and thefore typescript no longer generates `export.` for all property accesses
-   *   to the exported symbols.
-   * - TypeDefReexportForInterfaces as the .d.ts is generated before running tsickle,
-   *   and therefore does no longer contain the reexports for the interfaces, even if
-   *   tsickle changes them into functions.
-   */
+
   Transformer =
       LowerDecorators | FilterTypesInExportStart | SimpleEnum | TypeDefReexportForInterfaces,
 }
@@ -561,7 +580,7 @@ class Annotator extends ClosureRewriter {
   private generatedExports = new Set<string>();
   /** DecoratorClassVisitor when lowering decorators while closure annotating */
   private currentDecoratorConverter: DecoratorClassVisitor|undefined;
-  /** Collection of imported names with their Symbol */
+  /** Collection of Identifiers used in an `import {foo}` declaration with their Symbol */
   private importedNames: Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}> = [];
 
   private templateSpanStackCount = 0;
@@ -707,8 +726,9 @@ class Annotator extends ClosureRewriter {
         // not a binding pattern, as Closure doesn't(?) have a syntax
         // for annotating binding patterns.  See issue #128.
         // Don't emit type annotation when the variable statement is a @polymerBehavior,
-        // as otherweise the polymer closure checker will fail.
-        // TODO(tbosch): file an issue for this!
+        // as otherwise the polymer closure checker will fail.
+        // TODO(tbosch): file an issue with Polymer, tracked in
+        // https://github.com/angular/tsickle/issues/529.
         if (this.polymerBehaviorStackCount === 0 &&
             varDecl.name.kind === ts.SyntaxKind.Identifier) {
           this.emitJSDocType(varDecl);
@@ -784,8 +804,10 @@ class Annotator extends ClosureRewriter {
         // When TypeScript emits JS, it removes one layer of "redundant"
         // parens, but we need them for the Closure type assertion.  Work
         // around this by using two parens.  See test_files/coerce.*.
-        // TODO: the comment is currently dropped from pure assignments due to
-        //   https://github.com/Microsoft/TypeScript/issues/9873
+        // This is needed in both, the transformer and non transformer version.
+        // TODO: in the non transformer version, the comment is currently dropped
+        //  alltegether from pure assignments due to
+        //  https://github.com/Microsoft/TypeScript/issues/9873.
         this.emit('((');
         this.writeNode(node);
         this.emit('))');
@@ -1166,6 +1188,12 @@ class Annotator extends ClosureRewriter {
     }
   }
 
+  /**
+   * Collect the Identifiers used as named bindings in the given import declaration
+   * with their Symbol.
+   * This is needed lateron to find an identifier that represents the value
+   * of an imported type identifier.
+   */
   private collectImportNames(decl: ts.ImportDeclaration) {
     const importClause = decl.importClause;
     if (!importClause) {
@@ -1180,23 +1208,23 @@ class Annotator extends ClosureRewriter {
       const namedImports = importClause.namedBindings as ts.NamedImports;
       names.push(...namedImports.elements.map(e => e.name));
     }
-    names.forEach(name => {
+    for (const name of names) {
       let symbol = this.typeChecker.getSymbolAtLocation(name);
       if (symbol.flags & ts.SymbolFlags.Alias) {
         symbol = this.typeChecker.getAliasedSymbol(symbol);
       }
       const declarationNames: ts.Identifier[] = [];
       if (symbol.declarations) {
-        symbol.declarations.forEach(d => {
+        for (const d of symbol.declarations) {
           if (d.name && d.name.kind === ts.SyntaxKind.Identifier) {
             declarationNames.push(d.name as ts.Identifier);
           }
-        });
+        }
       }
       if (symbol.declarations) {
         this.importedNames.push({name, declarationNames});
       }
-    });
+    }
   }
 
   private getNamedSymbols(specifiers: Array<ts.ImportSpecifier|ts.ExportSpecifier>): NamedSymbol[] {
@@ -1515,12 +1543,6 @@ class Annotator extends ClosureRewriter {
     const name = node.name.getText();
     const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
     if (this.features & AnnotatorFeatures.SimpleEnum) {
-      // Note: this is semantically different
-      // than the version below, in that the ordering
-      // matters: if a file declares an interfaces
-      // that uses an enum, now the enum has to be declared
-      // before the interface or otherwise TypeScript will
-      // complain about "...of exported interface has or is using private name..."
       this.emit(`type ${name} = number;\n`);
       this.emit(`let ${name}: any = {};\n`);
       if (isExported) {
