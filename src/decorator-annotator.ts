@@ -133,6 +133,18 @@ export class DecoratorClassVisitor {
     this.propDecorators.set(name, decorators);
   }
 
+  /**
+   * For lowering decorators, we need to refer to constructor types.
+   * So we start with the identifiers that represent these types.
+   * However, TypeScript does not allow use to emit them in a value position
+   * as it associated different symbol information with it.
+   *
+   * This method looks for the place where the value that is associated to
+   * the type is defined and returns that identifier instead.
+   *
+   * @param typeSymbol
+   * @return The identifier
+   */
   private getValueIdentifierForType(typeSymbol: ts.Symbol): ts.Identifier|null {
     if (!typeSymbol.valueDeclaration) {
       return null;
@@ -348,6 +360,7 @@ export function visitClassContentIncludingDecorators(
     classDecl: ts.ClassDeclaration, rewriter: Rewriter, decoratorVisitor?: DecoratorClassVisitor) {
   if (rewriter.file.text[classDecl.getEnd() - 1] !== '}') {
     rewriter.error(classDecl, 'unexpected class terminator');
+    return;
   }
   rewriter.writeNodeFrom(classDecl, classDecl.getStart(), classDecl.getEnd() - 1);
   // At this point, we've emitted up through the final child of the class, so all that

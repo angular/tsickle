@@ -50,7 +50,7 @@ function patchGolden(golden: string|null, path: string): string|null {
   }
   const patchPath = calcPatchPath(path);
   if (fs.existsSync(patchPath)) {
-    // Note: the typings for `diff.applyPath` are wrong in that the function
+    // Note: the typings for `diff.applyPatch` are wrong in that the function
     // can also return `false`.
     const patchedGolden =
         diff.applyPatch(golden, fs.readFileSync(patchPath, 'utf-8')) as string | false;

@@ -12,24 +12,23 @@ import * as tsickle from './tsickle';
 /**
  * Adjusts the given CustomTransformers with additional transformers
  * to fix bugs in TypeScript.
- * @param given A
  */
 export function createCustomTransformers(given: ts.CustomTransformers): ts.CustomTransformers {
   if (!given.after && !given.before) {
     return given;
   }
   const before = given.before || [];
-  before.unshift(firstTransform);
-  before.push(preTypeScriptTransform);
+  before.unshift(addFileContexts);
+  before.push(prepareNodesBeforeTypeScriptTransform);
   const after = given.after || [];
-  after.unshift(postTypescriptTransform);
+  after.unshift(emitMissingSyntheticCommentsAfterTypescriptTransform);
   return {before, after};
 }
 
 /**
- * Transform to be used as first transform to reset some state.
+ * Transform that adds the FileContext to the TransformationContext.
  */
-function firstTransform(context: ts.TransformationContext) {
+function addFileContexts(context: ts.TransformationContext) {
   return (sourceFile: ts.SourceFile) => {
     (context as TransformationContext).fileContext = new FileContext(sourceFile);
     return sourceFile;
@@ -51,7 +50,7 @@ function assertFileContext(context: TransformationContext, sourceFile: ts.Source
 }
 
 /**
- * And extended version of the TransformationContext that stores the FileContext as well.
+ * An extended version of the TransformationContext that stores the FileContext as well.
  */
 interface TransformationContext extends ts.TransformationContext {
   fileContext?: FileContext;
@@ -60,12 +59,21 @@ interface TransformationContext extends ts.TransformationContext {
 /**
  * A context that stores information per file to e.g. allow communication
  * between transformers.
- * Note that the ts.TransformationContext stores context about all files
- * in the emit.
+ * There is one ts.TransformationContext per emit,
+ * but files are handled sequentially by all transformers. Thefore we can
+ * store file related information on a property on the ts.TransformationContext,
+ * given that we reset it in the first transformer.
  */
 class FileContext {
+  /**
+   * Stores the parent node for all processed nodes.
+   * This is needed for nodes from the parse tree that are used
+   * in a synthetic node as must not modify these, even though they
+   * have a new parent now.
+   */
   syntheticNodeParents = new Map<ts.Node, ts.Node|undefined>();
-  importOrReexportDeclarations: Array<ts.Node&{moduleSpecifier: ts.StringLiteral}> = [];
+  importOrReexportDeclarations:
+      Array<(ts.ExportDeclaration | ts.ImportDeclaration)&{moduleSpecifier: ts.StringLiteral}> = [];
   lastCommentEnd = -1;
   constructor(public file: ts.SourceFile) {}
 }
@@ -74,8 +82,10 @@ class FileContext {
  * Transform that needs to be executed right before TypeScript's transform.
  *
  * This prepares the node tree to workaround some bugs in the TypeScript emitter.
+ * TODO(tbosch): file issues with TypeScript, tracked in
+ * https://github.com/angular/tsickle/issues/528.
  */
-function preTypeScriptTransform(context: ts.TransformationContext) {
+function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext) {
   return (sourceFile: ts.SourceFile) => {
     const fileCtx = assertFileContext(context, sourceFile);
 
@@ -100,7 +110,7 @@ function preTypeScriptTransform(context: ts.TransformationContext) {
       const originalNode = ts.getOriginalNode(node);
       // Needed so that e.g. `module { ... }` prints the variable statement
       // before the closure.
-      // tslint:disable-next-line:no-any
+      // tslint:disable-next-line:no-any as `symbol` is @internal in typescript.
       (node as any).symbol = (originalNode as any).symbol;
 
       if (originalNode && node.kind === ts.SyntaxKind.ExportDeclaration) {
@@ -114,14 +124,15 @@ function preTypeScriptTransform(context: ts.TransformationContext) {
         }
       }
 
-      let importOrReexportNode: ts.Node&{moduleSpecifier: ts.StringLiteral}|undefined;
+      let importOrReexportNode: (ts.ExportDeclaration|ts.ImportDeclaration)&
+          {moduleSpecifier: ts.StringLiteral}|undefined;
       if (node.kind === ts.SyntaxKind.ImportDeclaration) {
         const id = node as ts.ImportDeclaration;
         // this should always be a StringLiteral, see the typescript docs.
         if (id.moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
           throw new Error(`Unexpected moduleSpecifier kind: ${id.moduleSpecifier.kind}`);
         }
-        importOrReexportNode = node as ts.Node & {moduleSpecifier: ts.StringLiteral};
+        importOrReexportNode = node as ts.ImportDeclaration & {moduleSpecifier: ts.StringLiteral};
       } else if (node.kind === ts.SyntaxKind.ExportDeclaration) {
         const ed = node as ts.ExportDeclaration;
         if (ed.moduleSpecifier) {
@@ -129,7 +140,7 @@ function preTypeScriptTransform(context: ts.TransformationContext) {
           if (ed.moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
             throw new Error(`Unexpected moduleSpecifier kind: ${ed.moduleSpecifier.kind}`);
           }
-          importOrReexportNode = ed as ts.Node as ts.Node & {moduleSpecifier: ts.StringLiteral};
+          importOrReexportNode = ed as ts.ExportDeclaration & {moduleSpecifier: ts.StringLiteral};
         }
       }
       if (importOrReexportNode) {
@@ -150,7 +161,7 @@ function preTypeScriptTransform(context: ts.TransformationContext) {
  * This fixes places where the TypeScript transformer does not
  * emit synthetic comments.
  */
-function postTypescriptTransform(context: ts.TransformationContext) {
+function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.TransformationContext) {
   return (sourceFile: ts.SourceFile) => {
     const fileContext = assertFileContext(context, sourceFile);
     const nodePath: ts.Node[] = [];
@@ -178,7 +189,7 @@ function postTypescriptTransform(context: ts.TransformationContext) {
         } else if (
             parent3 && parent3.kind === ts.SyntaxKind.VariableStatement &&
             tsickle.hasModifierFlag(parent3, ts.ModifierFlags.Export)) {
-          // TypeScript ignore synthetic comments on exported variables.
+          // TypeScript ignores synthetic comments on exported variables.
           // find the parent ExpressionStatement like exports.foo = ...
           const expressionStmt =
               lastNodeWith(nodePath, (node) => node.kind === ts.SyntaxKind.ExpressionStatement);
@@ -188,7 +199,7 @@ function postTypescriptTransform(context: ts.TransformationContext) {
           }
         }
       }
-      // TypeScript ignore synthetic comments on reexport / import statements.
+      // TypeScript ignores synthetic comments on reexport / import statements.
       const moduleName = extractModuleNameFromRequireVariableStatement(node);
       if (moduleName && fileContext.importOrReexportDeclarations) {
         const index = importOrReexportsCount++;
@@ -240,8 +251,13 @@ function lastNodeWith(nodes: ts.Node[], predicate: (node: ts.Node) => boolean): 
 }
 
 /**
- * Synthesizes the comments before and after a node
- * befor calling a callback.
+ * Convert comment text ranges before and after a node
+ * into ts.SynthesizedComments for the node and prevent the
+ * comment text ranges to be emitted, to allow
+ * changing these comments.
+ *
+ * This function takes a visitor to be able to do some
+ * state management after the caller is done changing a node.
  */
 export function visitNodeWithSynthesizedComments<T extends ts.Node>(
     context: ts.TransformationContext, sourceFile: ts.SourceFile, node: T,
@@ -288,7 +304,8 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
   if (node.kind === ts.SyntaxKind.PropertyDeclaration) {
     allowTextRange = false;
     const pd = node as ts.Node as ts.PropertyDeclaration;
-    // TODO(tbosch): Using pd.initializer! as the typescript typings for intializer are incorrect.
+    // TODO(tbosch): Using pd.initializer! as the typescript typings for intializer are incorrect,
+    // tracked in https://github.com/angular/tsickle/issues/528.
     node = ts.updateProperty(
                pd, pd.decorators, pd.modifiers, resetTextRange(pd.name) as ts.PropertyName, pd.type,
                pd.initializer!) as ts.Node as T;
@@ -311,6 +328,13 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
   }
 }
 
+/**
+ * Reads in the leading comment text ranges of the given node,
+ * converts them into `ts.SyntheticComment`s and stores them on the node.
+ *
+ * @param lastCommentEnd The end of the last comment
+ * @return The end of the last found comment, -1 if no comment was found.
+ */
 function synthesizeLeadingComments(
     sourceFile: ts.SourceFile, node: ts.Node, lastCommentEnd: number): number {
   const parent = node.parent;
@@ -324,11 +348,17 @@ function synthesizeLeadingComments(
       getAllLeadingCommentRanges(sourceFile, adjustedNodeFullStart, node.getStart());
   if (leadingComments && leadingComments.length) {
     ts.setSyntheticLeadingComments(node, synthesizeCommentRanges(sourceFile, leadingComments));
-    lastCommentEnd = node.getStart();
+    return node.getStart();
   }
   return -1;
 }
 
+/**
+ * Reads in the trailing comment text ranges of the given node,
+ * converts them into `ts.SyntheticComment`s and stores them on the node.
+ *
+ * @return The end of the last found comment, -1 if no comment was found.
+ */
 function synthesizeTrailingComments(sourceFile: ts.SourceFile, node: ts.Node): number {
   const parent = node.parent;
   const sharesEndWithParent = parent && parent.kind !== ts.SyntaxKind.Block &&
@@ -344,6 +374,16 @@ function synthesizeTrailingComments(sourceFile: ts.SourceFile, node: ts.Node): n
   return -1;
 }
 
+/**
+ * Convert leading/trailing detached comment ranges of statement arrays
+ * (e.g. the statements of a ts.SourceFile or ts.Block) into
+ * `ts.NonEmittedStatement`s with `ts.SynthesizedComment`s and
+ * prepends / appends them to the given statement array.
+ * This is needed to allow changing these comments.
+ *
+ * This function takes a visitor to be able to do some
+ * state management after the caller is done changing a node.
+ */
 function visitNodeStatementsWithSynthesizedComments<T extends ts.Node>(
     context: ts.TransformationContext, sourceFile: ts.SourceFile, node: T,
     statements: ts.NodeArray<ts.Statement>,
@@ -371,6 +411,14 @@ function visitNodeStatementsWithSynthesizedComments<T extends ts.Node>(
   return visitor(node, statements);
 }
 
+/**
+ * Convert leading detached comment ranges of statement arrays
+ * (e.g. the statements of a ts.SourceFile or ts.Block) into a
+ * `ts.NonEmittedStatement` with `ts.SynthesizedComment`s.
+ *
+ * A Detached leading comment is the first comment in a SourceFile / Block
+ * that is separated with a newline from the first statement.
+ */
 function synthesizeDetachedLeadingComments(
     sourceFile: ts.SourceFile, node: ts.Node, statements: ts.NodeArray<ts.Statement>):
     {commentStmt: ts.Statement | null, lastCommentEnd: number} {
@@ -378,7 +426,7 @@ function synthesizeDetachedLeadingComments(
   if (statements.length) {
     triviaEnd = statements[statements.length - 1].getStart();
   }
-  const detachedComments = getDetachedStartingComments(sourceFile, statements.pos, triviaEnd);
+  const detachedComments = getDetachedLeadingCommentRanges(sourceFile, statements.pos, triviaEnd);
   if (!detachedComments.length) {
     return {commentStmt: null, lastCommentEnd: -1};
   }
@@ -390,6 +438,14 @@ function synthesizeDetachedLeadingComments(
   return {commentStmt, lastCommentEnd};
 }
 
+/**
+ * Convert trailing detached comment ranges of statement arrays
+ * (e.g. the statements of a ts.SourceFile or ts.Block) into a
+ * `ts.NonEmittedStatement` with `ts.SynthesizedComment`s.
+ *
+ * A Detached trailing comment are all comments after the first newline
+ * the follows the last statement in a SourceFile / Block.
+ */
 function synthesizeDetachedTrailingComments(
     sourceFile: ts.SourceFile, node: ts.Node, statements: ts.NodeArray<ts.Statement>):
     {commentStmt: ts.Statement | null, lastCommentEnd: number} {
@@ -413,8 +469,14 @@ function synthesizeDetachedTrailingComments(
   return {commentStmt, lastCommentEnd};
 }
 
-// Adapted from compiler/comments.ts in TypeScript
-function getDetachedStartingComments(
+/**
+ * Calculates the the detached leading comment ranges in an area of a SourceFile.
+ * @param sourceFile The source file
+ * @param start Where to start scanning
+ * @param end Where to end scanning
+ */
+// Note: This code is based on compiler/comments.ts in TypeScript
+function getDetachedLeadingCommentRanges(
     sourceFile: ts.SourceFile, start: number, end: number): ts.CommentRange[] {
   const leadingComments = getAllLeadingCommentRanges(sourceFile, start, end);
   if (!leadingComments || !leadingComments.length) {
@@ -459,8 +521,13 @@ function getLineOfPos(sourceFile: ts.SourceFile, pos: number): number {
   return ts.getLineAndCharacterOfPosition(sourceFile, pos).line;
 }
 
-
-function synthesizeCommentRanges(sourceFile: ts.SourceFile, parsedComments: ts.CommentRange[]) {
+/**
+ * Converts `ts.CommentRange`s into `ts.SynthesizedComment`s
+ * @param sourceFile
+ * @param parsedComments
+ */
+function synthesizeCommentRanges(
+    sourceFile: ts.SourceFile, parsedComments: ts.CommentRange[]): ts.SynthesizedComment[] {
   const synthesizedComments: ts.SynthesizedComment[] = [];
   parsedComments.forEach(({kind, pos, end, hasTrailingNewLine}, commentIdx) => {
     let commentText = sourceFile.text.substring(pos, end).trim();
@@ -478,6 +545,9 @@ function synthesizeCommentRanges(sourceFile: ts.SourceFile, parsedComments: ts.C
   return synthesizedComments;
 }
 
+/**
+ * Creates a non emitted statement that can be used to store synthesized comments.
+ */
 function createNotEmittedStatement(sourceFile: ts.SourceFile) {
   const stmt = ts.createNotEmittedStatement(sourceFile);
   ts.setOriginalNode(stmt, undefined);
@@ -485,6 +555,15 @@ function createNotEmittedStatement(sourceFile: ts.SourceFile) {
   return stmt;
 }
 
+/**
+ * Returns the leading comment ranges in the source file that start at the given position.
+ * This is the same as `ts.getLeadingCommentRanges`, except that it does not skip
+ * comments before the first newline in the range.
+ *
+ * @param sourceFile
+ * @param start Where to start scanning
+ * @param end Where to end scanning
+ */
 function getAllLeadingCommentRanges(
     sourceFile: ts.SourceFile, start: number, end: number): ts.CommentRange[] {
   // exeute ts.getLeadingCommentRanges with pos = 0 so that it does not skip
@@ -498,6 +577,15 @@ function getAllLeadingCommentRanges(
                            }));
 }
 
+/**
+ * This is a version of `ts.updateSourceFileNode` that prevents some
+ * bugs in TypeScript.
+ * TODO(tbosch): file an issue with TypeScript, tracked in
+ * https://github.com/angular/tsickle/issues/528.
+ *
+ * @param sf
+ * @param statements
+ */
 export function updateSourceFileNode(
     sf: ts.SourceFile, statements: ts.NodeArray<ts.Statement>): ts.SourceFile {
   if (statements === sf.statements) {
@@ -522,6 +610,12 @@ export function getMutableClone<T extends ts.Node>(node: T): T {
   return clone;
 }
 
+/**
+ * This is a version of `ts.visitEachChild` that does not visit children of types
+ * to prevent errors from TypeScript.
+ * TODO(tbosch): file an issue with TypeScript, tracked in
+ * https://github.com/angular/tsickle/issues/528.
+ */
 export function visitEachChild<T extends ts.Node>(
     node: T, visitor: ts.Visitor, context: ts.TransformationContext): T {
   // Don't visit children of types,

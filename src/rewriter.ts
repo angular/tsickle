@@ -84,8 +84,8 @@ export abstract class Rewriter {
     this.writeNodeFrom(node, pos);
   }
 
-  writeNodeFrom(node: ts.Node, pos: number, end = Number.MAX_SAFE_INTEGER) {
-    if (node.getEnd() <= this.skipUpToOffset) {
+  writeNodeFrom(node: ts.Node, pos: number, end = node.getEnd()) {
+    if (end <= this.skipUpToOffset) {
       return;
     }
     const oldSkipUpToOffset = this.skipUpToOffset;
@@ -95,7 +95,7 @@ export abstract class Rewriter {
       this.visit(child);
       pos = child.getEnd();
     });
-    this.writeRange(node, pos, Math.min(end, node.getEnd()));
+    this.writeRange(node, pos, end);
     this.skipUpToOffset = oldSkipUpToOffset;
   }
 

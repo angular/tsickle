@@ -17,7 +17,7 @@ function classAnnotation(t: any) { return t; }
 
 
 class DecoratorTest {
-  constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, AClass: AClass, aRanmedClass: ARenamedClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
+  constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, AClass: AClass, aRenamedClass: ARenamedClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
 
   
   get w(): number {
