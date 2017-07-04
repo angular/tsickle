@@ -11,6 +11,7 @@
 // support Iterators completely.
 
 import * as ts from 'typescript';
+import * as os from 'os';
 
 export function toArray<T>(iterator: Iterator<T>): T[] {
   const array: T[] = [];
@@ -87,4 +88,20 @@ export function createOutputRetainingCompilerHost(
       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
     outputFiles.set(fileName, content);
   }
+}
+
+/**
+ * True if we are running on Windows (32 or 64 bit).
+ */
+export const isWindows: boolean = os.platform() === 'win32';
+
+/**
+ * Returns the input with line endings normalized to '\n', when running on Windows.
+ * Returns the string as is, for any other OS.
+ */
+export function normalizeLineEndings(input: string): string {
+  if (isWindows)
+    return input.replace(/\r\n/g, '\n');
+  else
+    return input;
 }

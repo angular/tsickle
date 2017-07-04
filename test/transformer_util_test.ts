@@ -13,6 +13,8 @@ import {createCustomTransformers, visitEachChild, visitNodeWithSynthesizedCommen
 
 import * as testSupport from './test_support';
 
+import {normalizeLineEndings} from '../src/util';
+
 const MODULE_HEADER = `Object.defineProperty(exports, "__esModule", { value: true });`;
 
 describe('transformer util', () => {
@@ -23,7 +25,7 @@ describe('transformer util', () => {
     const transformers = createCustomTransformers({before: [transform]});
     const jsSources: {[fileName: string]: string} = {};
     program.emit(undefined, (fileName: string, data: string) => {
-      jsSources[fileName] = data;
+      jsSources[fileName] = normalizeLineEndings(data);
     }, undefined, undefined, transformers);
 
     return jsSources;
