@@ -10,8 +10,8 @@
 // ES6 maps and sets when running on node 4, which doesn't
 // support Iterators completely.
 
-import * as ts from 'typescript';
 import * as os from 'os';
+import * as ts from 'typescript';
 
 export function toArray<T>(iterator: Iterator<T>): T[] {
   const array: T[] = [];

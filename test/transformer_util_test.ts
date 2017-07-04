@@ -10,10 +10,9 @@ import {expect} from 'chai';
 import * as ts from 'typescript';
 
 import {createCustomTransformers, visitEachChild, visitNodeWithSynthesizedComments} from '../src/transformer_util';
+import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
-
-import {normalizeLineEndings} from '../src/util';
 
 const MODULE_HEADER = `Object.defineProperty(exports, "__esModule", { value: true });`;
 
