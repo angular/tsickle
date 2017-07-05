@@ -10,7 +10,6 @@
 // ES6 maps and sets when running on node 4, which doesn't
 // support Iterators completely.
 
-import * as os from 'os';
 import * as ts from 'typescript';
 
 export function toArray<T>(iterator: Iterator<T>): T[] {
@@ -91,17 +90,8 @@ export function createOutputRetainingCompilerHost(
 }
 
 /**
- * True if we are running on Windows (32 or 64 bit).
- */
-export const isWindows: boolean = os.platform() === 'win32';
-
-/**
- * Returns the input with line endings normalized to '\n', when running on Windows.
- * Returns the string as is, for any other OS.
+ * Returns the input string with line endings normalized to '\n'.
  */
 export function normalizeLineEndings(input: string): string {
-  if (isWindows)
-    return input.replace(/\r\n/g, '\n');
-  else
-    return input;
+  return input.replace(/\r\n/g, '\n');
 }
