@@ -34,19 +34,3 @@ angular.sub = {};
 
 /** @typedef {string} */
 angular.sub.SubType;
-
-/* TODO: ExportAssignment in  */
- /** @type {string} */
-var angular;
-/**
- * @record
- * @struct
- */
-angular.IFooBar = function() {};
- /** @type {string} */
-angular.IFooBar.prototype.field;
-/** @const */
-angular.sub = {};
-
-/** @typedef {string} */
-angular.sub.SubType;
