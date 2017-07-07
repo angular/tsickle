@@ -1631,14 +1631,17 @@ class ExternsWriter extends ClosureRewriter {
             this.writeExternsVariable('tsickle_declare_module', [], '{}');
             namespace = ['tsickle_declare_module'];
 
-            // Declare the inner "tsickle_declare_module.foo".
+            // Declare the inner "tsickle_declare_module.foo", if it's not
+            // declared already elsewhere.
             let importName = (decl.name as ts.StringLiteral).text;
             this.emit(`// Derived from: declare module "${importName}"\n`);
             // We also don't care about the actual name of the module ("foo"
             // in the above example), except that we want it to not conflict.
             importName = importName.replace(/_/, '__').replace(/[^A-Za-z]/g, '_');
-            this.emit('/** @const */\n');
-            this.writeExternsVariable(importName, namespace, '{}');
+            if (this.isFirstDeclaration(decl)) {
+              this.emit('/** @const */\n');
+              this.writeExternsVariable(importName, namespace, '{}');
+            }
 
             // Declare the contents inside the "tsickle_declare_module.foo".
             if (decl.body) this.visit(decl.body, namespace.concat(importName));

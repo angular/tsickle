@@ -8,8 +8,6 @@
 /** @const */
 var tsickle_declare_module = {};
 // Derived from: declare module "./angular"
-/** @const */
-tsickle_declare_module.__angular = {};
 
 /** @typedef {string} */
 tsickle_declare_module.__angular.sub.AugmentSubType;
