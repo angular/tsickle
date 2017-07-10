@@ -88,3 +88,10 @@ export function createOutputRetainingCompilerHost(
     outputFiles.set(fileName, content);
   }
 }
+
+/**
+ * Returns the input string with line endings normalized to '\n'.
+ */
+export function normalizeLineEndings(input: string): string {
+  return input.replace(/\r\n/g, '\n');
+}

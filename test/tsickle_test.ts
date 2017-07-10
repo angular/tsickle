@@ -14,7 +14,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
-import {toArray} from '../src/util';
+import {normalizeLineEndings, toArray} from '../src/util';
 
 import * as testSupport from './test_support';
 
@@ -50,8 +50,8 @@ function compareAgainstGolden(output: string|null, path: string) {
   }
 
   // Make sure we have proper line endings when testing on Windows.
-  if (golden != null) golden = golden.replace(/\r\n/g, '\n');
-  if (output != null) output = output.replace(/\r\n/g, '\n');
+  if (golden != null) golden = normalizeLineEndings(golden);
+  if (output != null) output = normalizeLineEndings(output);
 
   if (UPDATE_GOLDENS && output !== golden) {
     console.log('Updating golden file for', path);
@@ -103,7 +103,7 @@ function runGoldenTests(useSeparatePasses: boolean) {
       for (const tsFile of test.tsFiles) {
         const tsPath = path.join(test.path, tsFile);
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
-        tsSource = tsSource.replace(/\r\n/g, '\n');
+        tsSource = normalizeLineEndings(tsSource);
         tsSources.set(tsPath, tsSource);
       }
       let program = testSupport.createProgram(tsSources);

@@ -6,6 +6,8 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {normalizeLineEndings} from './util';
+
 /**
  * TypeScript has an API for JSDoc already, but it's not exposed.
  * https://github.com/Microsoft/TypeScript/issues/7393
@@ -123,7 +125,7 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
 // strucure (e.g. a Map<TagName, Values[]>).
 export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null {
   // Make sure we have proper line endings before parsing on Windows.
-  comment = comment.replace(/\r\n/g, '\n');
+  comment = normalizeLineEndings(comment);
   // TODO(evanm): this is a pile of hacky regexes for now, because we
   // would rather use the better TypeScript implementation of JSDoc
   // parsing.  https://github.com/Microsoft/TypeScript/issues/7393

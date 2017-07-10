@@ -10,6 +10,7 @@ import {expect} from 'chai';
 import * as ts from 'typescript';
 
 import {createCustomTransformers, visitEachChild, visitNodeWithSynthesizedComments} from '../src/transformer_util';
+import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
 
@@ -23,7 +24,7 @@ describe('transformer util', () => {
     const transformers = createCustomTransformers({before: [transform]});
     const jsSources: {[fileName: string]: string} = {};
     program.emit(undefined, (fileName: string, data: string) => {
-      jsSources[fileName] = data;
+      jsSources[fileName] = normalizeLineEndings(data);
     }, undefined, undefined, transformers);
 
     return jsSources;
