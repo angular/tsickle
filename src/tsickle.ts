@@ -1577,7 +1577,45 @@ class Annotator extends ClosureRewriter {
   }
 }
 
-/** ExternsWriter generates Closure externs from TypeScript source. */
+/**
+ * Closure externs all merge into a single global namespace. For the purposes of
+ * constructing externs, it's not clear what to do with modules.
+ *
+ * A module that declares a field 'foo' is not declaring a global 'foo', it's
+ * instead declaring that its 'foo' field should not be renamed.  We just need
+ * a 'foo' field to exist in *some* namespace.
+ *
+ * To implement this, in externs tsickle hides each module as a child of a
+ * special tsickle namespace.
+ */
+const tsickleModuleNamespace = 'tsickle_module';
+
+/**
+ * ExternsWriter generates Closure externs from TypeScript source.
+ *
+ * In a .ts module,
+ *   declare var x: string;
+ * declares a global x that should appear in externs like
+ *   var x;
+ *
+ * In a .d.ts script,
+ *   declare var x: string;
+ * behaves as above.
+ *
+ * In a d.ts module (i.e. if there are any imports/exports)
+ *   declare var x: string;
+ * should generate an extern scoped to the module, hidden in the above
+ * tsickleModuleNamespace. (Note: this regardless of whether the declaration
+ * itself has an "export" on it!)
+ *   tsickle_module.mangled_name_for_this_file.x;
+ *
+ * Using "declare global" puts the contained code back to the behavior of the
+ * .ts module.
+ *
+ * Using "declare module 'x' { ... }" rescopes back to the specified module,
+ * and matches the behavior of a d.ts module.
+ * (Note that you cannot use "declare module" from a module, only a script.)
+ */
 class ExternsWriter extends ClosureRewriter {
   process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.findExternRoots().forEach(node => this.visit(node));
@@ -1596,6 +1634,22 @@ class ExternsWriter extends ClosureRewriter {
     switch (node.kind) {
       case ts.SyntaxKind.SourceFile:
         const sourceFile = node as ts.SourceFile;
+        if (ts.isExternalModule(sourceFile)) {
+          // This file is a d.ts that is a module, so any of its declarations
+          // should be emitted into a namespace.
+          // The actual chosen namespace doesn't matter too much because we're
+          // just using it to prevent renaming; we mostly just want it to not
+          // conflict with other namespaces.
+          const moduleNamespace = this.file.fileName.replace(/_/, '__').replace(/[^A-Za-z]/g, '_');
+
+          this.emit('/** @const */\n');
+          this.writeExternsVariable(tsickleModuleNamespace, [], '{}');
+          namespace = [tsickleModuleNamespace];
+
+          this.emit('/** @const */\n');
+          this.writeExternsVariable(moduleNamespace, namespace, '{}');
+          namespace.push(moduleNamespace);
+        }
         for (const stmt of sourceFile.statements) {
           this.visit(stmt, namespace);
         }
@@ -1626,12 +1680,12 @@ class ExternsWriter extends ClosureRewriter {
             // namespace (because this is declaring a top-level module)
             // and emit into a fake namespace.
 
-            // Declare the top-level "tsickle_declare_module".
+            // Declare the top-level "tsickle_module".
             this.emit('/** @const */\n');
-            this.writeExternsVariable('tsickle_declare_module', [], '{}');
-            namespace = ['tsickle_declare_module'];
+            this.writeExternsVariable(tsickleModuleNamespace, [], '{}');
+            namespace = [tsickleModuleNamespace];
 
-            // Declare the inner "tsickle_declare_module.foo", if it's not
+            // Declare the inner "tsickle_module.foo", if it's not
             // declared already elsewhere.
             let importName = (decl.name as ts.StringLiteral).text;
             this.emit(`// Derived from: declare module "${importName}"\n`);
@@ -1643,7 +1697,7 @@ class ExternsWriter extends ClosureRewriter {
               this.writeExternsVariable(importName, namespace, '{}');
             }
 
-            // Declare the contents inside the "tsickle_declare_module.foo".
+            // Declare the contents inside the "tsickle_module.foo".
             if (decl.body) this.visit(decl.body, namespace.concat(importName));
             break;
           default:
