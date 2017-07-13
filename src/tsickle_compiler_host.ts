@@ -204,6 +204,8 @@ export class TsickleCompilerHost implements ts.CompilerHost {
   }
 
   combineSourceMaps(filePath: string, tscSourceMapText: string): string {
+    const printDebugInfo = false;
+    // const printDebugInfo = true;
     // We stripe inline source maps off source files before they've been parsed
     // which is before they have path properties, so we need to construct the
     // map of sourceMapKey to preexistingSourceMap after the whole program has been
@@ -218,6 +220,11 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     const tscSourceMapConsumer = sourceMapUtils.sourceMapTextToConsumer(tscSourceMapText);
     const tscSourceMapGenerator = sourceMapUtils.sourceMapConsumerToGenerator(tscSourceMapConsumer);
 
+    if (printDebugInfo) {
+      console.error(`tsc source map for ${filePath}`);
+      console.error(tscSourceMapGenerator.toString());
+    }
+
     if (this.tsickleSourceMaps.size > 0) {
       // TODO(lucassloan): remove when the .d.ts has the correct types
       // tslint:disable-next-line:no-any
@@ -227,6 +234,10 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
             tsickleSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(tsickleSourceMapConsumer);
+        if (printDebugInfo) {
+          console.error(`tsickle source map for ${filePath}`);
+          console.error(tsickleSourceMapGenerator.toString());
+        }
       }
     }
     if (this.decoratorDownlevelSourceMaps.size > 0) {
@@ -239,6 +250,10 @@ export class TsickleCompilerHost implements ts.CompilerHost {
         const decoratorDownlevelSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
             decoratorDownlevelSourceMapGenerator, sourceFileName, sourceFileName);
         tscSourceMapGenerator.applySourceMap(decoratorDownlevelSourceMapConsumer);
+        if (printDebugInfo) {
+          console.error(`decorator downlevel sourcemap for ${filePath}`);
+          console.error(decoratorDownlevelSourceMapGenerator.toString());
+        }
       }
     }
     if (this.preexistingSourceMaps.size > 0) {
@@ -251,6 +266,10 @@ export class TsickleCompilerHost implements ts.CompilerHost {
           const preexistingSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
               preexistingSourceMapGenerator, sourceFileName);
           tscSourceMapGenerator.applySourceMap(preexistingSourceMapConsumer);
+          if (printDebugInfo) {
+            console.error(`preexisting source map for ${filePath}`);
+            console.error(preexistingSourceMapGenerator.toString());
+          }
         }
       }
     }
