@@ -2,9 +2,8 @@
 const EnumTestMissingSemi = []
 enum EnumTest1 {XYZ, PI = 3.14159}
 
-// Tsickle rewrites the above "enum" declaration into just a plain
-// number.  Verify that the resulting TypeScript still allows you to
-// index into the enum with all the various ways allowed of enums.
+// Verify that the resulting TypeScript still allows you to index into the enum with all the various
+// ways allowed of enums.
 let enumTestValue: EnumTest1 = EnumTest1.XYZ;
 let enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
 let enumNumIndex: string = EnumTest1[null as any as number];
@@ -16,8 +15,13 @@ enumTestFunction(enumTestValue);
 let enumTestLookup = EnumTest1["XYZ"];
 let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 
+// Verify that unions of enum members and other values are handled correctly.
+let enumUnionType: EnumTest1|boolean = EnumTest1.XYZ;
+
 // This additional exported enum is here to exercise the fix for issue #51.
 export enum EnumTest2 {XYZ, PI = 3.14159}
+
+let variableUsingExportedEnum: EnumTest2;
 
 // Repro for #97
 enum ComponentIndex {
@@ -27,11 +31,17 @@ enum ComponentIndex {
   UserInfo2 = UserInfo,
 }
 
-// const enums not have any Closure output, as they are purely compile-time.
-const enum EnumTestDisappears {
-  ShouldNotHaveAnyTsickleOutput,
+// const enums are emitted so that Closure code can refer to their types and values.
+export const enum ConstEnum {
+  EMITTED_ENUM_VALUE = 0,
 }
-let enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnyTsickleOutput;
+let constEnumValue = ConstEnum.EMITTED_ENUM_VALUE;
+export interface InterfaceUsingConstEnum {
+  field: ConstEnum;
+  // Known issue:
+  // Error: Error at test_files/enum/enum.ts:75:11: Property 'field2' of exported interface has or is using private name 'ConstEnum'.
+  field2: ConstEnum.EMITTED_ENUM_VALUE;
+}
 
 // One place where enums with non-constant values make sense is when
 // you are exporting a Closure value into a TypeScript namespace:

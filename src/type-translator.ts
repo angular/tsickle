@@ -226,12 +226,14 @@ export class TypeTranslator {
 
   translate(type: ts.Type): string {
     // NOTE: Though type.flags has the name "flags", it usually can only be one
-    // of the enum options at a time.  This switch handles all the cases in
-    // the ts.TypeFlags enum in the order they occur.
-    // NOTE: Some TypeFlags are marked "internal" in the d.ts but still show
-    // up in the value of type.flags.  This mask limits the flag checks to
-    // the ones in the public API.  "lastFlag" here is the last flag handled
-    // in this switch statement, and should be kept in sync with typescript.d.ts.
+    // of the enum options at a time (except for unions of literal types, e.g. unions of boolean
+    // values, string values, enum values). This switch handles all the cases in the ts.TypeFlags
+    // enum in the order they occur.
+
+    // NOTE: Some TypeFlags are marked "internal" in the d.ts but still show up in the value of
+    // type.flags. This mask limits the flag checks to the ones in the public API. "lastFlag" here
+    // is the last flag handled in this switch statement, and should be kept in sync with
+    // typescript.d.ts.
     const lastFlag = ts.TypeFlags.IndexedAccess;
     const mask = (lastFlag << 1) - 1;
     switch (type.flags & mask) {
@@ -248,8 +250,20 @@ export class TypeTranslator {
         // See the note in translateUnion about booleans.
         return 'boolean';
       case ts.TypeFlags.Enum:
+        if (!type.symbol) {
+          this.warn(`EnumType without a symbol`);
+          return '?';
+        }
+        return this.symbolToString(type.symbol, true);
       case ts.TypeFlags.EnumLiteral:
-        return 'number';
+        const enumLiteralBaseType = (type as ts.EnumLiteralType).baseType;
+        if (!enumLiteralBaseType.symbol) {
+          this.warn(`EnumLiteralType without a symbol`);
+          return '?';
+        }
+        // Closure Compiler doesn't support literals in types, so this code must not emit
+        // "EnumType.MEMBER", but rather "EnumType". The values are de-duplicated in translateUnion.
+        return this.symbolToString(enumLiteralBaseType.symbol, true);
       case ts.TypeFlags.ESSymbol:
         // NOTE: currently this is just a typedef for {?}, shrug.
         // https://github.com/google/closure-compiler/blob/55cf43ee31e80d89d7087af65b5542aa63987874/externs/es3.js#L34
@@ -285,12 +299,12 @@ export class TypeTranslator {
       default:
         // Handle cases where multiple flags are set.
 
-        // Booleans are represented as
-        //   ts.TypeFlags.Union | ts.TypeFlags.Boolean
-        // where the union is a union of true|false.
-        // Note also that in a more complex union, e.g. boolean|number, then
-        // it's a union of three things (true|false|number) and
-        // ts.TypeFlags.Boolean doesn't show up at all.
+        // Types with literal members are represented as
+        //   ts.TypeFlags.Union | [literal member]
+        // E.g. an enum typed value is a union type with the enum's members as its members. A
+        // boolean type is a union type with 'true' and 'false' as its members.
+        // Note also that in a more complex union, e.g. boolean|number, then it's a union of three
+        // things (true|false|number) and ts.TypeFlags.Boolean doesn't show up at all.
         if (type.flags & ts.TypeFlags.Union) {
           return this.translateUnion(type as ts.UnionType);
         }
@@ -302,10 +316,9 @@ export class TypeTranslator {
 
   private translateUnion(type: ts.UnionType): string {
     let parts = type.types.map(t => this.translate(t));
-    // Union types that include boolean literals and other literals can
-    // end up repeating the same Closure type. For example: true | boolean
-    // will be translated to boolean | boolean. Remove duplicates to produce
-    // types that read better.
+    // Union types that include literals (e.g. boolean, enum) can end up repeating the same Closure
+    // type. For example: true | boolean will be translated to boolean | boolean.
+    // Remove duplicates to produce types that read better.
     parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
     return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
   }

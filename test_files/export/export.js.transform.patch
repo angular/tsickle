@@ -2,7 +2,7 @@ Index: ./test_files/export/export.js
 ===================================================================
 --- ./test_files/export/export.js	golden
 +++ ./test_files/export/export.js	tsickle with transformer
-@@ -4,27 +4,32 @@
+@@ -4,28 +4,32 @@
   */
  
  var export_helper_1 = goog.require('test_files.export.export_helper');
@@ -11,6 +11,7 @@ Index: ./test_files/export/export.js
  exports.export5 = export_helper_1.export5;
  exports.export4 = export_helper_1.export4;
 -exports.Interface = export_helper_1.Interface;
+-exports.ConstEnum = export_helper_1.ConstEnum;
  const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper");
 +/** @typedef {tsickle_forward_declare_1.Bar} */
 +exports.Bar; // re-export typedef

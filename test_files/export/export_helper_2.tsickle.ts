@@ -25,10 +25,12 @@ Interface.prototype.x;
 }
 
 export interface Interface { x: string; }
+/** @enum {number} */
+const ConstEnum: any = {
+AValue: 1,
+};
+export {ConstEnum};
 
-export const enum ConstEnum {
-  AValue = 1
-}
 
 export declare type DeclaredType = {
   a: number

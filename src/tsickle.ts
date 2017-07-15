@@ -63,36 +63,6 @@ export enum AnnotatorFeatures {
    */
   FilterTypesInExportStart = 1 << 1,
   /**
-   * Emit enums as
-   * ```
-   * type EnumX = number;
-   * const EnumX = {};
-   * export {EnumX};
-   * ```
-   * and not as
-   * ```
-   * export type EnumX = number;
-   * export const EnumX = {};
-   * ```
-   *
-   * Needed for the transformer version of tsickle as the changed enum declarations no longer
-   * have TypeScript symbol
-   * information and thefore typescript no longer generates `export.` for all property accesses
-   * to the exported symbols.
-   *
-   * This flag cannot be used in the non transformer version of tsickle,
-   * as then the ordering of enum declaration and usage of the enum matters:
-   * if a file declares an interfaces
-   * that uses an enum, now the enum has to be declared
-   * before the interface or otherwise TypeScript will
-   * complain about "...of exported interface has or is using private name...".
-   * TODO(tbosch): file an issue with TypeScript, tracked in
-   * https://github.com/angular/tsickle/issues/528.
-   *
-   * This flag will be removed and always set once we drop the on transformer version of tsickle.
-   */
-  SimpleEnum = 1 << 2,
-  /**
    * Generated @typedefs for reexported interfaces.
    *
    * Needed for the transformer version of tsickle as the .d.ts is generated before running tsickle,
@@ -105,8 +75,7 @@ export enum AnnotatorFeatures {
 
   Default = 0,
 
-  Transformer =
-      LowerDecorators | FilterTypesInExportStart | SimpleEnum | TypeDefReexportForInterfaces,
+  Transformer = LowerDecorators | FilterTypesInExportStart | TypeDefReexportForInterfaces,
 }
 
 /**
@@ -784,7 +753,8 @@ class Annotator extends ClosureRewriter {
         this.visitTypeAlias(node as ts.TypeAliasDeclaration);
         return true;
       case ts.SyntaxKind.EnumDeclaration:
-        return this.maybeProcessEnum(node as ts.EnumDeclaration);
+        this.maybeProcessEnum(node as ts.EnumDeclaration);
+        return true;
       case ts.SyntaxKind.TemplateSpan:
         this.templateSpanStackCount++;
         this.writeNode(node);
@@ -1487,14 +1457,11 @@ class Annotator extends ClosureRewriter {
     this.emit(`${node.name.getText()};\n`);
   }
 
-  /** Processes an EnumDeclaration or returns false for ordinary processing. */
-  private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
-    if (hasModifierFlag(node, ts.ModifierFlags.Const)) {
-      // const enums disappear after TS compilation and consequently need no
-      // help from tsickle.
-      return false;
-    }
-
+  /**
+   * Processes an EnumDeclaration into a Closure type. Always emits a Closure type, even in untyped
+   * mode, as that should be harmless (it only ever uses the number type).
+   */
+  private maybeProcessEnum(node: ts.EnumDeclaration) {
     // Gather the members of enum, saving the constant value or
     // initializer expression in the case of a non-constant value.
     const members = new Map<string, number|ts.Node>();
@@ -1531,51 +1498,46 @@ class Annotator extends ClosureRewriter {
     }
 
     // Emit the enum declaration, which looks like:
-    //   type Foo = number;
-    //   let Foo: any = {};
-    // We use an "any" here rather than a more specific type because
-    // we think TypeScript has already checked types for us, and it's
-    // a bit difficult to provide a type that matches all the interfaces
-    // expected of an enum (in particular, it is keyable both by
-    // string and number).
-    // We don't emit a specific Closure type for the enum because it's
-    // also difficult to make work: for example, we can't make the name
-    // both a typedef and an indexable object if we export it.
+    //   /** @enum {number} */
+    //   const Foo = {BAR: 0, BAZ: 1, ...};
+    //   export {Foo};  // even if originally exported on one line.
+    // This declares an enum type for Closure Compiler (and Closure JS users of this TS code).
+    // Splitting the enum into declaration and export is required so that local references to the
+    // type resolve ("@type {Foo}").
     this.emit('\n');
     const name = node.name.getText();
-    const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
-    if (this.features & AnnotatorFeatures.SimpleEnum) {
-      this.emit(`type ${name} = number;\n`);
-      this.emit(`let ${name}: any = {};\n`);
-      if (isExported) {
-        this.emit(`export {${name}};\n`);
-      }
-    } else {
-      if (isExported) this.emit('export ');
-      this.emit(`type ${name} = number;\n`);
-      if (isExported) this.emit('export ');
-      this.emit(`let ${name}: any = {};\n`);
-    }
 
-    // Emit foo.BAR = 0; lines.
+    this.emit(`/** @enum {number} */\n`);
+    this.emit(`const ${name}: any = {\n`);
+    // Emit enum values ('BAR: 0,').
     for (const member of toArray(members.keys())) {
-      if (!this.options.untyped) this.emit(`/** @type {number} */\n`);
-      this.emit(`${name}.${member} = `);
       const value = members.get(member)!;
+      this.emit(`${member}: `);
       if (typeof value === 'number') {
         this.emit(value.toString());
       } else {
+        // Values can be initialized to expressions.
         this.visit(value);
       }
-      this.emit(';\n');
+      this.emit(',\n');
+    }
+    this.emit('};\n');
+
+    const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
+    if (isExported) this.emit(`export {${name}};\n`);
+
+    if (hasModifierFlag(node, ts.ModifierFlags.Const)) {
+      // By TypeScript semantics, const enums disappear after TS compilation.
+      // We still need to generate the runtime value above to make Closure Compiler's type system
+      // happy and allow refering to enums from JS code, but we should at least not emit string
+      // value mappings.
+      return;
     }
 
     // Emit foo[foo.BAR] = 'BAR'; lines.
     for (const member of toArray(members.keys())) {
       this.emit(`${name}[${name}.${member}] = "${member}";\n`);
     }
-
-    return true;
   }
 }
 

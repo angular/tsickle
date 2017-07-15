@@ -2,12 +2,13 @@ Index: ./test_files/export/export_helper.js
 ===================================================================
 --- ./test_files/export/export_helper.js	golden
 +++ ./test_files/export/export_helper.js	tsickle with transformer
-@@ -6,14 +6,17 @@
+@@ -6,15 +6,17 @@
  // This file isn't itself a test case, but it is imported by the
  // export.in.ts test case.
  var export_helper_2_1 = goog.require('test_files.export.export_helper_2');
  exports.export4 = export_helper_2_1.export4;
 -exports.Interface = export_helper_2_1.Interface;
+-exports.ConstEnum = export_helper_2_1.ConstEnum;
  const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper_2");
  /** @typedef {tsickle_forward_declare_1.TypeDef} */
  exports.TypeDef; // re-export typedef

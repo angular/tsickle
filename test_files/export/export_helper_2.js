@@ -19,6 +19,11 @@ function Interface_tsickle_Closure_declarations() {
     /** @type {string} */
     Interface.prototype.x;
 }
+/** @enum {number} */
+const ConstEnum = {
+    AValue: 1,
+};
+exports.ConstEnum = ConstEnum;
 /** @typedef {DeclaredType} */
 exports.DeclaredType;
 /** @typedef {DeclaredInterface} */

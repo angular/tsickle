@@ -1,6 +1,6 @@
 Warning at test_files/enum/enum.ts:2:7: should not emit a 'never' type
-Warning at test_files/enum/enum.ts:9:33: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
-Warning at test_files/enum/enum.ts:16:22: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
+Warning at test_files/enum/enum.ts:8:33: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
+Warning at test_files/enum/enum.ts:15:22: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 ====
 /**
  * @fileoverview added by tsickle
@@ -9,68 +9,87 @@ Warning at test_files/enum/enum.ts:16:22: Declared property XYZ accessed with qu
 
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = []
-type EnumTest1 = number;
-let EnumTest1: any = {};
-/** @type {number} */
-EnumTest1.XYZ = 0;
-/** @type {number} */
-EnumTest1.PI = 3.14159;
+/** @enum {number} */
+const EnumTest1: any = {
+XYZ: 0,
+PI: 3.14159,
+};
 EnumTest1[EnumTest1.XYZ] = "XYZ";
 EnumTest1[EnumTest1.PI] = "PI";
 
 
-// Tsickle rewrites the above "enum" declaration into just a plain
-// number.  Verify that the resulting TypeScript still allows you to
-// index into the enum with all the various ways allowed of enums.
-let /** @type {number} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
-let /** @type {number} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
+// Verify that the resulting TypeScript still allows you to index into the enum with all the various
+// ways allowed of enums.
+let /** @type {EnumTest1} */ enumTestValue: EnumTest1 = EnumTest1.XYZ;
+let /** @type {EnumTest1} */ enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
 let /** @type {string} */ enumNumIndex: string = EnumTest1[ /** @type {number} */(( /** @type {?} */((null as any)) as number))];
 let /** @type {number} */ enumStrIndex: number = EnumTest1[ /** @type {string} */(( /** @type {?} */((null as any)) as string))];
 /**
- * @param {number} val
+ * @param {EnumTest1} val
  * @return {void}
  */
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);
 
-let /** @type {number} */ enumTestLookup = EnumTest1["XYZ"];
+let /** @type {EnumTest1} */ enumTestLookup = EnumTest1["XYZ"];
 let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
-export type EnumTest2 = number;
-export let EnumTest2: any = {};
-/** @type {number} */
-EnumTest2.XYZ = 0;
-/** @type {number} */
-EnumTest2.PI = 3.14159;
+
+// Verify that unions of enum members and other values are handled correctly.
+let /** @type {(boolean|EnumTest1)} */ enumUnionType: EnumTest1|boolean = EnumTest1.XYZ;
+/** @enum {number} */
+const EnumTest2: any = {
+XYZ: 0,
+PI: 3.14159,
+};
+export {EnumTest2};
 EnumTest2[EnumTest2.XYZ] = "XYZ";
 EnumTest2[EnumTest2.PI] = "PI";
 
-type ComponentIndex = number;
-let ComponentIndex: any = {};
-/** @type {number} */
-ComponentIndex.Scheme = 1;
-/** @type {number} */
-ComponentIndex.UserInfo = 2;
-/** @type {number} */
-ComponentIndex.Domain = 0;
-/** @type {number} */
-ComponentIndex.UserInfo2 = 2;
+
+let /** @type {EnumTest2} */ variableUsingExportedEnum: EnumTest2;
+/** @enum {number} */
+const ComponentIndex: any = {
+Scheme: 1,
+UserInfo: 2,
+Domain: 0,
+UserInfo2: 2,
+};
 ComponentIndex[ComponentIndex.Scheme] = "Scheme";
 ComponentIndex[ComponentIndex.UserInfo] = "UserInfo";
 ComponentIndex[ComponentIndex.Domain] = "Domain";
 ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
 
+/** @enum {number} */
+const ConstEnum: any = {
+EMITTED_ENUM_VALUE: 0,
+};
+export {ConstEnum};
 
-// const enums not have any Closure output, as they are purely compile-time.
-const enum EnumTestDisappears {
-  ShouldNotHaveAnyTsickleOutput,
+let /** @type {ConstEnum} */ constEnumValue = ConstEnum.EMITTED_ENUM_VALUE;
+/**
+ * @record
+ */
+export function InterfaceUsingConstEnum() {}
+
+
+function InterfaceUsingConstEnum_tsickle_Closure_declarations() {
+/** @type {ConstEnum} */
+InterfaceUsingConstEnum.prototype.field;
+/** @type {ConstEnum} */
+InterfaceUsingConstEnum.prototype.field2;
 }
-let /** @type {number} */ enumTestDisappears = EnumTestDisappears.ShouldNotHaveAnyTsickleOutput;
-type EnumWithNonConstValues = number;
-let EnumWithNonConstValues: any = {};
-/** @type {number} */
-EnumWithNonConstValues.Scheme =  (x => x + 1)(3);
-/** @type {number} */
-EnumWithNonConstValues.UserInfoRenamed = 2;
+
+export interface InterfaceUsingConstEnum {
+  field: ConstEnum;
+  // Known issue:
+  // Error: Error at test_files/enum/enum.ts:75:11: Property 'field2' of exported interface has or is using private name 'ConstEnum'.
+  field2: ConstEnum.EMITTED_ENUM_VALUE;
+}
+/** @enum {number} */
+const EnumWithNonConstValues: any = {
+Scheme:  (x => x + 1)(3),
+UserInfoRenamed: 2,
+};
 EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = "Scheme";
 EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = "UserInfoRenamed";
 
