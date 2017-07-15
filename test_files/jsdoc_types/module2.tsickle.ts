@@ -10,8 +10,12 @@ export class ClassTwo {}
  * @record
  */
 export function Interface() {}
+
+
+function Interface_tsickle_Closure_declarations() {
 /** @type {number} */
 Interface.prototype.x;
+}
 
 export interface Interface { x: number }
 /**

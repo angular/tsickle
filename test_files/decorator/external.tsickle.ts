@@ -15,4 +15,8 @@ export class AClassWithGenerics<T> {}
 export function AType() {}
 
 
+function AType_tsickle_Closure_declarations() {
+}
+
+
 export interface AType {}

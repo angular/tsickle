@@ -6,20 +6,26 @@ goog.module('test_files.interface.interface_extends');var module = module || {id
  * @record
  */
 function ParentInterface() { }
-/** @type {number} */
-ParentInterface.prototype.x;
+function ParentInterface_tsickle_Closure_declarations() {
+    /** @type {number} */
+    ParentInterface.prototype.x;
+}
 /**
  * @record
  * @extends {ParentInterface}
  */
 function SubType() { }
-/** @type {number} */
-SubType.prototype.y;
+function SubType_tsickle_Closure_declarations() {
+    /** @type {number} */
+    SubType.prototype.y;
+}
 /**
  * @record
  * @extends {ParentInterface}
  * @extends {SubType}
  */
 function SubMulti() { }
-/** @type {number} */
-SubMulti.prototype.z;
+function SubMulti_tsickle_Closure_declarations() {
+    /** @type {number} */
+    SubMulti.prototype.z;
+}

@@ -8,8 +8,12 @@
  * @record
  */
 function Interface() {}
+
+
+function Interface_tsickle_Closure_declarations() {
 /** @type {?} */
 Interface.prototype.interfaceFunc;
+}
 interface Interface {
   interfaceFunc(): void;
 }

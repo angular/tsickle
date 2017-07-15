@@ -14,9 +14,13 @@ export {};
  * @record
  */
 function Quoted() {}
+
+
+function Quoted_tsickle_Closure_declarations() {
 /* TODO: handle strange member:
 [k: string]: number;
 */
+}
 
 
 interface Quoted {
@@ -34,6 +38,9 @@ quoted["hello"] = 1;
  * @extends {Quoted}
  */
 function QuotedMixed() {}
+
+
+function QuotedMixed_tsickle_Closure_declarations() {
 /** @type {number} */
 QuotedMixed.prototype.foo;
 /* TODO: handle strange member:
@@ -41,6 +48,7 @@ QuotedMixed.prototype.foo;
 */
 /** @type {number} */
 QuotedMixed.prototype.quotedIdent;
+}
 
 
 interface QuotedMixed extends Quoted {

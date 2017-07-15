@@ -17,3 +17,5 @@ exports.AClassWithGenerics = AClassWithGenerics;
  */
 function AType() { }
 exports.AType = AType;
+function AType_tsickle_Closure_declarations() {
+}

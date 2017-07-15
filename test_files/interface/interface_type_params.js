@@ -6,15 +6,19 @@ goog.module('test_files.interface.interface_type_params');var module = module ||
  * @record
  */
 function UpperBound() { }
-/** @type {number} */
-UpperBound.prototype.x;
+function UpperBound_tsickle_Closure_declarations() {
+    /** @type {number} */
+    UpperBound.prototype.x;
+}
 // unsupported: template constraints.
 /**
  * @record
  * @template T, U
  */
 function WithTypeParam() { }
-/** @type {T} */
-WithTypeParam.prototype.tea;
-/** @type {U} */
-WithTypeParam.prototype.you;
+function WithTypeParam_tsickle_Closure_declarations() {
+    /** @type {T} */
+    WithTypeParam.prototype.tea;
+    /** @type {U} */
+    WithTypeParam.prototype.you;
+}

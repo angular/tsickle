@@ -17,8 +17,12 @@ exports.TypeDef;
  * @record
  */
 export function Interface() {}
+
+
+function Interface_tsickle_Closure_declarations() {
 /** @type {string} */
 Interface.prototype.x;
+}
 
 export interface Interface { x: string; }
 

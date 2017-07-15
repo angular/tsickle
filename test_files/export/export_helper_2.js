@@ -15,8 +15,10 @@ exports.TypeDef;
  */
 function Interface() { }
 exports.Interface = Interface;
-/** @type {string} */
-Interface.prototype.x;
+function Interface_tsickle_Closure_declarations() {
+    /** @type {string} */
+    Interface.prototype.x;
+}
 /** @typedef {DeclaredType} */
 exports.DeclaredType;
 /** @typedef {DeclaredInterface} */

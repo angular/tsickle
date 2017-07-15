@@ -6,8 +6,10 @@ goog.module('test_files.class.untyped.class');var module = module || {id: 'test_
  * @record
  */
 function Interface() { }
-/** @type {?} */
-Interface.prototype.interfaceFunc;
+function Interface_tsickle_Closure_declarations() {
+    /** @type {?} */
+    Interface.prototype.interfaceFunc;
+}
 class Super {
     /**
      * @return {?}

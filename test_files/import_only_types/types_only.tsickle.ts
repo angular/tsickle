@@ -8,8 +8,12 @@
  * @record
  */
 export function Foo() {}
+
+
+function Foo_tsickle_Closure_declarations() {
 /** @type {string} */
 Foo.prototype.x;
+}
 // Exports only types, but must still be goog.require'd for Closure Compiler.
 
 export interface Foo {

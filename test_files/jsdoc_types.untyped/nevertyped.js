@@ -8,5 +8,7 @@ goog.module('test_files.jsdoc_types.untyped.nevertyped');var module = module || 
  */
 function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
-/** @type {?} */
-NeverTyped.prototype.foo;
+function NeverTyped_tsickle_Closure_declarations() {
+    /** @type {?} */
+    NeverTyped.prototype.foo;
+}
