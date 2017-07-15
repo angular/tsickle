@@ -6,8 +6,10 @@ goog.module('test_files.class.class');var module = module || {id: 'test_files/cl
  * @record
  */
 function Interface() { }
-/** @type {function(): void} */
-Interface.prototype.interfaceFunc;
+function Interface_tsickle_Closure_declarations() {
+    /** @type {function(): void} */
+    Interface.prototype.interfaceFunc;
+}
 class Class {
     /**
      * @return {void}
@@ -35,8 +37,10 @@ function AbstractClass_tsickle_Closure_declarations() {
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() { }
-/** @type {function(): void} */
-InterfaceExtendsInterface.prototype.interfaceFunc2;
+function InterfaceExtendsInterface_tsickle_Closure_declarations() {
+    /** @type {function(): void} */
+    InterfaceExtendsInterface.prototype.interfaceFunc2;
+}
 let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
     /**
      * @return {void}
@@ -51,8 +55,10 @@ let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
  * @record
  */
 function InterfaceExtendsClass() { }
-/** @type {function(): void} */
-InterfaceExtendsClass.prototype.interfaceFunc3;
+function InterfaceExtendsClass_tsickle_Closure_declarations() {
+    /** @type {function(): void} */
+    InterfaceExtendsClass.prototype.interfaceFunc3;
+}
 /**
  * @implements {Interface}
  */

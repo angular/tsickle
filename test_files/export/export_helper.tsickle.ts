@@ -17,8 +17,12 @@ export let /** @type {number} */ export2 = 3;
  * @record
  */
 export function Bar() {}
+
+
+function Bar_tsickle_Closure_declarations() {
 /** @type {number} */
 Bar.prototype.barField;
+}
 
 
 export interface Bar { barField: number; }

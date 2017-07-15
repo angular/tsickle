@@ -7,6 +7,11 @@ goog.module('test_files.quote_props.quote');var module = module || {id: 'test_fi
  * @record
  */
 function Quoted() { }
+function Quoted_tsickle_Closure_declarations() {
+    /* TODO: handle strange member:
+    [k: string]: number;
+    */
+}
 let /** @type {!Quoted} */ quoted = {};
 console.log(quoted["hello"]);
 quoted["hello"] = 1;
@@ -18,13 +23,15 @@ quoted["hello"] = 1;
  * @extends {Quoted}
  */
 function QuotedMixed() { }
-/** @type {number} */
-QuotedMixed.prototype.foo;
-/* TODO: handle strange member:
-'invalid-identifier': number;
-*/
-/** @type {number} */
-QuotedMixed.prototype.quotedIdent;
+function QuotedMixed_tsickle_Closure_declarations() {
+    /** @type {number} */
+    QuotedMixed.prototype.foo;
+    /* TODO: handle strange member:
+    'invalid-identifier': number;
+    */
+    /** @type {number} */
+    QuotedMixed.prototype.quotedIdent;
+}
 let /** @type {!QuotedMixed} */ quotedMixed = { foo: 1, 'invalid-identifier': 2, 'quotedIdent': 3 };
 console.log(quotedMixed.foo);
 quotedMixed.foo = 1;

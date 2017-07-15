@@ -8,7 +8,9 @@ goog.module('test_files.import_only_types.types_only');var module = module || {i
  */
 function Foo() { }
 exports.Foo = Foo;
-/** @type {string} */
-Foo.prototype.x;
+function Foo_tsickle_Closure_declarations() {
+    /** @type {string} */
+    Foo.prototype.x;
+}
 /** @typedef {number} */
 exports.Bar;

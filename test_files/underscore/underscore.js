@@ -27,3 +27,5 @@ function __Class_tsickle_Closure_declarations() {
  * @record
  */
 function __Interface() { }
+function __Interface_tsickle_Closure_declarations() {
+}

@@ -14,8 +14,10 @@ exports.ClassTwo = ClassTwo;
  */
 function Interface() { }
 exports.Interface = Interface;
-/** @type {number} */
-Interface.prototype.x;
+function Interface_tsickle_Closure_declarations() {
+    /** @type {number} */
+    Interface.prototype.x;
+}
 /**
  * @template T
  */

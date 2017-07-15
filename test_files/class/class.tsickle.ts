@@ -10,8 +10,12 @@ Warning at test_files/class/class.ts:129:1: type/symbol conflict for Zone, using
  * @record
  */
 function Interface() {}
+
+
+function Interface_tsickle_Closure_declarations() {
 /** @type {function(): void} */
 Interface.prototype.interfaceFunc;
+}
 // This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:
 //   interface, class, abstract class
@@ -56,8 +60,12 @@ AbstractClass.prototype.abstractFunc = function() {};
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() {}
+
+
+function InterfaceExtendsInterface_tsickle_Closure_declarations() {
 /** @type {function(): void} */
 InterfaceExtendsInterface.prototype.interfaceFunc2;
+}
 
 
 // Write out all permutations:
@@ -90,8 +98,12 @@ interfaceFunc2() {}
  * @record
  */
 function InterfaceExtendsClass() {}
+
+
+function InterfaceExtendsClass_tsickle_Closure_declarations() {
 /** @type {function(): void} */
 InterfaceExtendsClass.prototype.interfaceFunc3;
+}
 
 
 // Permutation 2: interface extends class.

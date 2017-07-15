@@ -14,8 +14,10 @@ exports.ClassTwo = ClassTwo;
  */
 function Interface() { }
 exports.Interface = Interface;
-/** @type {?} */
-Interface.prototype.x;
+function Interface_tsickle_Closure_declarations() {
+    /** @type {?} */
+    Interface.prototype.x;
+}
 class ClassWithParams {
 }
 exports.ClassWithParams = ClassWithParams;

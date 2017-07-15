@@ -9,10 +9,14 @@
  * @record
  */
 export function Point() {}
+
+
+function Point_tsickle_Closure_declarations() {
 /** @type {number} */
 Point.prototype.x;
 /** @type {number} */
 Point.prototype.y;
+}
 /** Used by implement_import.ts */
 export interface Point {
   x: number;
@@ -43,6 +47,9 @@ usePoint({x: 1, y: 1});
  * @record
  */
 function TrickyInterface() {}
+
+
+function TrickyInterface_tsickle_Closure_declarations() {
 /* TODO: handle strange member:
 [offset: number]: number;
 */
@@ -63,6 +70,7 @@ TrickyInterface.prototype.optAny;
  * @type {function(string): number}
  */
 TrickyInterface.prototype.hasSomeParamJsDoc;
+}
 
 
 /*

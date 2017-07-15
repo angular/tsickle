@@ -32,6 +32,10 @@ __Class.prototype.__member;
  */
 function __Interface() {}
 
+
+function __Interface_tsickle_Closure_declarations() {
+}
+
 interface __Interface {}
 
 declare namespace __NS {

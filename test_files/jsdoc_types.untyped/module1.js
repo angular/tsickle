@@ -11,5 +11,10 @@ exports.Class = Class;
  */
 function Interface() { }
 exports.Interface = Interface;
-/** @type {?} */
-Interface.prototype.x;
+function Interface_tsickle_Closure_declarations() {
+    /** @type {?} */
+    Interface.prototype.x;
+    /* TODO: handle strange member:
+    "quoted-bad-name": string;
+    */
+}
