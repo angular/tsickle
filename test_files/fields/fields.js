@@ -2,6 +2,7 @@ goog.module('test_files.fields.fields');var module = module || {id: 'test_files/
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
+
 class FieldsTest {
     /**
      * @param {number} field3

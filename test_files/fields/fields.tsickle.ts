@@ -46,3 +46,5 @@ fieldsTest.field1 = 'hi';
 let /** @type {?} */ AnonymousClass = class {
   field: number;
 };
+
+export {};

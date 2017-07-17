@@ -200,11 +200,24 @@ function runGoldenTests(useSeparatePasses: boolean) {
       compareAgainstGolden(allExterns, test.externsPath);
 
       // Run tsickled TypeScript through TypeScript compiler
-      // and compare against goldens.
+      // and compare emit or diagnostics against goldens.
       program = testSupport.createProgram(tsickleSources);
-      const jsSources = testSupport.emit(program);
-      for (const jsPath of Object.keys(jsSources)) {
-        compareAgainstGolden(jsSources[jsPath], jsPath);
+      const {transformed, diagnostics} = testSupport.emit(program);
+      for (const diag of diagnostics) {
+        if (!diag.file) throw new Error(tsickle.formatDiagnostics(diagnostics));
+        const jsPath = './' + diag.file.fileName.replace(/\.ts$/, '.js');
+        const msg = tsickle.formatDiagnostics([diag]);
+        if (!transformed[jsPath]) {
+          throw new Error(`unexpected diagnostic, ${jsPath} not in ${
+                                                                     Object.keys(transformed)
+                                                                   }, diagnostic is: ${msg}`);
+        }
+        const current = transformed[jsPath] || '';
+        // Add messages in line comments, so they don't break Closure compilation.
+        transformed[jsPath] = `// ${msg}\n${current}`;
+      }
+      for (const jsPath of Object.keys(transformed)) {
+        compareAgainstGolden(transformed[jsPath], jsPath);
       }
     });
   });

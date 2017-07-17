@@ -33,6 +33,7 @@ export const compilerOptions: ts.CompilerOptions = {
   outDir: '.',
   strictNullChecks: true,
   noImplicitUseStrict: true,
+  declaration: true,
 };
 
 const {cachedLibPath, cachedLib} = (() => {
@@ -77,9 +78,13 @@ export function createProgramAndHost(
 }
 
 /** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
-export function emit(program: ts.Program): {[fileName: string]: string} {
+export function emit(program: ts.Program):
+    {transformed: {[fileName: string]: string}, diagnostics: ts.Diagnostic[]} {
   const transformed: {[fileName: string]: string} = {};
   const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
+    // We generate .d.ts files to match production use of tsickle, but do not currently assert
+    // on their contents.
+    if (fileName.endsWith('.d.ts')) return;
     const options: es5processor.Es5ProcessorOptions = {es5Mode: true, prelude: ''};
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn.replace(/^\.\//, ''),
@@ -87,10 +92,7 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
     };
     transformed[fileName] = es5processor.processES5(host, options, fileName, data).output;
   });
-  if (diagnostics.length > 0) {
-    throw new Error(tsickle.formatDiagnostics(diagnostics));
-  }
-  return transformed;
+  return {transformed, diagnostics};
 }
 
 export class GoldenFileTest {
