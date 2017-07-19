@@ -87,7 +87,8 @@ gulp.task('test.unit', ['test.compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['built/test/**/*.js', '!built/test/**/e2e*.js']).pipe(mocha({timeout: 1000}));
+  return gulp.src(['built/test/**/*.js', '!built/test/**/e2e*.js', '!built/test/**/golden*.js'])
+      .pipe(mocha({timeout: 1000}));
 });
 
 gulp.task('test.e2e', ['test.compile'], function(done) {
@@ -98,7 +99,15 @@ gulp.task('test.e2e', ['test.compile'], function(done) {
   return gulp.src(['built/test/**/e2e*.js']).pipe(mocha({timeout: 25000}));
 });
 
-gulp.task('test', ['test.unit', 'test.e2e', 'test.check-format', 'test.check-lint']);
+gulp.task('test.golden', ['test.compile'], function(done) {
+  if (hasError) {
+    done();
+    return;
+  }
+  return gulp.src(['built/test/**/golden*.js']).pipe(mocha({timeout: 1000}));
+});
+
+gulp.task('test', ['test.unit', 'test.e2e', 'test.golden', 'test.check-format', 'test.check-lint']);
 
 gulp.task('watch', function() {
   failOnError = false;
