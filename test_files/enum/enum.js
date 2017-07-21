@@ -7,8 +7,7 @@ goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum
 const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
 /** @enum {number} */
 const EnumTest1 = {
-    XYZ: 0,
-    PI: 3.14159,
+    XYZ: 0, PI: 3.14159,
 };
 EnumTest1[EnumTest1.XYZ] = "XYZ";
 EnumTest1[EnumTest1.PI] = "PI";
@@ -30,8 +29,7 @@ let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
 const EnumTest2 = {
-    XYZ: 0,
-    PI: 3.14159,
+    XYZ: 0, PI: 3.14159,
 };
 exports.EnumTest2 = EnumTest2;
 EnumTest2[EnumTest2.XYZ] = "XYZ";

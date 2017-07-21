@@ -26,9 +26,9 @@ Interface.prototype.x;
 
 export interface Interface { x: string; }
 /** @enum {number} */
-const ConstEnum: any = {
-AValue: 1,
-};
+const ConstEnum: DontTypeCheckMe = {
+
+  AValue: 1,};
 export {ConstEnum};
 
 

@@ -2,7 +2,17 @@ Index: ./test_files/enum/enum.js
 ===================================================================
 --- ./test_files/enum/enum.js	golden
 +++ ./test_files/enum/enum.js	tsickle with transformer
-@@ -15,10 +15,10 @@
+@@ -6,18 +6,19 @@
+ // Line with a missing semicolon should not break the following enum.
+ const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
+ /** @enum {number} */
+ const EnumTest1 = {
+-    XYZ: 0, PI: 3.14159,
++    XYZ: 0,
++    PI: 3.14159,
+ };
+ EnumTest1[EnumTest1.XYZ] = "XYZ";
+ EnumTest1[EnumTest1.PI] = "PI";
  // Verify that the resulting TypeScript still allows you to index into the enum with all the various
  // ways allowed of enums.
  let /** @type {EnumTest1} */ enumTestValue = EnumTest1.XYZ;
@@ -15,7 +25,29 @@ Index: ./test_files/enum/enum.js
   * @param {EnumTest1} val
   * @return {void}
   */
-@@ -52,9 +52,9 @@
+@@ -28,9 +29,10 @@
+ // Verify that unions of enum members and other values are handled correctly.
+ let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
+ /** @enum {number} */
+ const EnumTest2 = {
+-    XYZ: 0, PI: 3.14159,
++    XYZ: 0,
++    PI: 3.14159,
+ };
+ exports.EnumTest2 = EnumTest2;
+ EnumTest2[EnumTest2.XYZ] = "XYZ";
+ EnumTest2[EnumTest2.PI] = "PI";
+@@ -39,8 +41,9 @@
+ const ComponentIndex = {
+     Scheme: 1,
+     UserInfo: 2,
+     Domain: 0,
++    // Be sure to exercise the code with a 0 enum value.
+     UserInfo2: 2,
+ };
+ ComponentIndex[ComponentIndex.Scheme] = "Scheme";
+ ComponentIndex[ComponentIndex.UserInfo] = "UserInfo";
+@@ -50,9 +53,9 @@
  const ConstEnum = {
      EMITTED_ENUM_VALUE: 0,
  };

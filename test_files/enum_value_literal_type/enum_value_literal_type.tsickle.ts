@@ -5,9 +5,9 @@
 
 
 /** @enum {number} */
-const ExportedEnum: any = {
-VALUE: 0,
-};
+const ExportedEnum: DontTypeCheckMe = {
+
+  VALUE: 0,};
 export {ExportedEnum};
 ExportedEnum[ExportedEnum.VALUE] = "VALUE";
 

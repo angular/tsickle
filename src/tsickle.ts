@@ -753,7 +753,7 @@ class Annotator extends ClosureRewriter {
         this.visitTypeAlias(node as ts.TypeAliasDeclaration);
         return true;
       case ts.SyntaxKind.EnumDeclaration:
-        this.maybeProcessEnum(node as ts.EnumDeclaration);
+        this.processEnum(node as ts.EnumDeclaration);
         return true;
       case ts.SyntaxKind.TemplateSpan:
         this.templateSpanStackCount++;
@@ -1468,18 +1468,33 @@ class Annotator extends ClosureRewriter {
    * Processes an EnumDeclaration into a Closure type. Always emits a Closure type, even in untyped
    * mode, as that should be harmless (it only ever uses the number type).
    */
-  private maybeProcessEnum(node: ts.EnumDeclaration) {
-    // Gather the members of enum, saving the constant value or
-    // initializer expression in the case of a non-constant value.
-    const members = new Map<string, number|ts.Node>();
-    let i = 0;
+  private processEnum(node: ts.EnumDeclaration) {
+    // Emit the enum declaration, which looks like:
+    //   /** @enum {number} */
+    //   const Foo = {BAR: 0, BAZ: 1, ...};
+    //   export {Foo};  // even if originally exported on one line.
+    // This declares an enum type for Closure Compiler (and Closure JS users of this TS code).
+    // Splitting the enum into declaration and export is required so that local references to the
+    // type resolve ("@type {Foo}").
+    this.emit('\n');
+    const name = node.name.getText();
+
+    this.emit(`/** @enum {number} */\n`);
+    this.emit(`const ${name}: DontTypeCheckMe = {\n`);
+    // Emit enum values ('BAR: 0,').
+    let enumIndex = 0;
     for (const member of node.members) {
       const memberName = member.name.getText();
+      // Emit any comments and leading whitespace on the enum value definition.
+      this.writeRange(member, member.getFullStart(), member.getStart());
+      this.emit(`${memberName}: `);
+
       if (member.initializer) {
         const enumConstValue = this.typeChecker.getConstantValue(member);
         if (enumConstValue !== undefined) {
-          members.set(memberName, enumConstValue);
-          i = enumConstValue + 1;
+          this.emit(enumConstValue.toString());
+          // TODO(martinprobst): In TypeScript 2.4, check enumConstValue is not a string.
+          enumIndex = enumConstValue + 1;
         } else {
           // Non-constant enum value.  Save the initializer expression for
           // emitting as-is.
@@ -1496,37 +1511,14 @@ class Annotator extends ClosureRewriter {
           //     Field2 = Field1 + 3,
           // then it's still a constant expression and we inline the constant
           // value in the above branch of this "if" statement.
-          members.set(memberName, member.initializer);
+          // members.set(memberName, member.initializer);
+          this.visit(member.initializer);
         }
       } else {
-        members.set(memberName, i);
-        i++;
+        this.emit(enumIndex.toString());
+        enumIndex++;
       }
-    }
-
-    // Emit the enum declaration, which looks like:
-    //   /** @enum {number} */
-    //   const Foo = {BAR: 0, BAZ: 1, ...};
-    //   export {Foo};  // even if originally exported on one line.
-    // This declares an enum type for Closure Compiler (and Closure JS users of this TS code).
-    // Splitting the enum into declaration and export is required so that local references to the
-    // type resolve ("@type {Foo}").
-    this.emit('\n');
-    const name = node.name.getText();
-
-    this.emit(`/** @enum {number} */\n`);
-    this.emit(`const ${name}: any = {\n`);
-    // Emit enum values ('BAR: 0,').
-    for (const member of toArray(members.keys())) {
-      const value = members.get(member)!;
-      this.emit(`${member}: `);
-      if (typeof value === 'number') {
-        this.emit(value.toString());
-      } else {
-        // Values can be initialized to expressions.
-        this.visit(value);
-      }
-      this.emit(',\n');
+      this.emit(',');
     }
     this.emit('};\n');
 
@@ -1542,8 +1534,9 @@ class Annotator extends ClosureRewriter {
     }
 
     // Emit foo[foo.BAR] = 'BAR'; lines.
-    for (const member of toArray(members.keys())) {
-      this.emit(`${name}[${name}.${member}] = "${member}";\n`);
+    for (const member of node.members) {
+      const memberName = member.name.getText();
+      this.emit(`${name}[${name}.${memberName}] = "${memberName}";\n`);
     }
   }
 }
