@@ -51,8 +51,16 @@ export abstract class Rewriter {
   visit(node: ts.Node) {
     // this.logWithIndent('node: ' + ts.SyntaxKind[node.kind]);
     this.indent++;
-    if (!this.maybeProcess(node)) {
-      this.writeNode(node);
+    try {
+      if (!this.maybeProcess(node)) {
+        this.writeNode(node);
+      }
+    } catch (e) {
+      if (!e.message) e.message = 'Unhandled error in tsickle';
+      e.message += `\n at ${ts.SyntaxKind[node.kind]} in ${this.file.fileName}:`;
+      const {line, character} = this.file.getLineAndCharacterOfPosition(node.getStart());
+      e.message += `${line + 1}:${character + 1}`;
+      throw e;
     }
     this.indent--;
   }
