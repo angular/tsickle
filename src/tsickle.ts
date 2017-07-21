@@ -1222,6 +1222,13 @@ class Annotator extends ClosureRewriter {
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
     const moduleNamespace =
         nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
+    const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
+    // Scripts do not have a symbol. Scripts can still be imported, either as side effect imports or
+    // with an empty import set ("{}"). TypeScript does not emit a runtime load for an import with
+    // an empty list of symbols, but the import forces any global declarations from the library to
+    // be visible, which is what users use this for. No symbols from the script need forward
+    // declaration, so just return.
+    if (!moduleSymbol) return;
     const exports =
         this.typeChecker.getExportsOfModule(this.typeChecker.getSymbolAtLocation(specifier));
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
