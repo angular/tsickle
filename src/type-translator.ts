@@ -234,6 +234,10 @@ export class TypeTranslator {
     // type.flags. This mask limits the flag checks to the ones in the public API. "lastFlag" here
     // is the last flag handled in this switch statement, and should be kept in sync with
     // typescript.d.ts.
+
+    // NonPrimitive occurs on its own on the lower case "object" type. Special case to "!Object".
+    if (type.flags === ts.TypeFlags.NonPrimitive) return '!Object';
+
     const lastFlag = ts.TypeFlags.IndexedAccess;
     const mask = (lastFlag << 1) - 1;
     switch (type.flags & mask) {
@@ -310,7 +314,7 @@ export class TypeTranslator {
         }
 
         // The switch statement should have been exhaustive.
-        throw new Error(`unknown type flags: ${type.flags}`);
+        throw new Error(`unknown type flags ${type.flags} on ${typeToDebugString(type)}`);
     }
   }
 

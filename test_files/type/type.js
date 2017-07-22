@@ -10,6 +10,7 @@ let /** @type {{a: number, b: string}} */ typeObject = { a: 3, b: 'b' };
 let /** @type {!Object<string,number>} */ typeObjectIndexable;
 let /** @type {?} */ typeObjectMixedIndexProperty;
 let /** @type {!Object} */ typeObjectEmpty;
+let /** @type {!Object} */ typeNonPrimitive;
 let /** @type {!Array<?>} */ typeTuple = [1, 2];
 let /** @type {!Array<?>} */ typeComplexTuple = ['', true];
 let /** @type {!Array<?>} */ typeTupleTuple = [[1, 2]];

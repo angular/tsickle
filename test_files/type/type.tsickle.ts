@@ -20,6 +20,7 @@ let /** @type {{a: number, b: string}} */ typeObject: {a:number, b:string} = {a:
 let /** @type {!Object<string,number>} */ typeObjectIndexable: {[key:string]: number};
 let /** @type {?} */ typeObjectMixedIndexProperty: {a:number, [key:string]: number};
 let /** @type {!Object} */ typeObjectEmpty: {};
+let /** @type {!Object} */ typeNonPrimitive: object;
 
 let /** @type {!Array<?>} */ typeTuple: [number, number] = [1, 2];
 let /** @type {!Array<?>} */ typeComplexTuple: [string, true|{a:string}] = ['', true];

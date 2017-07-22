@@ -13,6 +13,7 @@ let typeObject: {a:number, b:string} = {a:3, b:'b'};
 let typeObjectIndexable: {[key:string]: number};
 let typeObjectMixedIndexProperty: {a:number, [key:string]: number};
 let typeObjectEmpty: {};
+let typeNonPrimitive: object;
 
 let typeTuple: [number, number] = [1, 2];
 let typeComplexTuple: [string, true|{a:string}] = ['', true];
