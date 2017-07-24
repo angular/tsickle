@@ -2,3 +2,4 @@
  * suite runner so that its types are always {?}.*/
 
 export interface NeverTyped { foo: number; }
+export interface NeverTypedTemplated<T> { foo: T; }

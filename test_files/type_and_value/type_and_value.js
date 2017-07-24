@@ -15,3 +15,5 @@ let /** @type {!conflict.Class} */ useUserClassAsType;
 let /** @type {number} */ useAsValue = conflict.TypeAndValue;
 // Note: because of the conflict, we currently just use the type {?} here.
 let /** @type {?} */ useAsType;
+// Use a templatized user-defined interface/value pair as a type.
+let /** @type {?} */ useAsTypeTemplatized;

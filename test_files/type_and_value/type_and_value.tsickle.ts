@@ -1,5 +1,6 @@
 Warning at test_files/type_and_value/type_and_value.ts:10:5: unhandled anonymous type
 Warning at test_files/type_and_value/type_and_value.ts:16:5: type/symbol conflict for TypeAndValue, using {?} for now
+Warning at test_files/type_and_value/type_and_value.ts:19:5: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 ====
 /**
  * @fileoverview added by tsickle
@@ -22,3 +23,6 @@ let /** @type {!conflict.Class} */ useUserClassAsType: conflict.Class;
 let /** @type {number} */ useAsValue = conflict.TypeAndValue;
 // Note: because of the conflict, we currently just use the type {?} here.
 let /** @type {?} */ useAsType: conflict.TypeAndValue;
+
+// Use a templatized user-defined interface/value pair as a type.
+let /** @type {?} */ useAsTypeTemplatized: conflict.TemplatizedTypeAndValue<string>;

@@ -13,7 +13,7 @@ import {ClassOne, value, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTw
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.jsdoc_types.module2");
 import DefaultClass from './default';
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.jsdoc_types.default");
-import {NeverTyped} from './nevertyped';
+import {NeverTyped, NeverTypedTemplated} from './nevertyped';
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.jsdoc_types.nevertyped");
 goog.require("test_files.jsdoc_types.nevertyped"); // force type-only module to be loaded
 
@@ -40,6 +40,7 @@ let /** @type {!tsickle_forward_declare_2.default} */ useDefaultClassAsType: Def
 // NeverTyped should be {?}, even in typed mode.
 let /** @type {?} */ useNeverTyped: NeverTyped;
 let /** @type {(string|?)} */ useNeverTyped2: string|NeverTyped;
+let /** @type {?} */ useNeverTypedTemplated: NeverTypedTemplated<string>;
 /**
  * Note: no implements JSDoc clause because the type is blacklisted.
  */
@@ -50,5 +51,17 @@ class ImplementsNeverTyped implements NeverTyped {
 function ImplementsNeverTyped_tsickle_Closure_declarations() {
 /** @type {number} */
 ImplementsNeverTyped.prototype.foo;
+}
+
+/**
+ * @template T
+ */
+class ImplementsNeverTypedTemplated<T> implements NeverTypedTemplated<T> {
+  foo: T;
+}
+
+function ImplementsNeverTypedTemplated_tsickle_Closure_declarations() {
+/** @type {T} */
+ImplementsNeverTypedTemplated.prototype.foo;
 }
 

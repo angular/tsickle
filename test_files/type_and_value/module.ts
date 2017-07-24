@@ -3,4 +3,7 @@
 export interface TypeAndValue { z: number }
 export var TypeAndValue = 3;
 
+export interface TemplatizedTypeAndValue<T> {z: T}
+export var TemplatizedTypeAndValue = 1;
+
 export class Class { z: number }

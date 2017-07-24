@@ -18,3 +18,16 @@ NeverTyped.prototype.foo;
  * suite runner so that its types are always {?}.*/
 
 export interface NeverTyped { foo: number; }
+/**
+ * @record
+ * @template T
+ */
+export function NeverTypedTemplated() {}
+
+
+function NeverTypedTemplated_tsickle_Closure_declarations() {
+/** @type {T} */
+NeverTypedTemplated.prototype.foo;
+}
+
+export interface NeverTypedTemplated<T> { foo: T; }

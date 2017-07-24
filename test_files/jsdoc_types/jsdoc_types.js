@@ -33,6 +33,7 @@ let /** @type {!tsickle_forward_declare_2.default} */ useDefaultClassAsType;
 // NeverTyped should be {?}, even in typed mode.
 let /** @type {?} */ useNeverTyped;
 let /** @type {(string|?)} */ useNeverTyped2;
+let /** @type {?} */ useNeverTypedTemplated;
 /**
  * Note: no implements JSDoc clause because the type is blacklisted.
  */
@@ -41,4 +42,13 @@ class ImplementsNeverTyped {
 function ImplementsNeverTyped_tsickle_Closure_declarations() {
     /** @type {number} */
     ImplementsNeverTyped.prototype.foo;
+}
+/**
+ * @template T
+ */
+class ImplementsNeverTypedTemplated {
+}
+function ImplementsNeverTypedTemplated_tsickle_Closure_declarations() {
+    /** @type {T} */
+    ImplementsNeverTypedTemplated.prototype.foo;
 }

@@ -432,6 +432,9 @@ export class TypeTranslator {
             `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
       }
       typeStr += this.translate(referenceType.target);
+      // Translate can return '?' for a number of situations, e.g. type/value conflicts.
+      // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
+      if (typeStr === '?') return '?';
       if (referenceType.typeArguments) {
         const params = referenceType.typeArguments.map(t => this.translate(t));
         typeStr += `<${params.join(', ')}>`;

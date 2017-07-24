@@ -14,3 +14,6 @@ let useUserClassAsType: conflict.Class;
 let useAsValue = conflict.TypeAndValue;
 // Note: because of the conflict, we currently just use the type {?} here.
 let useAsType: conflict.TypeAndValue;
+
+// Use a templatized user-defined interface/value pair as a type.
+let useAsTypeTemplatized: conflict.TemplatizedTypeAndValue<string>;

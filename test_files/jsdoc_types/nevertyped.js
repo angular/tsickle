@@ -12,3 +12,13 @@ function NeverTyped_tsickle_Closure_declarations() {
     /** @type {number} */
     NeverTyped.prototype.foo;
 }
+/**
+ * @record
+ * @template T
+ */
+function NeverTypedTemplated() { }
+exports.NeverTypedTemplated = NeverTypedTemplated;
+function NeverTypedTemplated_tsickle_Closure_declarations() {
+    /** @type {T} */
+    NeverTypedTemplated.prototype.foo;
+}

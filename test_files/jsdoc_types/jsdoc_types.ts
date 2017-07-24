@@ -6,7 +6,7 @@
 import * as module1 from './module1';
 import {ClassOne, value, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTwo, Interface, ClassWithParams} from './module2';
 import DefaultClass from './default';
-import {NeverTyped} from './nevertyped';
+import {NeverTyped, NeverTypedTemplated} from './nevertyped';
 
 // Check that imported types get the proper names in JSDoc.
 let useNamespacedClass = new module1.Class();
@@ -31,7 +31,11 @@ let useDefaultClassAsType: DefaultClass;
 // NeverTyped should be {?}, even in typed mode.
 let useNeverTyped: NeverTyped;
 let useNeverTyped2: string|NeverTyped;
+let useNeverTypedTemplated: NeverTypedTemplated<string>;
 /** Note: no implements JSDoc clause because the type is blacklisted. */
 class ImplementsNeverTyped implements NeverTyped {
   foo: number;
+}
+class ImplementsNeverTypedTemplated<T> implements NeverTypedTemplated<T> {
+  foo: T;
 }
