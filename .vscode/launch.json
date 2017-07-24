@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Run Tests",
       "type": "node",
@@ -23,14 +24,39 @@
       "outDir": "${workspaceRoot}/built"
     },
     {
-      "name": "Run file based tests",
+      "name": "Run golden tests",
       "type": "node",
       "request": "launch",
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "args": [
         "--colors",
         "--timeout=0",
-        "./built/test/tsickle_test.js"
+        "./built/test/golden_tsickle_test.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "TEST_FILTER": "^decorator_nested_scope$"
+      },
+      "console": "internalConsole",
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/built/**/*.js"
+      ],
+      "trace": "all"
+    },
+    {
+      "name": "Run golden tests (transformer)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
+      "args": [
+        "--colors",
+        "--timeout=0",
+        "./built/test/golden_tsickle_transformer_test.js"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeArgs": [
@@ -42,8 +68,9 @@
       },
       "console": "internalConsole",
       "sourceMaps": true,
-      "outDir": "${workspaceRoot}/built"
+      "outFiles": [
+        "${workspaceRoot}/built/**/*.js"
+      ]
     }
-
   ]
 }

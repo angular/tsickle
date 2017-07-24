@@ -7,7 +7,6 @@
  */
 
 import {expect} from 'chai';
-import * as diff from 'diff';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
@@ -20,11 +19,6 @@ import * as testSupport from './test_support';
 
 const TEST_FILTER: RegExp|null =
     process.env.TEST_FILTER ? new RegExp(process.env.TEST_FILTER) : null;
-
-// If true, update all the golden .transformer.patch files to be whatever tsickle
-// produces from the .ts source. Do not change this code but run as:
-//     UPDATE_TRANSFORMER_GOLDENS=y gulp test
-const UPDATE_GOLDENS = !!process.env.UPDATE_TRANSFORMER_GOLDENS;
 
 function calcPatchPath(path: string): string {
   return `${path}.transform.patch`;
@@ -44,98 +38,11 @@ function readGolden(path: string): string|null {
   return golden;
 }
 
-function patchGolden(golden: string|null, path: string): string|null {
-  if (golden == null) {
-    return golden;
-  }
-  const patchPath = calcPatchPath(path);
-  if (fs.existsSync(patchPath)) {
-    // Note: the typings for `diff.applyPatch` are wrong in that the function
-    // can also return `false`.
-    const patchedGolden =
-        diff.applyPatch(golden, fs.readFileSync(patchPath, 'utf-8')) as string | false;
-    if (patchedGolden === false) {
-      return golden;
-    }
-    return patchedGolden;
-  }
-  return golden;
-}
-
-/**
- * compareAgainstGoldens compares a test output against the content in a golden
- * path, updating the content of the golden when UPDATE_GOLDENS is true.
- *
- * @param output The expected output, where the empty string indicates
- *    the file is expected to exist and be empty, while null indicates
- *    the file is expected to not exist.  (This subtlety is used for
- *    externs files, where the majority of tests are not expected to
- *    produce one.)
- */
-function compareAgainstGolden(output: string|null, path: string) {
-  const golden = readGolden(path);
-  let patchedGolden = patchGolden(golden, path);
-
-  // Make sure we have proper line endings when testing on Windows.
-  if (patchedGolden != null) patchedGolden = normalizeLineEndings(patchedGolden);
-  if (output != null) output = normalizeLineEndings(output);
-
-  const patchPath = calcPatchPath(path);
-  if (UPDATE_GOLDENS) {
-    if (golden !== null && golden !== output) {
-      console.log(`Updating golden patch file for ${path} with ${patchPath}`);
-      const patchOutput =
-          diff.createPatch(path, golden || '', output || '', 'golden', 'tsickle with transformer')!;
-      fs.writeFileSync(patchPath, patchOutput, 'utf-8');
-    } else {
-      // The desired golden state is for there to be no output file.
-      // Ensure no file exists.
-      try {
-        fs.unlinkSync(patchPath);
-      } catch (e) {
-        // ignore.
-      }
-    }
-  } else {
-    expect(output).to.equal(patchedGolden, `${path} with ${patchPath}`);
-  }
-}
-
-const DIAGONSTIC_FILE_REGEX = /(test_files.*?):\s/;
-
-function compareAgainstGoldenDiagnostics(diagnostics: ts.Diagnostic[], path: string) {
-  // Munge the filenames in the diagnostics so that they don't include
-  // the tsickle checkout path.
-  for (const diag of diagnostics) {
-    const fileName = diag.file.fileName;
-    diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
-  }
-  const tsicklePath = path.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
-  expect(tsicklePath).to.not.equal(path);
-  const golden = patchGolden(readGolden(tsicklePath), tsicklePath) || '';
-  const goldenFormattedDiagnostics =
-      sortDiagnostics(golden.substring(0, golden.indexOf('\n====\n')));
-  const outputFormattedDiagnostics = sortDiagnostics(
-      tsickle.formatDiagnostics(diagnostics.filter(diag => diag.file.fileName === path)));
-
-  expect(outputFormattedDiagnostics).to.equal(goldenFormattedDiagnostics, '<diagnostics>');
-}
-
-function sortDiagnostics(diagnostics: string): string {
-  const lines = diagnostics.split('\n');
-  return lines
-      .sort((l1, l2) => {
-        const m1 = DIAGONSTIC_FILE_REGEX.exec(l1) || [l1];
-        const m2 = DIAGONSTIC_FILE_REGEX.exec(l2) || [l2];
-        return m1[0].localeCompare(m2[0]);
-      })
-      .join('\n');
-}
-
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? describe.only : describe;
 
 testFn('golden tests with transformer', () => {
+  const variant = 'transformer';
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
@@ -214,12 +121,12 @@ testFn('golden tests with transformer', () => {
           }
         }
       }
-      compareAgainstGolden(allExterns, test.externsPath);
+      testSupport.compareAgainstGolden(allExterns, test.externsPath, variant);
       Object.keys(jsSources).forEach(jsPath => {
-        compareAgainstGolden(jsSources[jsPath], jsPath);
+        testSupport.compareAgainstGolden(jsSources[jsPath], jsPath, variant);
       });
-      Array.from(tsSources.keys())
-          .forEach(tsPath => compareAgainstGoldenDiagnostics(allDiagnostics, tsPath));
+      const diagnosticMsgs = tsickle.formatDiagnostics(allDiagnostics) || null;
+      testSupport.compareAgainstGolden(diagnosticMsgs, test.diagnosticsPath, variant);
     });
   });
 });
