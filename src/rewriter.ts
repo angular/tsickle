@@ -20,7 +20,7 @@ export abstract class Rewriter {
   /** Errors found while examining the code. */
   protected diagnostics: ts.Diagnostic[] = [];
   /** Current position in the output. */
-  private position: SourcePosition = {line: 0, column: 0, position: 0};
+  protected position: SourcePosition = {line: 0, column: 0, position: 0};
   /**
    * The current level of recursion through TypeScript Nodes.  Used in formatting internal debug
    * print statements.
@@ -32,7 +32,7 @@ export abstract class Rewriter {
    */
   private skipUpToOffset = -1;
 
-  constructor(public file: ts.SourceFile, private sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
+  constructor(public file: ts.SourceFile, protected sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
   }
 
   getOutput(): {output: string, diagnostics: ts.Diagnostic[]} {

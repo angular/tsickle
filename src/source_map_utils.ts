@@ -134,11 +134,6 @@ export class DefaultSourceMapper implements SourceMapper {
   public sourceMap = new SourceMapGenerator();
 
   constructor(private fileName: string) {
-    this.sourceMap.addMapping({
-      original: {line: 1, column: 0},
-      generated: {line: 1, column: 0},
-      source: this.fileName,
-    });
   }
 
   addMapping(node: ts.Node, original: SourcePosition, generated: SourcePosition, length: number):
