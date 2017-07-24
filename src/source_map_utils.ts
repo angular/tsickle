@@ -135,8 +135,8 @@ export class DefaultSourceMapper implements SourceMapper {
 
   constructor(private fileName: string) {
     this.sourceMap.addMapping({
-      original: {line: 1, column: 1},
-      generated: {line: 1, column: 1},
+      original: {line: 1, column: 0},
+      generated: {line: 1, column: 0},
       source: this.fileName,
     });
   }
@@ -145,8 +145,8 @@ export class DefaultSourceMapper implements SourceMapper {
       void {
     if (length > 0) {
       this.sourceMap.addMapping({
-        original: {line: original.line + 1, column: original.column + 1},
-        generated: {line: generated.line + 1, column: generated.column + 1},
+        original: {line: original.line + 1, column: original.column},
+        generated: {line: generated.line + 1, column: generated.column},
         source: this.fileName,
       });
     }
