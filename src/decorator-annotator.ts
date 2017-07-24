@@ -136,14 +136,11 @@ export class DecoratorClassVisitor {
   /**
    * For lowering decorators, we need to refer to constructor types.
    * So we start with the identifiers that represent these types.
-   * However, TypeScript does not allow use to emit them in a value position
+   * However, TypeScript does not allow us to emit them in a value position
    * as it associated different symbol information with it.
    *
    * This method looks for the place where the value that is associated to
    * the type is defined and returns that identifier instead.
-   *
-   * @param typeSymbol
-   * @return The identifier
    */
   private getValueIdentifierForType(typeSymbol: ts.Symbol): ts.Identifier|null {
     if (!typeSymbol.valueDeclaration) {
@@ -252,6 +249,11 @@ export class DecoratorClassVisitor {
         } else {
           const [typeSymbol, typeStr] = ctor;
           let emitNode: ts.Identifier|null|undefined;
+          // For transformer mode, tsickle must emit not only the string referring to the type,
+          // but also create a source mapping, so that TypeScript can later recognize that the
+          // symbol is used in a value position, so that TypeScript does emit an import for the
+          // symbol.
+          // The code below and in getValueIdentifierForType finds a
           if (typeSymbol) {
             emitNode = this.getValueIdentifierForType(typeSymbol);
           }

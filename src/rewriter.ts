@@ -30,7 +30,7 @@ export abstract class Rewriter {
    * Skip emitting any code before the given offset. E.g. used to avoid emitting @fileoverview
    * comments twice.
    */
-  private skipUpToOffset = -1;
+  private skipCommentsUpToOffset = -1;
 
   constructor(public file: ts.SourceFile, private sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
   }
@@ -93,18 +93,18 @@ export abstract class Rewriter {
   }
 
   writeNodeFrom(node: ts.Node, pos: number, end = node.getEnd()) {
-    if (end <= this.skipUpToOffset) {
+    if (end <= this.skipCommentsUpToOffset) {
       return;
     }
-    const oldSkipUpToOffset = this.skipUpToOffset;
-    this.skipUpToOffset = Math.max(this.skipUpToOffset, pos);
+    const oldSkipCommentsUpToOffset = this.skipCommentsUpToOffset;
+    this.skipCommentsUpToOffset = Math.max(this.skipCommentsUpToOffset, pos);
     ts.forEachChild(node, child => {
       this.writeRange(node, pos, child.getFullStart());
       this.visit(child);
       pos = child.getEnd();
     });
     this.writeRange(node, pos, end);
-    this.skipUpToOffset = oldSkipUpToOffset;
+    this.skipCommentsUpToOffset = oldSkipCommentsUpToOffset;
   }
 
   writeLeadingTrivia(node: ts.Node) {
@@ -121,9 +121,10 @@ export abstract class Rewriter {
    * node.getEnd().
    */
   writeRange(node: ts.Node, from: number, to: number) {
-    from = Math.max(from, this.skipUpToOffset);
-    if (from !== to && to <= this.skipUpToOffset) {
-      return;
+    const fullStart = node.getFullStart();
+    const textStart = node.getStart();
+    if (from >= fullStart && from < textStart) {
+      from = Math.max(from, this.skipCommentsUpToOffset);
     }
     // Add a source mapping. writeRange(from, to) always corresponds to
     // original source code, so add a mapping at the current location that
