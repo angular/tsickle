@@ -111,8 +111,8 @@ gulp.task('test', ['test.unit', 'test.e2e', 'test.golden', 'test.check-format', 
 
 gulp.task('watch', function() {
   failOnError = false;
-  gulp.start(['test.unit']);  // Trigger initial build.
-  return gulp.watch(['src/**/*.ts', 'test/**/*.ts', 'test_files/**'], ['test.unit']);
+  gulp.start(['test.unit', 'test.golden']);  // Trigger initial build.
+  return gulp.watch(['src/**/*.ts', 'test/**/*.ts', 'test_files/**'], ['test.unit', 'test.golden']);
 });
 
 gulp.task('default', ['compile']);
