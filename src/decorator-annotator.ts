@@ -345,7 +345,7 @@ class DecoratorRewriter extends Rewriter {
         const oldDecoratorConverter = this.currentDecoratorConverter;
         this.currentDecoratorConverter =
             new DecoratorClassVisitor(this.typeChecker, this, node as ts.ClassDeclaration, []);
-        this.writeRange(node, node.getFullStart(), node.getStart());
+        this.writeLeadingTrivia(node);
         visitClassContentIncludingDecorators(
             node as ts.ClassDeclaration, this, this.currentDecoratorConverter);
         this.currentDecoratorConverter = oldDecoratorConverter;

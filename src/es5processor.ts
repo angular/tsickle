@@ -162,7 +162,7 @@ class ES5Processor extends Rewriter {
    * comment(s).
    */
   emitCommentWithoutStatementBody(node: ts.Node) {
-    this.writeRange(node, node.getFullStart(), node.getStart());
+    this.writeLeadingTrivia(node);
   }
 
   /** isUseStrict returns true if node is a "use strict"; statement. */
@@ -199,7 +199,7 @@ class ES5Processor extends Rewriter {
       const call = decl.initializer as ts.CallExpression;
       const require = this.isRequire(call);
       if (!require) return false;
-      this.writeRange(node, node.getFullStart(), node.getStart());
+      this.writeLeadingTrivia(node);
       this.emitGoogRequire(varName, require);
       return true;
     } else if (node.kind === ts.SyntaxKind.ExpressionStatement) {
@@ -225,7 +225,7 @@ class ES5Processor extends Rewriter {
       }
       if (!require) return false;
 
-      this.writeRange(node, node.getFullStart(), node.getStart());
+      this.writeLeadingTrivia(node);
       const varName = this.emitGoogRequire(null, require);
 
       if (isExport) {
@@ -343,7 +343,7 @@ class ES5Processor extends Rewriter {
         if (!this.namespaceImports.has(lhs)) break;
         // Emit the same expression, with spaces to replace the ".default" part
         // so that source maps still line up.
-        this.writeRange(node, node.getFullStart(), node.getStart());
+        this.writeLeadingTrivia(node);
         this.emit(`${lhs}        `);
         return true;
       default:

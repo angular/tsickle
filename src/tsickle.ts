@@ -654,7 +654,7 @@ class Annotator extends ClosureRewriter {
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
-        this.writeRange(node, node.getFullStart(), node.getStart());
+        this.writeLeadingTrivia(node);
         this.emit('export');
         let exportedSymbols: NamedSymbol[] = [];
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
@@ -676,7 +676,7 @@ class Annotator extends ClosureRewriter {
           // export {...};
           this.emit(';');
         }
-        this.writeRange(node, node.getEnd(), node.getEnd());
+        this.addSourceMapping(node);
         if (exportDecl.moduleSpecifier) {
           this.forwardDeclare(exportDecl.moduleSpecifier, exportedSymbols);
         }
@@ -1096,14 +1096,14 @@ class Annotator extends ClosureRewriter {
    * @return true if the decl was handled, false to allow default processing.
    */
   private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
-    this.writeRange(decl, decl.getFullStart(), decl.getStart());
+    this.writeLeadingTrivia(decl);
     this.emit('import');
     const importPath = this.resolveModuleSpecifier(decl.moduleSpecifier);
     const importClause = decl.importClause;
     if (!importClause) {
       // import './foo';
       this.emit(`'${importPath}';`);
-      this.writeRange(decl, decl.getEnd(), decl.getEnd());
+      this.addSourceMapping(decl);
       return true;
     } else if (
         importClause.name ||
@@ -1111,7 +1111,7 @@ class Annotator extends ClosureRewriter {
          importClause.namedBindings.kind === ts.SyntaxKind.NamedImports)) {
       this.visit(importClause);
       this.emit(` from '${importPath}';`);
-      this.writeRange(decl, decl.getEnd(), decl.getEnd());
+      this.addSourceMapping(decl);
 
       // importClause.name implies
       //   import a from ...;
@@ -1150,7 +1150,7 @@ class Annotator extends ClosureRewriter {
       // import * as foo from ...;
       this.visit(importClause);
       this.emit(` from '${importPath}';`);
-      this.writeRange(decl, decl.getEnd(), decl.getEnd());
+      this.addSourceMapping(decl);
       return true;
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
@@ -1262,7 +1262,7 @@ class Annotator extends ClosureRewriter {
   }
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
-    this.writeRange(classDecl, classDecl.getFullStart(), classDecl.getFullStart());
+    this.addSourceMapping(classDecl);
     const oldDecoratorConverter = this.currentDecoratorConverter;
     if (this.features & AnnotatorFeatures.LowerDecorators) {
       this.currentDecoratorConverter =
@@ -1486,7 +1486,7 @@ class Annotator extends ClosureRewriter {
     for (const member of node.members) {
       const memberName = member.name.getText();
       // Emit any comments and leading whitespace on the enum value definition.
-      this.writeRange(member, member.getFullStart(), member.getStart());
+      this.writeLeadingTrivia(member);
       this.emit(`${memberName}: `);
 
       if (member.initializer) {

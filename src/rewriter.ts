@@ -107,6 +107,14 @@ export abstract class Rewriter {
     this.skipUpToOffset = oldSkipUpToOffset;
   }
 
+  writeLeadingTrivia(node: ts.Node) {
+    this.writeRange(node, node.getFullStart(), node.getStart());
+  }
+
+  addSourceMapping(node: ts.Node) {
+    this.writeRange(node, node.getEnd(), node.getEnd());
+  }
+
   /**
    * Write a span of the input file as expressed by absolute offsets.
    * These offsets are found in attributes like node.getFullStart() and
