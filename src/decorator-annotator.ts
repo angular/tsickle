@@ -15,6 +15,20 @@ import {SourceMapper} from './source_map_utils';
 import {assertTypeChecked, TypeTranslator} from './type-translator';
 import {toArray} from './util';
 
+/**
+ * ConstructorParameters are gathered from constructors, so that their type information and
+ * decorators can later be emitted as an annotation.
+ */
+interface ConstructorParameter {
+  /**
+   * The type declaration for the parameter. Only set if the type is a value (e.g. a class, not an
+   * interface).
+   */
+  type: ts.TypeNode|null;
+  /** The list of decorators found on the parameter, null if none. */
+  decorators: ts.Decorator[]|null;
+}
+
 // DecoratorClassVisitor rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
 // separately for each class we encounter.
@@ -22,7 +36,7 @@ export class DecoratorClassVisitor {
   /** Decorators on the class itself. */
   decorators: ts.Decorator[];
   /** The constructor parameter list and decorators on each param. */
-  ctorParameters: Array<[[ts.Symbol, string] | undefined, ts.Decorator[]|undefined]|null>;
+  private ctorParameters: ConstructorParameter[];
   /** Per-method decorators. */
   propDecorators: Map<string, ts.Decorator[]>;
 
@@ -81,31 +95,23 @@ export class DecoratorClassVisitor {
    * constructor, and emits nothing.
    */
   private gatherConstructor(ctor: ts.ConstructorDeclaration) {
-    const ctorParameters:
-        Array<[[ts.Symbol, string] | undefined, ts.Decorator[] | undefined]|null> = [];
+    const ctorParameters: ConstructorParameter[] = [];
     let hasDecoratedParam = false;
     for (const param of ctor.parameters) {
-      let paramCtor: [ts.Symbol, string]|undefined;
-      let decorators: ts.Decorator[]|undefined;
+      const ctorParam: ConstructorParameter = {type: null, decorators: null};
       if (param.decorators) {
-        decorators = this.decoratorsToLower(param);
-        hasDecoratedParam = decorators.length > 0;
+        ctorParam.decorators = this.decoratorsToLower(param);
+        hasDecoratedParam = hasDecoratedParam || ctorParam.decorators.length > 0;
       }
       if (param.type) {
         // param has a type provided, e.g. "foo: Bar".
         // Verify that "Bar" is a value (e.g. a constructor) and not just a type.
         const sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
         if (sym && (sym.flags & ts.SymbolFlags.Value)) {
-          const typeStr = new TypeTranslator(this.typeChecker, param.type)
-                              .symbolToString(sym, /* useFqn */ true);
-          paramCtor = [sym, typeStr];
+          ctorParam.type = param.type;
         }
       }
-      if (paramCtor || decorators) {
-        ctorParameters.push([paramCtor, decorators]);
-      } else {
-        ctorParameters.push(null);
-      }
+      ctorParameters.push(ctorParam);
     }
 
     // Use the ctor parameter metadata only if the class or the ctor was decorated.
@@ -238,35 +244,38 @@ export class DecoratorClassVisitor {
           `static ctorParameters: () => ({type: any, decorators?: ` + decoratorInvocations +
           `}|null)[] = () => [\n`);
       for (const param of this.ctorParameters || []) {
-        if (!param) {
+        if (!param.type && !param.decorators) {
           this.rewriter.emit('null,\n');
           continue;
         }
-        const [ctor, decorators] = param;
         this.rewriter.emit(`{type: `);
-        if (!ctor) {
+        if (!param.type) {
           this.rewriter.emit(`undefined`);
         } else {
-          const [typeSymbol, typeStr] = ctor;
-          let emitNode: ts.Identifier|null|undefined;
           // For transformer mode, tsickle must emit not only the string referring to the type,
           // but also create a source mapping, so that TypeScript can later recognize that the
-          // symbol is used in a value position, so that TypeScript does emit an import for the
+          // symbol is used in a value position, so that TypeScript emits an import for the
           // symbol.
-          // The code below and in getValueIdentifierForType finds a
-          if (typeSymbol) {
-            emitNode = this.getValueIdentifierForType(typeSymbol);
-          }
+          // The code below and in getValueIdentifierForType finds the value node corresponding to
+          // the type and emits that symbol if possible. This causes a source mapping to the value,
+          // which then allows later transformers in the pipeline to do the correct module
+          // rewriting. Note that we cannot use param.type as the emit node directly (not even just
+          // for mapping), because that is marked as a type use of the node, not a value use, so it
+          // doesn't get updated as an export.
+          const sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
+          const emitNode = this.getValueIdentifierForType(sym);
           if (emitNode) {
             this.rewriter.writeRange(emitNode, emitNode.getStart(), emitNode.getEnd());
           } else {
+            const typeStr = new TypeTranslator(this.typeChecker, param.type)
+                                .symbolToString(sym, /* useFqn */ true);
             this.rewriter.emit(typeStr);
           }
         }
         this.rewriter.emit(`, `);
-        if (decorators) {
+        if (param.decorators) {
           this.rewriter.emit('decorators: [');
-          for (const decorator of decorators) {
+          for (const decorator of param.decorators) {
             this.emitDecorator(decorator);
             this.rewriter.emit(', ');
           }
