@@ -196,6 +196,10 @@ export class DecoratorClassVisitor {
     return false;
   }
 
+  foundDecorators() {
+    return this.decorators || this.ctorParameters || this.propDecorators;
+  }
+
   /**
    * emits the types for the various gathered metadata to be used
    * in the tsickle type annotations helper.

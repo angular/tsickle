@@ -1358,7 +1358,8 @@ class Annotator extends ClosureRewriter {
     }
 
     if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0 &&
-        abstractMethods.length === 0) {
+        abstractMethods.length === 0 &&
+        !(this.currentDecoratorConverter && this.currentDecoratorConverter.foundDecorators())) {
       // There are no members so we don't need to emit any type
       // annotations helper.
       return;
