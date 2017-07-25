@@ -189,7 +189,7 @@ export function compareAgainstGolden(
       goldenPath = variantGoldenPath;
     }
   }
-  let [matches, goldenText] = compareFile(output, goldenPath);
+  const [matches, goldenText] = compareFile(output, goldenPath);
 
   if (!matches) {
     if ((!variant && UPDATE_GOLDENS) || (variant && UPDATE_VARIANT_GOLDENS)) {

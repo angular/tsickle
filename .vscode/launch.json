@@ -21,7 +21,9 @@
       },
       "console": "internalConsole",
       "sourceMaps": true,
-      "outDir": "${workspaceRoot}/built"
+      "outFiles": [
+        "${workspaceRoot}/built/**/*.js"
+      ]
     },
     {
       "name": "Run golden tests",
@@ -45,8 +47,7 @@
       "sourceMaps": true,
       "outFiles": [
         "${workspaceRoot}/built/**/*.js"
-      ],
-      "trace": "all"
+      ]
     },
     {
       "name": "Run golden tests (transformer)",
