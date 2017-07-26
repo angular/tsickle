@@ -310,6 +310,30 @@ function createTests(useTransformer: boolean) {
           .to.equal('input2.ts', 'input file name');
     }
   });
+
+  it('maps at the start of lines correctly', () => {
+    const sources = new Map([[
+      'input.ts', `let x : number = 2;
+      x + 1;`
+    ]]);
+
+    // Run tsickle+TSC to convert inputs to Closure JS files.
+    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
+
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'var /** @type {?} */ x');
+      expect(sourceMap.originalPositionFor({line, column}).line)
+          .to.equal(1, 'variable declaration line');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input.ts', 'input file name');
+    }
+    {
+      const {line, column} = getLineAndColumn(compiledJS, 'x + 1');
+      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(2, 'addition line');
+      expect(sourceMap.originalPositionFor({line, column}).source)
+          .to.equal('input.ts', 'input file name');
+    }
+  });
 }
 
 function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
