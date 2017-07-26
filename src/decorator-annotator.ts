@@ -196,8 +196,8 @@ export class DecoratorClassVisitor {
     return false;
   }
 
-  foundDecorators() {
-    return this.decorators || this.ctorParameters || this.propDecorators;
+  foundDecorators(): boolean {
+    return !!(this.decorators || this.ctorParameters || this.propDecorators);
   }
 
   /**
