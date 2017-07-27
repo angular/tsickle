@@ -639,6 +639,11 @@ class Annotator extends ClosureRewriter {
    *     emit it as is and visit its children.
    */
   maybeProcess(node: ts.Node): boolean {
+    if (this.file.statements.indexOf(node as ts.Statement) !== -1) {
+      const pos = this.file.getLineAndCharacterOfPosition(node.getFullStart() + 1);
+      this.sourceMapper.addMapping(
+            node, {line: pos.line, column: pos.character, position: node.getFullStart() + 1}, {line: this.position.line + 1, column: 0, position: this.position.position + 1}, 1);
+    }
     if (hasModifierFlag(node, ts.ModifierFlags.Ambient) || isDtsFileName(this.file.fileName)) {
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
