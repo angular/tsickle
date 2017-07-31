@@ -162,3 +162,9 @@ const /** @type {string} */ c = 'c';
  * @polymerBehavior
  */
 const somePolymerBehavior = {};
+/**
+ * Don't emit type comments for Polymer behaviors
+ * if they are declared via the Polymer function.
+ */
+let /** @type {?} */ Polymer: any;
+Polymer({behaviors: [ 'test' as any ] });

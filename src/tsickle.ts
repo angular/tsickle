@@ -785,6 +785,17 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.AsExpression:
         // Both of these cases are AssertionExpressions.
         const typeAssertion = node as ts.AssertionExpression;
+        if (this.polymerBehaviorStackCount > 0) {
+          // Don't emit type casts for Polymer behaviors that are declared
+          // by calling the Polymer function
+          // as the Polymer closure plugin does not work when emitting them.
+          // Note: This only matters in the transformer version of tsickle,
+          // as the non transformer version never emitted type casts due to
+          // https://github.com/Microsoft/TypeScript/issues/9873 (see below).
+          // TODO(tbosch): file an issue with Polymer, tracked in
+          // https://github.com/angular/tsickle/issues/529.
+          return false;
+        }
         // When using a type casts in template expressions,
         // closure requires another pair of parens, otherwise it will
         // complain with "Misplaced type annotation. Type annotations are not allowed here."
@@ -852,6 +863,15 @@ class Annotator extends ClosureRewriter {
           return true;
         }
         break;
+      case ts.SyntaxKind.PropertyAssignment:
+        const pa = node as ts.PropertyAssignment;
+        if (isPolymerBehaviorPropertyInCallExpression(pa)) {
+          this.polymerBehaviorStackCount++;
+          this.writeNodeFrom(node, node.getStart());
+          this.polymerBehaviorStackCount--;
+          return true;
+        }
+        return false;
       case ts.SyntaxKind.ElementAccessExpression:
         // Warn for quoted accesses to properties that have a symbol declared.
         // Mixing quoted and non-quoted access to a symbol (x['foo'] and x.foo) risks breaking
@@ -1868,6 +1888,18 @@ class ExternsWriter extends ClosureRewriter {
     this.emit(`\n/** @typedef {${this.typeToClosure(decl)}} */\n`);
     this.writeExternsVariable(getIdentifierText(decl.name), namespace);
   }
+}
+
+function isPolymerBehaviorPropertyInCallExpression(pa: ts.PropertyAssignment): boolean {
+  const parentParent = pa.parent && pa.parent.parent;
+  if (pa.name.kind !== ts.SyntaxKind.Identifier ||
+      (pa.name as ts.Identifier).text !== 'behaviors' || !pa.parent || !pa.parent.parent ||
+      pa.parent.parent.kind !== ts.SyntaxKind.CallExpression) {
+    return false;
+  }
+
+  const expr = (parentParent as ts.CallExpression).expression;
+  return expr.kind === ts.SyntaxKind.Identifier && (expr as ts.Identifier).text === 'Polymer';
 }
 
 export function annotate(
