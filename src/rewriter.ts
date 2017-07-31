@@ -32,7 +32,15 @@ export abstract class Rewriter {
    */
   private skipCommentsUpToOffset = -1;
 
+  /**
+   * Stack of the nodes we've visited.  Protected so that extenders who perform
+   * logic outside the visit()/maybeProcess() pattern can keep track of which node
+   * they're processing.
+   */
+  protected nodeStack: ts.Node[];
+
   constructor(public file: ts.SourceFile, private sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
+    this.nodeStack = [file];
   }
 
   getOutput(): {output: string, diagnostics: ts.Diagnostic[]} {
@@ -50,6 +58,7 @@ export abstract class Rewriter {
    */
   visit(node: ts.Node) {
     // this.logWithIndent('node: ' + ts.SyntaxKind[node.kind]);
+    this.nodeStack.push(node);
     this.indent++;
     try {
       if (!this.maybeProcess(node)) {
@@ -63,6 +72,7 @@ export abstract class Rewriter {
       throw e;
     }
     this.indent--;
+    this.nodeStack.pop();
   }
 
   /**
@@ -126,26 +136,44 @@ export abstract class Rewriter {
     if (from >= fullStart && from < textStart) {
       from = Math.max(from, this.skipCommentsUpToOffset);
     }
-    // Add a source mapping. writeRange(from, to) always corresponds to
-    // original source code, so add a mapping at the current location that
-    // points back to the location at `from`. The additional code generated
-    // by tsickle will then be considered part of the last mapped code
-    // section preceding it. That's arguably incorrect (e.g. for the fake
-    // methods defining properties), but is good enough for stack traces.
-    const pos = this.file.getLineAndCharacterOfPosition(from);
-    this.sourceMapper.addMapping(
-        node, {line: pos.line, column: pos.character, position: from}, this.position, to - from);
     // getSourceFile().getText() is wrong here because it has the text of
     // the SourceFile node of the AST, which doesn't contain the comments
     // preceding that node.  Semantically these ranges are just offsets
     // into the original source file text, so slice from that.
     const text = this.file.text.slice(from, to);
-    if (text) {
-      this.emit(text);
-    }
+    const pos = this.file.getLineAndCharacterOfPosition(from);
+    // Source maps are line based, so if str has leading whitespace, particularly
+    // newlines, we want to map to the start of/line of the actual text
+    const originalSourcePosition = this.findOffsetOfFirstNonWhitespaceCharacter(
+        text, {line: pos.line, column: pos.character, position: from});
+    this.emit(text, node, originalSourcePosition);
   }
 
-  emit(str: string) {
+  /**
+   * @param str string to emit
+   * @param node the node to source map str to
+   * @param original the position in the source file to source map str to
+   *
+   * Every emit call results in a source mapping being made, if a node and
+   * original SourcePosition aren't supplied, str is source mapped to the
+   * beginning of the current node.
+   */
+  emit(str: string): void;
+  emit(str: string, node: ts.Node, original: SourcePosition): void;
+  emit(str: string, node?: ts.Node, original?: SourcePosition): void {
+    if (!node || !original) {
+      // Only the transformer source mapper uses the node, and providing
+      // a source mapping for every emit messes up the transformer
+      // code path, so unless we're emitting copied text from a node, don't
+      // set it
+      original = this.sourcePositionOfNodeStart(this.getCurrentNode());
+    }
+    // Source maps are line based, so if str has leading whitespace, particularly
+    // newlines, we want to map to the start of/line of the actual text
+    const generated = this.findOffsetOfFirstNonWhitespaceCharacter(str, this.position);
+    this.sourceMapper.addMapping(
+        node, original, generated,
+        str.length - this.findOffsetOfFirstNonWhitespaceCharacter(str).position);
     this.output.push(str);
     for (const c of str) {
       this.position.column++;
@@ -156,6 +184,36 @@ export abstract class Rewriter {
     }
     this.position.position += str.length;
   }
+
+  sourcePositionOfNodeStart(node: ts.Node): SourcePosition {
+    const nodeStart = node.getStart();
+    const pos = this.file.getLineAndCharacterOfPosition(node.getStart());
+    return this.findOffsetOfFirstNonWhitespaceCharacter(
+        node.getText(), {line: pos.line, column: pos.character, position: nodeStart});
+  }
+
+  /**
+   * If you pass a pos, it returns a Source Position offset from that pos.
+   *  Otherwise, it just returns the absolute offsets
+   */
+  findOffsetOfFirstNonWhitespaceCharacter(str: string, pos = {line: 0, column: 0, position: 0}):
+      SourcePosition {
+    let {line, column, position} = pos;
+    for (const c of str) {
+      if (c === '\n') {
+        line++;
+        column = 0;
+        position++;
+      } else if (/\s/.test(c)) {
+        column++;
+        position++;
+      } else {
+        return {line, column, position};
+      }
+    }
+    return {line, column, position};
+  }
+
 
   /** Removes comment metacharacters from a string, to make it safe to embed in a comment. */
   escapeForComment(str: string): string {
@@ -187,6 +245,10 @@ export abstract class Rewriter {
       category: ts.DiagnosticCategory.Error,
       code: 0,
     });
+  }
+
+  getCurrentNode() {
+    return this.nodeStack[this.nodeStack.length - 1];
   }
 }
 

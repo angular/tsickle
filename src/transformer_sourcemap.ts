@@ -103,7 +103,11 @@ class NodeSourceMapper implements SourceMapper {
   }
 
   addMapping(
-      originalNode: ts.Node, original: SourcePosition, generated: SourcePosition, length: number) {
+      originalNode: ts.Node|undefined, original: SourcePosition, generated: SourcePosition,
+      length: number) {
+    if (!originalNode) {
+      return;
+    }
     let originalStartPos = original.position;
     let genStartPos = generated.position;
     if (originalStartPos >= originalNode.getFullStart() &&
