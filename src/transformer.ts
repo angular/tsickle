@@ -205,9 +205,10 @@ function combineInlineSourceMaps(
 function combineSourceMaps(
     program: ts.Program, filePath: string, tscSourceMapText: string): string {
   const tscSourceMap = parseSourceMap(tscSourceMapText);
+  const fileDir = path.dirname(filePath);
   let tscSourceMapGenerator: SourceMapGenerator|undefined;
   for (const sourceFileName of tscSourceMap.sources) {
-    const sourceFile = program.getSourceFile(sourceFileName);
+    const sourceFile = program.getSourceFile(path.resolve(fileDir, sourceFileName));
     if (!sourceFile || !containsInlineSourceMap(sourceFile.text)) {
       continue;
     }
