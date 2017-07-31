@@ -58,7 +58,8 @@ const JSDOC_TAGS_WHITELIST = new Set([
   'constructor',   'copyright',
   'define',        'deprecated',
   'desc',          'dict',
-  'disposes',      'enum',
+  'disposes',      'enhance',
+  'enhanceable',   'enum',
   'export',        'expose',
   'extends',       'externs',
   'fileoverview',  'final',
@@ -98,10 +99,9 @@ const JSDOC_TAGS_WHITELIST = new Set([
  * these will cause Closure Compiler issues and should not be used.
  */
 const JSDOC_TAGS_BLACKLIST = new Set([
-  'augments', 'class',     'constructs', 'constructor', 'enhance',    'enhanceable',
-  'enum',     'extends',   'field',      'function',    'implements', 'interface',
-  'lends',    'namespace', 'private',    'public',      'record',     'static',
-  'template', 'this',      'type',       'typedef',
+  'augments', 'class',      'constructs', 'constructor', 'enum',      'extends', 'field',
+  'function', 'implements', 'interface',  'lends',       'namespace', 'private', 'public',
+  'record',   'static',     'template',   'this',        'type',      'typedef',
 ]);
 
 /**
