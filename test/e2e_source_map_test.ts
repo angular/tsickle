@@ -10,7 +10,7 @@
 
 import {assert, expect} from 'chai';
 import * as path from 'path';
-import {SourceMapConsumer} from 'source-map';
+import {RawSourceMap, SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
@@ -251,14 +251,25 @@ function createTests(useTransformer: boolean) {
     expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
 
-  it('handles input source maps with different file names than supplied to tsc', () => {
+  function createInputWithSourceMap(overrides: Partial<RawSourceMap> = {}): Map<string, string> {
     const sources = new Map<string, string>();
-    const inputSourceMap =
-        `{"version":3,"sources":["original.ts"],"names":[],"mappings":"AAAA,MAAM,EAAE,EAAE,CAAC","file":"foo/bar/intermediate.ts","sourceRoot":""}`;
-    const encodedSourceMap = Buffer.from(inputSourceMap, 'utf8').toString('base64');
+    const inputSourceMap = {
+      'version': 3,
+      'sources': ['original.ts'],
+      'names': [],
+      'mappings': 'AAAA,MAAM,EAAE,EAAE,CAAC',
+      'file': 'intermediate.ts',
+      'sourceRoot': '',
+      ...overrides
+    };
+    const encodedSourceMap = Buffer.from(JSON.stringify(inputSourceMap), 'utf8').toString('base64');
     sources.set('intermediate.ts', `const x = 3;
 //# sourceMappingURL=data:application/json;base64,${encodedSourceMap}`);
+    return sources;
+  }
 
+  it('handles input source maps with different file names than supplied to tsc', () => {
+    const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
     const {compiledJS, sourceMap} = compile(sources, {useTransformer});
     expect(getInlineSourceMapCount(compiledJS)).to.equal(0);
 
@@ -267,6 +278,18 @@ function createTests(useTransformer: boolean) {
     expect(sourceMap.originalPositionFor({line, column}).source)
         .to.equal('original.ts', 'input file name');
   });
+
+  it('handles input source maps with an outDir different than the rootDir', () => {
+    const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
+
+    const {compiledJS, sourceMap} =
+        compile(sources, {inlineSourceMap: true, useTransformer, outFile: '/out/output.js'});
+
+    const {line, column} = getLineAndColumn(compiledJS, 'x = 3');
+    expect(sourceMap.originalPositionFor({line, column}).source)
+        .to.equal('original.ts', 'input file name');
+  });
+
 
   it(`doesn't blow up putting an inline source map in an empty file`, () => {
     const sources = new Map<string, string>();
