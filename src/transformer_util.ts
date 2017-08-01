@@ -424,7 +424,7 @@ function synthesizeDetachedLeadingComments(
     {commentStmt: ts.Statement | null, lastCommentEnd: number} {
   let triviaEnd = statements.end;
   if (statements.length) {
-    triviaEnd = statements[statements.length - 1].getStart();
+    triviaEnd = statements[0].getStart();
   }
   const detachedComments = getDetachedLeadingCommentRanges(sourceFile, statements.pos, triviaEnd);
   if (!detachedComments.length) {
