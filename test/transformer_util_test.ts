@@ -109,6 +109,30 @@ describe('transformer util', () => {
       ].join('\n'));
     });
 
+    it('should not treat leading statement comments as leading block comments', () => {
+      const tsSources = {
+        'a.ts': [
+          `{`,
+          `  /*a*/`,
+          `  const a = 1`,
+          `  /*b*/`,
+          `  const b = 2;`,
+          `}`,
+        ].join('\n')
+      };
+      const jsSources = emitWithTransform(tsSources, transformComments);
+      expect(jsSources['./a.js']).to.eq([
+        `{`,
+        `    /*<${ts.SyntaxKind.VariableStatement}>a*/`,
+        `    const a = 1;`,
+        `    /*<${ts.SyntaxKind.VariableStatement}>b*/`,
+        `    const b = 2;`,
+        `}`,
+        ``,
+      ].join('\n'));
+    });
+
+
     it('should synthesize trailing block comments', () => {
       const tsSources = {
         'a.ts': [
