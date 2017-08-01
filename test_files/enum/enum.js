@@ -6,9 +6,7 @@ goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
 /** @enum {number} */
-const EnumTest1 = {
-    XYZ: 0, PI: 3.14159,
-};
+const EnumTest1 = { XYZ: 0, PI: 3.14159, };
 EnumTest1[EnumTest1.XYZ] = "XYZ";
 EnumTest1[EnumTest1.PI] = "PI";
 // Verify that the resulting TypeScript still allows you to index into the enum with all the various
@@ -28,9 +26,7 @@ let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
 let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
-const EnumTest2 = {
-    XYZ: 0, PI: 3.14159,
-};
+const EnumTest2 = { XYZ: 0, PI: 3.14159, };
 exports.EnumTest2 = EnumTest2;
 EnumTest2[EnumTest2.XYZ] = "XYZ";
 EnumTest2[EnumTest2.PI] = "PI";
