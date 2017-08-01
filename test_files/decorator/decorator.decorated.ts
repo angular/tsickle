@@ -1,4 +1,8 @@
-import {AClass, AClass as ARenamedClass, AType, AClassWithGenerics} from './external';
+// OtherClass is reachable via the imports for './external' and './external2'.
+// Test that were using it from the right import, and not just the first
+// that allows access to the value. That is important when imports are elided.
+import {AClass, AClass as ARenamedClass, AType, AClassWithGenerics, ReexportedOtherClass} from './external';
+import {OtherClass} from './external2';
 
 function decorator(a: Object, b: string) {}
 
@@ -17,7 +21,10 @@ function classAnnotation(t: any) { return t; }
 
 
 class DecoratorTest {
-  constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, AClass: AClass, aRenamedClass: ARenamedClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
+  constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>,
+    aClass: AClass, AClass: AClass, aRenamedClass: ARenamedClass,
+    aClassWithGenerics: AClassWithGenerics<string>, aType: AType,
+    otherClass: OtherClass, anotherClass: ReexportedOtherClass) {}
 
   
   get w(): number {
@@ -45,9 +52,11 @@ null,
 {type: Array, },
 {type: AClass, },
 {type: AClass, },
-{type: AClass, },
+{type: ARenamedClass, },
 {type: AClassWithGenerics, },
 null,
+{type: OtherClass, },
+{type: ReexportedOtherClass, },
 ];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 "w": [{ type: annotationDecorator },],

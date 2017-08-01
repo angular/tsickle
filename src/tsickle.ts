@@ -10,7 +10,7 @@ import * as path from 'path';
 import {SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
-import {DecoratorClassVisitor, visitClassContentIncludingDecorators} from './decorator-annotator';
+import {collectImportedNames, DecoratorClassVisitor, visitClassContentIncludingDecorators} from './decorator-annotator';
 import {hasExportingDecorator} from './decorators';
 import {extractGoogNamespaceImport} from './es5processor';
 import * as jsdoc from './jsdoc';
@@ -671,7 +671,8 @@ class Annotator extends ClosureRewriter {
         this.handleSourceFile(node as ts.SourceFile);
         return true;
       case ts.SyntaxKind.ImportDeclaration:
-        this.collectImportNames(node as ts.ImportDeclaration);
+        this.importedNames.push(
+            ...collectImportedNames(this.typeChecker, node as ts.ImportDeclaration));
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
@@ -1196,45 +1197,6 @@ class Annotator extends ClosureRewriter {
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
       return false;  // Use default processing.
-    }
-  }
-
-  /**
-   * Collect the Identifiers used as named bindings in the given import declaration
-   * with their Symbol.
-   * This is needed lateron to find an identifier that represents the value
-   * of an imported type identifier.
-   */
-  private collectImportNames(decl: ts.ImportDeclaration) {
-    const importClause = decl.importClause;
-    if (!importClause) {
-      return;
-    }
-    const names: ts.Identifier[] = [];
-    if (importClause.name) {
-      names.push(importClause.name);
-    }
-    if (importClause.namedBindings &&
-        importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
-      const namedImports = importClause.namedBindings as ts.NamedImports;
-      names.push(...namedImports.elements.map(e => e.name));
-    }
-    for (const name of names) {
-      let symbol = this.typeChecker.getSymbolAtLocation(name);
-      if (symbol.flags & ts.SymbolFlags.Alias) {
-        symbol = this.typeChecker.getAliasedSymbol(symbol);
-      }
-      const declarationNames: ts.Identifier[] = [];
-      if (symbol.declarations) {
-        for (const d of symbol.declarations) {
-          if (d.name && d.name.kind === ts.SyntaxKind.Identifier) {
-            declarationNames.push(d.name as ts.Identifier);
-          }
-        }
-      }
-      if (symbol.declarations) {
-        this.importedNames.push({name, declarationNames});
-      }
     }
   }
 
