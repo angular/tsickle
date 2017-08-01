@@ -61,6 +61,7 @@ export function typeToDebugString(type: ts.Type): string {
       ts.ObjectFlags.Instantiated,
       ts.ObjectFlags.ObjectLiteral,
       ts.ObjectFlags.EvolvingArray,
+      ts.ObjectFlags.ObjectLiteralPatternWithComputedProperties,
     ];
     for (const flag of objectFlags) {
       if ((objType.objectFlags & flag) !== 0) {
@@ -232,7 +233,7 @@ export class TypeTranslator {
         return;
       },
       reportInaccessibleThisError: doNothing,
-      reportIllegalExtends: doNothing,
+      reportPrivateInBaseOfClassExpression: doNothing,
     };
     builder.buildSymbolDisplay(sym, writer, this.node);
     return this.stripClutzNamespace(str);
@@ -306,15 +307,6 @@ export class TypeTranslator {
           return '?';
         }
         return this.symbolToString(type.symbol, true);
-      case ts.TypeFlags.EnumLiteral:
-        const enumLiteralBaseType = (type as ts.EnumLiteralType).baseType;
-        if (!enumLiteralBaseType.symbol) {
-          this.warn(`EnumLiteralType without a symbol`);
-          return '?';
-        }
-        // Closure Compiler doesn't support literals in types, so this code must not emit
-        // "EnumType.MEMBER", but rather "EnumType". The values are de-duplicated in translateUnion.
-        return this.symbolToString(enumLiteralBaseType.symbol, true);
       case ts.TypeFlags.ESSymbol:
         // NOTE: currently this is just a typedef for {?}, shrug.
         // https://github.com/google/closure-compiler/blob/55cf43ee31e80d89d7087af65b5542aa63987874/externs/es3.js#L34
@@ -360,6 +352,10 @@ export class TypeTranslator {
           return this.translateUnion(type as ts.UnionType);
         }
 
+        if (type.flags & ts.TypeFlags.EnumLiteral) {
+          return this.translateEnumLiteral(type);
+        }
+
         // The switch statement should have been exhaustive.
         throw new Error(`unknown type flags ${type.flags} on ${typeToDebugString(type)}`);
     }
@@ -372,6 +368,24 @@ export class TypeTranslator {
     // Remove duplicates to produce types that read better.
     parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
     return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
+  }
+
+  private translateEnumLiteral(type: ts.Type): string {
+    // Suppose you had:
+    //   enum EnumType { MEMBER }
+    // then the type of "EnumType.MEMBER" is an enum literal (the thing passed to this function)
+    // and it has type flags that include
+    //   ts.TypeFlags.NumberLiteral | ts.TypeFlags.EnumLiteral
+    //
+    // Closure Compiler doesn't support literals in types, so this code must not emit
+    // "EnumType.MEMBER", but rather "EnumType".
+
+    const enumLiteralBaseType = this.typeChecker.getBaseTypeOfLiteralType(type);
+    if (!enumLiteralBaseType.symbol) {
+      this.warn(`EnumLiteralType without a symbol`);
+      return '?';
+    }
+    return this.symbolToString(enumLiteralBaseType.symbol, true);
   }
 
   // translateObject translates a ts.ObjectType, which is the type of all

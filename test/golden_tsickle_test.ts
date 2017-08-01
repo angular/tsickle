@@ -132,10 +132,10 @@ testFn('golden tests with transformer', () => {
         untyped: /\.untyped\b/.test(test.name),
         logWarning: (diag: ts.Diagnostic) => {
           allDiagnostics.push(diag);
-          let diags = diagnosticsByFile.get(diag.file.fileName);
+          let diags = diagnosticsByFile.get(diag.file!.fileName);
           if (!diags) {
             diags = [];
-            diagnosticsByFile.set(diag.file.fileName, diags);
+            diagnosticsByFile.set(diag.file!.fileName, diags);
           }
           diags.push(diag);
         },
