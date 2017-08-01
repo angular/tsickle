@@ -74,12 +74,12 @@ gulp.task('test.compile', ['compile'], function(done) {
     done();
     return;
   }
-  return gulp.src(['test/*.ts'], {base: '.'})
+  return gulp.src(['test/**/*.ts'])
       .pipe(sourcemaps.init())
       .pipe(tsProject())
       .on('error', onError)
-      .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../..'}))
-      .pipe(gulp.dest('built/'));  // '/test/' comes from base above.
+      .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../../test'}))
+      .pipe(gulp.dest('built/test'));  // '/test/' comes from base above.
 });
 
 gulp.task('test.unit', ['test.compile'], function(done) {

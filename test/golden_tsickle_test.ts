@@ -21,56 +21,6 @@ import * as testSupport from './test_support';
 const TEST_FILTER: RegExp|null =
     process.env.TEST_FILTER ? new RegExp(process.env.TEST_FILTER) : null;
 
-// If true, update all the golden .js files to be whatever tsickle
-// produces from the .ts source. Do not change this code but run as:
-//     UPDATE_GOLDENS=y gulp test
-const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
-
-/**
- * compareAgainstGoldens compares a test output against the content in a golden
- * path, updating the content of the golden when UPDATE_GOLDENS is true.
- *
- * @param output The expected output, where the empty string indicates
- *    the file is expected to exist and be empty, while null indicates
- *    the file is expected to not exist.  (This subtlety is used for
- *    externs files, where the majority of tests are not expected to
- *    produce one.)
- */
-function compareAgainstGolden(output: string|null, path: string) {
-  let golden: string|null = null;
-  try {
-    golden = fs.readFileSync(path, 'utf-8');
-  } catch (e) {
-    if (e.code === 'ENOENT' && (UPDATE_GOLDENS || output === null)) {
-      // A missing file is acceptable if we're updating goldens or
-      // if we're expected to produce no output.
-    } else {
-      throw e;
-    }
-  }
-
-  // Make sure we have proper line endings when testing on Windows.
-  if (golden != null) golden = normalizeLineEndings(golden);
-  if (output != null) output = normalizeLineEndings(output);
-
-  if (UPDATE_GOLDENS && output !== golden) {
-    console.log('Updating golden file for', path);
-    if (output !== null) {
-      fs.writeFileSync(path, output, 'utf-8');
-    } else {
-      // The desired golden state is for there to be no output file.
-      // Ensure no file exists.
-      try {
-        fs.unlinkSync(path);
-      } catch (e) {
-        // ignore.
-      }
-    }
-  } else {
-    expect(output).to.equal(golden, path);
-  }
-}
-
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? describe.only : describe;
 
@@ -84,6 +34,7 @@ testFn('golden tests with TsickleCompilerHost', () => {
 });
 
 function runGoldenTests(useSeparatePasses: boolean) {
+  const variant = '';  // regular
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
@@ -127,7 +78,7 @@ function runGoldenTests(useSeparatePasses: boolean) {
           if (output !== tsSources.get(tsPath)) {
             const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
             expect(decoratedPath).to.not.equal(tsPath);
-            compareAgainstGolden(output, decoratedPath);
+            testSupport.compareAgainstGolden(output, decoratedPath, variant);
             tsSources.set(tsPath, output);
             convertDecoratorsMadeChange = true;
           }
@@ -195,18 +146,18 @@ function runGoldenTests(useSeparatePasses: boolean) {
         if (useSeparatePasses) {
           // Don't compare the output of tsickle if we
           // do a single pass as whitespaces might be different.
-          compareAgainstGolden(fileOutput, tsicklePath);
+          testSupport.compareAgainstGolden(fileOutput, tsicklePath, variant);
         }
         tsickleSources.set(tsPath, annotated.output);
       }
-      compareAgainstGolden(allExterns, test.externsPath);
+      testSupport.compareAgainstGolden(allExterns, test.externsPath, variant);
 
       // Run tsickled TypeScript through TypeScript compiler
       // and compare against goldens.
       program = testSupport.createProgram(tsickleSources);
       const jsSources = testSupport.emit(program);
       for (const jsPath of Object.keys(jsSources)) {
-        compareAgainstGolden(jsSources[jsPath], jsPath);
+        testSupport.compareAgainstGolden(jsSources[jsPath], jsPath, variant);
       }
     });
   });

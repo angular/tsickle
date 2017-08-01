@@ -1,0 +1,16 @@
+goog.module('test_files.enum.enum_user');var module = module || {id: 'test_files/enum/enum_user.js'};/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes} checked by tsc
+ */
+
+const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.enum.enum");
+/**
+ * @record
+ */
+function EnumUsingIf() { }
+exports.EnumUsingIf = EnumUsingIf;
+function EnumUsingIf_tsickle_Closure_declarations() {
+    /** @type {tsickle_forward_declare_1.ConstEnum} */
+    EnumUsingIf.prototype.field;
+}
+const /** @type {tsickle_forward_declare_1.ConstEnum} */ fieldUsingConstEnum = 0 /* EMITTED_ENUM_VALUE */;
