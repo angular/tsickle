@@ -148,7 +148,8 @@ export class DecoratorClassVisitor {
    * This method looks for the place where the value that is associated to
    * the type is defined and returns that identifier instead.
    */
-  private getValueIdentifierForType(typeSymbol: ts.Symbol): ts.Identifier|null {
+  private getValueIdentifierForType(typeSymbol: ts.Symbol, typeNode: ts.TypeNode): ts.Identifier
+      |null {
     if (!typeSymbol.valueDeclaration) {
       return null;
     }
@@ -159,10 +160,15 @@ export class DecoratorClassVisitor {
     if (valueName.getSourceFile() === this.rewriter.file) {
       return valueName;
     }
-    for (let i = 0; i < this.importedNames.length; i++) {
-      const {name, declarationNames} = this.importedNames[i];
-      if (declarationNames.some(d => d === valueName)) {
-        return name;
+    // Need to look at the first identifier only
+    // to ignore generics.
+    const firstIdentifierInType = firstIdentifierInSubtree(typeNode);
+    if (firstIdentifierInType) {
+      for (const {name, declarationNames} of this.importedNames) {
+        if (firstIdentifierInType.text === name.text &&
+            declarationNames.some(d => d === valueName)) {
+          return name;
+        }
       }
     }
     return null;
@@ -267,7 +273,7 @@ export class DecoratorClassVisitor {
           // for mapping), because that is marked as a type use of the node, not a value use, so it
           // doesn't get updated as an export.
           const sym = this.typeChecker.getTypeAtLocation(param.type).getSymbol();
-          const emitNode = this.getValueIdentifierForType(sym);
+          const emitNode = this.getValueIdentifierForType(sym, param.type);
           if (emitNode) {
             this.rewriter.writeRange(emitNode, emitNode.getStart(), emitNode.getEnd());
           } else {
@@ -337,6 +343,7 @@ export class DecoratorClassVisitor {
 
 class DecoratorRewriter extends Rewriter {
   private currentDecoratorConverter: DecoratorClassVisitor;
+  private importedNames: Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}> = [];
 
   constructor(
       private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, sourceMapper?: SourceMapper) {
@@ -353,13 +360,17 @@ class DecoratorRewriter extends Rewriter {
       this.currentDecoratorConverter.beforeProcessNode(node);
     }
     switch (node.kind) {
+      case ts.SyntaxKind.ImportDeclaration:
+        this.importedNames.push(
+            ...collectImportedNames(this.typeChecker, node as ts.ImportDeclaration));
+        return false;
       case ts.SyntaxKind.Decorator:
         return this.currentDecoratorConverter &&
             this.currentDecoratorConverter.maybeProcessDecorator(node as ts.Decorator);
       case ts.SyntaxKind.ClassDeclaration:
         const oldDecoratorConverter = this.currentDecoratorConverter;
-        this.currentDecoratorConverter =
-            new DecoratorClassVisitor(this.typeChecker, this, node as ts.ClassDeclaration, []);
+        this.currentDecoratorConverter = new DecoratorClassVisitor(
+            this.typeChecker, this, node as ts.ClassDeclaration, this.importedNames);
         this.writeLeadingTrivia(node);
         visitClassContentIncludingDecorators(
             node as ts.ClassDeclaration, this, this.currentDecoratorConverter);
@@ -370,6 +381,63 @@ class DecoratorRewriter extends Rewriter {
     }
   }
 }
+
+/**
+ * Returns the first identifier in the node tree starting at node
+ * in a depth first order.
+ *
+ * @param node The node to start with
+ * @return The first identifier if one was found.
+ */
+function firstIdentifierInSubtree(node: ts.Node): ts.Identifier|undefined {
+  if (node.kind === ts.SyntaxKind.Identifier) {
+    return node as ts.Identifier;
+  }
+  return ts.forEachChild(node, firstIdentifierInSubtree);
+}
+
+/**
+ * Collect the Identifiers used as named bindings in the given import declaration
+ * with their Symbol.
+ * This is needed later on to find an identifier that represents the value
+ * of an imported type identifier.
+ */
+export function collectImportedNames(typeChecker: ts.TypeChecker, decl: ts.ImportDeclaration):
+    Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}> {
+  const importedNames: Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}> = [];
+  const importClause = decl.importClause;
+  if (!importClause) {
+    return importedNames;
+  }
+  const names: ts.Identifier[] = [];
+  if (importClause.name) {
+    names.push(importClause.name);
+  }
+  if (importClause.namedBindings &&
+      importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+    const namedImports = importClause.namedBindings as ts.NamedImports;
+    names.push(...namedImports.elements.map(e => e.name));
+  }
+  for (const name of names) {
+    let symbol = typeChecker.getSymbolAtLocation(name);
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = typeChecker.getAliasedSymbol(symbol);
+    }
+    const declarationNames: ts.Identifier[] = [];
+    if (symbol.declarations) {
+      for (const d of symbol.declarations) {
+        if (d.name && d.name.kind === ts.SyntaxKind.Identifier) {
+          declarationNames.push(d.name as ts.Identifier);
+        }
+      }
+    }
+    if (symbol.declarations) {
+      importedNames.push({name, declarationNames});
+    }
+  }
+  return importedNames;
+}
+
 
 export function visitClassContentIncludingDecorators(
     classDecl: ts.ClassDeclaration, rewriter: Rewriter, decoratorVisitor?: DecoratorClassVisitor) {

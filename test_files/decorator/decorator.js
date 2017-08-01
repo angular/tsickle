@@ -3,8 +3,13 @@ goog.module('test_files.decorator.decorator');var module = module || {id: 'test_
  * @suppress {checkTypes} checked by tsc
  */
 
+// OtherClass is reachable via the imports for './external' and './external2'.
+// Test that were using it from the right import, and not just the first
+// that allows access to the value. That is important when imports are elided.
 var external_1 = goog.require('test_files.decorator.external');
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.external");
+var external2_1 = goog.require('test_files.decorator.external2');
+const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.decorator.external2");
 /**
  * @param {!Object} a
  * @param {string} b
@@ -41,8 +46,10 @@ class DecoratorTest {
      * @param {!tsickle_forward_declare_1.AClass} aRenamedClass
      * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
      * @param {!tsickle_forward_declare_1.AType} aType
+     * @param {!tsickle_forward_declare_2.OtherClass} otherClass
+     * @param {!tsickle_forward_declare_2.OtherClass} anotherClass
      */
-    constructor(a, n, b, promise, arr, aClass, AClass, aRenamedClass, aClassWithGenerics, aType) { }
+    constructor(a, n, b, promise, arr, aClass, AClass, aRenamedClass, aClassWithGenerics, aType, otherClass, anotherClass) { }
     /**
      * @return {number}
      */
@@ -65,6 +72,8 @@ DecoratorTest.ctorParameters = () => [
     { type: external_1.AClass, },
     { type: external_1.AClassWithGenerics, },
     null,
+    { type: external2_1.OtherClass, },
+    { type: external_1.ReexportedOtherClass, },
 ];
 DecoratorTest.propDecorators = {
     "w": [{ type: annotationDecorator },],

@@ -3,8 +3,13 @@
  * @suppress {checkTypes} checked by tsc
  */
 
-import {AClass, AClass as ARenamedClass, AType, AClassWithGenerics} from './external';
+// OtherClass is reachable via the imports for './external' and './external2'.
+// Test that were using it from the right import, and not just the first
+// that allows access to the value. That is important when imports are elided.
+import {AClass, AClass as ARenamedClass, AType, AClassWithGenerics, ReexportedOtherClass} from './external';
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.external");
+import {OtherClass} from './external2';
+const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.decorator.external2");
 /**
  * @param {!Object} a
  * @param {string} b
@@ -43,8 +48,13 @@ class DecoratorTest {
  * @param {!tsickle_forward_declare_1.AClass} aRenamedClass
  * @param {!tsickle_forward_declare_1.AClassWithGenerics<string>} aClassWithGenerics
  * @param {!tsickle_forward_declare_1.AType} aType
+ * @param {!tsickle_forward_declare_2.OtherClass} otherClass
+ * @param {!tsickle_forward_declare_2.OtherClass} anotherClass
  */
-constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>, aClass: AClass, AClass: AClass, aRenamedClass: ARenamedClass, aClassWithGenerics: AClassWithGenerics<string>, aType: AType) {}
+constructor(a: any[], n: number, b: boolean, promise: Promise<string>, arr: Array<string>,
+    aClass: AClass, AClass: AClass, aRenamedClass: ARenamedClass,
+    aClassWithGenerics: AClassWithGenerics<string>, aType: AType,
+    otherClass: OtherClass, anotherClass: ReexportedOtherClass) {}
 /**
  * @return {number}
  */
@@ -72,9 +82,11 @@ null,
 {type: Array, },
 {type: AClass, },
 {type: AClass, },
-{type: AClass, },
+{type: ARenamedClass, },
 {type: AClassWithGenerics, },
 null,
+{type: OtherClass, },
+{type: ReexportedOtherClass, },
 ];
 static propDecorators: {[key: string]: {type: Function, args?: any[]}[]} = {
 "w": [{ type: annotationDecorator },],
