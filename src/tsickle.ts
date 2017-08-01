@@ -1501,7 +1501,7 @@ class Annotator extends ClosureRewriter {
     const name = node.name.getText();
 
     this.emit(`/** @enum {number} */\n`);
-    this.emit(`const ${name}: DontTypeCheckMe = {\n`);
+    this.emit(`const ${name}: DontTypeCheckMe = {`);
     // Emit enum values ('BAR: 0,').
     let enumIndex = 0;
     for (const member of node.members) {

@@ -6,7 +6,6 @@
 
 /** @enum {number} */
 const ExportedEnum: DontTypeCheckMe = {
-
   VALUE: 0,};
 export {ExportedEnum};
 ExportedEnum[ExportedEnum.VALUE] = "VALUE";

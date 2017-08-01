@@ -10,8 +10,7 @@ Warning at test_files/enum/enum.ts:15:22: Declared property XYZ accessed with qu
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = []
 /** @enum {number} */
-const EnumTest1: DontTypeCheckMe = {
-XYZ: 0, PI: 3.14159,};
+const EnumTest1: DontTypeCheckMe = {XYZ: 0, PI: 3.14159,};
 EnumTest1[EnumTest1.XYZ] = "XYZ";
 EnumTest1[EnumTest1.PI] = "PI";
 
@@ -35,8 +34,7 @@ let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
 let /** @type {(boolean|EnumTest1)} */ enumUnionType: EnumTest1|boolean = EnumTest1.XYZ;
 /** @enum {number} */
-const EnumTest2: DontTypeCheckMe = {
-XYZ: 0, PI: 3.14159,};
+const EnumTest2: DontTypeCheckMe = {XYZ: 0, PI: 3.14159,};
 export {EnumTest2};
 EnumTest2[EnumTest2.XYZ] = "XYZ";
 EnumTest2[EnumTest2.PI] = "PI";
@@ -45,7 +43,6 @@ EnumTest2[EnumTest2.PI] = "PI";
 let /** @type {EnumTest2} */ variableUsingExportedEnum: EnumTest2;
 /** @enum {number} */
 const ComponentIndex: DontTypeCheckMe = {
-
   Scheme: 1,
   UserInfo: 2,
   Domain: 0,  // Be sure to exercise the code with a 0 enum value.
@@ -57,7 +54,6 @@ ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
 
 /** @enum {number} */
 const ConstEnum: DontTypeCheckMe = {
-
   EMITTED_ENUM_VALUE: 0,};
 export {ConstEnum};
 
@@ -83,7 +79,6 @@ export interface InterfaceUsingConstEnum {
 }
 /** @enum {number} */
 const EnumWithNonConstValues: DontTypeCheckMe = {
-
   Scheme:  (x => x + 1)(3),
   UserInfoRenamed: 2,};
 EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = "Scheme";
