@@ -205,6 +205,16 @@ function combineInlineSourceMaps(
 function combineSourceMaps(
     program: ts.Program, filePath: string, tscSourceMapText: string): string {
   const tscSourceMap = parseSourceMap(tscSourceMapText);
+  if (tscSourceMap.sourcesContent) {
+    // strip incoming sourcemaps from the sources in the sourcemap
+    // to reduce the size of the sourcemap.
+    tscSourceMap.sourcesContent = tscSourceMap.sourcesContent.map(content => {
+      if (containsInlineSourceMap(content)) {
+        content = removeInlineSourceMap(content);
+      }
+      return content;
+    });
+  }
   const fileDir = path.dirname(filePath);
   let tscSourceMapGenerator: SourceMapGenerator|undefined;
   for (const sourceFileName of tscSourceMap.sources) {

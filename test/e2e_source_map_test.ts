@@ -16,7 +16,7 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import {convertDecorators} from '../src/decorator-annotator';
 import {toClosureJS} from '../src/main';
-import {DefaultSourceMapper, getInlineSourceMapCount, setInlineSourceMap, sourceMapTextToConsumer} from '../src/source_map_utils';
+import {containsInlineSourceMap, DefaultSourceMapper, getInlineSourceMapCount, parseSourceMap, setInlineSourceMap, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost, toArray} from '../src/util';
 
@@ -290,6 +290,17 @@ function createTests(useTransformer: boolean) {
         .to.equal('original.ts', 'input file name');
   });
 
+  it('removes incoming inline sourcemaps from the sourcemap content', () => {
+    // make sure that not the whole file is mapped so that
+    // sources of the intermediate file are present in the sourcemap.
+    const sources = createInputWithSourceMap({'mappings': ';', 'sources': ['intermediate.ts']});
+
+    const {sourceMapText} = compile(sources, {inlineSourceMap: true, useTransformer});
+    const parsedSourceMap = parseSourceMap(sourceMapText);
+    expect(parsedSourceMap.sources[0]).to.eq('intermediate.ts');
+    expect(containsInlineSourceMap(parsedSourceMap.sourcesContent![0]))
+        .to.eq(false, 'contains inline sourcemap');
+  });
 
   it(`doesn't blow up putting an inline source map in an empty file`, () => {
     const sources = new Map<string, string>();
@@ -396,9 +407,14 @@ const DEFAULT_COMPILER_OPTIONS = {
   generateDTS: false,
 };
 
-function compile(sources: Map<string, string>, partialOptions: Partial<CompilerOptions>&{
-  useTransformer: boolean
-}): {compiledJS: string, dts: string | undefined, sourceMap: SourceMapConsumer} {
+function compile(
+    sources: Map<string, string>,
+    partialOptions: Partial<CompilerOptions>&{useTransformer: boolean}): {
+  compiledJS: string,
+  dts: string | undefined,
+  sourceMap: SourceMapConsumer,
+  sourceMapText: string
+} {
   const options: CompilerOptions = {...DEFAULT_COMPILER_OPTIONS, ...partialOptions};
   const resolvedSources = new Map<string, string>();
   for (const fileName of toArray(sources.keys())) {
@@ -409,6 +425,7 @@ function compile(sources: Map<string, string>, partialOptions: Partial<CompilerO
   if (options.inlineSourceMap) {
     compilerOptions = {
       inlineSourceMap: options.inlineSourceMap,
+      inlineSources: true,
       outFile: options.outFile,
       experimentalDecorators: true,
       declaration: options.generateDTS,
@@ -416,6 +433,7 @@ function compile(sources: Map<string, string>, partialOptions: Partial<CompilerO
   } else {
     compilerOptions = {
       sourceMap: true,
+      inlineSources: true,
       outFile: options.outFile,
       experimentalDecorators: true,
       declaration: options.generateDTS,
@@ -439,14 +457,14 @@ function compile(sources: Map<string, string>, partialOptions: Partial<CompilerO
   if (diagnostics.length) {
     console.error(tsickle.formatDiagnostics(diagnostics));
     assert.fail();
-    return {compiledJS: '', dts: '', sourceMap: sourceMapTextToConsumer('')};
+    return {compiledJS: '', dts: '', sourceMap: sourceMapTextToConsumer(''), sourceMapText: ''};
   }
 
   const compiledJS = getFileWithName(options.outFile, jsFiles);
 
   if (!compiledJS) {
     assert.fail();
-    return {compiledJS: '', dts: '', sourceMap: sourceMapTextToConsumer('')};
+    return {compiledJS: '', dts: '', sourceMap: sourceMapTextToConsumer(''), sourceMapText: ''};
   }
 
   let sourceMapJson: string;
@@ -460,7 +478,7 @@ function compile(sources: Map<string, string>, partialOptions: Partial<CompilerO
   const dts =
       getFileWithName(options.outFile.substring(0, options.outFile.length - 3) + '.d.ts', jsFiles);
 
-  return {compiledJS, dts, sourceMap};
+  return {compiledJS, dts, sourceMap, sourceMapText: sourceMapJson};
 }
 
 function extractInlineSourceMap(source: string): string {
