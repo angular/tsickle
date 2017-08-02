@@ -71,6 +71,14 @@ export function createProgramAndHost(
     }
     throw new Error('unexpected file read of ' + fileName + ' not in ' + toArray(sources.keys()));
   };
+  const originalFileExists = host.fileExists;
+  host.fileExists = (fileName: string): boolean => {
+    if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
+    if (sources.has(fileName)) {
+      return true;
+    }
+    return originalFileExists.call(host, fileName);
+  };
 
   const program = ts.createProgram(toArray(sources.keys()), tsCompilerOptions, host);
   return {program, host};

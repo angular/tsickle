@@ -10,6 +10,7 @@ import {expect} from 'chai';
 import * as ts from 'typescript';
 
 import {createCustomTransformers, visitEachChild, visitNodeWithSynthesizedComments} from '../src/transformer_util';
+import * as tsickle from '../src/tsickle';
 import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
@@ -21,6 +22,11 @@ describe('transformer util', () => {
       tsSources: {[fileName: string]: string},
       transform: ts.TransformerFactory<ts.SourceFile>): {[fileName: string]: string} {
     const {program, host} = testSupport.createProgramAndHost(objectToMap(tsSources));
+
+    const diagnostics = ts.getPreEmitDiagnostics(program);
+    if (diagnostics.length) {
+      throw new Error(tsickle.formatDiagnostics(diagnostics));
+    }
     const transformers = createCustomTransformers({before: [transform]});
     const jsSources: {[fileName: string]: string} = {};
     program.emit(undefined, (fileName: string, data: string) => {
@@ -206,7 +212,7 @@ describe('transformer util', () => {
       const tsSources = {
         'a.ts': [
           `/*lc1*/ const x = 1; /*tc1*/`,
-          `/*lc2*/ const x = 1; /*tc2*/`,
+          `/*lc2*/ const y = 1; /*tc2*/`,
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
@@ -216,7 +222,7 @@ describe('transformer util', () => {
             }>lc1*/ const x = 1; /*<${ts.SyntaxKind.VariableStatement}>tc1*/`,
         `/*<${
               ts.SyntaxKind.VariableStatement
-            }>lc2*/ const x = 1; /*<${ts.SyntaxKind.VariableStatement}>tc2*/`,
+            }>lc2*/ const y = 1; /*<${ts.SyntaxKind.VariableStatement}>tc2*/`,
         ``,
       ].join('\n'));
     });
@@ -262,6 +268,43 @@ describe('transformer util', () => {
         MODULE_HEADER,
         `/*<${ts.SyntaxKind.ImportDeclaration}>c*/ const a_1 = require("./a");`,
         `console.log(a_1.x);`,
+        ``,
+      ].join('\n'));
+    });
+
+    it('should not synthesize comments of elided import stmts', () => {
+      const tsSources = {
+        'a.ts': 'export type t = number;',
+        'b.ts': 'export const x = 1;',
+        'c.ts': [
+          `/*t*/import {t} from './a';`,
+          `/*x*/import {x} from './b';`,
+          `console.log(x);`,
+        ].join('\n')
+      };
+      const jsSources = emitWithTransform(tsSources, transformComments);
+      expect(jsSources['./c.js']).to.eq([
+        MODULE_HEADER,
+        `/*<${ts.SyntaxKind.ImportDeclaration}>x*/ const b_1 = require("./b");`,
+        `console.log(b_1.x);`,
+        ``,
+      ].join('\n'));
+    });
+
+    it('should not synthesize comments of elided reexport stmts', () => {
+      const tsSources = {
+        'a.ts': 'export type t = number;',
+        'b.ts': 'export const x = 1;',
+        'c.ts': [
+          `/*t*/export {t} from './a';`,
+          `/*x*/export {x} from './b';`,
+        ].join('\n')
+      };
+      const jsSources = emitWithTransform(tsSources, transformComments);
+      expect(jsSources['./c.js']).to.eq([
+        MODULE_HEADER,
+        `/*<${ts.SyntaxKind.ExportDeclaration}>x*/ var b_1 = require("./b");`,
+        `exports.x = b_1.x;`,
         ``,
       ].join('\n'));
     });
