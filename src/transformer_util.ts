@@ -72,8 +72,7 @@ class FileContext {
    * have a new parent now.
    */
   syntheticNodeParents = new Map<ts.Node, ts.Node|undefined>();
-  importOrReexportDeclarations:
-      Array<(ts.ExportDeclaration | ts.ImportDeclaration)&{moduleSpecifier: ts.StringLiteral}> = [];
+  importOrReexportDeclarations: Array<ts.ExportDeclaration|ts.ImportDeclaration> = [];
   lastCommentEnd = -1;
   constructor(public file: ts.SourceFile) {}
 }
@@ -124,27 +123,12 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
         }
       }
 
-      let importOrReexportNode: (ts.ExportDeclaration|ts.ImportDeclaration)&
-          {moduleSpecifier: ts.StringLiteral}|undefined;
-      if (node.kind === ts.SyntaxKind.ImportDeclaration) {
-        const id = node as ts.ImportDeclaration;
-        // this should always be a StringLiteral, see the typescript docs.
-        if (id.moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
-          throw new Error(`Unexpected moduleSpecifier kind: ${id.moduleSpecifier.kind}`);
+      if (node.kind === ts.SyntaxKind.ImportDeclaration ||
+          node.kind === ts.SyntaxKind.ExportDeclaration) {
+        const ied = node as ts.ImportDeclaration | ts.ExportDeclaration;
+        if (ied.moduleSpecifier) {
+          fileCtx.importOrReexportDeclarations.push(ied);
         }
-        importOrReexportNode = node as ts.ImportDeclaration & {moduleSpecifier: ts.StringLiteral};
-      } else if (node.kind === ts.SyntaxKind.ExportDeclaration) {
-        const ed = node as ts.ExportDeclaration;
-        if (ed.moduleSpecifier) {
-          // this should always be a StringLiteral, see the typescript docs.
-          if (ed.moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
-            throw new Error(`Unexpected moduleSpecifier kind: ${ed.moduleSpecifier.kind}`);
-          }
-          importOrReexportNode = ed as ts.ExportDeclaration & {moduleSpecifier: ts.StringLiteral};
-        }
-      }
-      if (importOrReexportNode) {
-        fileCtx.importOrReexportDeclarations.push(importOrReexportNode);
       }
 
       // recurse
@@ -165,7 +149,6 @@ function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.Transf
   return (sourceFile: ts.SourceFile) => {
     const fileContext = assertFileContext(context, sourceFile);
     const nodePath: ts.Node[] = [];
-    let importOrReexportsCount = 0;
     visitNode(sourceFile);
     (context as TransformationContext).fileContext = undefined;
     return sourceFile;
@@ -202,12 +185,19 @@ function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.Transf
       // TypeScript ignores synthetic comments on reexport / import statements.
       const moduleName = extractModuleNameFromRequireVariableStatement(node);
       if (moduleName && fileContext.importOrReexportDeclarations) {
-        const index = importOrReexportsCount++;
-        const originalImportOrReexportNode = fileContext.importOrReexportDeclarations[index];
-        if (originalImportOrReexportNode) {
+        // Locate the original import/export declaration via the
+        // text range.
+        const importOrReexportDeclaration =
+            fileContext.importOrReexportDeclarations.find(ied => ied.pos === node.pos);
+        if (importOrReexportDeclaration) {
           ts.setSyntheticLeadingComments(
-              node, ts.getSyntheticLeadingComments(originalImportOrReexportNode) || []);
+              node, ts.getSyntheticLeadingComments(importOrReexportDeclaration) || []);
         }
+        // Need to clear the textRange for ImportDeclaration / ExportDeclaration as
+        // otherwise TypeScript would emit the original comments even if we set the
+        // ts.EmitFlag.NoComments. (see also resetNodeTextRangeToPreventDuplicateComments below)
+        ts.setSourceMapRange(node, {pos: node.pos, end: node.end});
+        ts.setTextRange(node, {pos: -1, end: -1});
       }
       nodePath.push(node);
       node.forEachChild(visitNode);
@@ -295,9 +285,11 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
   // Reset the text range for some special nodes as otherwise TypeScript
   // would always emit the original comments for them.
   // See also addSyntheticCommentsAfterTsTransformer.
+  // Note: Don't reset the textRange for ts.ExportDeclaration / ts.ImportDeclaration
+  // until after the TypeScript transformer as we need the source location
+  // to map the generated `require` calls back to the original
+  // ts.ExportDeclaration / ts.ImportDeclaration nodes.
   let allowTextRange = node.kind !== ts.SyntaxKind.ClassDeclaration &&
-      node.kind !== ts.SyntaxKind.ExportDeclaration &&
-      node.kind !== ts.SyntaxKind.ImportDeclaration &&
       node.kind !== ts.SyntaxKind.VariableDeclaration &&
       !(node.kind === ts.SyntaxKind.VariableStatement &&
         tsickle.hasModifierFlag(node, ts.ModifierFlags.Export));
