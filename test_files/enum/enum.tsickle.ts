@@ -54,7 +54,8 @@ ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
 
 /** @enum {number} */
 const ConstEnum: DontTypeCheckMe = {
-  EMITTED_ENUM_VALUE: 0,};
+  EMITTED_ENUM_VALUE: 0,
+  EMITTED_ENUM_VALUE_2: 1,};
 export {ConstEnum};
 
 let /** @type {ConstEnum} */ constEnumValue = ConstEnum.EMITTED_ENUM_VALUE;

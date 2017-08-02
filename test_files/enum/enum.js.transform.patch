@@ -25,9 +25,9 @@ Index: ./test_files/enum/enum.js
  };
  ComponentIndex[ComponentIndex.Scheme] = "Scheme";
  ComponentIndex[ComponentIndex.UserInfo] = "UserInfo";
-@@ -46,9 +47,9 @@
- const ConstEnum = {
+@@ -47,9 +48,9 @@
      EMITTED_ENUM_VALUE: 0,
+     EMITTED_ENUM_VALUE_2: 1,
  };
  exports.ConstEnum = ConstEnum;
 -let /** @type {ConstEnum} */ constEnumValue = ConstEnum.EMITTED_ENUM_VALUE;
