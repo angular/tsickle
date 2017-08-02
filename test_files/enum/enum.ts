@@ -33,7 +33,8 @@ enum ComponentIndex {
 
 // const enums are emitted so that Closure code can refer to their types and values.
 export const enum ConstEnum {
-  EMITTED_ENUM_VALUE = 0,
+  EMITTED_ENUM_VALUE,
+  EMITTED_ENUM_VALUE_2,
 }
 let constEnumValue = ConstEnum.EMITTED_ENUM_VALUE;
 export interface InterfaceUsingConstEnum {

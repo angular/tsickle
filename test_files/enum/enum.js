@@ -45,6 +45,7 @@ ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
 /** @enum {number} */
 const ConstEnum = {
     EMITTED_ENUM_VALUE: 0,
+    EMITTED_ENUM_VALUE_2: 1,
 };
 exports.ConstEnum = ConstEnum;
 let /** @type {ConstEnum} */ constEnumValue = ConstEnum.EMITTED_ENUM_VALUE;
