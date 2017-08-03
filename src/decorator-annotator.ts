@@ -147,6 +147,8 @@ export class DecoratorClassVisitor {
    *
    * This method looks for the place where the value that is associated to
    * the type is defined and returns that identifier instead.
+   *
+   * This might be simplified when https://github.com/Microsoft/TypeScript/issues/17516 is solved.
    */
   private getValueIdentifierForType(typeSymbol: ts.Symbol, typeNode: ts.TypeNode): ts.Identifier
       |null {
