@@ -81,8 +81,6 @@ class FileContext {
  * Transform that needs to be executed right before TypeScript's transform.
  *
  * This prepares the node tree to workaround some bugs in the TypeScript emitter.
- * TODO(tbosch): file issues with TypeScript, tracked in
- * https://github.com/angular/tsickle/issues/528.
  */
 function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext) {
   return (sourceFile: ts.SourceFile) => {
@@ -102,6 +100,7 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
         // Note: don't update the `parent` of original nodes, as:
         // 1) we don't want to change them at all
         // 2) TS emit becomes errorneous in some cases if we add a synthetic parent.
+        // see https://github.com/Microsoft/TypeScript/issues/17384
         node.parent = parent;
       }
       fileCtx.syntheticNodeParents.set(node, parent);
@@ -109,6 +108,7 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
       const originalNode = ts.getOriginalNode(node);
       // Needed so that e.g. `module { ... }` prints the variable statement
       // before the closure.
+      // See https://github.com/Microsoft/TypeScript/issues/17596
       // tslint:disable-next-line:no-any as `symbol` is @internal in typescript.
       (node as any).symbol = (originalNode as any).symbol;
 
@@ -118,7 +118,8 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
         if (!!originalEd.exportClause !== !!ed.exportClause) {
           // Tsickle changes `export * ...` into named exports.
           // In this case, don't set the original node for the ExportDeclaration
-          // as otherwise TypeScript gets confused.
+          // as otherwise TypeScript does not emit the exports.
+          // See https://github.com/Microsoft/TypeScript/issues/17597
           ts.setOriginalNode(node, undefined);
         }
       }
@@ -144,6 +145,8 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
  *
  * This fixes places where the TypeScript transformer does not
  * emit synthetic comments.
+ *
+ * See https://github.com/Microsoft/TypeScript/issues/17594
  */
 function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.TransformationContext) {
   return (sourceFile: ts.SourceFile) => {
@@ -280,10 +283,15 @@ export function visitNodeWithSynthesizedComments<T extends ts.Node>(
   return resetNodeTextRangeToPreventDuplicateComments(node);
 }
 
+/**
+ * Reset the text range for some special nodes as otherwise TypeScript
+ * would always emit the original comments for them.
+ * See https://github.com/Microsoft/TypeScript/issues/17594
+ *
+ * @param node
+ */
 function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T): T {
   ts.setEmitFlags(node, (ts.getEmitFlags(node) || 0) | ts.EmitFlags.NoComments);
-  // Reset the text range for some special nodes as otherwise TypeScript
-  // would always emit the original comments for them.
   // See also addSyntheticCommentsAfterTsTransformer.
   // Note: Don't reset the textRange for ts.ExportDeclaration / ts.ImportDeclaration
   // until after the TypeScript transformer as we need the source location
@@ -296,8 +304,8 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
   if (node.kind === ts.SyntaxKind.PropertyDeclaration) {
     allowTextRange = false;
     const pd = node as ts.Node as ts.PropertyDeclaration;
-    // TODO(tbosch): Using pd.initializer! as the typescript typings for intializer are incorrect,
-    // tracked in https://github.com/angular/tsickle/issues/528.
+    // TODO(tbosch): Using pd.initializer! as the typescript typings before 2.4.0
+    // are incorrect. Remove this once we upgrade to TypeScript 2.4.0.
     node = ts.updateProperty(
                pd, pd.decorators, pd.modifiers, resetTextRange(pd.name) as ts.PropertyName, pd.type,
                pd.initializer!) as ts.Node as T;
@@ -570,10 +578,9 @@ function getAllLeadingCommentRanges(
 }
 
 /**
- * This is a version of `ts.updateSourceFileNode` that prevents some
- * bugs in TypeScript.
- * TODO(tbosch): file an issue with TypeScript, tracked in
- * https://github.com/angular/tsickle/issues/528.
+ * This is a version of `ts.updateSourceFileNode` that works
+ * well with property decorators.
+ * See https://github.com/Microsoft/TypeScript/issues/17384
  *
  * @param sf
  * @param statements
@@ -603,16 +610,11 @@ export function getMutableClone<T extends ts.Node>(node: T): T {
 }
 
 /**
- * This is a version of `ts.visitEachChild` that does not visit children of types
- * to prevent errors from TypeScript.
- * TODO(tbosch): file an issue with TypeScript, tracked in
- * https://github.com/angular/tsickle/issues/528.
+ * This is a version of `ts.visitEachChild` that does not visit children of types,
+ * as this leads to errors in TypeScript < 2.4.0 and as types are not emitted anyways.
  */
-export function visitEachChild<T extends ts.Node>(
+export function visitEachChildIgnoringTypes<T extends ts.Node>(
     node: T, visitor: ts.Visitor, context: ts.TransformationContext): T {
-  // Don't visit children of types,
-  // as they lead to problems with visitEachChild (e.g. suspended lexical environments, or not
-  // implemented), and they are not printed anyways.
   if (isTypeNodeKind(node.kind) || node.kind === ts.SyntaxKind.IndexSignature) {
     return node;
   }
