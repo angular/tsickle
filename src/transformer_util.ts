@@ -332,6 +332,8 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
  * Reads in the leading comment text ranges of the given node,
  * converts them into `ts.SyntheticComment`s and stores them on the node.
  *
+ * Note: This would be greatly simplified with https://github.com/Microsoft/TypeScript/issues/17615.
+ *
  * @param lastCommentEnd The end of the last comment
  * @return The end of the last found comment, -1 if no comment was found.
  */
@@ -356,6 +358,8 @@ function synthesizeLeadingComments(
 /**
  * Reads in the trailing comment text ranges of the given node,
  * converts them into `ts.SyntheticComment`s and stores them on the node.
+ *
+ * Note: This would be greatly simplified with https://github.com/Microsoft/TypeScript/issues/17615.
  *
  * @return The end of the last found comment, -1 if no comment was found.
  */
@@ -418,6 +422,8 @@ function visitNodeStatementsWithSynthesizedComments<T extends ts.Node>(
  *
  * A Detached leading comment is the first comment in a SourceFile / Block
  * that is separated with a newline from the first statement.
+ *
+ * Note: This would be greatly simplified with https://github.com/Microsoft/TypeScript/issues/17615.
  */
 function synthesizeDetachedLeadingComments(
     sourceFile: ts.SourceFile, node: ts.Node, statements: ts.NodeArray<ts.Statement>):
@@ -445,6 +451,8 @@ function synthesizeDetachedLeadingComments(
  *
  * A Detached trailing comment are all comments after the first newline
  * the follows the last statement in a SourceFile / Block.
+ *
+ * Note: This would be greatly simplified with https://github.com/Microsoft/TypeScript/issues/17615.
  */
 function synthesizeDetachedTrailingComments(
     sourceFile: ts.SourceFile, node: ts.Node, statements: ts.NodeArray<ts.Statement>):
