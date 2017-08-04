@@ -718,8 +718,7 @@ class Annotator extends ClosureRewriter {
         // for annotating binding patterns.  See issue #128.
         // Don't emit type annotation when the variable statement is a @polymerBehavior,
         // as otherwise the polymer closure checker will fail.
-        // TODO(tbosch): file an issue with Polymer, tracked in
-        // https://github.com/angular/tsickle/issues/529.
+        // See b/64389806
         if (this.polymerBehaviorStackCount === 0 &&
             varDecl.name.kind === ts.SyntaxKind.Identifier) {
           this.emitJSDocType(varDecl);
@@ -790,11 +789,10 @@ class Annotator extends ClosureRewriter {
           // Don't emit type casts for Polymer behaviors that are declared
           // by calling the Polymer function
           // as the Polymer closure plugin does not work when emitting them.
+          // See b/64389806.
           // Note: This only matters in the transformer version of tsickle,
           // as the non transformer version never emitted type casts due to
           // https://github.com/Microsoft/TypeScript/issues/9873 (see below).
-          // TODO(tbosch): file an issue with Polymer, tracked in
-          // https://github.com/angular/tsickle/issues/529.
           return false;
         }
         // When using a type casts in template expressions,
