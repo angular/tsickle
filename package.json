@@ -1,6 +1,6 @@
 {
   "name": "tsickle",
-  "version": "0.23.4",
+  "version": "0.23.5",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "built/src/tsickle.js",
   "typings": "built/definitions/tsickle.d.ts",
