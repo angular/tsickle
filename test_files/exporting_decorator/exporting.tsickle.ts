@@ -76,7 +76,10 @@ class MyClass {
 }
 
 function MyClass_tsickle_Closure_declarations() {
-/** @type {boolean} */
+/**
+ * @type {boolean}
+ * @export
+ */
 MyClass.prototype.exportMe;
 /** @type {number} */
 MyClass.prototype.doNotExportMe;

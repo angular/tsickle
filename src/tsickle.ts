@@ -1436,6 +1436,9 @@ class Annotator extends ClosureRewriter {
 
     const tags = this.getJSDoc(prop) || [];
     tags.push({tagName: 'type', type});
+    if (hasExportingDecorator(prop, this.typeChecker)) {
+      tags.push({tagName: 'export'});
+    }
     // Avoid printing annotations that can conflict with @type
     // This avoids Closure's error "type annotation incompatible with other annotations"
     this.emit(jsdoc.toString(tags, new Set(['param', 'return'])));
