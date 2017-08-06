@@ -120,7 +120,7 @@ export interface SourcePosition {
 
 export interface SourceMapper {
   addMapping(
-      originalNode: ts.Node, original: SourcePosition, generated: SourcePosition,
+      originalNode: ts.Node|undefined, original: SourcePosition, generated: SourcePosition,
       length: number): void;
 }
 
@@ -133,14 +133,7 @@ export class DefaultSourceMapper implements SourceMapper {
   /** The source map that's generated while rewriting this file. */
   public sourceMap = new SourceMapGenerator();
 
-  constructor(private fileName: string) {
-    this.sourceMap.addMapping({
-      // tsc's source maps use 1-indexed lines, 0-indexed columns
-      original: {line: 1, column: 0},
-      generated: {line: 1, column: 0},
-      source: this.fileName,
-    });
-  }
+  constructor(private fileName: string) {}
 
   addMapping(node: ts.Node, original: SourcePosition, generated: SourcePosition, length: number):
       void {

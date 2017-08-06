@@ -1378,6 +1378,7 @@ class Annotator extends ClosureRewriter {
     paramProps.forEach((p) => this.visitProperty(memberNamespace, p));
 
     for (const fnDecl of abstractMethods) {
+      this.nodeStack.push(fnDecl);
       const name = this.propertyName(fnDecl);
       if (!name) {
         this.error(fnDecl, 'anonymous abstract function');
@@ -1387,6 +1388,7 @@ class Annotator extends ClosureRewriter {
       const paramNames = this.emitFunctionType([fnDecl], tags);
       // memberNamespace because abstract methods cannot be static in TypeScript.
       this.emit(`${memberNamespace.join('.')}.${name} = function(${paramNames.join(', ')}) {};\n`);
+      this.nodeStack.pop();
     }
 
     this.emit(`}\n`);
@@ -1413,6 +1415,7 @@ class Annotator extends ClosureRewriter {
    * @param optional If true, property is optional (e.g. written "foo?: string").
    */
   private visitProperty(namespace: string[], prop: ts.Declaration, optional = false) {
+    this.nodeStack.push(prop);
     const name = this.propertyName(prop);
     if (!name) {
       this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(prop.getText())}\n*/\n`);
@@ -1444,6 +1447,7 @@ class Annotator extends ClosureRewriter {
     this.emit(jsdoc.toString(tags, new Set(['param', 'return'])));
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
+    this.nodeStack.pop();
   }
 
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
@@ -1488,6 +1492,7 @@ class Annotator extends ClosureRewriter {
     // Emit enum values ('BAR: 0,').
     let enumIndex = 0;
     for (const member of node.members) {
+      this.nodeStack.push(member);
       const memberName = member.name.getText();
       // Emit any comments and leading whitespace on the enum value definition.
       this.writeLeadingTrivia(member);
@@ -1523,6 +1528,7 @@ class Annotator extends ClosureRewriter {
         enumIndex++;
       }
       this.emit(',');
+      this.nodeStack.pop();
     }
     this.emit('};\n');
 
@@ -1539,8 +1545,10 @@ class Annotator extends ClosureRewriter {
 
     // Emit foo[foo.BAR] = 'BAR'; lines.
     for (const member of node.members) {
+      this.nodeStack.push(member);
       const memberName = member.name.getText();
       this.emit(`${name}[${name}.${memberName}] = "${memberName}";\n`);
+      this.nodeStack.pop();
     }
   }
 }
@@ -1567,6 +1575,7 @@ class ExternsWriter extends ClosureRewriter {
 
   /** visit is the main entry point.  It generates externs from a ts.Node. */
   public visit(node: ts.Node, namespace: string[] = []) {
+    this.nodeStack.push(node);
     switch (node.kind) {
       case ts.SyntaxKind.SourceFile:
         const sourceFile = node as ts.SourceFile;
@@ -1665,6 +1674,7 @@ class ExternsWriter extends ClosureRewriter {
         this.emit(`\n/* TODO: ${ts.SyntaxKind[node.kind]} in ${namespace.join('.')} */\n`);
         break;
     }
+    this.nodeStack.pop();
   }
 
   /**
