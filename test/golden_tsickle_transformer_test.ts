@@ -148,7 +148,6 @@ testFn('golden tests with transformer', () => {
       prelude: '',
       googmodule: true,
       typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
-      convertIndexImportShorthand: true,
       transformDecorators: true,
       transformTypesToClosure: true,
     };

@@ -42,11 +42,6 @@ export interface AnnotatorOptions {
   untyped?: boolean;
   /** If provided, a set of paths whose types should always generate as {?}. */
   typeBlackListPaths?: Set<string>;
-  /**
-   * Convert shorthand "/index" imports to full path (include the "/index").
-   * Annotation will be slower because every import must be resolved.
-   */
-  convertIndexImportShorthand?: boolean;
 }
 
 export enum AnnotatorFeatures {
@@ -1098,35 +1093,11 @@ class Annotator extends ClosureRewriter {
     }
   }
 
-  /**
-   * Convert from implicit `import {} from 'pkg'` to `import {} from 'pkg/index'.
-   * TypeScript supports the shorthand, but not all ES6 module loaders do.
-   * Workaround for https://github.com/Microsoft/TypeScript/issues/12597
-   */
   private resolveModuleSpecifier(moduleSpecifier: ts.Expression): string {
     if (moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
       throw new Error(`unhandled moduleSpecifier kind: ${ts.SyntaxKind[moduleSpecifier.kind]}`);
     }
-    let moduleId = (moduleSpecifier as ts.StringLiteral).text;
-    if (this.options.convertIndexImportShorthand) {
-      if (!this.tsOpts || !this.tsHost) {
-        throw new Error(
-            'option convertIndexImportShorthand requires that annotate be called with a TypeScript host and options.');
-      }
-      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.tsHost);
-      if (resolved && resolved.resolvedModule) {
-        const requestedModule = moduleId.replace(extension, '');
-        const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
-        if (resolvedModule.indexOf('node_modules') === -1 &&
-            requestedModule.substr(requestedModule.lastIndexOf('/')) !==
-                resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
-          moduleId = './' +
-              path.relative(path.dirname(this.file.fileName), resolvedModule)
-                  .replace(path.sep, '/');
-        }
-      }
-    }
-    return moduleId;
+    return (moduleSpecifier as ts.StringLiteral).text;
   }
 
   /**
