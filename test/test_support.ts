@@ -6,15 +6,19 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {assert} from 'chai';
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
+import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
+import {toClosureJS} from '../src/main';
+import {sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {toArray} from '../src/util';
+import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost, toArray} from '../src/util';
 
 /** The TypeScript compiler options used by the test suite. */
 export const compilerOptions: ts.CompilerOptions = {
@@ -142,4 +146,189 @@ export function goldenTests(): GoldenFileTest[] {
   });
 
   return tests;
+}
+
+
+export function getLineAndColumn(source: string, token: string): {line: number, column: number} {
+  const lines = source.split('\n');
+  const line = lines.findIndex(l => l.indexOf(token) !== -1) + 1;
+  if (line === 0) {
+    throw new Error(`Couldn't find token '${token}' in source`);
+  }
+  const column = lines[line - 1].indexOf(token);
+  return {line, column};
+}
+
+export interface CompilerOptions {
+  useTransformer: boolean;
+  /**
+   * Controls the name of the file produced by the compiler.  If there's more
+   * than one input file, they'll all be concatenated together in the outFile
+   */
+  outFile?: string;
+  filesNotToProcess: Set<string>;
+  inlineSourceMap: boolean;
+  generateDTS: boolean;
+}
+
+const DEFAULT_COMPILER_OPTIONS = {
+  filesNotToProcess: new Set<string>(),
+  inlineSourceMap: false,
+  generateDTS: false,
+};
+
+export function compile(
+    sources: Map<string, string>,
+    partialOptions: Partial<CompilerOptions>&{useTransformer: boolean}): {
+  compiledJS: string,
+  dts: string | undefined,
+  sourceMap: SourceMapConsumer,
+  sourceMapText: string
+} {
+  const options: CompilerOptions = {...DEFAULT_COMPILER_OPTIONS, ...partialOptions};
+  const resolvedSources = new Map<string, string>();
+  for (const fileName of toArray(sources.keys())) {
+    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName)!);
+  }
+
+  let compilerOptions: ts.CompilerOptions;
+  if (options.inlineSourceMap) {
+    compilerOptions = {
+      inlineSourceMap: options.inlineSourceMap,
+      inlineSources: true,
+      outFile: options.outFile,
+      experimentalDecorators: true,
+      declaration: options.generateDTS,
+    };
+  } else {
+    compilerOptions = {
+      sourceMap: true,
+      inlineSources: true,
+      outFile: options.outFile,
+      experimentalDecorators: true,
+      declaration: options.generateDTS,
+    };
+  }
+
+  const fileNames = toArray(sources.keys());
+
+  const tsickleHost: tsickle.TsickleHost&tsickle.TransformerHost = {
+    shouldSkipTsickleProcessing: (fileName) =>
+        fileNames.indexOf(fileName) === -1 || options.filesNotToProcess.has(fileName),
+    pathToModuleName: cliSupport.pathToModuleName,
+    shouldIgnoreWarningsForPath: (filePath) => false,
+    fileNameToModuleId: (fileName) => fileName,
+  };
+
+  const {jsFiles, diagnostics} = options.useTransformer ?
+      compileWithTransfromer(resolvedSources, fileNames, tsickleHost, compilerOptions) :
+      compileWithTsickleCompilerHost(resolvedSources, fileNames, tsickleHost, compilerOptions);
+
+  if (diagnostics.length) {
+    console.error(tsickle.formatDiagnostics(diagnostics));
+    assert.fail();
+    throw new Error('unreachable');
+  }
+
+  let compiledJSFileName = options.outFile;
+  if (!compiledJSFileName) {
+    if (sources.size === 1) {
+      const inputFileName = sources.keys().next().value;
+      compiledJSFileName = inputFileName.substring(0, inputFileName.length - 3) + '.js';
+    } else {
+      compiledJSFileName = 'input.js';
+    }
+  }
+  const compiledJS = getFileWithName(compiledJSFileName, jsFiles);
+
+  if (!compiledJS) {
+    assert.fail(
+        `Couldn't find file ${
+                              compiledJSFileName
+                            } in compilation output files: ${
+                                                             JSON.stringify(toArray(jsFiles.keys()))
+                                                           }`);
+    throw new Error('unreachable');
+  }
+
+  let sourceMapJson: string;
+  if (options.inlineSourceMap) {
+    sourceMapJson = extractInlineSourceMap(compiledJS);
+  } else {
+    sourceMapJson = getFileWithName(compiledJSFileName + '.map', jsFiles) || '';
+  }
+  const sourceMap = sourceMapTextToConsumer(sourceMapJson);
+
+  const dts = getFileWithName(
+      compiledJSFileName.substring(0, compiledJSFileName.length - 3) + '.d.ts', jsFiles);
+
+  return {compiledJS, dts, sourceMap, sourceMapText: sourceMapJson};
+}
+
+function extractInlineSourceMap(source: string): string {
+  const inlineSourceMapRegex =
+      new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)$', 'mg');
+  let previousResult: RegExpExecArray|null = null;
+  let result: RegExpExecArray|null = null;
+  // We want to extract the last source map in the source file
+  // since that's probably the most recent one added.  We keep
+  // matching against the source until we don't get a result,
+  // then we use the previous result.
+  do {
+    previousResult = result;
+    result = inlineSourceMapRegex.exec(source);
+  } while (result !== null);
+  const base64EncodedMap = previousResult![1];
+  return Buffer.from(base64EncodedMap, 'base64').toString('utf8');
+}
+
+function getFileWithName(filename: string, files: Map<string, string>): string|undefined {
+  for (const filepath of toArray(files.keys())) {
+    if (path.parse(filepath).base === path.parse(filename).base) {
+      return files.get(filepath);
+    }
+  }
+  return undefined;
+}
+
+function compileWithTsickleCompilerHost(
+    resolvedSources: Map<string, string>, fileNames: string[], tsickleHost: tsickle.TsickleHost,
+    compilerOptions: ts.CompilerOptions):
+    {jsFiles: Map<string, string>, diagnostics: ts.Diagnostic[]} {
+  const closureJSOPtions = {
+    files: resolvedSources,
+    tsickleHost,
+    tsicklePasses: [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE],
+  };
+
+  const diagnostics: ts.Diagnostic[] = [];
+  const closure =
+      toClosureJS(compilerOptions, fileNames, {isTyped: true}, diagnostics, closureJSOPtions);
+  return {jsFiles: closure ? closure.jsFiles : new Map<string, string>(), diagnostics};
+}
+
+function compileWithTransfromer(
+    resolvedSources: Map<string, string>, fileNames: string[],
+    transformerHost: tsickle.TransformerHost, compilerOptions: ts.CompilerOptions) {
+  const jsFiles = new Map<string, string>();
+  const tsHost = createSourceReplacingCompilerHost(
+      resolvedSources,
+      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(compilerOptions)));
+  const program = ts.createProgram(fileNames, compilerOptions, tsHost);
+
+  const allDiagnostics: ts.Diagnostic[] = [];
+  allDiagnostics.push(...ts.getPreEmitDiagnostics(program));
+  if (allDiagnostics.length === 0) {
+    const {diagnostics} = tsickle.emitWithTsickle(
+        program, transformerHost, {
+          transformDecorators: true,
+          transformTypesToClosure: true,
+          googmodule: true,
+          es5Mode: false,
+          untyped: false,
+        },
+        tsHost, compilerOptions);
+    allDiagnostics.push(...diagnostics);
+  }
+  return {jsFiles, diagnostics: allDiagnostics};
 }
