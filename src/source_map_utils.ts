@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import {BasicSourceMapConsumer, RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 /**
@@ -97,16 +97,16 @@ export function sourceMapGeneratorToConsumer(
   return new SourceMapConsumer(rawSourceMap);
 }
 
-export function sourceMapTextToConsumer(sourceMapText: string): SourceMapConsumer {
-  // tslint:disable-next-line:no-any constructor actually supports text.
-  const sourceMapJson: any = sourceMapText;
-  return new SourceMapConsumer(sourceMapJson);
+export function sourceMapTextToConsumer(sourceMapText: string): BasicSourceMapConsumer {
+  // the SourceMapConsumer constructor returns a BasicSourceMapConsumer or an
+  // IndexedSourceMapConsumer depending on if you pass in a RawSourceMap or a
+  // RawIndexMap or the string json of either.  In this case we're passing in
+  // the string for a RawSourceMap, so we always get a BasicSourceMapConsumer
+  return new SourceMapConsumer(sourceMapText) as BasicSourceMapConsumer;
 }
 
 export function sourceMapTextToGenerator(sourceMapText: string): SourceMapGenerator {
-  // tslint:disable-next-line:no-any constructor actually supports text.
-  const sourceMapJson: any = sourceMapText;
-  return SourceMapGenerator.fromSourceMap(sourceMapTextToConsumer(sourceMapJson));
+  return SourceMapGenerator.fromSourceMap(sourceMapTextToConsumer(sourceMapText));
 }
 
 export interface SourcePosition {

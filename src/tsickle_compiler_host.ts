@@ -226,9 +226,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
     }
 
     if (this.tsickleSourceMaps.size > 0) {
-      // TODO(lucassloan): remove when the .d.ts has the correct types
-      // tslint:disable-next-line:no-any
-      for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+      for (const sourceFileName of tscSourceMapConsumer.sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const tsickleSourceMapGenerator = this.tsickleSourceMaps.get(sourceMapKey)!;
         const tsickleSourceMapConsumer = sourceMapUtils.sourceMapGeneratorToConsumer(
@@ -241,9 +239,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       }
     }
     if (this.decoratorDownlevelSourceMaps.size > 0) {
-      // TODO(lucassloan): remove when the .d.ts has the correct types
-      // tslint:disable-next-line:no-any
-      for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+      for (const sourceFileName of tscSourceMapConsumer.sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const decoratorDownlevelSourceMapGenerator =
             this.decoratorDownlevelSourceMaps.get(sourceMapKey)!;
@@ -257,9 +253,7 @@ export class TsickleCompilerHost implements ts.CompilerHost {
       }
     }
     if (this.preexistingSourceMaps.size > 0) {
-      // TODO(lucassloan): remove when the .d.ts has the correct types
-      // tslint:disable-next-line:no-any
-      for (const sourceFileName of (tscSourceMapConsumer as any).sources) {
+      for (const sourceFileName of tscSourceMapConsumer.sources) {
         const sourceMapKey = this.getSourceMapKeyForPathAndName(filePath, sourceFileName);
         const preexistingSourceMapGenerator = this.preexistingSourceMaps.get(sourceMapKey);
         if (preexistingSourceMapGenerator) {
