@@ -15,7 +15,6 @@ goog.module('test_files.file_comment.multiple_comments');var module = module || 
  */
 
 /**
- * Here's another trailing comment
  * @return {?}
  */
 function f() {

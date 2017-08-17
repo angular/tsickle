@@ -17,7 +17,6 @@
 
 
 /**
- * Here's another trailing comment
  * @return {?}
  */
 export function f() {

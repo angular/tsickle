@@ -397,6 +397,14 @@ class ClosureRewriter extends Rewriter {
 
     // JS compiler only considers the last comment significant.
     const {pos, end} = comments[comments.length - 1];
+
+    if (end <= this.file.getStart() && this.file.text.substring(end).startsWith('\n\n')) {
+      // This comment is at the very beginning of the file and there's an empty line between the
+      // comment and this node. That means we should treat it as a file-level comment, not attached
+      // to this code node.
+      return null;
+    }
+
     const comment = text.substring(pos, end);
     const parsed = jsdoc.parse(comment);
     if (!parsed) return null;
@@ -1024,6 +1032,14 @@ class Annotator extends ClosureRewriter {
     if (sf.getFullText().substring(comment.end, comment.end + 2) !== '\n\n') {
       this.emit('\n\n');  // separate from file body to avoid being dropped by tsc.
     }
+    // Return this comment's end, so that subsequent code does not emit this comment multiple times,
+    // which can be an error in case of @fileoverview comments.
+    // Known issue: if this comment is not the last comment in the file's leading trivia, this will
+    // swallow comments before the next node, unless they are recognized as JSDoc comments on the
+    // node. That's because while each node will print its leading trivia when visited, they will
+    // not print areas that are partially blocked (like this, except for JSDoc). This is hard to fix
+    // as the node being emitted cannot know which range should still be printed. Generally speaking
+    // swallowing a comment is less risky than emitting one twice, so we take that into account.
     return comment.end;
   }
 

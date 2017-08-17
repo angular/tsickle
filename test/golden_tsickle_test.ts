@@ -75,11 +75,11 @@ function compareAgainstGolden(output: string|null, path: string) {
 const testFn = TEST_FILTER ? describe.only : describe;
 
 testFn('golden tests with TsickleCompilerHost', () => {
-  testFn('with separate passes', () => {
-    runGoldenTests(true);
-  });
   testFn('with one pass', () => {
     runGoldenTests(false);
+  });
+  testFn('with separate passes', () => {
+    runGoldenTests(true);
   });
 });
 
