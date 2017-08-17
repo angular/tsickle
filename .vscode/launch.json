@@ -30,7 +30,7 @@
       "args": [
         "--colors",
         "--timeout=0",
-        "./built/test/tsickle_test.js"
+        "./built/test/golden_tsickle_test.js"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeArgs": [
@@ -38,7 +38,7 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "TEST_FILTER": "^class$"
+        "TEST_FILTER": "^file_comment$"
       },
       "console": "internalConsole",
       "sourceMaps": true,
