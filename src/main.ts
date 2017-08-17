@@ -124,28 +124,19 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
   return {options, fileNames};
 }
 
-export interface ClosureJSOptions {
-  tsickleCompilerHostOptions: tsickle.Options;
-  tsickleHost: tsickle.TsickleHost;
-  files: Map<string, string>;
-  tsicklePasses: tsickle.Pass[];
-}
-
-function getDefaultClosureJSOptions(fileNames: string[], settings: Settings): ClosureJSOptions {
+/**
+ * Provides a tsickle host that performs tsickle processing for the given
+ * file names.
+ *
+ * If you need to change module resolution, or only tsickle process some of the
+ * files you want to pass to tsc, you'll need to provide your own host.
+ */
+function getDefaultTsickleHost(fileNames: string[]): tsickle.TsickleHost {
   return {
-    tsickleCompilerHostOptions: {
-      googmodule: true,
-      es5Mode: false,
-      untyped: !settings.isTyped,
-    },
-    tsickleHost: {
-      shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
-      pathToModuleName: cliSupport.pathToModuleName,
-      shouldIgnoreWarningsForPath: (filePath) => false,
-      fileNameToModuleId: (fileName) => fileName,
-    },
-    files: new Map<string, string>(),
-    tsicklePasses: [tsickle.Pass.CLOSURIZE],
+    shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
+    pathToModuleName: cliSupport.pathToModuleName,
+    shouldIgnoreWarningsForPath: (filePath) => false,
+    fileNameToModuleId: (fileName) => fileName,
   };
 }
 
@@ -155,27 +146,25 @@ function getDefaultClosureJSOptions(fileNames: string[], settings: Settings): Cl
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[], partialClosureJSOptions = {} as Partial<ClosureJSOptions>):
-    {jsFiles: Map<string, string>, externs: string}|null {
-  const closureJSOptions: ClosureJSOptions = {
-    ...getDefaultClosureJSOptions(fileNames, settings),
-    ...partialClosureJSOptions
+    allDiagnostics: ts.Diagnostic[], compilerHost: ts.CompilerHost = ts.createCompilerHost(options),
+    tsickleHost: tsickle.TsickleHost = getDefaultTsickleHost(fileNames),
+    tsicklePasses: tsickle.Pass[] = [tsickle.Pass.CLOSURIZE]) {
+  const tsickleCompilerHostOptions = {
+    googmodule: true,
+    es5Mode: false,
+    untyped: !settings.isTyped,
   };
+
+  const jsFiles = new Map<string, string>();
+  const outputRetainingHost = createOutputRetainingCompilerHost(jsFiles, compilerHost);
+
+  const tch = new tsickle.TsickleCompilerHost(
+      outputRetainingHost, options, tsickleCompilerHostOptions, tsickleHost);
+
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  const jsFiles = new Map<string, string>();
-  const outputRetainingHost =
-      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(options));
-
-  const sourceReplacingHost =
-      createSourceReplacingCompilerHost(closureJSOptions.files, outputRetainingHost);
-
-  const tch = new tsickle.TsickleCompilerHost(
-      sourceReplacingHost, options, closureJSOptions.tsickleCompilerHostOptions,
-      closureJSOptions.tsickleHost);
-
   let program = ts.createProgram(fileNames, options, tch);
   {  // Scope for the "diagnostics" variable so we can use the name again later.
     const diagnostics = ts.getPreEmitDiagnostics(program);
@@ -187,12 +176,12 @@ export function toClosureJS(
 
   // Reparse and reload the program, inserting the tsickle output in
   // place of the original source.
-  if (closureJSOptions.tsicklePasses.indexOf(tsickle.Pass.DECORATOR_DOWNLEVEL) !== -1) {
+  if (tsicklePasses.indexOf(tsickle.Pass.DECORATOR_DOWNLEVEL) !== -1) {
     tch.reconfigureForRun(program, tsickle.Pass.DECORATOR_DOWNLEVEL);
     program = ts.createProgram(fileNames, options, tch);
   }
 
-  if (closureJSOptions.tsicklePasses.indexOf(tsickle.Pass.CLOSURIZE) !== -1) {
+  if (tsicklePasses.indexOf(tsickle.Pass.CLOSURIZE) !== -1) {
     tch.reconfigureForRun(program, tsickle.Pass.CLOSURIZE);
     program = ts.createProgram(fileNames, options, tch);
   }
@@ -223,7 +212,6 @@ function main(args: string[]): number {
     return 1;
   }
 
-  // Run tsickle+TSC to convert inputs to Closure JS files.
   const closure = toClosureJS(config.options, config.fileNames, settings, diagnostics);
   if (closure === null) {
     console.error(tsickle.formatDiagnostics(diagnostics));

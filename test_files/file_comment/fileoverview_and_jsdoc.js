@@ -3,6 +3,6 @@ goog.module('test_files.file_comment.fileoverview_and_jsdoc');var module = modul
  * @suppress {checkTypes} checked by tsc
  */
 /**
- * @export
+ * @noalias
  */
 const /** @type {number} */ aVariable = 1;

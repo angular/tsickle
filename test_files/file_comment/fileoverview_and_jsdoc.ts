@@ -1,3 +1,5 @@
 /** @fileoverview A file. */
-/** @export */
+/** 
+ * @noalias
+ */
 const aVariable = 1;
