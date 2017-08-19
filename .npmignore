@@ -5,3 +5,5 @@
 .vscode
 test
 test_files
+BUILD
+WORKSPACE
