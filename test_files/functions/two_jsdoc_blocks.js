@@ -1,5 +1,7 @@
 goog.module('test_files.functions.two_jsdoc_blocks');var module = module || {id: 'test_files/functions/two_jsdoc_blocks.js'};/**
+ *
  * @fileoverview This text here matches the     text below in length.
+ *
  * @suppress {checkTypes} checked by tsc
  */
 

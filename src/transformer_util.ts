@@ -14,9 +14,6 @@ import * as tsickle from './tsickle';
  * to fix bugs in TypeScript.
  */
 export function createCustomTransformers(given: ts.CustomTransformers): ts.CustomTransformers {
-  if (!given.after && !given.before) {
-    return given;
-  }
   const before = given.before || [];
   before.unshift(addFileContexts);
   before.push(prepareNodesBeforeTypeScriptTransform);
@@ -438,7 +435,6 @@ function synthesizeDetachedLeadingComments(
   }
   const lastCommentEnd = detachedComments[detachedComments.length - 1].end;
   const commentStmt = createNotEmittedStatement(sourceFile);
-  ts.setEmitFlags(commentStmt, ts.EmitFlags.CustomPrologue);
   ts.setSyntheticTrailingComments(
       commentStmt, synthesizeCommentRanges(sourceFile, detachedComments));
   return {commentStmt, lastCommentEnd};
@@ -471,7 +467,6 @@ function synthesizeDetachedTrailingComments(
   }
   const lastCommentEnd = detachedComments[detachedComments.length - 1].end;
   const commentStmt = createNotEmittedStatement(sourceFile);
-  ts.setEmitFlags(commentStmt, ts.EmitFlags.CustomPrologue);
   ts.setSyntheticLeadingComments(
       commentStmt, synthesizeCommentRanges(sourceFile, detachedComments));
   return {commentStmt, lastCommentEnd};
@@ -556,10 +551,11 @@ function synthesizeCommentRanges(
 /**
  * Creates a non emitted statement that can be used to store synthesized comments.
  */
-function createNotEmittedStatement(sourceFile: ts.SourceFile) {
+export function createNotEmittedStatement(sourceFile: ts.SourceFile) {
   const stmt = ts.createNotEmittedStatement(sourceFile);
   ts.setOriginalNode(stmt, undefined);
   ts.setTextRange(stmt, {pos: 0, end: 0});
+  ts.setEmitFlags(stmt, ts.EmitFlags.CustomPrologue);
   return stmt;
 }
 

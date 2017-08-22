@@ -38,7 +38,7 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "TEST_FILTER": "^file_comment$"
+        "TEST_FILTER": "^functions/two_jsdoc_blocks"
       },
       "console": "internalConsole",
       "sourceMaps": true,

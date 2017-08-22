@@ -2,11 +2,11 @@ goog.module('test_files.jsdoc_types.untyped.jsdoc_types');var module = module ||
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-
 /**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
  */
+
 var module1 = goog.require('test_files.jsdoc_types.untyped.module1');
 var module2_1 = goog.require('test_files.jsdoc_types.untyped.module2');
 var module2_2 = module2_1;

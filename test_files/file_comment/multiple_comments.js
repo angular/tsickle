@@ -10,9 +10,12 @@ goog.module('test_files.file_comment.multiple_comments');var module = module || 
  * @suppress {undefinedVars}
  */
 /**
+ *
  * @fileoverview The last fileoverview actually takes effect.
  * @suppress {globalThis,checkTypes}
+ *
  */
+/** Here's another trailing comment */
 
 /**
  * @return {?}

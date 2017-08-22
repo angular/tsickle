@@ -13,6 +13,7 @@ import * as ts from 'typescript';
 import * as decorator from './decorator-annotator';
 import {hasExportingDecorator} from './decorators';
 import * as es5processor from './es5processor';
+import {transformFileoverviewComment} from './fileoverview_comment_transformer';
 import * as jsdoc from './jsdoc';
 import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
@@ -376,8 +377,8 @@ class ClosureRewriter extends Rewriter {
       if (docRelativeEnd <= this.file.getStart() &&
           this.file.text.substring(docRelativeEnd).startsWith('\n\n')) {
         // This comment is at the very beginning of the file and there's an empty line between the
-        // comment and this node. That means we should treat it as a file-level comment, not
-        // attached to this code node.
+        // comment and this node, it's a "detached comment". That means we should treat it as a
+        // file-level comment, not attached to this code node.
         return null;
       }
 
@@ -949,78 +950,20 @@ class Annotator extends ClosureRewriter {
   }
 
   private handleSourceFile(sf: ts.SourceFile) {
-    const start = this.emitSuppressChecktypes(sf);
-    this.writeNodeFrom(sf, start);
-  }
-
-  /**
-   * Emits an \@suppress {checkTypes} fileoverview comment.
-   * Returns the place from where to start emitting the source file.
-   */
-  private emitSuppressChecktypes(sf: ts.SourceFile): number {
-    const comments = ts.getLeadingCommentRanges(sf.getFullText(), 0) || [];
-
-    let fileoverviewIdx = -1;
+    // Emit leading detached comments: comments separated by a \n\n from the document.
+    // While handlers below generally emit comments preceding them, not all of them do in all
+    // situations (e.g. JSDoc preceding a class).
+    // This is symmetric with `getJSDoc` below not returning detached file level comments.
+    const comments = ts.getLeadingCommentRanges(sf.text, 0) || [];
+    let start = sf.getFullStart();
     for (let i = comments.length - 1; i >= 0; i--) {
-      const parsed = jsdoc.parse(sf.getFullText().substring(comments[i].pos, comments[i].end));
-      if (parsed !== null && parsed.tags.some(t => FILEOVERVIEW_COMMENTS.has(t.tagName))) {
-        fileoverviewIdx = i;
+      if (sf.text.substring(comments[i].end, comments[i].end + 2) === '\n\n') {
+        this.emit(sf.text.substring(0, comments[i].end + 2));
+        start = comments[i].end + 2;
         break;
       }
     }
-    // Add a @suppress {checkTypes} tag to each source file's JSDoc comment,
-    // being careful to retain existing comments and their @suppress'ions.
-    // Closure Compiler considers the *last* comment with @fileoverview (or @externs or @nocompile)
-    // that has not been attached to some other tree node to be the file overview comment, and
-    // only applies @suppress tags from it.
-    // AJD considers *any* comment mentioning @fileoverview.
-    if (fileoverviewIdx === -1) {
-      // No existing comment to merge with, just emit a new one.
-      this.emit(jsdoc.toString([
-        {tagName: 'fileoverview', text: 'added by tsickle'},
-        {tagName: 'suppress', type: 'checkTypes', text: 'checked by tsc'},
-      ]));
-      this.emit('\n');
-      return sf.getFullStart();
-    }
-    const comment = comments[fileoverviewIdx];
-    this.writeRange(sf, 0, comment.pos);
-
-    const parsed = jsdoc.parse(sf.getFullText().substring(comment.pos, comment.end));
-    if (!parsed) throw new Error('internal error: JSDoc comment does not parse');
-    const {tags} = parsed;
-
-    // Add @suppress {checkTypes}, or add to the list in an existing @suppress tag.
-    // Closure compiler barfs if there's a duplicated @suppress tag in a file, so the tag must
-    // only appear once and be merged.
-    const suppressIdx = tags.findIndex(t => t.tagName === 'suppress');
-    if (suppressIdx !== -1) {
-      const suppressions = tags[suppressIdx].type || '';
-      const suppressionsList = suppressions.split(',').map(s => s.trim());
-      if (suppressionsList.indexOf('checkTypes') === -1) {
-        suppressionsList.push('checkTypes');
-      }
-      tags[suppressIdx].type = suppressionsList.join(',');
-    } else {
-      tags.push({
-        tagName: 'suppress',
-        type: 'checkTypes',
-        text: 'checked by tsc',
-      });
-    }
-    this.emit(jsdoc.toString(tags));
-    if (sf.getFullText().substring(comment.end, comment.end + 2) !== '\n\n') {
-      this.emit('\n\n');  // separate from file body to avoid being dropped by tsc.
-    }
-    // Return this comment's end, so that subsequent code does not emit this comment multiple times,
-    // which can be an error in case of @fileoverview comments.
-    // Known issue: if this comment is not the last comment in the file's leading trivia, this will
-    // swallow comments before the next node, unless they are recognized as JSDoc comments on the
-    // node. That's because while each node will print its leading trivia when visited, they will
-    // not print areas that are partially blocked (like this, except for JSDoc). This is hard to fix
-    // as the node being emitted cannot know which range should still be printed. Generally speaking
-    // swallowing a comment is less risky than emitting one twice, so we take that into account.
-    return comment.end;
+    this.writeNodeFrom(sf, start);
   }
 
   /**
@@ -1979,6 +1922,7 @@ export function emitWithTsickle(
   const typeChecker = program.getTypeChecker();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   // add tsickle transformers
+  const beforeTsTransformers = customTransformers.beforeTs || [];
   if (host.transformTypesToClosure) {
     // Note: tsickle.annotate can also lower decorators in the same run.
     tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
@@ -1987,6 +1931,8 @@ export function emitWithTsickle(
       tsickleDiagnostics.push(...diagnostics);
       return output;
     }));
+    // Only add @suppress {checkTypes} comments when also adding type annotations.
+    beforeTsTransformers.push(transformFileoverviewComment);
   } else if (host.transformDecorators) {
     tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
       const {output, diagnostics} =
@@ -2005,7 +1951,7 @@ export function emitWithTsickle(
     before: [
       ...(customTransformers.beforeTsickle || []),
       ...(tsickleTransformers.before || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
-      ...(customTransformers.beforeTs || []),
+      ...beforeTsTransformers,
     ],
     after: [
       ...(customTransformers.afterTs || []),

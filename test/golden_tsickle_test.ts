@@ -16,8 +16,16 @@ import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
 
-const TEST_FILTER: RegExp|null =
-    process.env.TEST_FILTER ? new RegExp(process.env.TEST_FILTER) : null;
+// Set TEST_FILTER=foo to only run tests from the foo package.
+// Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
+const TEST_FILTER = (() => {
+  if (!process.env.TEST_FILTER) return null;
+  const [testName, fileName] = (process.env.TEST_FILTER as string).split('/', 2);
+  return {
+    testName: new RegExp(testName + (fileName ? '$' : '')),
+    fileName: fileName ? new RegExp('/' + fileName) : null
+  };
+})();
 
 // If true, update all the golden .js files to be whatever tsickle
 // produces from the .ts source. Do not change this code but run as:
@@ -88,7 +96,7 @@ const testFn = TEST_FILTER ? describe.only : describe;
 
 testFn('golden tests with transformer', () => {
   testSupport.goldenTests().forEach((test) => {
-    if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
+    if (TEST_FILTER && !TEST_FILTER.testName.test(test.name)) {
       it.skip(test.name);
       return;
     }
@@ -149,8 +157,23 @@ testFn('golden tests with transformer', () => {
         fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
       };
       const jsSources: {[fileName: string]: string} = {};
+      let targetSource: ts.SourceFile|undefined = undefined;
+      if (TEST_FILTER && TEST_FILTER.fileName) {
+        for (const [path, source] of tsSources.entries()) {
+          if (!TEST_FILTER.fileName.test(path)) continue;
+          if (targetSource) {
+            throw new Error(
+                `TEST_FILTER matches more than one file: ${targetSource.fileName} vs ${path}`);
+          }
+          targetSource = program.getSourceFile(path);
+        }
+        if (!targetSource) {
+          throw new Error(`TEST_FILTER matched no file: ${TEST_FILTER.fileName} vs ${
+              Array.from(tsSources.keys())}`);
+        }
+      }
       const {diagnostics, externs} = tsickle.emitWithTsickle(
-          program, transformerHost, tsHost, tsCompilerOptions, undefined,
+          program, transformerHost, tsHost, tsCompilerOptions, targetSource,
           (fileName: string, data: string) => {
             if (!fileName.endsWith('.d.ts')) {
               // Don't check .d.ts files, we are only interested to test
