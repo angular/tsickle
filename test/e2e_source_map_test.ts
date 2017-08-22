@@ -13,21 +13,24 @@ import * as path from 'path';
 import {RawSourceMap} from 'source-map';
 import * as ts from 'typescript';
 
-import {convertDecorators} from '../src/decorator-annotator';
-import {containsInlineSourceMap, DefaultSourceMapper, getInlineSourceMapCount, parseSourceMap, setInlineSourceMap} from '../src/source_map_utils';
+import {containsInlineSourceMap, getInlineSourceMapCount} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {toArray} from '../src/util';
 
-import {compile, createProgram, getLineAndColumn} from './test_support';
+import {assertSourceMapping, compileWithTransfromer, compileWithTsickleCompilerHost, createTsickleHost, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
 
 describe('source maps with TsickleCompilerHost', () => {
-  createTests(false);
+  createTests(compileWithTsickleCompilerHost);
 });
 describe('source maps with transformer', () => {
-  createTests(true);
+  createTests(compileWithTransfromer);
 });
 
-function createTests(useTransformer: boolean) {
+function createTests(
+    compile: (
+        sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
+        tsickleHost?: tsickle.TsickleHost&tsickle.TransformerHost) => {
+      files: Map<string, string>
+    }) {
   it('composes source maps with tsc', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
@@ -37,22 +40,12 @@ function createTests(useTransformer: boolean) {
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
+    const {files} = compile(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'a string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(3, 'first string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'another string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(4, 'second string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'another string', {line: 4, source: 'input.ts'});
   });
 
   it('composes sources maps with multiple input files', () => {
@@ -70,22 +63,13 @@ function createTests(useTransformer: boolean) {
         let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer, outFile: 'output.js'});
+    const {files} = compile(
+        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')});
+    const compiledJs = files.get('output.js')!;
+    const sourceMap = getSourceMapWithName('output.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'a string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(3, 'first string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input1.ts', 'first input file');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'fourth rate');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(4, 'fourth string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input2.ts', 'second input file');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input1.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'fourth rate', {line: 4, source: 'input2.ts'});
   });
 
   it('handles files in different directories', () => {
@@ -103,22 +87,13 @@ function createTests(useTransformer: boolean) {
         let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {outFile: 'a/d/output.js', useTransformer});
+    const {files} = compile(
+        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('a/d/output.js')});
+    const compiledJs = findFileContentsByName('a/d/output.js', files);
+    const sourceMap = getSourceMapWithName('a/d/output.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'a string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(3, 'first string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('../b/input1.ts', 'first input file');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'fourth rate');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(4, 'fourth string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('../c/input2.ts', 'second input file');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: '../b/input1.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'fourth rate', {line: 4, source: '../c/input2.ts'});
   });
 
   it('works when not decorator downleveling some input', () => {
@@ -142,27 +117,19 @@ function createTests(useTransformer: boolean) {
         }`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(
-        sources,
-        {filesNotToProcess: new Set<string>(['input2.ts']), useTransformer, outFile: 'output.js'});
+    const {files} = compile(
+        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')},
+        createTsickleHost(sources, new Set<string>(['input2.ts'])));
+    const compiledJs = files.get('output.js')!;
+    const sourceMap = getSourceMapWithName('output.js.map', files);
 
     // Check that we decorator downleveled input1, but not input2
-    expect(compiledJS).to.contain('DecoratorTest1.decorators');
-    expect(compiledJS).not.to.contain('DecoratorTest2.decorators');
+    expect(compiledJs).to.contain('DecoratorTest1.decorators');
+    expect(compiledJs).not.to.contain('DecoratorTest2.decorators');
 
     // Check that the source maps work
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'method1Name');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(7, 'method 1 definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input1.ts', 'method 1 input file');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'method2Name');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(7, 'method 1 definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input2.ts', 'method 2 input file');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'method1Name', {line: 7, source: 'input1.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'method2Name', {line: 7, source: 'input2.ts'});
   });
 
   it('handles decorators correctly', () => {
@@ -175,11 +142,11 @@ function createTests(useTransformer: boolean) {
           public methodName(s: string): string { return s; }
         }`);
 
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
+    const {files} = compile(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    const {line, column} = getLineAndColumn(compiledJS, 'methodName');
-
-    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
+    assertSourceMapping(compiledJs, sourceMap, 'methodName', {line: 6, source: 'input.ts'});
   });
 
   it('composes inline sources', () => {
@@ -191,22 +158,13 @@ function createTests(useTransformer: boolean) {
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true, useTransformer});
+    const {files} =
+        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = extractInlineSourceMap(compiledJs);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'a string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(3, 'first string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'another string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(4, 'second string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'another string', {line: 4, source: 'input.ts'});
   });
 
   it(`doesn't blow up trying to handle a source map in a .d.ts file`, () => {
@@ -218,36 +176,14 @@ function createTests(useTransformer: boolean) {
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, dts, sourceMap} =
-        compile(sources, {inlineSourceMap: true, generateDTS: true, useTransformer});
+    const {files} =
+        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = extractInlineSourceMap(compiledJs);
+    const dts = files.get('input.d.ts')!;
 
-    const {line, column} = getLineAndColumn(compiledJS, 'a string');
-    expect(sourceMap.originalPositionFor({line, column}).line)
-        .to.equal(3, 'first string definition');
-    expect(sourceMap.originalPositionFor({line, column}).source)
-        .to.equal('input.ts', 'input file name');
-
+    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input.ts'});
     expect(dts).to.contain('declare let x: string;');
-  });
-
-  it('handles input source maps', () => {
-    const decoratorDownlevelSources = new Map<string, string>();
-    decoratorDownlevelSources.set('input.ts', `/** @Annotation */
-        function classAnnotation(t: any) { return t; }
-
-        @classAnnotation
-        class DecoratorTest {
-          public methodName(s: string): string { return s; }
-        }`);
-
-    const closurizeSources = decoratorDownlevelAndAddInlineSourceMaps(decoratorDownlevelSources);
-
-    const {compiledJS, sourceMap} =
-        compile(closurizeSources, {inlineSourceMap: true, useTransformer});
-
-    expect(getInlineSourceMapCount(compiledJS)).to.equal(1);
-    const {line, column} = getLineAndColumn(compiledJS, 'methodName');
-    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
   });
 
   function createInputWithSourceMap(overrides: Partial<RawSourceMap> = {}): Map<string, string> {
@@ -267,26 +203,40 @@ function createTests(useTransformer: boolean) {
     return sources;
   }
 
+  it('handles input source maps', () => {
+    const sources = createInputWithSourceMap();
+
+    const {files} =
+        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const compiledJs = files.get('intermediate.js')!;
+    const sourceMap = extractInlineSourceMap(compiledJs);
+
+    expect(getInlineSourceMapCount(compiledJs)).to.equal(1);
+    assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
+  });
+
   it('handles input source maps with different file names than supplied to tsc', () => {
     const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer});
-    expect(getInlineSourceMapCount(compiledJS)).to.equal(0);
+    const {files} = compile(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('intermediate.js')!;
+    const sourceMap = getSourceMapWithName('intermediate.js.map', files);
 
-    const {line, column} = getLineAndColumn(compiledJS, 'x = 3');
-    expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'x = 3 definition');
-    expect(sourceMap.originalPositionFor({line, column}).source)
-        .to.equal('original.ts', 'input file name');
+    expect(getInlineSourceMapCount(compiledJs)).to.equal(0);
+    assertSourceMapping(compiledJs, sourceMap, 'x = 3', {line: 1, source: 'original.ts'});
   });
 
   it('handles input source maps with an outDir different than the rootDir', () => {
     const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
 
-    const {compiledJS, sourceMap} =
-        compile(sources, {inlineSourceMap: true, useTransformer, outFile: '/out/output.js'});
+    const {files} = compile(sources, {
+      ...sourceMapCompilerOptions,
+      ...generateOutfileCompilerOptions('/out/output.js'),
+      ...inlineSourceMapCompilerOptions
+    });
+    const compiledJs = findFileContentsByName('/out/output.js', files);
+    const sourceMap = extractInlineSourceMap(compiledJs);
 
-    const {line, column} = getLineAndColumn(compiledJS, 'x = 3');
-    expect(sourceMap.originalPositionFor({line, column}).source)
-        .to.equal('original.ts', 'input file name');
+    assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
   });
 
   it('removes incoming inline sourcemaps from the sourcemap content', () => {
@@ -294,10 +244,13 @@ function createTests(useTransformer: boolean) {
     // sources of the intermediate file are present in the sourcemap.
     const sources = createInputWithSourceMap({'mappings': ';', 'sources': ['intermediate.ts']});
 
-    const {sourceMapText} = compile(sources, {inlineSourceMap: true, useTransformer});
-    const parsedSourceMap = parseSourceMap(sourceMapText);
-    expect(parsedSourceMap.sources[0]).to.eq('intermediate.ts');
-    expect(containsInlineSourceMap(parsedSourceMap.sourcesContent![0]))
+    const {files} =
+        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const compiledJs = files.get('intermediate.js')!;
+    const sourceMap = extractInlineSourceMap(compiledJs);
+
+    expect(sourceMap.sources[0]).to.eq('intermediate.ts');
+    expect(containsInlineSourceMap(sourceMap.sourcesContent![0]))
         .to.eq(false, 'contains inline sourcemap');
   });
 
@@ -306,43 +259,29 @@ function createTests(useTransformer: boolean) {
     sources.set('input.ts', ``);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {inlineSourceMap: true, useTransformer});
+    const {files} =
+        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = extractInlineSourceMap(compiledJs);
 
     expect(sourceMap).to.exist;
-    expect(compiledJS).to.contain(`var module = {id: 'input.js'};`);
+    expect(compiledJs).to.contain(`var module = {id: 'input.js'};`);
   });
 
   it(`handles mixed source mapped and non source mapped input`, () => {
-    const decoratorDownlevelSources = new Map<string, string>();
-    decoratorDownlevelSources.set('input1.ts', `/** @Annotation */
-        function classAnnotation(t: any) { return t; }
-
-        @classAnnotation
-        class DecoratorTest {
-          public methodName(s: string): string { return s; }
-        }`);
-
-    const closurizeSources = decoratorDownlevelAndAddInlineSourceMaps(decoratorDownlevelSources);
-    closurizeSources.set('input2.ts', `
+    const sources = createInputWithSourceMap();
+    sources.set('input2.ts', `
       class X { field: number; }
-      let x : string = 'a string';
       let y : string = 'another string';
       let z : string = x + y;`);
 
-    const {compiledJS, sourceMap} =
-        compile(closurizeSources, {useTransformer, outFile: 'output.js'});
+    const {files} = compile(
+        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')});
+    const compiledJs = files.get('output.js')!;
+    const sourceMap = getSourceMapWithName('output.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'methodName');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(6, 'method position');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'another string');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(4, 'second string definition');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input2.ts', 'input file name');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'another string', {line: 3, source: 'input2.ts'});
   });
 
   it('maps at the start of lines correctly', () => {
@@ -353,38 +292,13 @@ function createTests(useTransformer: boolean) {
       y.z;`
     ]]);
 
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer: true});
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'var /** @type {number} */ x');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(1, 'variable declaration line');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'x + 1');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(2, 'addition line');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'y.z');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(4, 'object access line');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(
+        compiledJs, sourceMap, 'let /** @type {number} */ x', {line: 1, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'x + 1', {line: 2, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'y.z', {line: 4, source: 'input.ts'});
   });
-}
-
-function decoratorDownlevelAndAddInlineSourceMaps(sources: Map<string, string>):
-    Map<string, string> {
-  const transformedSources = new Map<string, string>();
-  const program = createProgram(sources);
-  for (const fileName of toArray(sources.keys())) {
-    const sourceMapper = new DefaultSourceMapper(fileName);
-    const {output} = convertDecorators(program.getTypeChecker(), program.getSourceFile(fileName));
-    transformedSources.set(fileName, setInlineSourceMap(output, sourceMapper.sourceMap.toString()));
-  }
-  return transformedSources;
 }

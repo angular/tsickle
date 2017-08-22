@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {assert} from 'chai';
+import {assert, expect} from 'chai';
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
-import {SourceMapConsumer} from 'source-map';
+import {BasicSourceMapConsumer, SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
@@ -18,35 +18,74 @@ import * as es5processor from '../src/es5processor';
 import {toClosureJS} from '../src/main';
 import {sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost, toArray} from '../src/util';
+import {createOutputRetainingCompilerHost, toArray} from '../src/util';
 
-/** The TypeScript compiler options used by the test suite. */
-export const compilerOptions: ts.CompilerOptions = {
+/** Base compiler options to be customized and exposed. */
+const baseCompilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2015,
-  skipDefaultLibCheck: true,
-  experimentalDecorators: true,
-  emitDecoratorMetadata: true,
-  noEmitHelpers: true,
-  module: ts.ModuleKind.CommonJS,
-  jsx: ts.JsxEmit.React,
   // Disable searching for @types typings. This prevents TS from looking
   // around for a node_modules directory.
   types: [],
-  // Flags below are needed to make sure source paths are correctly set on write calls.
-  rootDir: path.resolve(process.cwd()),
-  outDir: '.',
+  skipDefaultLibCheck: true,
+  experimentalDecorators: true,
+  module: ts.ModuleKind.CommonJS,
   strictNullChecks: true,
   noImplicitUseStrict: true,
 };
 
+/** The TypeScript compiler options used by the test suite. */
+export const compilerOptions: ts.CompilerOptions = {
+  ...baseCompilerOptions,
+  emitDecoratorMetadata: true,
+  noEmitHelpers: true,
+  jsx: ts.JsxEmit.React,
+  // Flags below are needed to make sure source paths are correctly set on write calls.
+  rootDir: path.resolve(process.cwd()),
+  outDir: '.',
+};
+
+/**
+ * Basic compiler options for source map tests. Compose with
+ * generateOutfileCompilerOptions() or inlineSourceMapCompilerOptions to
+ * customize the options.
+ */
+export const sourceMapCompilerOptions: ts.CompilerOptions = {
+  ...baseCompilerOptions,
+  inlineSources: true,
+  declaration: true,
+  sourceMap: true,
+};
+
+/**
+ * Compose with sourceMapCompiler options if you want to specify an outFile.
+ *
+ * Controls the name of the file produced by the compiler.  If there's more
+ * than one input file, they'll all be concatenated together in the outFile
+ */
+export function generateOutfileCompilerOptions(outFile: string): ts.CompilerOptions {
+  return {
+    outFile,
+    module: ts.ModuleKind.None,
+  };
+}
+
+/**
+ * Compose with sourceMapCompilerOptions if you want inline source maps,
+ * instead of different files.
+ */
+export const inlineSourceMapCompilerOptions: ts.CompilerOptions = {
+  inlineSourceMap: true,
+  sourceMap: false,
+};
+
 const {cachedLibPath, cachedLib} = (() => {
-  const host = ts.createCompilerHost(compilerOptions);
-  const fn = host.getDefaultLibFileName(compilerOptions);
-  const p = ts.getDefaultLibFilePath(compilerOptions);
+  const host = ts.createCompilerHost(baseCompilerOptions);
+  const fn = host.getDefaultLibFileName(baseCompilerOptions);
+  const p = ts.getDefaultLibFilePath(baseCompilerOptions);
   return {
     // Normalize path to fix mixed/wrong directory separators on Windows.
     cachedLibPath: path.normalize(p),
-    cachedLib: host.getSourceFile(fn, ts.ScriptTarget.ES2015)
+    cachedLib: host.getSourceFile(fn, baseCompilerOptions.target!),
   };
 })();
 
@@ -57,9 +96,9 @@ export function createProgram(
   return createProgramAndHost(sources, tsCompilerOptions).program;
 }
 
-export function createProgramAndHost(
-    sources: Map<string, string>, tsCompilerOptions: ts.CompilerOptions = compilerOptions):
-    {host: ts.CompilerHost, program: ts.Program} {
+export function createSourceCachingHost(
+    sources: Map<string, string>,
+    tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.CompilerHost {
   const host = ts.createCompilerHost(tsCompilerOptions);
 
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
@@ -83,6 +122,14 @@ export function createProgramAndHost(
     }
     return originalFileExists.call(host, fileName);
   };
+
+  return host;
+}
+
+export function createProgramAndHost(
+    sources: Map<string, string>, tsCompilerOptions: ts.CompilerOptions = compilerOptions):
+    {host: ts.CompilerHost, program: ts.Program} {
+  const host = createSourceCachingHost(sources);
 
   const program = ts.createProgram(toArray(sources.keys()), tsCompilerOptions, host);
   return {program, host};
@@ -148,8 +195,19 @@ export function goldenTests(): GoldenFileTest[] {
   return tests;
 }
 
+/**
+ * Reads the files from the file system and returns a map from filePaths to
+ * file contents.
+ */
+export function readSources(filePaths: string[]): Map<string, string> {
+  const sources = new Map<string, string>();
+  for (const filePath of filePaths) {
+    sources.set(filePath, fs.readFileSync(filePath, {encoding: 'utf8'}));
+  }
+  return sources;
+}
 
-export function getLineAndColumn(source: string, token: string): {line: number, column: number} {
+function getLineAndColumn(source: string, token: string): {line: number, column: number} {
   const lines = source.split('\n');
   const line = lines.findIndex(l => l.indexOf(token) !== -1) + 1;
   if (line === 0) {
@@ -159,113 +217,35 @@ export function getLineAndColumn(source: string, token: string): {line: number, 
   return {line, column};
 }
 
-export interface CompilerOptions {
-  useTransformer: boolean;
-  /**
-   * Controls the name of the file produced by the compiler.  If there's more
-   * than one input file, they'll all be concatenated together in the outFile
-   */
-  outFile?: string;
-  filesNotToProcess: Set<string>;
-  inlineSourceMap: boolean;
-  generateDTS: boolean;
+export function assertSourceMapping(
+    compiledJs: string, sourceMap: SourceMapConsumer, sourceSnippet: string,
+    expectedPosition: {line?: number, column?: number, source?: string}) {
+  const {line, column} = getLineAndColumn(compiledJs, sourceSnippet);
+  const originalPosition = sourceMap.originalPositionFor({line, column});
+  if (expectedPosition.line) {
+    expect(originalPosition.line).to.equal(expectedPosition.line);
+  }
+  if (expectedPosition.column) {
+    expect(originalPosition.column).to.equal(expectedPosition.column);
+  }
+  if (expectedPosition.source) {
+    expect(originalPosition.source).to.equal(expectedPosition.source);
+  }
 }
 
-const DEFAULT_COMPILER_OPTIONS = {
-  filesNotToProcess: new Set<string>(),
-  inlineSourceMap: false,
-  generateDTS: false,
-};
-
-export function compile(
+export function createTsickleHost(
     sources: Map<string, string>,
-    partialOptions: Partial<CompilerOptions>&{useTransformer: boolean}): {
-  compiledJS: string,
-  dts: string | undefined,
-  sourceMap: SourceMapConsumer,
-  sourceMapText: string
-} {
-  const options: CompilerOptions = {...DEFAULT_COMPILER_OPTIONS, ...partialOptions};
-  const resolvedSources = new Map<string, string>();
-  for (const fileName of toArray(sources.keys())) {
-    resolvedSources.set(ts.sys.resolvePath(fileName), sources.get(fileName)!);
-  }
-
-  let compilerOptions: ts.CompilerOptions;
-  if (options.inlineSourceMap) {
-    compilerOptions = {
-      inlineSourceMap: options.inlineSourceMap,
-      inlineSources: true,
-      outFile: options.outFile,
-      experimentalDecorators: true,
-      declaration: options.generateDTS,
-    };
-  } else {
-    compilerOptions = {
-      sourceMap: true,
-      inlineSources: true,
-      outFile: options.outFile,
-      experimentalDecorators: true,
-      declaration: options.generateDTS,
-    };
-  }
-
-  const fileNames = toArray(sources.keys());
-
-  const tsickleHost: tsickle.TsickleHost&tsickle.TransformerHost = {
+    filesNotToProcess = new Set<string>()): tsickle.TsickleHost&tsickle.TransformerHost {
+  return {
     shouldSkipTsickleProcessing: (fileName) =>
-        fileNames.indexOf(fileName) === -1 || options.filesNotToProcess.has(fileName),
+        !sources.has(fileName) || filesNotToProcess.has(fileName),
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (fileName) => fileName,
   };
-
-  const {jsFiles, diagnostics} = options.useTransformer ?
-      compileWithTransfromer(resolvedSources, fileNames, tsickleHost, compilerOptions) :
-      compileWithTsickleCompilerHost(resolvedSources, fileNames, tsickleHost, compilerOptions);
-
-  if (diagnostics.length) {
-    console.error(tsickle.formatDiagnostics(diagnostics));
-    assert.fail();
-    throw new Error('unreachable');
-  }
-
-  let compiledJSFileName = options.outFile;
-  if (!compiledJSFileName) {
-    if (sources.size === 1) {
-      const inputFileName = sources.keys().next().value;
-      compiledJSFileName = inputFileName.substring(0, inputFileName.length - 3) + '.js';
-    } else {
-      compiledJSFileName = 'input.js';
-    }
-  }
-  const compiledJS = getFileWithName(compiledJSFileName, jsFiles);
-
-  if (!compiledJS) {
-    assert.fail(
-        `Couldn't find file ${
-                              compiledJSFileName
-                            } in compilation output files: ${
-                                                             JSON.stringify(toArray(jsFiles.keys()))
-                                                           }`);
-    throw new Error('unreachable');
-  }
-
-  let sourceMapJson: string;
-  if (options.inlineSourceMap) {
-    sourceMapJson = extractInlineSourceMap(compiledJS);
-  } else {
-    sourceMapJson = getFileWithName(compiledJSFileName + '.map', jsFiles) || '';
-  }
-  const sourceMap = sourceMapTextToConsumer(sourceMapJson);
-
-  const dts = getFileWithName(
-      compiledJSFileName.substring(0, compiledJSFileName.length - 3) + '.d.ts', jsFiles);
-
-  return {compiledJS, dts, sourceMap, sourceMapText: sourceMapJson};
 }
 
-function extractInlineSourceMap(source: string): string {
+export function extractInlineSourceMap(source: string): BasicSourceMapConsumer {
   const inlineSourceMapRegex =
       new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)$', 'mg');
   let previousResult: RegExpExecArray|null = null;
@@ -279,56 +259,70 @@ function extractInlineSourceMap(source: string): string {
     result = inlineSourceMapRegex.exec(source);
   } while (result !== null);
   const base64EncodedMap = previousResult![1];
-  return Buffer.from(base64EncodedMap, 'base64').toString('utf8');
+  const sourceMapJson = Buffer.from(base64EncodedMap, 'base64').toString('utf8');
+  return sourceMapTextToConsumer(sourceMapJson);
 }
 
-function getFileWithName(filename: string, files: Map<string, string>): string|undefined {
-  for (const filepath of toArray(files.keys())) {
+export function findFileContentsByName(filename: string, files: Map<string, string>): string {
+  const filePaths = toArray(files.keys());
+  for (const filepath of filePaths) {
     if (path.parse(filepath).base === path.parse(filename).base) {
-      return files.get(filepath);
+      return files.get(filepath)!;
     }
   }
-  return undefined;
+  assert(undefined, `Couldn't find file ${filename} in files: ${JSON.stringify(filePaths)}`);
+  throw new Error('Unreachable');
 }
 
-function compileWithTsickleCompilerHost(
-    resolvedSources: Map<string, string>, fileNames: string[], tsickleHost: tsickle.TsickleHost,
-    compilerOptions: ts.CompilerOptions):
-    {jsFiles: Map<string, string>, diagnostics: ts.Diagnostic[]} {
-  const closureJSOPtions = {
-    files: resolvedSources,
-    tsickleHost,
-    tsicklePasses: [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE],
-  };
+export function getSourceMapWithName(
+    filename: string, files: Map<string, string>): BasicSourceMapConsumer {
+  return sourceMapTextToConsumer(findFileContentsByName(filename, files));
+}
 
+/**
+ * Compiles with the tsickle compiler host, performing both decorator
+ * downleveling and closurization.
+ */
+export function compileWithTsickleCompilerHost(
+    sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
+    tsickleHost: tsickle.TsickleHost = createTsickleHost(sources)) {
+  const fileNames = toArray(sources.keys());
   const diagnostics: ts.Diagnostic[] = [];
-  const closure =
-      toClosureJS(compilerOptions, fileNames, {isTyped: true}, diagnostics, closureJSOPtions);
-  return {jsFiles: closure ? closure.jsFiles : new Map<string, string>(), diagnostics};
+  const closure = toClosureJS(
+      compilerOptions, fileNames, {isTyped: true}, diagnostics,
+      createSourceCachingHost(sources, compilerOptions), tsickleHost,
+      [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE]);
+
+  expect(diagnostics).lengthOf(0, tsickle.formatDiagnostics(diagnostics));
+  return {files: closure!.jsFiles, externs: closure!.externs};
 }
 
-function compileWithTransfromer(
-    resolvedSources: Map<string, string>, fileNames: string[],
-    transformerHost: tsickle.TransformerHost, compilerOptions: ts.CompilerOptions) {
-  const jsFiles = new Map<string, string>();
-  const tsHost = createSourceReplacingCompilerHost(
-      resolvedSources,
-      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(compilerOptions)));
+/**
+ * Compiles with the transformer 'emitWithTsickle()', performing both decorator
+ * downleveling and closurization.
+ */
+export function compileWithTransfromer(
+    sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
+    transformerHost: tsickle.TransformerHost = createTsickleHost(sources)) {
+  const fileNames = toArray(sources.keys());
+  const files = new Map<string, string>();
+  const tsHost =
+      createOutputRetainingCompilerHost(files, createSourceCachingHost(sources, compilerOptions));
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
+  expect(ts.getPreEmitDiagnostics(program))
+      .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
 
-  const allDiagnostics: ts.Diagnostic[] = [];
-  allDiagnostics.push(...ts.getPreEmitDiagnostics(program));
-  if (allDiagnostics.length === 0) {
-    const {diagnostics} = tsickle.emitWithTsickle(
-        program, transformerHost, {
-          transformDecorators: true,
-          transformTypesToClosure: true,
-          googmodule: true,
-          es5Mode: false,
-          untyped: false,
-        },
-        tsHost, compilerOptions);
-    allDiagnostics.push(...diagnostics);
-  }
-  return {jsFiles, diagnostics: allDiagnostics};
+  const {diagnostics, externs} = tsickle.emitWithTsickle(
+      program, transformerHost, {
+        transformDecorators: true,
+        transformTypesToClosure: true,
+        googmodule: true,
+        es5Mode: false,
+        untyped: false,
+      },
+      tsHost, compilerOptions);
+
+  // tslint:disable-next-line:no-unused-expression
+  expect(diagnostics, tsickle.formatDiagnostics(diagnostics)).to.be.empty;
+  return {files, externs};
 }

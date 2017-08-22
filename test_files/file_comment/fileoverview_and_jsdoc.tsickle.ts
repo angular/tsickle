@@ -6,6 +6,6 @@
 
 
 /**
- * @export
+ * @noalias
  */
 const /** @type {number} */ aVariable = 1;

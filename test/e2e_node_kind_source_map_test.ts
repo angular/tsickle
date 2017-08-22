@@ -14,80 +14,50 @@ import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
 
-import {compile, getLineAndColumn} from './test_support';
+import {assertSourceMapping, compileWithTransfromer, findFileContentsByName, getSourceMapWithName, sourceMapCompilerOptions} from './test_support';
 
-describe.only('source maps each node with transformer', () => {
+describe('source maps each node with transformer', () => {
   it('maps import declarations correctly', () => {
     const sources = new Map<string, string>();
-    sources.set('input.ts', `import * as ts from 'typescript';
-      import {join, format as fmt} from 'path';
-      ts.ModuleKind.CommonJS;
-      join;
-      fmt;`);
+    sources.set('exporter1.ts', `export const foo = 1;`);
+    sources.set('exporter2.ts', `export const bar = 2;
+      export const baz = 3;`);
+    sources.set('input.ts', `import * as foo from './exporter1';
+      import {bar, baz as quux} from './exporter2';
+      foo.foo;
+      bar;
+      quux;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer: true});
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, `var ts`);
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'typescript require');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, `goog.require('typescript')`);
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'typescript require');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, `var path_1`);
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(2, 'path require');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, `goog.require('path')`);
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(2, 'path require');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(compiledJs, sourceMap, 'var foo', {line: 1, source: 'input.ts'});
+    assertSourceMapping(
+        compiledJs, sourceMap, `goog.require('exporter1')`, {line: 1, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, `var exporter2_1`, {line: 2, source: 'input.ts'});
+    assertSourceMapping(
+        compiledJs, sourceMap, `goog.require('exporter2')`, {line: 2, source: 'input.ts'});
   });
 
   it('maps export declarations correctly', () => {
     const sources = new Map<string, string>();
+    sources.set('exporter.ts', `export const foo = 1;`);
     sources.set('input.ts', `export const x = 4;
       const y = 'stringy';
       export {y};
-      export {format as fmt} from "path";`);
+      export {foo as bar} from './exporter';`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer: true});
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'exports.x = 4;');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(1, 'x export');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'exports.y = y;');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(3, 'y export');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'exports.fmt');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(4, 'fmt export');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'path_1.format');
-      expect(sourceMap.originalPositionFor({line, column}).line).to.equal(4, 'fmt export');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(compiledJs, sourceMap, `exports.x = 4;`, {line: 1, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, `exports.y = y;`, {line: 3, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, `exports.bar`, {line: 4, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, `exporter_1.foo`, {line: 4, source: 'input.ts'});
   });
 
   it('maps element access', () => {
@@ -100,15 +70,11 @@ describe.only('source maps each node with transformer', () => {
       x.foo;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer: true});
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, '["foo"];');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(6, 'rewritten element access');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(compiledJs, sourceMap, `["foo"];`, {line: 6, source: 'input.ts'});
   });
 
   it('maps decorators', () => {
@@ -127,21 +93,12 @@ describe.only('source maps each node with transformer', () => {
         }`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {compiledJS, sourceMap} = compile(sources, {useTransformer: true});
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
+    const compiledJs = files.get('input.js')!;
+    const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    {
-      const {line, column} = getLineAndColumn(compiledJS, 'classAnnotation, args');
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(7, 'individual decorator type');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
-    {
-      const {line, column} = getLineAndColumn(compiledJS, `x: 'thingy'`);
-      expect(sourceMap.originalPositionFor({line, column}).line)
-          .to.equal(8, 'individual decorator args');
-      expect(sourceMap.originalPositionFor({line, column}).source)
-          .to.equal('input.ts', 'input file name');
-    }
+    assertSourceMapping(
+        compiledJs, sourceMap, `classAnnotation, args`, {line: 7, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, `x: 'thingy'`, {line: 8, source: 'input.ts'});
   });
 });

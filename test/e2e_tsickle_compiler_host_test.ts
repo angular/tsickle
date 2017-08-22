@@ -4,7 +4,9 @@ import * as ts from 'typescript';
 import {pathToModuleName} from '../src/cli_support';
 import {formatDiagnostics} from '../src/tsickle';
 import {Options, Pass, TsickleCompilerHost} from '../src/tsickle_compiler_host';
-import {createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from '../src/util';
+import {createOutputRetainingCompilerHost} from '../src/util';
+
+import {compilerOptions, createProgramAndHost} from './test_support';
 
 const tsickleHost = {
   shouldSkipTsickleProcessing: (fileName: string) => false,
@@ -29,7 +31,7 @@ describe('tsickle compiler host', () => {
   function makeProgram(
       fileName: string, source: string): [ts.Program, ts.CompilerHost, ts.CompilerOptions] {
     const sources = new Map<string, string>();
-    sources.set(ts.sys.resolvePath(fileName), source);
+    sources.set(fileName, source);
     return makeMultiFileProgram(sources);
   }
 
@@ -38,15 +40,12 @@ describe('tsickle compiler host', () => {
     // TsickleCompilerHost wants a ts.Program, which is the result of
     // parsing and typechecking the code before tsickle processing.
     // So we must create and run the entire stack of CompilerHost.
-    const options: ts.CompilerOptions = {target: ts.ScriptTarget.ES5};
-    const compilerHostDelegate = ts.createCompilerHost(options);
-    const compilerHost = createSourceReplacingCompilerHost(sources, compilerHostDelegate);
-    const program =
-        ts.createProgram(Array.from(sources.keys()), {experimentalDecorators: true}, compilerHost);
+    const options = compilerOptions;
+    const {host, program} = createProgramAndHost(sources, options);
     // To get types resolved, you must first call getPreEmitDiagnostics.
     const diags = formatDiagnostics(ts.getPreEmitDiagnostics(program));
     expect(diags).to.equal('');
-    return [program, compilerHost, options];
+    return [program, host, options];
   }
 
   it('applies tsickle transforms', () => {
@@ -70,11 +69,11 @@ describe('tsickle compiler host', () => {
 
   it('passes blacklisted paths', () => {
     const sources = new Map<string, string>([
-      [ts.sys.resolvePath('foo.ts'), 'let b: Banned = {b: "a"};'],
-      [ts.sys.resolvePath('banned.d.ts'), 'declare interface Banned { b: string }'],
+      ['foo.ts', 'let b: Banned = {b: "a"};'],
+      ['banned.d.ts', 'declare interface Banned { b: string }'],
     ]);
     const [program, compilerHost, options] = makeMultiFileProgram(sources);
-    tsickleCompilerHostOptions.typeBlackListPaths = new Set([ts.sys.resolvePath('banned.d.ts')]);
+    tsickleCompilerHostOptions.typeBlackListPaths = new Set(['banned.d.ts']);
     tsickleCompilerHostOptions.untyped = false;
     const host =
         new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
@@ -85,7 +84,7 @@ describe('tsickle compiler host', () => {
 
   it('lowers decorators to annotations', () => {
     const [program, compilerHost, options] =
-        makeProgram('foo.ts', '/** @Annotation */ const A: Function = null; @A class B {}');
+        makeProgram('foo.ts', '/** @Annotation */ function A(t: any) {return t}; @A class B {}');
     const host =
         new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
     host.reconfigureForRun(program, Pass.DECORATOR_DOWNLEVEL);
@@ -120,8 +119,8 @@ describe('tsickle compiler host', () => {
 
   it(`reports tsickle errors from multiple files`, () => {
     const sources = new Map<string, string>([
-      [ts.sys.resolvePath('a.ts'), '/** @return {number} */ function a(): number { return 1; }'],
-      [ts.sys.resolvePath('b.ts'), '/** @return {number} */ function b(): number { return 1; }'],
+      ['a.ts', '/** @return {number} */ function a(): number { return 1; }'],
+      ['b.ts', '/** @return {number} */ function b(): number { return 1; }'],
     ]);
     const [program, compilerHost, options] = makeMultiFileProgram(sources);
     const host =
@@ -137,10 +136,8 @@ describe('tsickle compiler host', () => {
   });
 
   it(`resets tsickle errors on reconfigure`, () => {
-    const sources = new Map<string, string>([
-      [ts.sys.resolvePath('a.ts'), '/** @return {number} */ function a(): number { return 1; }'],
-    ]);
-    const [program, compilerHost, options] = makeMultiFileProgram(sources);
+    const [program, compilerHost, options] =
+        makeProgram('a.ts', '/** @return {number} */ function a(): number { return 1; }');
     const host =
         new TsickleCompilerHost(compilerHost, options, tsickleCompilerHostOptions, tsickleHost);
     host.reconfigureForRun(program, Pass.CLOSURIZE);
