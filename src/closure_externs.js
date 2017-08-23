@@ -38,3 +38,12 @@ var NodeListOf;
  * @typedef {Array<string>|null}
  */
 var RegExpExecArray;
+
+/** @typedef {!Array} */
+var ReadonlyArray;
+
+/** @typedef {!Map} */
+var ReadonlyMap;
+
+/** @typedef {!Set} */
+var ReadonlySet;
