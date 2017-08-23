@@ -228,6 +228,8 @@ export class DecoratorClassVisitor {
       this.rewriter.emit(`${className}.ctorParameters;\n`);
     }
     if (this.propDecorators) {
+      this.rewriter.emit(`/**\n`);
+      this.rewriter.emit(` * @nocollapse\n`);
       this.rewriter.emit(
           `/** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */\n`);
       this.rewriter.emit(`${className}.propDecorators;\n`);
