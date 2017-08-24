@@ -92,7 +92,6 @@ function runGoldenTests(useSeparatePasses: boolean) {
     const options: tsickle.Options = {
       // See test_files/jsdoc_types/nevertyped.ts.
       typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
-      convertIndexImportShorthand: true,
     };
     if (/\.untyped\b/.test(test.name)) {
       options.untyped = true;
