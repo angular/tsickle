@@ -12,3 +12,6 @@ console.log(x);
 
 const /** @type {(null|!RegExpExecArray)} */ res: RegExpExecArray|null = /** @type {!RegExpExecArray} */(( /asd/.exec('asd asd')));
 console.log(res);
+let /** @type {!ReadonlyArray<string>} */ a: ReadonlyArray<string> = [''];
+let /** @type {!ReadonlyMap<string, string>} */ m: ReadonlyMap<string, string> = new Map();
+let /** @type {!ReadonlySet<string>} */ s: ReadonlySet<string> = new Set();

@@ -8,3 +8,6 @@ let /** @type {!NodeListOf<!HTMLParagraphElement>} */ x = document.getElementsBy
 console.log(x);
 const /** @type {(null|!RegExpExecArray)} */ res = ((/asd/.exec('asd asd')));
 console.log(res);
+let /** @type {!ReadonlyArray<string>} */ a = [''];
+let /** @type {!ReadonlyMap<string, string>} */ m = new Map();
+let /** @type {!ReadonlySet<string>} */ s = new Set();

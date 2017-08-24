@@ -10,3 +10,6 @@ console.log(x);
 
 const res: RegExpExecArray|null = /asd/.exec('asd asd')!;
 console.log(res);
+let a: ReadonlyArray<string> = [''];
+let m: ReadonlyMap<string, string> = new Map();
+let s: ReadonlySet<string> = new Set();
