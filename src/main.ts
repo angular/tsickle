@@ -15,8 +15,11 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
+import * as transformer from './transformer';
 import * as tsickle from './tsickle';
+import {ModulesManifest} from './tsickle';
 import {toArray, createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from './util';
+
 /** Tsickle settings passed on the command line. */
 export interface Settings {
   /** If provided, path to save externs to. */
@@ -80,23 +83,17 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
 
 /**
  * Loads the tsconfig.json from a directory.
- * Unfortunately there's a ton of logic in tsc.ts related to searching
- * for tsconfig.json etc. that we don't really want to replicate, e.g.
- * tsc appears to allow -p path/to/tsconfig.json while this only works
- * with -p path/to/containing/dir.
+ *
+ * TODO(martinprobst): use ts.findConfigFile to match tsc behaviour.
  *
  * @param args tsc command-line arguments.
  */
-function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
-    {options: ts.CompilerOptions, fileNames: string[]}|null {
+function loadTscConfig(args: string[]):
+    {options: ts.CompilerOptions, fileNames: string[], errors: ts.Diagnostic[]} {
   // Gather tsc options/input files from command line.
-  // Bypass visibilty of parseCommandLine, see
-  // https://github.com/Microsoft/TypeScript/issues/2620
-  // tslint:disable-next-line:no-any
-  let {options, fileNames, errors} = (ts as any).parseCommandLine(args);
+  let {options, fileNames, errors} = ts.parseCommandLine(args);
   if (errors.length > 0) {
-    allDiagnostics.push(...errors);
-    return null;
+    return {options: {}, fileNames: [], errors};
   }
 
   // Store file arguments
@@ -108,20 +105,18 @@ function loadTscConfig(args: string[], allDiagnostics: ts.Diagnostic[]):
   const {config: json, error} =
       ts.readConfigFile(configFileName, path => fs.readFileSync(path, 'utf-8'));
   if (error) {
-    allDiagnostics.push(error);
-    return null;
+    return {options: {}, fileNames: [], errors: [error]};
   }
   ({options, fileNames, errors} =
        ts.parseJsonConfigFileContent(json, ts.sys, projectDir, options, configFileName));
   if (errors.length > 0) {
-    allDiagnostics.push(...errors);
-    return null;
+    return {options: {}, fileNames: [], errors};
   }
 
-  // if file arguments were given to the typescript transpiler than transpile only those files
+  // if file arguments were given to the typescript transpiler then transpile only those files
   fileNames = tsFileArguments.length > 0 ? tsFileArguments : fileNames;
 
-  return {options, fileNames};
+  return {options, fileNames, errors: []};
 }
 
 /**
@@ -146,61 +141,52 @@ function getDefaultTsickleHost(fileNames: string[]): tsickle.TsickleHost {
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    allDiagnostics: ts.Diagnostic[], compilerHost: ts.CompilerHost = ts.createCompilerHost(options),
-    tsickleHost: tsickle.TsickleHost = getDefaultTsickleHost(fileNames),
-    tsicklePasses: tsickle.Pass[] = [tsickle.Pass.CLOSURIZE]) {
-  const tsickleCompilerHostOptions = {
-    googmodule: true,
-    es5Mode: false,
-    untyped: !settings.isTyped,
-  };
-
-  const jsFiles = new Map<string, string>();
-  const outputRetainingHost = createOutputRetainingCompilerHost(jsFiles, compilerHost);
-
-  const tch = new tsickle.TsickleCompilerHost(
-      outputRetainingHost, options, tsickleCompilerHostOptions, tsickleHost);
-
+    writeFile?: ts.WriteFileCallback): transformer.EmitResult {
   // Parse and load the program without tsickle processing.
   // This is so:
   // - error messages point at the original source text
   // - tsickle can use the result of typechecking for annotation
-  let program = ts.createProgram(fileNames, options, tch);
-  {  // Scope for the "diagnostics" variable so we can use the name again later.
-    const diagnostics = ts.getPreEmitDiagnostics(program);
-    if (diagnostics.length > 0) {
-      allDiagnostics.push(...diagnostics);
-      return null;
-    }
-  }
+  const jsFiles = new Map<string, string>();
+  const outputRetainingHost =
+      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(options));
 
-  // Reparse and reload the program, inserting the tsickle output in
-  // place of the original source.
-  if (tsicklePasses.indexOf(tsickle.Pass.DECORATOR_DOWNLEVEL) !== -1) {
-    tch.reconfigureForRun(program, tsickle.Pass.DECORATOR_DOWNLEVEL);
-    program = ts.createProgram(fileNames, options, tch);
-  }
-
-  if (tsicklePasses.indexOf(tsickle.Pass.CLOSURIZE) !== -1) {
-    tch.reconfigureForRun(program, tsickle.Pass.CLOSURIZE);
-    program = ts.createProgram(fileNames, options, tch);
-  }
-
-  const {diagnostics} = program.emit(undefined);
+  const program = ts.createProgram(fileNames, options, outputRetainingHost);
+  const transformerHost: transformer.TransformerHost = {
+    shouldSkipTsickleProcessing(fileName: string) { return fileNames.indexOf(fileName) !== -1; },
+    shouldIgnoreWarningsForPath(fileName: string) { return false; },
+    pathToModuleName: cliSupport.pathToModuleName,
+    fileNameToModuleId: (fileName) => fileName,
+  };
+  const transformerOptions: transformer.TransformerOptions = {
+    convertIndexImportShorthand: true,
+    es5Mode: true,
+    googmodule: true,
+    prelude: '',
+    transformDecorators: true,
+    transformTypesToClosure: true,
+    typeBlackListPaths: new Set(),
+    untyped: false,
+    logWarning: (warning) => console.error(tsickle.formatDiagnostics([warning])),
+  };
+  const diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length > 0) {
-    allDiagnostics.push(...diagnostics);
-    return null;
+    return {
+      diagnostics,
+      modulesManifest: new ModulesManifest(),
+      externs: {},
+      emitSkipped: true,
+      emittedFiles: [],
+    };
   }
-
-  return {jsFiles, externs: tch.getGeneratedExterns()};
+  return transformer.emitWithTsickle(
+      program, transformerHost, transformerOptions, outputRetainingHost, options);
 }
 
 function main(args: string[]): number {
   const {settings, tscArgs} = loadSettingsFromArgs(args);
-  const diagnostics: ts.Diagnostic[] = [];
-  const config = loadTscConfig(tscArgs, diagnostics);
-  if (config === null) {
-    console.error(tsickle.formatDiagnostics(diagnostics));
+  const config = loadTscConfig(tscArgs);
+  if (config.errors.length) {
+    console.error(tsickle.formatDiagnostics(config.errors));
     return 1;
   }
 
@@ -208,24 +194,25 @@ function main(args: string[]): number {
     // This is not an upstream TypeScript diagnostic, therefore it does not go
     // through the diagnostics array mechanism.
     console.error(
-        'tsickle converts TypeScript modules to Closure modules via CommonJS internally. Set tsconfig.js "module": "commonjs"');
+        'tsickle converts TypeScript modules to Closure modules via CommonJS internally. ' +
+        'Set tsconfig.js "module": "commonjs"');
     return 1;
   }
 
-  const closure = toClosureJS(config.options, config.fileNames, settings, diagnostics);
-  if (closure === null) {
-    console.error(tsickle.formatDiagnostics(diagnostics));
+  // Run tsickle+TSC to convert inputs to Closure JS files.
+  const result = toClosureJS(
+      config.options, config.fileNames, settings, (filePath: string, contents: string) => {
+        mkdirp.sync(path.dirname(filePath));
+        fs.writeFileSync(filePath, contents, {encoding: 'utf-8'});
+      });
+  if (result.diagnostics.length) {
+    console.error(tsickle.formatDiagnostics(result.diagnostics));
     return 1;
-  }
-
-  for (const fileName of toArray(closure.jsFiles.keys())) {
-    mkdirp.sync(path.dirname(fileName));
-    fs.writeFileSync(fileName, closure.jsFiles.get(fileName));
   }
 
   if (settings.externsPath) {
     mkdirp.sync(path.dirname(settings.externsPath));
-    fs.writeFileSync(settings.externsPath, closure.externs);
+    fs.writeFileSync(settings.externsPath, tsickle.getGeneratedExterns(result.externs));
   }
   return 0;
 }

@@ -16,21 +16,9 @@ import * as ts from 'typescript';
 import {containsInlineSourceMap, getInlineSourceMapCount} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
-import {assertSourceMapping, compileWithTransfromer, compileWithTsickleCompilerHost, createTsickleHost, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
+import {assertSourceMapping, compileWithTransfromer, createTsickleHost, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
 
-describe('source maps with TsickleCompilerHost', () => {
-  createTests(compileWithTsickleCompilerHost);
-});
 describe('source maps with transformer', () => {
-  createTests(compileWithTransfromer);
-});
-
-function createTests(
-    compile: (
-        sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
-        tsickleHost?: tsickle.TsickleHost&tsickle.TransformerHost) => {
-      files: Map<string, string>
-    }) {
   it('composes source maps with tsc', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
@@ -40,7 +28,7 @@ function createTests(
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} = compile(sources, sourceMapCompilerOptions);
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
     const compiledJs = files.get('input.js')!;
     const sourceMap = getSourceMapWithName('input.js.map', files);
 
@@ -63,7 +51,7 @@ function createTests(
         let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} = compile(
+    const {files} = compileWithTransfromer(
         sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')});
     const compiledJs = files.get('output.js')!;
     const sourceMap = getSourceMapWithName('output.js.map', files);
@@ -87,49 +75,13 @@ function createTests(
         let c : string = a + b;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} = compile(
+    const {files} = compileWithTransfromer(
         sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('a/d/output.js')});
     const compiledJs = findFileContentsByName('a/d/output.js', files);
     const sourceMap = getSourceMapWithName('a/d/output.js.map', files);
 
     assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: '../b/input1.ts'});
     assertSourceMapping(compiledJs, sourceMap, 'fourth rate', {line: 4, source: '../c/input2.ts'});
-  });
-
-  it('works when not decorator downleveling some input', () => {
-    const sources = new Map<string, string>();
-    sources.set('input1.ts', `
-        /** @Annotation */
-        function class1Annotation(t: any) { return t; }
-
-        @class1Annotation
-        class DecoratorTest1 {
-          public method1Name(s: string): string { return s; }
-        }`);
-
-    sources.set('input2.ts', `
-        /** @Annotation */
-        function class2Annotation(t: any) { return t; }
-
-        @class2Annotation
-        class DecoratorTest2 {
-          public method2Name(s: string): string { return s; }
-        }`);
-
-    // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} = compile(
-        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')},
-        createTsickleHost(sources, new Set<string>(['input2.ts'])));
-    const compiledJs = files.get('output.js')!;
-    const sourceMap = getSourceMapWithName('output.js.map', files);
-
-    // Check that we decorator downleveled input1, but not input2
-    expect(compiledJs).to.contain('DecoratorTest1.decorators');
-    expect(compiledJs).not.to.contain('DecoratorTest2.decorators');
-
-    // Check that the source maps work
-    assertSourceMapping(compiledJs, sourceMap, 'method1Name', {line: 7, source: 'input1.ts'});
-    assertSourceMapping(compiledJs, sourceMap, 'method2Name', {line: 7, source: 'input2.ts'});
   });
 
   it('handles decorators correctly', () => {
@@ -142,7 +94,7 @@ function createTests(
           public methodName(s: string): string { return s; }
         }`);
 
-    const {files} = compile(sources, sourceMapCompilerOptions);
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
     const compiledJs = files.get('input.js')!;
     const sourceMap = getSourceMapWithName('input.js.map', files);
 
@@ -158,8 +110,8 @@ function createTests(
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} =
-        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const {files} = compileWithTransfromer(
+        sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
     const compiledJs = files.get('input.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
@@ -176,8 +128,8 @@ function createTests(
       let z : string = x + y;`);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} =
-        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const {files} = compileWithTransfromer(
+        sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
     const compiledJs = files.get('input.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
     const dts = files.get('input.d.ts')!;
@@ -206,8 +158,8 @@ function createTests(
   it('handles input source maps', () => {
     const sources = createInputWithSourceMap();
 
-    const {files} =
-        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const {files} = compileWithTransfromer(
+        sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
     const compiledJs = files.get('intermediate.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
@@ -217,7 +169,7 @@ function createTests(
 
   it('handles input source maps with different file names than supplied to tsc', () => {
     const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
-    const {files} = compile(sources, sourceMapCompilerOptions);
+    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
     const compiledJs = files.get('intermediate.js')!;
     const sourceMap = getSourceMapWithName('intermediate.js.map', files);
 
@@ -228,7 +180,7 @@ function createTests(
   it('handles input source maps with an outDir different than the rootDir', () => {
     const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
 
-    const {files} = compile(sources, {
+    const {files} = compileWithTransfromer(sources, {
       ...sourceMapCompilerOptions,
       ...generateOutfileCompilerOptions('/out/output.js'),
       ...inlineSourceMapCompilerOptions
@@ -244,8 +196,8 @@ function createTests(
     // sources of the intermediate file are present in the sourcemap.
     const sources = createInputWithSourceMap({'mappings': ';', 'sources': ['intermediate.ts']});
 
-    const {files} =
-        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const {files} = compileWithTransfromer(
+        sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
     const compiledJs = files.get('intermediate.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
@@ -259,8 +211,8 @@ function createTests(
     sources.set('input.ts', ``);
 
     // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} =
-        compile(sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const {files} = compileWithTransfromer(
+        sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
     const compiledJs = files.get('input.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
@@ -275,7 +227,7 @@ function createTests(
       let y : string = 'another string';
       let z : string = x + y;`);
 
-    const {files} = compile(
+    const {files} = compileWithTransfromer(
         sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')});
     const compiledJs = files.get('output.js')!;
     const sourceMap = getSourceMapWithName('output.js.map', files);
@@ -301,4 +253,4 @@ function createTests(
     assertSourceMapping(compiledJs, sourceMap, 'x + 1', {line: 2, source: 'input.ts'});
     assertSourceMapping(compiledJs, sourceMap, 'y.z', {line: 4, source: 'input.ts'});
   });
-}
+});

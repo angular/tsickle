@@ -280,30 +280,11 @@ export function getSourceMapWithName(
 }
 
 /**
- * Compiles with the tsickle compiler host, performing both decorator
- * downleveling and closurization.
- */
-export function compileWithTsickleCompilerHost(
-    sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
-    tsickleHost: tsickle.TsickleHost = createTsickleHost(sources)) {
-  const fileNames = toArray(sources.keys());
-  const diagnostics: ts.Diagnostic[] = [];
-  const closure = toClosureJS(
-      compilerOptions, fileNames, {isTyped: true}, diagnostics,
-      createSourceCachingHost(sources, compilerOptions), tsickleHost,
-      [tsickle.Pass.DECORATOR_DOWNLEVEL, tsickle.Pass.CLOSURIZE]);
-
-  expect(diagnostics).lengthOf(0, tsickle.formatDiagnostics(diagnostics));
-  return {files: closure!.jsFiles, externs: closure!.externs};
-}
-
-/**
  * Compiles with the transformer 'emitWithTsickle()', performing both decorator
  * downleveling and closurization.
  */
 export function compileWithTransfromer(
-    sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
-    transformerHost: tsickle.TransformerHost = createTsickleHost(sources)) {
+    sources: Map<string, string>, compilerOptions: ts.CompilerOptions) {
   const fileNames = toArray(sources.keys());
   const files = new Map<string, string>();
   const tsHost =
@@ -313,7 +294,7 @@ export function compileWithTransfromer(
       .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
 
   const {diagnostics, externs} = tsickle.emitWithTsickle(
-      program, transformerHost, {
+      program, createTsickleHost(sources), {
         transformDecorators: true,
         transformTypesToClosure: true,
         googmodule: true,
