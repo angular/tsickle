@@ -18,7 +18,7 @@ import * as cliSupport from './cli_support';
 import * as transformer from './transformer';
 import * as tsickle from './tsickle';
 import {ModulesManifest} from './tsickle';
-import {toArray, createOutputRetainingCompilerHost, createSourceReplacingCompilerHost} from './util';
+import {toArray, createSourceReplacingCompilerHost} from './util';
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
@@ -120,45 +120,20 @@ function loadTscConfig(args: string[]):
 }
 
 /**
- * Provides a tsickle host that performs tsickle processing for the given
- * file names.
- *
- * If you need to change module resolution, or only tsickle process some of the
- * files you want to pass to tsc, you'll need to provide your own host.
- */
-function getDefaultTsickleHost(fileNames: string[]): tsickle.TsickleHost {
-  return {
-    shouldSkipTsickleProcessing: (fileName) => fileNames.indexOf(fileName) === -1,
-    pathToModuleName: cliSupport.pathToModuleName,
-    shouldIgnoreWarningsForPath: (filePath) => false,
-    fileNameToModuleId: (fileName) => fileName,
-  };
-}
-
-/**
  * Compiles TypeScript code into Closure-compiler-ready JS.
- * Doesn't write any files to disk; all JS content is returned in a map.
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     writeFile?: ts.WriteFileCallback): transformer.EmitResult {
-  // Parse and load the program without tsickle processing.
-  // This is so:
-  // - error messages point at the original source text
-  // - tsickle can use the result of typechecking for annotation
-  const jsFiles = new Map<string, string>();
-  const outputRetainingHost =
-      createOutputRetainingCompilerHost(jsFiles, ts.createCompilerHost(options));
-
-  const program = ts.createProgram(fileNames, options, outputRetainingHost);
+  const compilerHost = ts.createCompilerHost(options);
+  const program = ts.createProgram(fileNames, options, compilerHost);
   const transformerHost: transformer.TransformerHost = {
-    shouldSkipTsickleProcessing(fileName: string) { return fileNames.indexOf(fileName) !== -1; },
-    shouldIgnoreWarningsForPath(fileName: string) { return false; },
+    shouldSkipTsickleProcessing: (fileName: string) => {
+      return fileNames.indexOf(fileName) === -1;
+    },
+    shouldIgnoreWarningsForPath: (fileName: string) => false,
     pathToModuleName: cliSupport.pathToModuleName,
     fileNameToModuleId: (fileName) => fileName,
-  };
-  const transformerOptions: transformer.TransformerOptions = {
-    convertIndexImportShorthand: true,
     es5Mode: true,
     googmodule: true,
     prelude: '',
@@ -179,7 +154,7 @@ export function toClosureJS(
     };
   }
   return transformer.emitWithTsickle(
-      program, transformerHost, transformerOptions, outputRetainingHost, options);
+      program, transformerHost, compilerHost, options, undefined, writeFile);
 }
 
 function main(args: string[]): number {

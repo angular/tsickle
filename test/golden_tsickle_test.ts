@@ -75,27 +75,10 @@ function compareAgainstGolden(output: string|null, path: string) {
 const testFn = TEST_FILTER ? describe.only : describe;
 
 testFn('golden tests with TsickleCompilerHost', () => {
-  testFn('with one pass', () => {
-    runGoldenTests(false);
-  });
-  testFn('with separate passes', () => {
-    runGoldenTests(true);
-  });
-});
-
-function runGoldenTests(useSeparatePasses: boolean) {
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
       return;
-    }
-    const options: tsickle.Options = {
-      // See test_files/jsdoc_types/nevertyped.ts.
-      typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
-      convertIndexImportShorthand: true,
-    };
-    if (/\.untyped\b/.test(test.name)) {
-      options.untyped = true;
     }
     it(test.name, () => {
       // Read all the inputs into a map, and create a ts.Program from them.
@@ -114,39 +97,12 @@ function runGoldenTests(useSeparatePasses: boolean) {
         }
       }
 
-      // Run TypeScript through the decorator annotator and emit goldens if
-      // it changed anything.
-      if (useSeparatePasses) {
-        let convertDecoratorsMadeChange = false;
-        for (const tsPath of toArray(tsSources.keys())) {
-          // Run TypeScript through the decorator annotator and emit goldens if
-          // it changed anything.
-          const {output, diagnostics} =
-              tsickle.convertDecorators(program.getTypeChecker(), program.getSourceFile(tsPath));
-          expect(diagnostics).to.be.empty;
-          if (output !== tsSources.get(tsPath)) {
-            const decoratedPath = tsPath.replace(/.ts(x)?$/, '.decorated.ts$1');
-            expect(decoratedPath).to.not.equal(tsPath);
-            compareAgainstGolden(output, decoratedPath);
-            tsSources.set(tsPath, output);
-            convertDecoratorsMadeChange = true;
-          }
-        }
-        if (convertDecoratorsMadeChange) {
-          // A file changed; reload the program on the new output.
-          program = testSupport.createProgram(tsSources);
-        }
-      }
-
       // Tsickle-annotate all the sources, comparing against goldens, and gather the
       // generated externs and tsickle-processed sources.
       let allExterns: string|null = null;
       const tsickleSources = new Map<string, string>();
       for (const tsPath of toArray(tsSources.keys())) {
         const warnings: ts.Diagnostic[] = [];
-        options.logWarning = (diag: ts.Diagnostic) => {
-          warnings.push(diag);
-        };
         const annotatorHost: tsickle.AnnotatorHost = {
           logWarning: (diag: ts.Diagnostic) => {
             warnings.push(diag);
@@ -155,20 +111,22 @@ function runGoldenTests(useSeparatePasses: boolean) {
             importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
             if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
             return importPath.replace(/\/|\\/g, '.');
-          }
+          },
+          // See test_files/jsdoc_types/nevertyped.ts.
+          typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
+          convertIndexImportShorthand: true,
+          untyped: /\.untyped\b/.test(test.name),
         };
         // Run TypeScript through tsickle and compare against goldens.
         const sourceFile = program.getSourceFile(tsPath);
         const annotated = tsickle.annotate(
-            program.getTypeChecker(), sourceFile, annotatorHost, options, {
+            program.getTypeChecker(), sourceFile, annotatorHost, {
               fileExists: ts.sys.fileExists,
               readFile: ts.sys.readFile,
             },
             testSupport.compilerOptions, undefined,
-            useSeparatePasses ? tsickle.AnnotatorFeatures.Default :
-                                tsickle.AnnotatorFeatures.LowerDecorators);
-        const externs =
-            tsickle.writeExterns(program.getTypeChecker(), sourceFile, annotatorHost, options);
+            tsickle.AnnotatorFeatures.LowerDecorators);
+        const externs = tsickle.writeExterns(program.getTypeChecker(), sourceFile, annotatorHost);
         const diagnostics = externs.diagnostics.concat(annotated.diagnostics);
         if (externs.output && !test.name.endsWith('.no_externs')) {
           if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
@@ -192,11 +150,6 @@ function runGoldenTests(useSeparatePasses: boolean) {
         }
         const tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
         expect(tsicklePath).to.not.equal(tsPath);
-        if (useSeparatePasses) {
-          // Don't compare the output of tsickle if we
-          // do a single pass as whitespaces might be different.
-          compareAgainstGolden(fileOutput, tsicklePath);
-        }
         tsickleSources.set(tsPath, annotated.output);
       }
       compareAgainstGolden(allExterns, test.externsPath);
@@ -210,4 +163,4 @@ function runGoldenTests(useSeparatePasses: boolean) {
       }
     });
   });
-}
+});

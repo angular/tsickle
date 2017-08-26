@@ -18,7 +18,7 @@ import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
 import * as tsickle from './tsickle';
 
-export interface TransformerOptions extends es5processor.Es5ProcessorOptions, tsickle.Options {
+export interface TransformerHost extends es5processor.Es5ProcessorHost, tsickle.AnnotatorHost {
   /**
    * Whether to downlevel decorators
    */
@@ -27,9 +27,6 @@ export interface TransformerOptions extends es5processor.Es5ProcessorOptions, ts
    * Whether to convers types to closure
    */
   transformTypesToClosure?: boolean;
-}
-
-export interface TransformerHost extends es5processor.Es5ProcessorHost, tsickle.AnnotatorHost {
   /**
    * If true, tsickle and decorator downlevel processing will be skipped for
    * that file.
@@ -72,25 +69,24 @@ export interface EmitTransformers {
 }
 
 export function emitWithTsickle(
-    program: ts.Program, host: TransformerHost, options: TransformerOptions,
-    tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions, targetSourceFile?: ts.SourceFile,
+    program: ts.Program, host: TransformerHost, tsHost: ts.CompilerHost,
+    tsOptions: ts.CompilerOptions, targetSourceFile?: ts.SourceFile,
     writeFile?: ts.WriteFileCallback, cancellationToken?: ts.CancellationToken,
     emitOnlyDtsFiles?: boolean, customTransformers?: EmitTransformers): EmitResult {
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const beforeTsTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   // add tsickle transformers
-  if (options.transformTypesToClosure) {
+  if (host.transformTypesToClosure) {
     // Note: tsickle.annotate can also lower decorators in the same run.
     beforeTsTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
-      const tisckleOptions: tsickle.Options = {...options, filterTypesForExport: true};
       const {output, diagnostics} = tsickle.annotate(
-          typeChecker, sourceFile, host, tisckleOptions, tsHost, tsOptions, sourceMapper,
+          typeChecker, sourceFile, host, tsHost, tsOptions, sourceMapper,
           tsickle.AnnotatorFeatures.Transformer);
       tsickleDiagnostics.push(...diagnostics);
       return output;
     }));
-  } else if (options.transformDecorators) {
+  } else if (host.transformDecorators) {
     beforeTsTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
       const {output, diagnostics} =
           decorator.convertDecorators(typeChecker, sourceFile, sourceMapper);
@@ -134,7 +130,7 @@ export function emitWithTsickle(
             content = removeInlineSourceMap(content);
           }
           content = es5processor.convertCommonJsToGoogModuleIfNeeded(
-              host, options, modulesManifest, fileName, content);
+              host, modulesManifest, fileName, content);
         } else {
           content = combineSourceMaps(program, fileName, content);
         }
@@ -145,13 +141,13 @@ export function emitWithTsickle(
       targetSourceFile, writeFileImpl, cancellationToken, emitOnlyDtsFiles, customTransformers);
 
   const externs: {[fileName: string]: string} = {};
-  if (options.transformTypesToClosure) {
+  if (host.transformTypesToClosure) {
     const sourceFiles = targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
     sourceFiles.forEach(sf => {
       if (tsickle.isDtsFileName(sf.fileName) && host.shouldSkipTsickleProcessing(sf.fileName)) {
         return;
       }
-      const {output, diagnostics} = tsickle.writeExterns(typeChecker, sf, host, options);
+      const {output, diagnostics} = tsickle.writeExterns(typeChecker, sf, host);
       if (output) {
         externs[sf.fileName] = output;
       }

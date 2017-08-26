@@ -25,11 +25,13 @@ export interface Es5ProcessorHost {
    * for each file.
    */
   fileNameToModuleId(fileName: string): string;
-}
-
-export interface Es5ProcessorOptions {
+  /** Whether to convert CommonJS module syntax to `goog.module` Closure imports. */
   googmodule?: boolean;
+  /** Whether the emit targets ES5 or ES6+. */
   es5Mode?: boolean;
+  /**
+   * An additional prelude to insert in front of the emitted code, e.g. to import a shared library.
+   */
   prelude?: string;
 }
 
@@ -73,8 +75,7 @@ class ES5Processor extends Rewriter {
   /** unusedIndex is used to generate fresh symbols for unnamed imports. */
   unusedIndex = 0;
 
-  constructor(
-      private host: Es5ProcessorHost, private options: Es5ProcessorOptions, file: ts.SourceFile) {
+  constructor(private host: Es5ProcessorHost, file: ts.SourceFile) {
     super(file);
   }
 
@@ -85,13 +86,13 @@ class ES5Processor extends Rewriter {
     const moduleName = this.host.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
-    if (this.options.prelude) this.emit(this.options.prelude);
+    if (this.host.prelude) this.emit(this.host.prelude);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
     // Uses 'var', as this code is inserted in ES6 and ES5 modes.
     // The following pattern ensures closure doesn't throw an error in advanced
     // optimizations mode.
-    if (this.options.es5Mode) {
+    if (this.host.es5Mode) {
       this.emit(`var module = module || {id: '${moduleId}'};`);
     } else {
       // The `exports = {}` serves as a default export to disable Closure Compiler's error checking
@@ -372,20 +373,19 @@ class ES5Processor extends Rewriter {
  * @param prelude An additional prelude to insert after the `goog.module` call,
  *     e.g. with additional imports or requires.
  */
-export function processES5(
-    host: Es5ProcessorHost, options: Es5ProcessorOptions, fileName: string,
-    content: string): {output: string, referencedModules: string[]} {
+export function processES5(host: Es5ProcessorHost, fileName: string, content: string):
+    {output: string, referencedModules: string[]} {
   const file = ts.createSourceFile(fileName, content, ts.ScriptTarget.ES5, true);
-  return new ES5Processor(host, options, file).process();
+  return new ES5Processor(host, file).process();
 }
 
 export function convertCommonJsToGoogModuleIfNeeded(
-    host: Es5ProcessorHost, options: Es5ProcessorOptions, modulesManifest: ModulesManifest,
-    fileName: string, content: string): string {
-  if (!options.googmodule || isDtsFileName(fileName)) {
+    host: Es5ProcessorHost, modulesManifest: ModulesManifest, fileName: string,
+    content: string): string {
+  if (!host.googmodule || isDtsFileName(fileName)) {
     return content;
   }
-  const {output, referencedModules} = processES5(host, options, fileName, content);
+  const {output, referencedModules} = processES5(host, fileName, content);
 
   const moduleName = host.pathToModuleName('', fileName);
   modulesManifest.addModule(fileName, moduleName);

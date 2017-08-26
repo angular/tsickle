@@ -18,7 +18,7 @@ import * as es5processor from '../src/es5processor';
 import {toClosureJS} from '../src/main';
 import {sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {createOutputRetainingCompilerHost, toArray} from '../src/util';
+import {toArray} from '../src/util';
 
 /** Base compiler options to be customized and exposed. */
 const baseCompilerOptions: ts.CompilerOptions = {
@@ -139,12 +139,13 @@ export function createProgramAndHost(
 export function emit(program: ts.Program): {[fileName: string]: string} {
   const transformed: {[fileName: string]: string} = {};
   const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
-    const options: es5processor.Es5ProcessorOptions = {es5Mode: true, prelude: ''};
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn.replace(/^\.\//, ''),
-      pathToModuleName: cliSupport.pathToModuleName
+      pathToModuleName: cliSupport.pathToModuleName,
+      es5Mode: true,
+      prelude: '',
     };
-    transformed[fileName] = es5processor.processES5(host, options, fileName, data).output;
+    transformed[fileName] = es5processor.processES5(host, fileName, data).output;
   });
   if (diagnostics.length > 0) {
     throw new Error(tsickle.formatDiagnostics(diagnostics));
@@ -233,18 +234,6 @@ export function assertSourceMapping(
   }
 }
 
-export function createTsickleHost(
-    sources: Map<string, string>,
-    filesNotToProcess = new Set<string>()): tsickle.TsickleHost&tsickle.TransformerHost {
-  return {
-    shouldSkipTsickleProcessing: (fileName) =>
-        !sources.has(fileName) || filesNotToProcess.has(fileName),
-    pathToModuleName: cliSupport.pathToModuleName,
-    shouldIgnoreWarningsForPath: (filePath) => false,
-    fileNameToModuleId: (fileName) => fileName,
-  };
-}
-
 export function extractInlineSourceMap(source: string): BasicSourceMapConsumer {
   const inlineSourceMapRegex =
       new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)$', 'mg');
@@ -286,22 +275,28 @@ export function getSourceMapWithName(
 export function compileWithTransfromer(
     sources: Map<string, string>, compilerOptions: ts.CompilerOptions) {
   const fileNames = toArray(sources.keys());
-  const files = new Map<string, string>();
-  const tsHost =
-      createOutputRetainingCompilerHost(files, createSourceCachingHost(sources, compilerOptions));
+  const tsHost = createSourceCachingHost(sources, compilerOptions);
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
   expect(ts.getPreEmitDiagnostics(program))
       .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
 
+  const transformerHost: tsickle.TransformerHost = {
+    shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
+    pathToModuleName: cliSupport.pathToModuleName,
+    shouldIgnoreWarningsForPath: (filePath) => false,
+    fileNameToModuleId: (filePath) => filePath,
+    transformDecorators: true,
+    transformTypesToClosure: true,
+    googmodule: true,
+    es5Mode: false,
+    untyped: false,
+  };
+
+  const files = new Map<string, string>();
   const {diagnostics, externs} = tsickle.emitWithTsickle(
-      program, createTsickleHost(sources), {
-        transformDecorators: true,
-        transformTypesToClosure: true,
-        googmodule: true,
-        es5Mode: false,
-        untyped: false,
-      },
-      tsHost, compilerOptions);
+      program, transformerHost, tsHost, compilerOptions, undefined, (path, contents) => {
+        files.set(path, contents);
+      });
 
   // tslint:disable-next-line:no-unused-expression
   expect(diagnostics, tsickle.formatDiagnostics(diagnostics)).to.be.empty;

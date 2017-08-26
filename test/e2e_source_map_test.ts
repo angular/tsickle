@@ -16,7 +16,7 @@ import * as ts from 'typescript';
 import {containsInlineSourceMap, getInlineSourceMapCount} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
-import {assertSourceMapping, compileWithTransfromer, createTsickleHost, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
+import {assertSourceMapping, compileWithTransfromer, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
 
 describe('source maps with transformer', () => {
   it('composes source maps with tsc', () => {

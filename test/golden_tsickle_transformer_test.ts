@@ -142,19 +142,6 @@ testFn('golden tests with transformer', () => {
       return;
     }
     let emitDeclarations = true;
-    const transfromerOptions: transformer.TransformerOptions = {
-      // See test_files/jsdoc_types/nevertyped.ts.
-      es5Mode: true,
-      prelude: '',
-      googmodule: true,
-      typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
-      convertIndexImportShorthand: true,
-      transformDecorators: true,
-      transformTypesToClosure: true,
-    };
-    if (/\.untyped\b/.test(test.name)) {
-      transfromerOptions.untyped = true;
-    }
     if (test.name === 'fields') {
       emitDeclarations = false;
     }
@@ -182,6 +169,15 @@ testFn('golden tests with transformer', () => {
       }
       const allDiagnostics: ts.Diagnostic[] = [];
       const transformerHost: transformer.TransformerHost = {
+        es5Mode: true,
+        prelude: '',
+        googmodule: true,
+        // See test_files/jsdoc_types/nevertyped.ts.
+        typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
+        convertIndexImportShorthand: true,
+        transformDecorators: true,
+        transformTypesToClosure: true,
+        untyped: /\.untyped\b/.test(test.name),
         logWarning: (diag: ts.Diagnostic) => {
           allDiagnostics.push(diag);
         },
@@ -196,7 +192,7 @@ testFn('golden tests with transformer', () => {
       };
       const jsSources: {[fileName: string]: string} = {};
       const {diagnostics, externs} = transformer.emitWithTsickle(
-          program, transformerHost, transfromerOptions, tsHost, tsCompilerOptions, undefined,
+          program, transformerHost, tsHost, tsCompilerOptions, undefined,
           (fileName: string, data: string) => {
             if (!fileName.endsWith('.d.ts')) {
               // Don't check .d.ts files, we are only interested to test

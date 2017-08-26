@@ -13,12 +13,13 @@ import * as es5processor from '../src/es5processor';
 
 describe('convertCommonJsToGoogModule', () => {
   function processES5(fileName: string, content: string, isES5 = true, prelude = '') {
-    const options: es5processor.Es5ProcessorOptions = {es5Mode: isES5, prelude};
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn,
-      pathToModuleName: cliSupport.pathToModuleName
+      pathToModuleName: cliSupport.pathToModuleName,
+      es5Mode: isES5,
+      prelude,
     };
-    return es5processor.processES5(host, options, fileName, content);
+    return es5processor.processES5(host, fileName, content);
   }
 
   function expectCommonJs(fileName: string, content: string, isES5 = true, prelude = '') {

@@ -60,36 +60,6 @@ export function createSourceReplacingCompilerHost(
 }
 
 /**
- * Constructs a new ts.CompilerHost that overlays sources in substituteSource
- * over another ts.CompilerHost.
- *
- * @param outputFiles map to fill with source file name -> output text.
- */
-export function createOutputRetainingCompilerHost(
-    outputFiles: Map<string, string>, delegate: ts.CompilerHost): ts.CompilerHost {
-  return {
-    getSourceFile: delegate.getSourceFile,
-    getCancellationToken: delegate.getCancellationToken,
-    getDefaultLibFileName: delegate.getDefaultLibFileName,
-    writeFile,
-    getCurrentDirectory: delegate.getCurrentDirectory,
-    getCanonicalFileName: delegate.getCanonicalFileName,
-    useCaseSensitiveFileNames: delegate.useCaseSensitiveFileNames,
-    getNewLine: delegate.getNewLine,
-    fileExists: delegate.fileExists,
-    readFile: delegate.readFile,
-    directoryExists: delegate.directoryExists,
-    getDirectories: delegate.getDirectories,
-  };
-
-  function writeFile(
-      fileName: string, content: string, writeByteOrderMark: boolean,
-      onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]): void {
-    outputFiles.set(fileName, content);
-  }
-}
-
-/**
  * Returns the input string with line endings normalized to '\n'.
  */
 export function normalizeLineEndings(input: string): string {

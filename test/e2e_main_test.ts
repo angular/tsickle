@@ -23,11 +23,13 @@ describe('toClosureJS', () => {
 
     const files = new Map<string, string>();
     const result = toClosureJS(
-        compilerOptions, filePaths, {isTyped: true}, (filePath: string, contents: string) => files.set(filePath, contents));
+        compilerOptions, filePaths, {isTyped: true}, (filePath: string, contents: string) => {
+          files.set(filePath, contents);
+        });
 
     if (result.diagnostics.length || true) {
       // result.diagnostics.forEach(v => console.log(JSON.stringify(v)));
-      expect(tsickle.formatDiagnostics(result.diagnostics)).to.be('a');
+      expect(tsickle.formatDiagnostics(result.diagnostics)).to.equal('');
     }
 
     expect(tsickle.getGeneratedExterns(result.externs)).to.contain(`/** @const */
@@ -36,11 +38,11 @@ var __NS = {};
 __NS.__ns1;
 `);
 
-    const underscoreDotJs = files.get('test_files/underscore/underscore.js');
+    const underscoreDotJs = files.get('./test_files/underscore/underscore.js');
     expect(underscoreDotJs).to.contain(`goog.module('test_files.underscore.underscore')`);
     expect(underscoreDotJs).to.contain(`/** @type {string} */`);
 
-    const exportUnderscoreDotJs = files.get('test_files/underscore/export_underscore.js');
+    const exportUnderscoreDotJs = files.get('./test_files/underscore/export_underscore.js');
     expect(exportUnderscoreDotJs)
         .to.contain(`goog.module('test_files.underscore.export_underscore')`);
   });
