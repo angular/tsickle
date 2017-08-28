@@ -78,8 +78,8 @@ gulp.task('test.compile', ['compile'], function(done) {
       .pipe(sourcemaps.init())
       .pipe(tsProject())
       .on('error', onError)
-      .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../..'}))
-      .pipe(gulp.dest('built/'));  // '/test/' comes from base above.
+      .js.pipe(sourcemaps.write('.', {includeContent: false, sourceRoot: '../../test'}))
+      .pipe(gulp.dest('built/'));
 });
 
 gulp.task('test.unit', ['test.compile'], function(done) {
