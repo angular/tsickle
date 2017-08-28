@@ -15,7 +15,6 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
-import * as transformer from './transformer';
 import * as tsickle from './tsickle';
 import {ModulesManifest} from './tsickle';
 import {toArray, createSourceReplacingCompilerHost} from './util';
@@ -124,10 +123,10 @@ function loadTscConfig(args: string[]):
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    writeFile?: ts.WriteFileCallback): transformer.EmitResult {
+    writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
   const compilerHost = ts.createCompilerHost(options);
   const program = ts.createProgram(fileNames, options, compilerHost);
-  const transformerHost: transformer.TransformerHost = {
+  const transformerHost: tsickle.TransformerHost = {
     shouldSkipTsickleProcessing: (fileName: string) => {
       return fileNames.indexOf(fileName) === -1;
     },
@@ -153,7 +152,7 @@ export function toClosureJS(
       emittedFiles: [],
     };
   }
-  return transformer.emitWithTsickle(
+  return tsickle.emitWithTsickle(
       program, transformerHost, compilerHost, options, undefined, writeFile);
 }
 
