@@ -1,3 +1,4 @@
+// Warning at test_files/fields/fields.ts:22:5: unhandled anonymous type
 goog.module('test_files.fields.fields');var module = module || {id: 'test_files/fields/fields.js'};/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc

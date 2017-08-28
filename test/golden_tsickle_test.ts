@@ -6,8 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-// tslint:disable:no-unused-expression mocha .to.be.empty getters.
-
 import {expect} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -25,6 +23,20 @@ const TEST_FILTER: RegExp|null =
 // produces from the .ts source. Do not change this code but run as:
 //     UPDATE_GOLDENS=y gulp test
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
+
+function readGolden(path: string): string|null {
+  let golden: string|null = null;
+  try {
+    golden = fs.readFileSync(path, 'utf-8');
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return null;
+    } else {
+      throw e;
+    }
+  }
+  return golden;
+}
 
 /**
  * compareAgainstGoldens compares a test output against the content in a golden
@@ -56,7 +68,7 @@ function compareAgainstGolden(output: string|null, path: string) {
   if (UPDATE_GOLDENS && output !== golden) {
     console.log('Updating golden file for', path);
     if (output !== null) {
-      fs.writeFileSync(path, output, 'utf-8');
+      fs.writeFileSync(path, output, {encoding: 'utf-8'});
     } else {
       // The desired golden state is for there to be no output file.
       // Ensure no file exists.
@@ -67,18 +79,22 @@ function compareAgainstGolden(output: string|null, path: string) {
       }
     }
   } else {
-    expect(output).to.equal(golden, path);
+    expect(output).to.equal(golden, `${path}`);
   }
 }
 
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? describe.only : describe;
 
-testFn('golden tests with TsickleCompilerHost', () => {
+testFn('golden tests with transformer', () => {
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.exec(test.name)) {
       it.skip(test.name);
       return;
+    }
+    let emitDeclarations = true;
+    if (test.name === 'fields') {
+      emitDeclarations = false;
     }
     it(test.name, () => {
       // Read all the inputs into a map, and create a ts.Program from them.
@@ -89,77 +105,95 @@ testFn('golden tests with TsickleCompilerHost', () => {
         tsSource = normalizeLineEndings(tsSource);
         tsSources.set(tsPath, tsSource);
       }
-      let program = testSupport.createProgram(tsSources);
+      const tsCompilerOptions: ts.CompilerOptions = {
+        ...testSupport.compilerOptions,
+        // Test that creating declarations does not throw
+        declaration: emitDeclarations
+      };
+      const {program, host: tsHost} =
+          testSupport.createProgramAndHost(tsSources, tsCompilerOptions);
       {
         const diagnostics = ts.getPreEmitDiagnostics(program);
         if (diagnostics.length) {
           throw new Error(tsickle.formatDiagnostics(diagnostics));
         }
       }
-
-      // Tsickle-annotate all the sources, comparing against goldens, and gather the
-      // generated externs and tsickle-processed sources.
-      let allExterns: string|null = null;
-      const tsickleSources = new Map<string, string>();
-      for (const tsPath of toArray(tsSources.keys())) {
-        const warnings: ts.Diagnostic[] = [];
-        const annotatorHost: tsickle.AnnotatorHost = {
-          logWarning: (diag: ts.Diagnostic) => {
-            warnings.push(diag);
-          },
-          pathToModuleName: (context, importPath) => {
-            importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
-            if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-            return importPath.replace(/\/|\\/g, '.');
-          },
-          // See test_files/jsdoc_types/nevertyped.ts.
-          typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
-          convertIndexImportShorthand: true,
-          untyped: /\.untyped\b/.test(test.name),
-        };
-        // Run TypeScript through tsickle and compare against goldens.
-        const sourceFile = program.getSourceFile(tsPath);
-        const annotated = tsickle.annotate(
-            program.getTypeChecker(), sourceFile, annotatorHost, {
-              fileExists: ts.sys.fileExists,
-              readFile: ts.sys.readFile,
-            },
-            testSupport.compilerOptions, undefined,
-            tsickle.AnnotatorFeatures.LowerDecorators);
-        const externs = tsickle.writeExterns(program.getTypeChecker(), sourceFile, annotatorHost);
-        const diagnostics = externs.diagnostics.concat(annotated.diagnostics);
-        if (externs.output && !test.name.endsWith('.no_externs')) {
-          if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
-          allExterns += externs.output;
-        }
-
-        // If there were any diagnostics, convert them into strings for
-        // the golden output.
-        let fileOutput = annotated.output;
-        diagnostics.push(...warnings);
-        if (diagnostics.length > 0) {
-          // Munge the filenames in the diagnostics so that they don't include
-          // the tsickle checkout path.
-          for (const diag of diagnostics) {
-            if (diag.file) {
-              const fileName = diag.file.fileName;
-              diag.file.fileName = fileName.substr(fileName.indexOf('test_files'));
-            }
+      const allDiagnostics: ts.Diagnostic[] = [];
+      const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
+      const transformerHost: tsickle.TransformerHost = {
+        es5Mode: true,
+        prelude: '',
+        googmodule: true,
+        // See test_files/jsdoc_types/nevertyped.ts.
+        typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
+        convertIndexImportShorthand: true,
+        transformDecorators: true,
+        transformTypesToClosure: true,
+        untyped: /\.untyped\b/.test(test.name),
+        logWarning: (diag: ts.Diagnostic) => {
+          allDiagnostics.push(diag);
+          let diags = diagnosticsByFile.get(diag.file.fileName);
+          if (!diags) {
+            diags = [];
+            diagnosticsByFile.set(diag.file.fileName, diags);
           }
-          fileOutput = tsickle.formatDiagnostics(diagnostics) + '\n====\n' + annotated.output;
+          diags.push(diag);
+        },
+        shouldSkipTsickleProcessing: (fileName) => !tsSources.has(fileName),
+        shouldIgnoreWarningsForPath: () => false,
+        pathToModuleName: (context, importPath) => {
+          importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
+          if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
+          return importPath.replace(/\/|\\/g, '.');
+        },
+        fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
+      };
+      const jsSources: {[fileName: string]: string} = {};
+      const {diagnostics, externs} = tsickle.emitWithTsickle(
+          program, transformerHost, tsHost, tsCompilerOptions, undefined,
+          (fileName: string, data: string) => {
+            if (!fileName.endsWith('.d.ts')) {
+              // Don't check .d.ts files, we are only interested to test
+              // that we don't throw when we generate them.
+              jsSources[fileName] = data;
+            }
+          });
+      allDiagnostics.push(...diagnostics);
+      let allExterns: string|null = null;
+      if (!test.name.endsWith('.no_externs')) {
+        for (const tsPath of toArray(tsSources.keys())) {
+          if (externs[tsPath]) {
+            if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
+            allExterns += externs[tsPath];
+          }
         }
-        const tsicklePath = tsPath.replace(/((\.d)?\.tsx?)$/, '.tsickle$1');
-        expect(tsicklePath).to.not.equal(tsPath);
-        tsickleSources.set(tsPath, annotated.output);
       }
       compareAgainstGolden(allExterns, test.externsPath);
-
-      // Run tsickled TypeScript through TypeScript compiler
-      // and compare against goldens.
-      program = testSupport.createProgram(tsickleSources);
-      const jsSources = testSupport.emit(program);
-      for (const jsPath of Object.keys(jsSources)) {
-        compareAgainstGolden(jsSources[jsPath], jsPath);
+      Object.keys(jsSources).forEach(jsPath => {
+        const tsPath = jsPath.replace(/\.js$/, '.ts').replace(/^\.\//, '');
+        const diags = diagnosticsByFile.get(tsPath);
+        diagnosticsByFile.delete(tsPath);
+        let out = jsSources[jsPath];
+        if (diags) {
+          out = tsickle.formatDiagnostics(diags).split('\n').map(line => `// ${line}\n`).join('') +
+              out;
+        }
+        compareAgainstGolden(out, jsPath);
+      });
+      const dtsDiags: ts.Diagnostic[] = [];
+      if (diagnosticsByFile.size) {
+        for (const [path, diags] of diagnosticsByFile.entries()) {
+          if (path.endsWith('.d.ts')) {
+            dtsDiags.push(...diags);
+            continue;
+          }
+          expect(tsickle.formatDiagnostics(diags))
+              .to.equal('', `unhandled diagnostics for ${path}`);
+        }
+      }
+      if (dtsDiags.length) {
+        compareAgainstGolden(
+            tsickle.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'));
       }
     });
   });

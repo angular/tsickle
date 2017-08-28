@@ -1,3 +1,4 @@
+// Warning at test_files/jsdoc/jsdoc.ts:44:3: unhandled anonymous type
 goog.module('test_files.jsdoc.jsdoc');var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc

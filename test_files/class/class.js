@@ -1,3 +1,4 @@
+// Warning at test_files/class/class.ts:129:1: type/symbol conflict for Zone, using {?} for now
 goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc

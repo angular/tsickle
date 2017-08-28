@@ -18,4 +18,4 @@ var typeNamespace;
     typeNamespace.Interface = Interface;
     function Interface_tsickle_Closure_declarations() {
     }
-})(typeNamespace = exports.typeNamespace || (exports.typeNamespace = {}));
+})(typeNamespace = typeNamespace || (typeNamespace = {}));

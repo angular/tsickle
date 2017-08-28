@@ -1,3 +1,4 @@
+// Warning at test_files/type/type.ts:14:5: unhandled type literal
 goog.module('test_files.type.type');var module = module || {id: 'test_files/type/type.js'};/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
