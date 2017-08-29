@@ -120,7 +120,7 @@ testFn('golden tests with transformer', () => {
       }
       const allDiagnostics: ts.Diagnostic[] = [];
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
-      const transformerHost: tsickle.TransformerHost = {
+      const transformerHost: tsickle.TsickleHost = {
         es5Mode: true,
         prelude: '',
         googmodule: true,

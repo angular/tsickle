@@ -126,7 +126,7 @@ export function toClosureJS(
     writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
   const compilerHost = ts.createCompilerHost(options);
   const program = ts.createProgram(fileNames, options, compilerHost);
-  const transformerHost: tsickle.TransformerHost = {
+  const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName: string) => {
       return fileNames.indexOf(fileName) === -1;
     },

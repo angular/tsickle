@@ -47,35 +47,6 @@ export interface AnnotatorHost {
   convertIndexImportShorthand?: boolean;
 }
 
-export enum AnnotatorFeatures {
-  LowerDecorators = 1 << 0,
-  /**
-   * Filter out types when expanding `export * from ...`.
-   *
-   * Needed by the transformer version as TypeScript collects symbol information before
-   * running the transformers, and the generated identifiers therefore have no
-   * TypeScript symbol information associated. Because of this, Typescript does not
-   * elide exports for types in this case.
-   *
-   * This flag will be removed and always set once we drop the on transformer version of
-   */
-  FilterTypesInExportStart = 1 << 1,
-  /**
-   * Generated @typedefs for reexported interfaces.
-   *
-   * Needed for the transformer version of tsickle as the .d.ts is generated before running tsickle,
-   * and therefore does no longer contain the reexports for the interfaces, even if
-   * tsickle changes them into functions.
-   *
-   * This flag will be removed and always set once we drop the on transformer version of
-   */
-  TypeDefReexportForInterfaces = 1 << 3,
-
-  Default = 0,
-
-  Transformer = LowerDecorators | FilterTypesInExportStart | TypeDefReexportForInterfaces,
-}
-
 /**
  * The header to be used in generated externs.  This is not included in the
  * output of annotate() because annotate() works one file at a time, and
@@ -580,7 +551,7 @@ class Annotator extends ClosureRewriter {
   constructor(
       typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
       private tsHost?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions,
-      sourceMapper?: SourceMapper, private features = AnnotatorFeatures.Default) {
+      sourceMapper?: SourceMapper) {
     super(typeChecker, file, host, sourceMapper);
   }
 
@@ -949,9 +920,6 @@ class Annotator extends ClosureRewriter {
   }
 
   private shouldEmitExportSymbol(sym: ts.Symbol): boolean {
-    if (!(this.features & AnnotatorFeatures.FilterTypesInExportStart)) {
-      return true;
-    }
     if (sym.flags & ts.SymbolFlags.Alias) {
       sym = this.typeChecker.getAliasedSymbol(sym);
     }
@@ -1098,13 +1066,10 @@ class Annotator extends ClosureRewriter {
     for (const exp of exports) {
       if (exp.sym.flags & ts.SymbolFlags.Alias)
         exp.sym = this.typeChecker.getAliasedSymbol(exp.sym);
-      let isTypeAlias = (exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
-          (exp.sym.flags & ts.SymbolFlags.Value) === 0;
-      if (this.features & AnnotatorFeatures.TypeDefReexportForInterfaces) {
-        isTypeAlias = isTypeAlias ||
-            (exp.sym.flags & ts.SymbolFlags.Interface) !== 0 &&
-                (exp.sym.flags & ts.SymbolFlags.Value) === 0;
-      }
+      const isTypeAlias = ((exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
+                           (exp.sym.flags & ts.SymbolFlags.Value) === 0) ||
+          (exp.sym.flags & ts.SymbolFlags.Interface) !== 0 &&
+              (exp.sym.flags & ts.SymbolFlags.Value) === 0;
       if (!isTypeAlias) continue;
       const typeName = this.symbolsToAliasedNames.get(exp.sym) || exp.sym.name;
       this.emit(`\n/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef`);
@@ -1277,10 +1242,8 @@ class Annotator extends ClosureRewriter {
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
     this.addSourceMapping(classDecl);
     const oldDecoratorConverter = this.currentDecoratorConverter;
-    if (this.features & AnnotatorFeatures.LowerDecorators) {
-      this.currentDecoratorConverter = new decorator.DecoratorClassVisitor(
-          this.typeChecker, this, classDecl, this.importedNames);
-    }
+    this.currentDecoratorConverter =
+        new decorator.DecoratorClassVisitor(this.typeChecker, this, classDecl, this.importedNames);
 
     const docTags = this.getJSDoc(classDecl) || [];
     if (hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
@@ -1880,9 +1843,9 @@ function isPolymerBehaviorPropertyInCallExpression(pa: ts.PropertyAssignment): b
 
 export function annotate(
     typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
-    tsHost?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions, sourceMapper?: SourceMapper,
-    features = AnnotatorFeatures.Default): {output: string, diagnostics: ts.Diagnostic[]} {
-  return new Annotator(typeChecker, file, host, tsHost, tsOpts, sourceMapper, features).annotate();
+    tsHost?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
+    sourceMapper?: SourceMapper): {output: string, diagnostics: ts.Diagnostic[]} {
+  return new Annotator(typeChecker, file, host, tsHost, tsOpts, sourceMapper).annotate();
 }
 
 export function writeExterns(typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost):
@@ -1900,7 +1863,7 @@ export function getGeneratedExterns(externs: {[fileName: string]: string}): stri
   return allExterns;
 }
 
-export interface TransformerHost extends es5processor.Es5ProcessorHost, AnnotatorHost {
+export interface TsickleHost extends es5processor.Es5ProcessorHost, AnnotatorHost {
   /**
    * Whether to downlevel decorators
    */
@@ -1951,10 +1914,10 @@ export interface EmitTransformers {
 }
 
 export function emitWithTsickle(
-    program: ts.Program, host: TransformerHost, tsHost: ts.CompilerHost,
-    tsOptions: ts.CompilerOptions, targetSourceFile?: ts.SourceFile,
-    writeFile?: ts.WriteFileCallback, cancellationToken?: ts.CancellationToken,
-    emitOnlyDtsFiles?: boolean, customTransformers?: EmitTransformers): EmitResult {
+    program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions,
+    targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
+    cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
+    customTransformers?: EmitTransformers): EmitResult {
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const beforeTsTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
@@ -1962,9 +1925,8 @@ export function emitWithTsickle(
   if (host.transformTypesToClosure) {
     // Note: tsickle.annotate can also lower decorators in the same run.
     beforeTsTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
-      const {output, diagnostics} = annotate(
-          typeChecker, sourceFile, host, tsHost, tsOptions, sourceMapper,
-          AnnotatorFeatures.Transformer);
+      const {output, diagnostics} =
+          annotate(typeChecker, sourceFile, host, tsHost, tsOptions, sourceMapper);
       tsickleDiagnostics.push(...diagnostics);
       return output;
     }));
@@ -2056,7 +2018,7 @@ export function emitWithTsickle(
 }
 
 function skipTransformForSourceFileIfNeeded(
-    host: TransformerHost,
+    host: TsickleHost,
     delegateFactory: ts.TransformerFactory<ts.SourceFile>): ts.TransformerFactory<ts.SourceFile> {
   return (context: ts.TransformationContext) => {
     const delegate = delegateFactory(context);

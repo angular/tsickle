@@ -280,7 +280,7 @@ export function compileWithTransfromer(
   expect(ts.getPreEmitDiagnostics(program))
       .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
 
-  const transformerHost: tsickle.TransformerHost = {
+  const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
