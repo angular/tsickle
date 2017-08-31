@@ -364,21 +364,33 @@ class ClosureRewriter extends Rewriter {
 
     if (!comments || comments.length === 0) return null;
 
-    // JS compiler only considers the last comment significant.
-    const {pos, end} = comments[comments.length - 1];
+    // We need to search backwards for the first JSDoc comment to avoid ignoring such when another
+    // code-level comment is between that comment and the function declaration (see
+    // testfiles/doc_params for an example).
+    let startPosition = 0;
+    let parsed: jsdoc.ParsedJSDocComment|null = null;
+    for (let i = comments.length - 1; i >= 0; i--) {
+      const {pos, end} = comments[i];
 
-    if (end <= this.file.getStart() && this.file.text.substring(end).startsWith('\n\n')) {
-      // This comment is at the very beginning of the file and there's an empty line between the
-      // comment and this node. That means we should treat it as a file-level comment, not attached
-      // to this code node.
-      return null;
+      if (end <= this.file.getStart() && this.file.text.substring(end).startsWith('\n\n')) {
+        // This comment is at the very beginning of the file and there's an empty line between the
+        // comment and this node. That means we should treat it as a file-level comment, not
+        // attached to this code node.
+        return null;
+      }
+
+      const comment = text.substring(pos, end);
+      parsed = jsdoc.parse(comment);
+      if (parsed) {
+        startPosition = pos;
+        break;
+      }
     }
 
-    const comment = text.substring(pos, end);
-    const parsed = jsdoc.parse(comment);
     if (!parsed) return null;
+
     if (parsed.warnings) {
-      const start = node.getFullStart() + pos;
+      const start = node.getFullStart() + startPosition;
       this.diagnostics.push({
         file: this.file,
         start,

@@ -116,6 +116,16 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
 ]);
 
 /**
+ * Result of parsing a JSDoc comment. Such comments essentially are built of a list of tags.
+ * In addition to the tags, this might also contain warnings to indicate non-fatal problems
+ * while finding the tags.
+ */
+export interface ParsedJSDocComment {
+  tags: Tag[];
+  warnings?: string[];
+}
+
+/**
  * parse parses JSDoc out of a comment string.
  * Returns null if comment is not JSDoc.
  */
@@ -123,7 +133,7 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
 // such as merging (below), de-duplicating certain tags (@deprecated), and special treatment for
 // others (e.g. @suppress). We should introduce a proper model class with a more suitable data
 // strucure (e.g. a Map<TagName, Values[]>).
-export function parse(comment: string): {tags: Tag[], warnings?: string[]}|null {
+export function parse(comment: string): ParsedJSDocComment|null {
   // Make sure we have proper line endings before parsing on Windows.
   comment = normalizeLineEndings(comment);
   // TODO(evanm): this is a pile of hacky regexes for now, because we
