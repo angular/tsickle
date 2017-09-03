@@ -1091,18 +1091,18 @@ class Annotator extends ClosureRewriter {
         throw new Error(
             'option convertIndexImportShorthand requires that annotate be called with a TypeScript host and options.');
       }
-      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.tsHost);
-      if (resolved && resolved.resolvedModule) {
-        const requestedModule = moduleId.replace(extension, '');
-        const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
-        if (resolvedModule.indexOf('node_modules') === -1 &&
-            requestedModule.substr(requestedModule.lastIndexOf('/')) !==
-                resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
-          moduleId = './' +
-              path.relative(path.dirname(this.file.fileName), resolvedModule)
-                  .replace(path.sep, '/');
-        }
-      }
+//       const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.tsHost);
+//       if (resolved && resolved.resolvedModule) {
+//         const requestedModule = moduleId.replace(extension, '');
+//         const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
+//         if (resolvedModule.indexOf('node_modules') === -1 &&
+//             requestedModule.substr(requestedModule.lastIndexOf('/')) !==
+//                 resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
+//           moduleId = './' +
+//               path.relative(path.dirname(this.file.fileName), resolvedModule)
+//                   .replace(path.sep, '/');
+//         }
+//       }
     }
     return moduleId;
   }
