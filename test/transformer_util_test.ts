@@ -217,12 +217,10 @@ describe('transformer util', () => {
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
       expect(jsSources['./a.js']).to.eq([
-        `/*<${
-              ts.SyntaxKind.VariableStatement
-            }>lc1*/ const x = 1; /*<${ts.SyntaxKind.VariableStatement}>tc1*/`,
-        `/*<${
-              ts.SyntaxKind.VariableStatement
-            }>lc2*/ const y = 1; /*<${ts.SyntaxKind.VariableStatement}>tc2*/`,
+        `/*<${ts.SyntaxKind.VariableStatement}>lc1*/ const x = 1; /*<${
+            ts.SyntaxKind.VariableStatement}>tc1*/`,
+        `/*<${ts.SyntaxKind.VariableStatement}>lc2*/ const y = 1; /*<${
+            ts.SyntaxKind.VariableStatement}>tc2*/`,
         ``,
       ].join('\n'));
     });

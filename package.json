@@ -30,7 +30,7 @@
     "@types/source-map": "^0.5.1",
     "@types/source-map-support": "^0.2.27",
     "chai": "^3.5.0",
-    "clang-format": "^1.0.51",
+    "clang-format": "^1.0.55",
     "diff": "^3.2.0",
     "glob": "^7.0.0",
     "google-closure-compiler": "^20161024.1.0",

@@ -427,7 +427,7 @@ function visitNodeStatementsWithSynthesizedComments<T extends ts.Node>(
  */
 function synthesizeDetachedLeadingComments(
     sourceFile: ts.SourceFile, node: ts.Node, statements: ts.NodeArray<ts.Statement>):
-    {commentStmt: ts.Statement | null, lastCommentEnd: number} {
+    {commentStmt: ts.Statement|null, lastCommentEnd: number} {
   let triviaEnd = statements.end;
   if (statements.length) {
     triviaEnd = statements[0].getStart();
@@ -456,7 +456,7 @@ function synthesizeDetachedLeadingComments(
  */
 function synthesizeDetachedTrailingComments(
     sourceFile: ts.SourceFile, node: ts.Node, statements: ts.NodeArray<ts.Statement>):
-    {commentStmt: ts.Statement | null, lastCommentEnd: number} {
+    {commentStmt: ts.Statement|null, lastCommentEnd: number} {
   let trailingCommentStart = statements.end;
   if (statements.length) {
     const lastStmt = statements[statements.length - 1];
