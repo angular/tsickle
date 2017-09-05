@@ -71,3 +71,13 @@ const EnumWithNonConstValues = {
 };
 EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = "Scheme";
 EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = "UserInfoRenamed";
+/** @enum {string} */
+const StringEnum = {
+    STR: 'abc',
+    OTHER_STR: 'xyz',
+};
+/** @enum {number|string} */
+const MixedEnum = {
+    STR: 'abc',
+    NUM: 3,
+};
