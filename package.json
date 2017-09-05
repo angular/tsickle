@@ -18,6 +18,7 @@
     "typescript": "2.4.2"
   },
   "devDependencies": {
+    "@bazel/typescript": "0.1.0",
     "@types/chai": "^3.4.32",
     "@types/diff": "^3.2.0",
     "@types/glob": "^5.0.29",
@@ -43,7 +44,6 @@
     "gulp-util": "^3.0.4",
     "merge2": "^1.0.2",
     "mocha": "^3.2.0",
-    "protobufjs": "5.0.0",
     "temp": "^0.8.1",
     "tslint": "^5.4.2",
     "typescript": "~2.4.2"
