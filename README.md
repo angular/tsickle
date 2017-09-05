@@ -119,3 +119,11 @@ rewrite the golden files when you run it.
 
 Export the environment variable `TEST_FILTER`, a regex, to limit the end-to-end
 tests (found in `test_files/...`) run tests with a name matching the regex.
+
+### Releasing
+
+On a new branch, run `npm version <major|minor|patch|...> -m 'rel: %s'` (see
+`npm help version` for details) to update the version in `package.json`, commit
+the changes, and create a git tag. Push the branch, get it reviewed and merged,
+then run `npm publish` from the master branch (you must be logged into the
+`angular` shared npm account).
