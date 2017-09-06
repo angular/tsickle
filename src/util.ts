@@ -12,18 +12,6 @@
 
 import * as ts from 'typescript';
 
-export function toArray<T>(iterator: Iterator<T>): T[] {
-  const array: T[] = [];
-  while (true) {
-    const ir = iterator.next();
-    if (ir.done) {
-      break;
-    }
-    array.push(ir.value);
-  }
-  return array;
-}
-
 /**
  * Constructs a new ts.CompilerHost that overlays sources in substituteSource
  * over another ts.CompilerHost.

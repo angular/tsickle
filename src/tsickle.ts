@@ -20,7 +20,6 @@ import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeI
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
 import * as typeTranslator from './type-translator';
-import {toArray} from './util';
 
 export {convertDecorators} from './decorator-annotator';
 export {FileMap, ModulesManifest} from './modules_manifest';
@@ -1061,7 +1060,7 @@ class Annotator extends ClosureRewriter {
       this.generatedExports.add(name);
       reexports.add(sym);
     }
-    return toArray(reexports.keys()).map(sym => {
+    return Array.from(reexports.keys()).map(sym => {
       return {name: sym.name, sym};
     });
   }
