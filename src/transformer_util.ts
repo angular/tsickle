@@ -605,18 +605,6 @@ export function updateSourceFileNode(
   return sf;
 }
 
-/**
- * This is a version of `ts.visitEachChild` that does not visit children of types,
- * as this leads to errors in TypeScript < 2.4.0 and as types are not emitted anyways.
- */
-export function visitEachChildIgnoringTypes<T extends ts.Node>(
-    node: T, visitor: ts.Visitor, context: ts.TransformationContext): T {
-  if (isTypeNodeKind(node.kind) || node.kind === ts.SyntaxKind.IndexSignature) {
-    return node;
-  }
-  return ts.visitEachChild(node, visitor, context);
-}
-
 // Copied from TypeScript
 export function isTypeNodeKind(kind: ts.SyntaxKind) {
   return (kind >= ts.SyntaxKind.FirstTypeNode && kind <= ts.SyntaxKind.LastTypeNode) ||
