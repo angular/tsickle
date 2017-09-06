@@ -50,6 +50,7 @@
   },
   "scripts": {
     "prepublish": "gulp compile",
+    "install": "gulp compile",
     "test": "gulp test"
   },
   "repository": {
