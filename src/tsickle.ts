@@ -1975,21 +1975,21 @@ export function emitWithTsickle(
     program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions,
     targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
-    customTransformers?: EmitTransformers): EmitResult {
+    customTransformers: EmitTransformers = {}): EmitResult {
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
-  const beforeTsTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
+  const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   // add tsickle transformers
   if (host.transformTypesToClosure) {
     // Note: tsickle.annotate can also lower decorators in the same run.
-    beforeTsTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
+    tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
       const {output, diagnostics} =
           annotate(typeChecker, sourceFile, host, tsHost, tsOptions, sourceMapper);
       tsickleDiagnostics.push(...diagnostics);
       return output;
     }));
   } else if (host.transformDecorators) {
-    beforeTsTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
+    tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
       const {output, diagnostics} =
           decorator.convertDecorators(typeChecker, sourceFile, sourceMapper);
       tsickleDiagnostics.push(...diagnostics);
@@ -2001,24 +2001,18 @@ export function emitWithTsickle(
   //   sourceMapper.addMapping(sourceFile, {position: 0, line: 0, column: 0}, {position: 0, line: 0,
   //   column: 0}, sourceFile.text.length); return sourceFile.text;
   // }));
-  // add user supplied transformers
-  const afterTsTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
-  if (customTransformers) {
-    if (customTransformers.beforeTsickle) {
-      beforeTsTransformers.unshift(...customTransformers.beforeTsickle);
-    }
-
-    if (customTransformers.beforeTs) {
-      beforeTsTransformers.push(...customTransformers.beforeTs);
-    }
-    if (customTransformers.afterTs) {
-      afterTsTransformers.push(...customTransformers.afterTs);
-    }
-  }
-  const tsTransformers = createCustomTransformers({
-    before: beforeTsTransformers.map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
-    after: afterTsTransformers.map(tf => skipTransformForSourceFileIfNeeded(host, tf))
-  });
+  const tsickleTransformers = createCustomTransformers({before: tsickleSourceTransformers});
+  const tsTransformers: ts.CustomTransformers = {
+    before: [
+      ...(customTransformers.beforeTsickle || []),
+      ...(tsickleTransformers.before || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
+      ...(customTransformers.beforeTs || []),
+    ],
+    after: [
+      ...(customTransformers.afterTs || []),
+      ...(tsickleTransformers.after || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf))
+    ]
+  };
 
   const writeFileDelegate = writeFile || tsHost.writeFile.bind(tsHost);
   const modulesManifest = new ModulesManifest();
