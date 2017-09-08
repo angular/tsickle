@@ -81,6 +81,22 @@ describe('emitWithTsickle', () => {
     expect(jsSources['./a.js']).to.contain('exports.x = 2;');
   });
 
+
+  describe('regressions', () => {
+    it('should produce correct .d.ts files when expanding `export *` with es2015 module syntax',
+       () => {
+         const tsSources = {'a.ts': `export const x = 1;`, 'b.ts': `export * from './a';\n`};
+         const jsSources = emitWithTsickle(
+             tsSources, {
+               declaration: true,
+               module: ts.ModuleKind.ES2015,
+             },
+             {es5Mode: false, googmodule: false});
+
+         expect(jsSources['./b.d.ts']).to.eq(`export * from './a';\n`);
+       });
+
+  });
 });
 
 function objectToMap(data: {[key: string]: string}): Map<string, string> {

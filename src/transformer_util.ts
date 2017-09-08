@@ -319,7 +319,7 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
     if (!(node.flags & ts.NodeFlags.Synthesized)) {
       // need to clone as we don't want to modify source nodes,
       // as the parsed SourceFiles could be cached!
-      node = getMutableClone(node);
+      node = ts.getMutableClone(node);
     }
     const textRange = {pos: node.pos, end: node.end};
     ts.setSourceMapRange(node, textRange);
@@ -600,21 +600,9 @@ export function updateSourceFileNode(
   }
   // Note: Need to clone the original file (and not use `ts.updateSourceFileNode`)
   // as otherwise TS fails when resolving types for decorators.
-  sf = getMutableClone(sf);
+  sf = ts.getMutableClone(sf);
   sf.statements = statements;
   return sf;
-}
-
-/**
- * A version of ts.getMutableClone that does not always set the synthesized flag.
- * @param node
- */
-export function getMutableClone<T extends ts.Node>(node: T): T {
-  const clone = ts.getMutableClone(node);
-  if (!(node.flags & ts.NodeFlags.Synthesized)) {
-    clone.flags &= ~ts.NodeFlags.Synthesized;
-  }
-  return clone;
 }
 
 /**
