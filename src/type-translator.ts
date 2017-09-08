@@ -8,7 +8,6 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
-import {toArray} from './util';
 
 /**
  * Determines if fileName refers to a builtin lib.d.ts file.
@@ -532,7 +531,10 @@ export class TypeTranslator {
       return `function(new: (${constructedType})${paramsStr}): ?`;
     }
 
-    for (const field of toArray(type.symbol.members.keys())) {
+    // members is an ES6 map, but the .d.ts defining it defined their own map
+    // type, so typescript doesn't believe that .keys() is iterable
+    // tslint:disable-next-line:no-any
+    for (const field of (type.symbol.members.keys() as any)) {
       switch (field) {
         case '__call':
           callable = true;

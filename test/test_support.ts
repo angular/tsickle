@@ -18,7 +18,6 @@ import * as es5processor from '../src/es5processor';
 import {toClosureJS} from '../src/main';
 import {sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {toArray} from '../src/util';
 
 /** Base compiler options to be customized and exposed. */
 const baseCompilerOptions: ts.CompilerOptions = {
@@ -112,7 +111,8 @@ export function createSourceCachingHost(
     if (contents !== undefined) {
       return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
     }
-    throw new Error('unexpected file read of ' + fileName + ' not in ' + toArray(sources.keys()));
+    throw new Error(
+        'unexpected file read of ' + fileName + ' not in ' + Array.from(sources.keys()));
   };
   const originalFileExists = host.fileExists;
   host.fileExists = (fileName: string): boolean => {
@@ -131,7 +131,7 @@ export function createProgramAndHost(
     {host: ts.CompilerHost, program: ts.Program} {
   const host = createSourceCachingHost(sources);
 
-  const program = ts.createProgram(toArray(sources.keys()), tsCompilerOptions, host);
+  const program = ts.createProgram(Array.from(sources.keys()), tsCompilerOptions, host);
   return {program, host};
 }
 
@@ -253,13 +253,14 @@ export function extractInlineSourceMap(source: string): BasicSourceMapConsumer {
 }
 
 export function findFileContentsByName(filename: string, files: Map<string, string>): string {
-  const filePaths = toArray(files.keys());
-  for (const filepath of filePaths) {
+  for (const filepath of files.keys()) {
     if (path.parse(filepath).base === path.parse(filename).base) {
       return files.get(filepath)!;
     }
   }
-  assert(undefined, `Couldn't find file ${filename} in files: ${JSON.stringify(filePaths)}`);
+  assert(
+      undefined,
+      `Couldn't find file ${filename} in files: ${JSON.stringify(Array.from(files.keys()))}`);
   throw new Error('Unreachable');
 }
 
@@ -274,7 +275,7 @@ export function getSourceMapWithName(
  */
 export function compileWithTransfromer(
     sources: Map<string, string>, compilerOptions: ts.CompilerOptions) {
-  const fileNames = toArray(sources.keys());
+  const fileNames = Array.from(sources.keys());
   const tsHost = createSourceCachingHost(sources, compilerOptions);
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
   expect(ts.getPreEmitDiagnostics(program))

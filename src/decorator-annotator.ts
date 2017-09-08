@@ -13,7 +13,6 @@ import {getDecoratorDeclarations} from './decorators';
 import {getIdentifierText, Rewriter} from './rewriter';
 import {SourceMapper} from './source_map_utils';
 import {TypeTranslator} from './type-translator';
-import {toArray} from './util';
 
 /**
  * ConstructorParameters are gathered from constructors, so that their type information and
@@ -300,7 +299,7 @@ export class DecoratorClassVisitor {
     if (this.propDecorators) {
       this.rewriter.emit(
           `static propDecorators: {[key: string]: ` + decoratorInvocations + `} = {\n`);
-      for (const name of toArray(this.propDecorators.keys())) {
+      for (const name of this.propDecorators.keys()) {
         this.rewriter.emit(`"${name}": [`);
 
         for (const decorator of this.propDecorators.get(name)!) {

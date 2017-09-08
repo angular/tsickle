@@ -11,7 +11,6 @@ import * as ts from 'typescript';
 import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
 import {isDtsFileName} from './tsickle';
-import {toArray} from './util';
 
 export interface Es5ProcessorHost {
   /**
@@ -111,7 +110,7 @@ class ES5Processor extends Rewriter {
     }
     this.writeRange(this.file, pos, this.file.getEnd());
 
-    const referencedModules = toArray(this.moduleVariables.keys());
+    const referencedModules = Array.from(this.moduleVariables.keys());
     // Note: don't sort referencedModules, as the keys are in the same order
     // they occur in the source file.
     const {output} = this.getOutput();

@@ -12,7 +12,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
-import {normalizeLineEndings, toArray} from '../src/util';
+import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
 
@@ -161,7 +161,7 @@ testFn('golden tests with transformer', () => {
       allDiagnostics.push(...diagnostics);
       let allExterns: string|null = null;
       if (!test.name.endsWith('.no_externs')) {
-        for (const tsPath of toArray(tsSources.keys())) {
+        for (const tsPath of tsSources.keys()) {
           if (externs[tsPath]) {
             if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
             allExterns += externs[tsPath];
