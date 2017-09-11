@@ -9,7 +9,7 @@
 import {expect} from 'chai';
 import * as ts from 'typescript';
 
-import {createCustomTransformers, visitEachChildIgnoringTypes, visitNodeWithSynthesizedComments} from '../src/transformer_util';
+import {createCustomTransformers, visitNodeWithSynthesizedComments} from '../src/transformer_util';
 import * as tsickle from '../src/tsickle';
 import {normalizeLineEndings} from '../src/util';
 
@@ -49,7 +49,7 @@ describe('transformer util', () => {
         function visitNodeImpl<T extends ts.Node>(node: T): T {
           visitComments(node, ts.getSyntheticLeadingComments(node));
           visitComments(node, ts.getSyntheticTrailingComments(node));
-          return visitEachChildIgnoringTypes(node, visitNode, context);
+          return ts.visitEachChild(node, visitNode, context);
         }
 
         function visitComments(node: ts.Node, comments: ts.SynthesizedComment[]|undefined) {
@@ -362,7 +362,7 @@ describe('transformer util', () => {
             ts.setTextRange(synthNode, node);
             node = synthNode as ts.Node as T;
           }
-          return visitEachChildIgnoringTypes(node, visitNode, context);
+          return ts.visitEachChild(node, visitNode, context);
         }
       };
     }
@@ -421,7 +421,7 @@ describe('transformer util', () => {
                          ed, undefined, undefined, namedExports, ed.moduleSpecifier) as ts.Node as
                   T;
             }
-            return visitEachChildIgnoringTypes(node, visitNode, context);
+            return ts.visitEachChild(node, visitNode, context);
           }
         };
       }

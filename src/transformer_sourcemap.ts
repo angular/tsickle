@@ -9,7 +9,7 @@
 import * as ts from 'typescript';
 
 import {SourceMapper, SourcePosition} from './source_map_utils';
-import {isTypeNodeKind, updateSourceFileNode, visitEachChildIgnoringTypes, visitNodeWithSynthesizedComments} from './transformer_util';
+import {isTypeNodeKind, updateSourceFileNode, visitNodeWithSynthesizedComments} from './transformer_util';
 
 /**
  * @fileoverview Creates a TypeScript transformer that parses code into a new `ts.SourceFile`,
@@ -47,7 +47,7 @@ export function createTransformerFromSourceMap(
            isTypeNodeKind(node.kind) || node.kind === ts.SyntaxKind.IndexSignature)) {
         return originalNode;
       }
-      node = visitEachChildIgnoringTypes(node, visitNode, context);
+      node = ts.visitEachChild(node, visitNode, context);
 
       node.flags |= ts.NodeFlags.Synthesized;
       node.parent = undefined;
