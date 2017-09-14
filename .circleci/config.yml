@@ -3,16 +3,14 @@ jobs:
   build:
     working_directory: ~/tsickle
     docker:
-      - image: alexeagle/ngcontainer
+      - image: angular/ngcontainer:0.0.1
     steps:
       - checkout
       - restore_cache:
-          key: tsickle-{{ .Branch }}-{{ checksum "yarn.lock" }}
-      # Turn off sandboxing, workaround for
-      # https://github.com/alexeagle/ngcontainer/issues/1
-      - run: bazel run @yarn_pkg//:bin/yarn
-      - run: bazel build --spawn_strategy=standalone ...
+          key: tsickle-{{ checksum "yarn.lock" }}
+      - run: bazel run @yarn//:yarn
+      - run: bazel build ...
       - save_cache:
-          key: tsickle-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          key: tsickle-{{ checksum "yarn.lock" }}
           paths:
             - "node_modules"
