@@ -582,6 +582,25 @@ function getAllLeadingCommentRanges(
 }
 
 /**
+ * This is a version of `ts.visitEachChild` that works that calls our version
+ * of `updateSourceFileNode`, so that typescript doesn't lose type information
+ * for property decorators.
+ * See https://github.com/Microsoft/TypeScript/issues/17384
+ *
+ * @param sf
+ * @param statements
+ */
+export function visitEachChild(
+    node: ts.Node, visitor: ts.Visitor, context: ts.TransformationContext) {
+  if (node.kind === ts.SyntaxKind.SourceFile) {
+    const sf = node as ts.SourceFile;
+    return updateSourceFileNode(sf, ts.visitLexicalEnvironment(sf.statements, visitor, context));
+  }
+
+  return ts.visitEachChild(node, visitor, context);
+}
+
+/**
  * This is a version of `ts.updateSourceFileNode` that works
  * well with property decorators.
  * See https://github.com/Microsoft/TypeScript/issues/17384

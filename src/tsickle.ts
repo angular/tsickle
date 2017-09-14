@@ -10,6 +10,7 @@ import * as path from 'path';
 import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
+import {classDecoratorDownlevelTransformer} from './class_decorator_downlevel_transformer';
 import * as decorator from './decorator-annotator';
 import {hasExportingDecorator} from './decorators';
 import * as es5processor from './es5processor';
@@ -1921,8 +1922,6 @@ export function emitWithTsickle(
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
-  // add tsickle transformers
-  const beforeTsTransformers = customTransformers.beforeTs || [];
   if (host.transformTypesToClosure) {
     // Note: tsickle.annotate can also lower decorators in the same run.
     tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
@@ -1932,7 +1931,9 @@ export function emitWithTsickle(
       return output;
     }));
     // Only add @suppress {checkTypes} comments when also adding type annotations.
-    beforeTsTransformers.push(transformFileoverviewComment);
+    tsickleSourceTransformers.push(transformFileoverviewComment);
+    tsickleSourceTransformers.push(
+        classDecoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   } else if (host.transformDecorators) {
     tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
       const {output, diagnostics} =
@@ -1940,6 +1941,8 @@ export function emitWithTsickle(
       tsickleDiagnostics.push(...diagnostics);
       return output;
     }));
+    tsickleSourceTransformers.push(
+        classDecoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
   // // For debugging: transformer that just emits the same text.
   // beforeTsTransformers.push(createTransformer(host, typeChecker, (sourceFile, sourceMapper) => {
@@ -1951,7 +1954,7 @@ export function emitWithTsickle(
     before: [
       ...(customTransformers.beforeTsickle || []),
       ...(tsickleTransformers.before || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
-      ...beforeTsTransformers,
+      ...(customTransformers.beforeTs || []),
     ],
     after: [
       ...(customTransformers.afterTs || []),

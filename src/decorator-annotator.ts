@@ -28,6 +28,37 @@ interface ConstructorParameter {
   decorators: ts.Decorator[]|null;
 }
 
+export function shouldLower(decorator: ts.Decorator, typeChecker: ts.TypeChecker) {
+  for (const d of getDecoratorDeclarations(decorator, typeChecker)) {
+    // TODO(lucassloan):
+    // Switch to the TS JSDoc parser in the future to avoid false positives here.
+    // For example using '@Annotation' in a true comment.
+    // However, a new TS API would be needed, track at
+    // https://github.com/Microsoft/TypeScript/issues/7393.
+    let commentNode: ts.Node = d;
+    // Not handling PropertyAccess expressions here, because they are
+    // filtered earlier.
+    if (commentNode.kind === ts.SyntaxKind.VariableDeclaration) {
+      if (!commentNode.parent) continue;
+      commentNode = commentNode.parent;
+    }
+    // Go up one more level to VariableDeclarationStatement, where usually
+    // the comment lives. If the declaration has an 'export', the
+    // VDList.getFullText will not contain the comment.
+    if (commentNode.kind === ts.SyntaxKind.VariableDeclarationList) {
+      if (!commentNode.parent) continue;
+      commentNode = commentNode.parent;
+    }
+    const range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
+    if (!range) continue;
+    for (const {pos, end} of range) {
+      const jsDocText = commentNode.getFullText().substring(pos, end);
+      if (jsDocText.includes('@Annotation')) return true;
+    }
+  }
+  return false;
+}
+
 // DecoratorClassVisitor rewrites a single "class Foo {...}" declaration.
 // It's its own object because we collect decorators on the class and the ctor
 // separately for each class we encounter.
@@ -52,39 +83,9 @@ export class DecoratorClassVisitor {
   /**
    * Determines whether the given decorator should be re-written as an annotation.
    */
-  private shouldLower(decorator: ts.Decorator) {
-    for (const d of getDecoratorDeclarations(decorator, this.typeChecker)) {
-      // Switch to the TS JSDoc parser in the future to avoid false positives here.
-      // For example using '@Annotation' in a true comment.
-      // However, a new TS API would be needed, track at
-      // https://github.com/Microsoft/TypeScript/issues/7393.
-      let commentNode: ts.Node = d;
-      // Not handling PropertyAccess expressions here, because they are
-      // filtered earlier.
-      if (commentNode.kind === ts.SyntaxKind.VariableDeclaration) {
-        if (!commentNode.parent) continue;
-        commentNode = commentNode.parent;
-      }
-      // Go up one more level to VariableDeclarationStatement, where usually
-      // the comment lives. If the declaration has an 'export', the
-      // VDList.getFullText will not contain the comment.
-      if (commentNode.kind === ts.SyntaxKind.VariableDeclarationList) {
-        if (!commentNode.parent) continue;
-        commentNode = commentNode.parent;
-      }
-      const range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
-      if (!range) continue;
-      for (const {pos, end} of range) {
-        const jsDocText = commentNode.getFullText().substring(pos, end);
-        if (jsDocText.includes('@Annotation')) return true;
-      }
-    }
-    return false;
-  }
-
   private decoratorsToLower(n: ts.Node): ts.Decorator[] {
     if (n.decorators) {
-      return n.decorators.filter((d) => this.shouldLower(d));
+      return n.decorators.filter((d) => shouldLower(d, this.typeChecker));
     }
     return [];
   }
@@ -189,8 +190,19 @@ export class DecoratorClassVisitor {
     }
   }
 
+  /**
+   * Checks if the decorator is on a class, as opposed to a field or an
+   * argument.
+   */
+  private isClassDecorator(decorator: ts.Decorator): boolean {
+    return decorator.parent !== undefined &&
+        decorator.parent.kind === ts.SyntaxKind.ClassDeclaration;
+  }
+
   maybeProcessDecorator(node: ts.Decorator, start?: number): boolean {
-    if (this.shouldLower(node)) {
+    // Only strip field and argument decorators, the class decoration
+    // downlevel transformer will strip class decorations
+    if (shouldLower(node, this.typeChecker) && !this.isClassDecorator(node)) {
       // Return true to signal that this node should not be emitted,
       // but still emit the whitespace *before* the node.
       if (!start) {
@@ -237,15 +249,6 @@ export class DecoratorClassVisitor {
    */
   emitMetadataAsStaticProperties() {
     const decoratorInvocations = '{type: Function, args?: any[]}[]';
-    if (this.decorators) {
-      this.rewriter.emit(`static decorators: ${decoratorInvocations} = [\n`);
-      for (const annotation of this.decorators) {
-        this.emitDecorator(annotation);
-        this.rewriter.emit(',\n');
-      }
-      this.rewriter.emit('];\n');
-    }
-
     if (this.decorators || this.ctorParameters) {
       this.rewriter.emit(`/** @nocollapse */\n`);
       // ctorParameters may contain forward references in the type: field, so wrap in a function
