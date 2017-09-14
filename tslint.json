@@ -51,6 +51,7 @@
       "ban-keywords",
       "allow-leading-underscore",
       "allow-trailing-underscore"
-    ]
+    ],
+    "file-header": [true, "Copyright Google Inc\\."]
   }
 }
