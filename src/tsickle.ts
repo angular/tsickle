@@ -1922,6 +1922,7 @@ export function emitWithTsickle(
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
+  const tsickleJsTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   if (host.transformTypesToClosure) {
     // Note: tsickle.annotate can also lower decorators in the same run.
     tsickleSourceTransformers.push(createTransformerFromSourceMap((sourceFile, sourceMapper) => {
@@ -1931,7 +1932,7 @@ export function emitWithTsickle(
       return output;
     }));
     // Only add @suppress {checkTypes} comments when also adding type annotations.
-    tsickleSourceTransformers.push(transformFileoverviewComment);
+    tsickleJsTransformers.push(transformFileoverviewComment);
     tsickleSourceTransformers.push(
         classDecoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   } else if (host.transformDecorators) {
@@ -1949,7 +1950,8 @@ export function emitWithTsickle(
   //   sourceMapper.addMapping(sourceFile, {position: 0, line: 0, column: 0}, {position: 0, line: 0,
   //   column: 0}, sourceFile.text.length); return sourceFile.text;
   // }));
-  const tsickleTransformers = createCustomTransformers({before: tsickleSourceTransformers});
+  const tsickleTransformers =
+      createCustomTransformers({before: tsickleSourceTransformers, after: tsickleJsTransformers});
   const tsTransformers: ts.CustomTransformers = {
     before: [
       ...(customTransformers.beforeTsickle || []),

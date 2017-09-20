@@ -25,19 +25,32 @@ const FILEOVERVIEW_COMMENT_MARKERS: ReadonlySet<string> =
 export function transformFileoverviewComment(context: ts.TransformationContext) {
   return (sf: ts.SourceFile) => {
     let comments: ts.SynthesizedComment[] = [];
-    // Use trailing comments because that's what transformer_util.ts creates (i.e. by convention).
-    if (sf.statements.length && sf.statements[0].kind === ts.SyntaxKind.NotEmittedStatement) {
-      comments = ts.getSyntheticTrailingComments(sf.statements[0]) || [];
+    // Get all the leading comments in the file, which are either attached to a NotEmittedStatement
+    // and the first real statement or just the first real statement
+    if (sf.statements.length) {
+      if (sf.statements[0].kind === ts.SyntaxKind.NotEmittedStatement) {
+        // Use trailing comments because that's what transformer_util.ts creates (i.e. by
+        // convention).
+        comments = ts.getSyntheticTrailingComments(sf.statements[0]) || [];
+        if (sf.statements.length > 1) {
+          comments = comments.concat(ts.getSyntheticLeadingComments(sf.statements[1]) || []);
+        }
+      } else {
+        comments = ts.getSyntheticLeadingComments(sf.statements[0]) || [];
+      }
     }
 
     let fileoverviewIdx = -1;
     let parsed: {tags: jsdoc.Tag[]}|null = null;
     for (let i = comments.length - 1; i >= 0; i--) {
-      const current = jsdoc.parseContents(comments[i].text);
-      if (current !== null && current.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
-        fileoverviewIdx = i;
-        parsed = current;
-        break;
+      if (comments[i].kind === ts.SyntaxKind.MultiLineCommentTrivia) {
+        const current = jsdoc.parseContents(comments[i].text);
+        if (current !== null &&
+            current.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+          fileoverviewIdx = i;
+          parsed = current;
+          break;
+        }
       }
     }
     // Add a @suppress {checkTypes} tag to each source file's JSDoc comment,
