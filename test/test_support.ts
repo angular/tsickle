@@ -20,7 +20,7 @@ import {sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
 /** Base compiler options to be customized and exposed. */
-const baseCompilerOptions: ts.CompilerOptions = {
+export const baseCompilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2015,
   // Disable searching for @types typings. This prevents TS from looking
   // around for a node_modules directory.
@@ -184,9 +184,9 @@ export class GoldenFileTest {
           'The workspace root was requested, but there were no source files to follow symlinks for.');
     }
     const resolvedFileSymLink = fs.readlinkSync(path.join(this.path, this.tsFiles[0]));
-    const resolvedPathParts = resolvedFileSymLink.split(path.delimiter);
+    const resolvedPathParts = resolvedFileSymLink.split(path.sep);
     const testFilesSegmentIndex = resolvedPathParts.findIndex(s => s === 'test_files');
-    return path.join(...resolvedPathParts.slice(0, testFilesSegmentIndex));
+    return path.join(path.sep, ...resolvedPathParts.slice(0, testFilesSegmentIndex));
   }
 
   public static tsPathToJs(tsPath: string): string {
@@ -304,6 +304,7 @@ export function compileWithTransfromer(
     fileNameToModuleId: (filePath) => filePath,
     transformDecorators: true,
     transformTypesToClosure: true,
+    addDtsClutzAliases: true,
     googmodule: true,
     es5Mode: false,
     untyped: false,
