@@ -32,9 +32,15 @@ describe('toClosureJS', () => {
       expect(tsickle.formatDiagnostics(result.diagnostics)).to.equal('');
     }
 
-    expect(tsickle.getGeneratedExterns(result.externs)).to.contain(`/** @const */
+    expect(tsickle.getGeneratedExterns(result.externs)).to.contain(`/**
+ * @const
+ * @suppress {duplicate}
+ */
 var __NS = {};
- /** @type {number} */
+/**
+ * @type {number}
+ * @suppress {duplicate}
+ */
 __NS.__ns1;
 `);
 

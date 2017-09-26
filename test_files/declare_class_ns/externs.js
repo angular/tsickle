@@ -6,6 +6,7 @@
 /**
  * @constructor
  * @struct
+ * @suppress {duplicate}
  */
 function ClassAndNamespace() {}
 
@@ -14,12 +15,19 @@ function ClassAndNamespace() {}
  * @return {void}
  */
 ClassAndNamespace.prototype.classFunction = function(x) {};
- /** @type {number} */
+/**
+ * @type {number}
+ * @suppress {duplicate}
+ */
 ClassAndNamespace.bar;
- /** @type {number} */
+/**
+ * @type {number}
+ * @suppress {duplicate}
+ */
 ClassAndNamespace.baz;
 
 /**
+ * @suppress {duplicate}
  * @param {number} x
  * @return {string}
  */
