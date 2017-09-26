@@ -6,6 +6,7 @@
 /**
  * @constructor
  * @struct
+ * @suppress {duplicate}
  */
 function Parent() {}
  /** @type {number} */
@@ -14,6 +15,7 @@ Parent.prototype.x;
  * @extends {Parent}
  * @constructor
  * @struct
+ * @suppress {duplicate}
  */
 function Child() {}
  /** @type {number} */
@@ -21,6 +23,7 @@ Child.prototype.y;
 /**
  * @record
  * @struct
+ * @suppress {duplicate}
  */
 function ParentInterface() {}
 
@@ -32,6 +35,7 @@ ParentInterface.prototype.foo = function() {};
  * @extends {ParentInterface}
  * @record
  * @struct
+ * @suppress {duplicate}
  */
 function ChildInterface() {}
 
@@ -43,6 +47,7 @@ ChildInterface.prototype.bar = function() {};
  * @implements {ParentInterface}
  * @constructor
  * @struct
+ * @suppress {duplicate}
  */
 function ImplementingClass() {}
 
@@ -50,21 +55,29 @@ function ImplementingClass() {}
  * @return {void}
  */
 ImplementingClass.prototype.foo = function() {};
-/** @const */
+/**
+ * @const
+ * @suppress {duplicate}
+ */
 var foo = {};
 /**
  * @constructor
  * @struct
+ * @suppress {duplicate}
  */
 foo.NamespacedParent = function() {};
  /** @type {number} */
 foo.NamespacedParent.prototype.x;
-/** @const */
+/**
+ * @const
+ * @suppress {duplicate}
+ */
 var bar = {};
 /**
  * @extends {foo.NamespacedParent}
  * @constructor
  * @struct
+ * @suppress {duplicate}
  */
 bar.NamespacedChild = function() {};
  /** @type {number} */
