@@ -521,7 +521,7 @@ class Foo {
             args?: any[];
         }[];
     } = {
-        "bar": [{ type: Test1, args: ['somename',] },],
+        bar: [{ type: Test1, args: ['somename',] },],
     };
 }
 `);
@@ -547,8 +547,8 @@ class ClassWithDecorators {
             args?: any[];
         }[];
     } = {
-        "a": [{ type: PropDecorator, args: ["p1",] }, { type: PropDecorator, args: ["p2",] },],
-        "c": [{ type: PropDecorator, args: ["p3",] },],
+        a: [{ type: PropDecorator, args: ["p1",] }, { type: PropDecorator, args: ["p2",] },],
+        c: [{ type: PropDecorator, args: ["p3",] },],
     };
 }
 `);
@@ -583,7 +583,7 @@ class Foo {
             args?: any[];
         }[];
     } = {
-        "other": [{ type: PropDecorator },],
+        other: [{ type: PropDecorator },],
     };
 }
 `);

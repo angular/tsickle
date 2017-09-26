@@ -303,7 +303,7 @@ export class DecoratorClassVisitor {
       this.rewriter.emit(
           `static propDecorators: {[key: string]: ` + decoratorInvocations + `} = {\n`);
       for (const name of this.propDecorators.keys()) {
-        this.rewriter.emit(`"${name}": [`);
+        this.rewriter.emit(`${name}: [`);
 
         for (const decorator of this.propDecorators.get(name)!) {
           this.emitDecorator(decorator);
