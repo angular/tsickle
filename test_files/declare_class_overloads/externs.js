@@ -7,7 +7,6 @@
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  * @param {number=} a
  */
 function MultipleConstructorsOptional(a) {}
@@ -15,7 +14,6 @@ function MultipleConstructorsOptional(a) {}
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  * @param {boolean|number} a
  */
 function MultipleConstructorsTypes(a) {}
@@ -23,7 +21,6 @@ function MultipleConstructorsTypes(a) {}
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  * @param {boolean|number} a_or_b
  */
 function MultipleConstructorsNamesAndTypes(a_or_b) {}
@@ -31,7 +28,6 @@ function MultipleConstructorsNamesAndTypes(a_or_b) {}
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  * @param {number} a
  * @param {number} b
  * @param {number} c
@@ -44,7 +40,6 @@ function MultipleConstructorsComplexMatrix(a, b, c, normal_or_vertexNormals, col
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  * @param {...number|!Array<number>} a
  */
 function MultipleConstructorsVariadic(a) {}
@@ -52,14 +47,12 @@ function MultipleConstructorsVariadic(a) {}
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  * @param {...!Array<string>|!Array<number>|string|number} points
  */
 function MultipleConstructorsVariadicNames(points) {}
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadSimpleArgs() {}
 
@@ -74,7 +67,6 @@ OverloadSimpleArgs.prototype.overloaded = function(a, b, c, d) {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadNameVariants() {}
 
@@ -86,7 +78,6 @@ OverloadNameVariants.prototype.overloaded = function(a_or_b_or_c) {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadReturnTypesNoVoid() {}
 
@@ -100,7 +91,6 @@ OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b, c) {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadReturnTypesWithVoid() {}
 
@@ -114,7 +104,6 @@ OverloadReturnTypesWithVoid.prototype.overloaded = function(a, b, c) {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadBigMix() {}
 
@@ -127,7 +116,6 @@ OverloadBigMix.prototype.overloaded = function(a_or_c_or_e, b) {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadValueOf() {}
 
@@ -138,7 +126,6 @@ OverloadValueOf.prototype.valueOf = function() {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function Merged() {}
 
@@ -157,7 +144,6 @@ Merged.prototype.variadic = function(test) {};
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function OverloadTypeArgs() {}
 
