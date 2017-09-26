@@ -6,42 +6,28 @@
 /**
  * @record
  * @struct
- * @suppress {duplicate}
  */
 function ExportDeclaredIf() {}
  /** @type {number} */
 ExportDeclaredIf.prototype.x;
-/**
- * @type {number}
- * @suppress {duplicate}
- */
+ /** @type {number} */
 var exportedDeclaredVar;
 /**
  * @constructor
  * @struct
- * @suppress {duplicate}
  */
 function ExportDeclaredClass() {}
  /** @type {number} */
 ExportDeclaredClass.prototype.x;
 
 /**
- * @suppress {duplicate}
  * @return {string}
  */
 function exportedDeclaredFn() {}
-/**
- * @type {?}
- * @suppress {duplicate}
- */
+ /** @type {?} */
 var multiExportedDeclaredVar1;
-/**
- * @type {number}
- * @suppress {duplicate}
- */
+ /** @type {number} */
 var multiExportedDeclaredVar2;
-/**
- * @typedef {string}
- * @suppress {duplicate}
- */
+
+/** @typedef {string} */
 var X;
