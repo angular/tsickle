@@ -6,7 +6,6 @@
 /**
  * @record
  * @struct
- * @suppress {duplicate}
  */
 function Type() {}
 
