@@ -238,8 +238,11 @@ export class DecoratorClassVisitor {
       this.rewriter.emit(`${className}.ctorParameters;\n`);
     }
     if (this.propDecorators) {
+      this.rewriter.emit(`/**\n`);
+      this.rewriter.emit(` * @nocollapse\n`);
       this.rewriter.emit(
-          `/** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */\n`);
+          ` * @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>}\n`);
+      this.rewriter.emit(` */\n`);
       this.rewriter.emit(`${className}.propDecorators;\n`);
     }
   }
@@ -300,10 +303,11 @@ export class DecoratorClassVisitor {
     }
 
     if (this.propDecorators) {
+      this.rewriter.emit(`/** @nocollapse */\n`);
       this.rewriter.emit(
           `static propDecorators: {[key: string]: ` + decoratorInvocations + `} = {\n`);
       for (const name of this.propDecorators.keys()) {
-        this.rewriter.emit(`"${name}": [`);
+        this.rewriter.emit(`${name}: [`);
 
         for (const decorator of this.propDecorators.get(name)!) {
           this.emitDecorator(decorator);
