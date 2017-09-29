@@ -8,7 +8,7 @@ jobs:
       - checkout
       - restore_cache:
           key: tsickle-{{ checksum "yarn.lock" }}
-      - run: bazel run @yarn//:yarn
+      - run: yarn install # don't bazel's yarn, since yarn install calls bazel, and bazel can't reenter
       - run: bazel build ...
       - save_cache:
           key: tsickle-{{ checksum "yarn.lock" }}

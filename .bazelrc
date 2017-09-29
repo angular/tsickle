@@ -1,0 +1,2 @@
+test --test_output=errors
+#TODO(alexeagle): enable worker mode
