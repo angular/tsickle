@@ -92,12 +92,12 @@ function compareAgainstGolden(output: string|null, path: string) {
 }
 
 // Only run golden tests if we filter for a specific one.
-const testFn = TEST_FILTER ? describe.only : describe;
+const testFn = TEST_FILTER ? fdescribe : describe;
 
 testFn('golden tests with transformer', () => {
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.testName.test(test.name)) {
-      it.skip(test.name);
+      xit(test.name);
       return;
     }
     let emitDeclarations = true;

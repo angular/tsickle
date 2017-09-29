@@ -1,10 +1,12 @@
 language: node_js
 sudo: false
+
 node_js:
   - "6"
-cache:
-  yarn: true
-  directories:
-    - node_modules
+cache: yarn
+install:
+  - ./travis_install.sh
+  - bazel version
+  - yarn install
 script:
   - yarn test

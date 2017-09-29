@@ -9,18 +9,19 @@
       "args": [
         "--colors",
         "--timeout=0",
-        "./built/test"
+        "./../../../test/"
       ],
-      "cwd": "${workspaceRoot}",
+      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/io_angular_tsickle",
       "runtimeArgs": [
         "--nolazy"
       ],
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "RUNFILES": ".."
       },
       "console": "internalConsole",
       "sourceMaps": true,
-      "outDir": "${workspaceRoot}/built"
+      "outDir": "${workspaceRoot}/bazel-out/local-fastbuild/bin"
     },
     {
       "name": "Run file based tests",
@@ -30,19 +31,19 @@
       "args": [
         "--colors",
         "--timeout=0",
-        "./built/test/golden_tsickle_test.js"
+        "./../../../test/golden_tsickle_test.js"
       ],
-      "cwd": "${workspaceRoot}",
+      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/io_angular_tsickle",
       "runtimeArgs": [
         "--nolazy"
       ],
       "env": {
         "NODE_ENV": "development",
-        "TEST_FILTER": "^functions/two_jsdoc_blocks"
+        "RUNFILES": ".."
       },
       "console": "internalConsole",
       "sourceMaps": true,
-      "outDir": "${workspaceRoot}/built"
+      "outDir": "${workspaceRoot}/bazel-out/local-fastbuild/bin"
     }
 
   ]
