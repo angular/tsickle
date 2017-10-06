@@ -29,7 +29,7 @@ const TEST_FILTER = (() => {
 
 // If true, update all the golden .js files to be whatever tsickle
 // produces from the .ts source. Do not change this code but run as:
-//     UPDATE_GOLDENS=y gulp test
+//     UPDATE_GOLDENS=y bazel run test:golden_test
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
 
 function readGolden(path: string): string|null {
@@ -56,10 +56,11 @@ function readGolden(path: string): string|null {
  *    externs files, where the majority of tests are not expected to
  *    produce one.)
  */
-function compareAgainstGolden(output: string|null, path: string) {
+function compareAgainstGolden(
+    output: string|null, goldenPath: string, test: testSupport.GoldenFileTest) {
   let golden: string|null = null;
   try {
-    golden = fs.readFileSync(path, 'utf-8');
+    golden = fs.readFileSync(goldenPath, 'utf-8');
   } catch (e) {
     if (e.code === 'ENOENT' && (UPDATE_GOLDENS || output === null)) {
       // A missing file is acceptable if we're updating goldens or
@@ -74,20 +75,24 @@ function compareAgainstGolden(output: string|null, path: string) {
   if (output != null) output = normalizeLineEndings(output);
 
   if (UPDATE_GOLDENS && output !== golden) {
-    console.log('Updating golden file for', path);
+    console.log('Updating golden file for', goldenPath);
+    // If we need to write a new file, we won't have a symlink into the real
+    // test_files directory, so we need to get an absolute path by combining
+    // the relative path with the workspaceRoot
+    const goldenSourcePath = path.join(test.getWorkspaceRoot(), goldenPath);
     if (output !== null) {
-      fs.writeFileSync(path, output, {encoding: 'utf-8'});
+      fs.writeFileSync(goldenSourcePath, output, {encoding: 'utf-8'});
     } else {
       // The desired golden state is for there to be no output file.
       // Ensure no file exists.
       try {
-        fs.unlinkSync(path);
+        fs.unlinkSync(goldenSourcePath);
       } catch (e) {
         // ignore.
       }
     }
   } else {
-    expect(output).to.equal(golden, `${path}`);
+    expect(output).to.equal(golden, `${goldenPath}`);
   }
 }
 
@@ -191,7 +196,7 @@ testFn('golden tests with transformer', () => {
           }
         }
       }
-      compareAgainstGolden(allExterns, test.externsPath);
+      compareAgainstGolden(allExterns, test.externsPath, test);
       Object.keys(jsSources).forEach(jsPath => {
         const tsPath = jsPath.replace(/\.js$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
@@ -201,7 +206,7 @@ testFn('golden tests with transformer', () => {
           out = tsickle.formatDiagnostics(diags).split('\n').map(line => `// ${line}\n`).join('') +
               out;
         }
-        compareAgainstGolden(out, jsPath);
+        compareAgainstGolden(out, jsPath, test);
       });
       const dtsDiags: ts.Diagnostic[] = [];
       if (diagnosticsByFile.size) {
@@ -216,7 +221,7 @@ testFn('golden tests with transformer', () => {
       }
       if (dtsDiags.length) {
         compareAgainstGolden(
-            tsickle.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'));
+            tsickle.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'), test);
       }
     });
   });
