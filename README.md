@@ -112,10 +112,12 @@ Example:
   `clang-format`,
 - `yarn test` runs unit tests, e2e tests and checks the source code formatting.
 
-### Environment variables
+### Updating Goldens
 
-Export the environment variable `UPDATE_GOLDENS=1` and run `bazel run test:golden_test`
-to have the test suite update the goldens in `test_files/...`.
+Run `UPDATE_GOLDENS=y bazel run test:golden_test` to have the test suite update 
+the goldens in `test_files/...`.
+
+### Environment variables
 
 Pass the flag `--action_env=TEST_FILTER=<REGEX>` to bazel test to limit the
 end-to-end test (found in `test_files/...`) run tests with a name matching the
