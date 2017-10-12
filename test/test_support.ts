@@ -173,13 +173,29 @@ export class GoldenFileTest {
         .map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
   }
 
+  /**
+   * Find the absolute path to the tsickle root directory by reading the
+   * symlink bazel puts into bazel-bin back into the test_files directory
+   * and chopping off the test_files portion.
+   */
+  getWorkspaceRoot(): string {
+    if (!this.tsFiles.length || !this.tsFiles[0]) {
+      throw new Error(
+          'The workspace root was requested, but there were no source files to follow symlinks for.');
+    }
+    const resolvedFileSymLink = fs.readlinkSync(path.join(this.path, this.tsFiles[0]));
+    const resolvedPathParts = resolvedFileSymLink.split(path.delimiter);
+    const testFilesSegmentIndex = resolvedPathParts.findIndex(s => s === 'test_files');
+    return path.join(...resolvedPathParts.slice(0, testFilesSegmentIndex));
+  }
+
   public static tsPathToJs(tsPath: string): string {
     return tsPath.replace(/\.tsx?$/, '.js');
   }
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  const basePath = path.join(__dirname, '..', '..', 'test_files');
+  const basePath = path.join(process.env['RUNFILES'], 'io_angular_tsickle', 'test_files');
   const testNames = fs.readdirSync(basePath);
 
   const testDirs = testNames.map(testName => path.join(basePath, testName))

@@ -3,11 +3,14 @@
   "version": "0.24.1",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "built/src/tsickle.js",
-  "typings": "built/definitions/tsickle.d.ts",
+  "typings": "built/src/tsickle.d.ts",
   "bin": "built/src/main.js",
   "directories": {
     "test": "test"
   },
+  "files": [
+    "built/src/*"
+  ],
   "dependencies": {
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
@@ -23,6 +26,7 @@
     "@types/diff": "^3.2.0",
     "@types/glob": "^5.0.29",
     "@types/google-closure-compiler": "0.0.18",
+    "@types/jasmine": "^2.6.0",
     "@types/minimatch": "^2.0.28",
     "@types/minimist": "^1.1.28",
     "@types/mkdirp": "^0.3.28",
@@ -37,11 +41,9 @@
     "google-closure-compiler": "^20161024.1.0",
     "gulp": "^3.8.11",
     "gulp-clang-format": "^1.0.22",
-    "gulp-mocha": "^3.0.1",
-    "gulp-sourcemaps": "^1.5.0",
     "gulp-tslint": "^8.1.0",
     "gulp-typescript": "^3.0.0",
-    "gulp-util": "^3.0.4",
+    "jasmine": "~2.8.0",
     "merge2": "^1.0.2",
     "mocha": "^3.2.0",
     "temp": "^0.8.1",
@@ -49,8 +51,10 @@
     "typescript": "~2.4.2"
   },
   "scripts": {
-    "prepublish": "gulp compile",
-    "test": "gulp test"
+    "prepublish": "bazel build ...",
+    "prepack": "mkdir built && cp -R bazel-bin/src built/src",
+    "postpack": "rm -rf built",
+    "test": "gulp test.check-format && gulp test.check-lint && bazel test ..."
   },
   "repository": {
     "type": "git",

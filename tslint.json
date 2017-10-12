@@ -5,7 +5,6 @@
     "ban": [true,
       ["fit"],
       ["fdescribe"],
-      ["xit"],
       ["xdescribe"],
       ["fitAsync"],
       ["xitAsync"],

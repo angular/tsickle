@@ -102,23 +102,26 @@ Example:
 
 ## Development
 
-### Gulp tasks
+### Test commands
 
-- `gulp watch` executes the unit tests in watch mode (use `gulp test.unit` for a
+- `ibazel test test:unit_test` executes the unit tests in watch mode (use `bazel test test:unit_test` for a
   single run),
-- `gulp test.e2e` executes the e2e tests,
-- `guld test.golden` executes the golden tests,
+- `bazel test test:e2e_test` executes the e2e tests,
+- `bazel test test:golden_test` executes the golden tests,
 - `gulp test.check-format` checks the source code formatting using
   `clang-format`,
-- `gulp test` runs unit tests, e2e tests and checks the source code formatting.
+- `yarn test` runs unit tests, e2e tests and checks the source code formatting.
+
+### Updating Goldens
+
+Run `UPDATE_GOLDENS=y bazel run test:golden_test` to have the test suite update 
+the goldens in `test_files/...`.
 
 ### Environment variables
 
-Export the environment variable `UPDATE_GOLDENS=1` to have the test suite
-rewrite the golden files when you run it.
-
-Export the environment variable `TEST_FILTER`, a regex, to limit the end-to-end
-tests (found in `test_files/...`) run tests with a name matching the regex.
+Pass the flag `--action_env=TEST_FILTER=<REGEX>` to bazel test to limit the
+end-to-end test (found in `test_files/...`) run tests with a name matching the
+regex.
 
 ### Releasing
 
