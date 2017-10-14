@@ -106,8 +106,6 @@ export function symbolToDebugString(sym: ts.Symbol): string {
     ts.SymbolFlags.TypeParameter,
     ts.SymbolFlags.TypeAlias,
     ts.SymbolFlags.ExportValue,
-    ts.SymbolFlags.ExportType,
-    ts.SymbolFlags.ExportNamespace,
     ts.SymbolFlags.Alias,
     ts.SymbolFlags.Prototype,
     ts.SymbolFlags.ExportStar,

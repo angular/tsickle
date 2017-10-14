@@ -13,7 +13,6 @@ import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
-import {convertDecorators} from '../src/decorator-annotator';
 import {DefaultSourceMapper} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
