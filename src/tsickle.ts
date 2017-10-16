@@ -1874,6 +1874,11 @@ export interface TsickleHost extends es5processor.Es5ProcessorHost, AnnotatorHos
    */
   transformTypesToClosure?: boolean;
   /**
+   * Whether to add aliases to the .d.ts files to add the exports to the
+   * ಠ_ಠ.clutz namespace.
+   */
+  addDtsClutzAliases?: boolean;
+  /**
    * If true, tsickle and decorator downlevel processing will be skipped for
    * that file.
    */
@@ -1978,6 +1983,9 @@ export function emitWithTsickle(
         } else {
           content = combineSourceMaps(program, fileName, content);
         }
+        if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
+          content = addClutzAliases(fileName, content, sourceFiles, typeChecker, host);
+        }
         writeFileDelegate(fileName, content, writeByteOrderMark, onError, sourceFiles);
       };
 
@@ -2015,6 +2023,60 @@ export function emitWithTsickle(
     diagnostics: [...tsDiagnostics, ...tsickleDiagnostics],
     externs
   };
+}
+
+function addClutzAliases(
+    fileName: string, dtsFileContent: string, sourceFiles: ts.SourceFile[],
+    typeChecker: ts.TypeChecker, host: TsickleHost): string {
+  let reexports = '';
+  for (const sf of sourceFiles) {
+    const moduleSymbol = typeChecker.getSymbolAtLocation(sf);
+    const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
+
+    if (!moduleExports) {
+      return dtsFileContent;
+    }
+
+    // pathToModuleName expects the file name to end in .js
+    const jsFileName = fileName.replace('.d.ts', '.js');
+    const moduleName = host.pathToModuleName('', jsFileName);
+    const clutzModuleName = moduleName.replace(/\./g, '$');
+
+    // moduleExports is a ts.Map<ts.Symbol> which is an es6 Map, but has a
+    // different type for no reason
+    for (const symbol of moduleExports) {
+      // Want to alias the symbol to match what clutz would produce, so clutz .d.ts's
+      // can reference symbols from typescript .d.ts's. See examples at:
+      // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
+      const clutzSymbolName = 'module$contents$' + clutzModuleName + '_' + symbol.name;
+
+      if (symbol.flags & ts.SymbolFlags.Class) {
+        // classes need special care to match clutz, which seperates class types into a
+        // type for the static properties and a type for the instance properties
+        reexports += `\t\ttype ${clutzSymbolName} = ${symbol.name};\n`;
+        reexports += `\t\tconst ${clutzSymbolName}: typeof ${symbol.name};\n`;
+        reexports += `\t\ttype ${clutzSymbolName}_Instance = ${symbol.name};\n`;
+        reexports += `\t\tconst ${clutzSymbolName}_Instance: typeof ${symbol.name};\n`;
+        continue;
+      }
+
+      if (symbol.flags & ts.SymbolFlags.Type) {
+        reexports += `\t\ttype ${clutzSymbolName} = ${symbol.name};\n`;
+      }
+      if (symbol.flags & ts.SymbolFlags.Value) {
+        reexports += `\t\tconst ${clutzSymbolName}: typeof ${symbol.name};\n`;
+      }
+    }
+  }
+
+  if (reexports) {
+    dtsFileContent += 'declare global {\n';
+    dtsFileContent += `\tnamespace ಠ_ಠ.clutz {\n`;
+    dtsFileContent += reexports;
+    dtsFileContent += '\t}\n}\n';
+  }
+
+  return dtsFileContent;
 }
 
 function skipTransformForSourceFileIfNeeded(

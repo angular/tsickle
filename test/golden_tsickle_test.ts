@@ -113,6 +113,11 @@ testFn('golden tests with transformer', () => {
       // Read all the inputs into a map, and create a ts.Program from them.
       const tsSources = new Map<string, string>();
       for (const tsFile of test.tsFiles) {
+        // For .declaration tests, .d.ts's are goldens, not inputs
+        if (/\.declaration\b/.test(test.name) && tsFile.endsWith('.d.ts')) {
+          continue;
+        }
+
         const tsPath = path.join(test.path, tsFile);
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
         tsSource = normalizeLineEndings(tsSource);
@@ -142,6 +147,7 @@ testFn('golden tests with transformer', () => {
         convertIndexImportShorthand: true,
         transformDecorators: true,
         transformTypesToClosure: true,
+        addDtsClutzAliases: /\.declaration\b/.test(test.name),
         untyped: /\.untyped\b/.test(test.name),
         logWarning: (diag: ts.Diagnostic) => {
           allDiagnostics.push(diag);
@@ -161,7 +167,7 @@ testFn('golden tests with transformer', () => {
         },
         fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
       };
-      const jsSources: {[fileName: string]: string} = {};
+      const tscOutput: {[fileName: string]: string} = {};
       let targetSource: ts.SourceFile|undefined = undefined;
       if (TEST_FILTER && TEST_FILTER.fileName) {
         for (const [path, source] of tsSources.entries()) {
@@ -180,10 +186,11 @@ testFn('golden tests with transformer', () => {
       const {diagnostics, externs} = tsickle.emitWithTsickle(
           program, transformerHost, tsHost, tsCompilerOptions, targetSource,
           (fileName: string, data: string) => {
-            if (!fileName.endsWith('.d.ts')) {
-              // Don't check .d.ts files, we are only interested to test
-              // that we don't throw when we generate them.
-              jsSources[fileName] = data;
+            if (!fileName.endsWith(/\.declaration\b/.test(test.name) ? '.js' : '.d.ts')) {
+              // Normally we don't check .d.ts files, we are only interested to test that
+              // we don't throw when we generate them, but if we're in a .declaration test,
+              // we only care about the .d.ts files
+              tscOutput[fileName] = data;
             }
           });
       allDiagnostics.push(...diagnostics);
@@ -197,16 +204,16 @@ testFn('golden tests with transformer', () => {
         }
       }
       compareAgainstGolden(allExterns, test.externsPath, test);
-      Object.keys(jsSources).forEach(jsPath => {
-        const tsPath = jsPath.replace(/\.js$/, '.ts').replace(/^\.\//, '');
+      Object.keys(tscOutput).forEach(outputPath => {
+        const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
         diagnosticsByFile.delete(tsPath);
-        let out = jsSources[jsPath];
+        let out = tscOutput[outputPath];
         if (diags) {
           out = tsickle.formatDiagnostics(diags).split('\n').map(line => `// ${line}\n`).join('') +
               out;
         }
-        compareAgainstGolden(out, jsPath, test);
+        compareAgainstGolden(out, outputPath, test);
       });
       const dtsDiags: ts.Diagnostic[] = [];
       if (diagnosticsByFile.size) {
