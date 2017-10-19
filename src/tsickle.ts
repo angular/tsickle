@@ -2028,7 +2028,7 @@ export function emitWithTsickle(
 function addClutzAliases(
     fileName: string, dtsFileContent: string, sourceFiles: ts.SourceFile[],
     typeChecker: ts.TypeChecker, host: TsickleHost): string {
-  let reexports = '';
+  const reexports: string[] = [];
   for (const sf of sourceFiles) {
     const moduleSymbol = typeChecker.getSymbolAtLocation(sf);
     const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
@@ -2050,33 +2050,93 @@ function addClutzAliases(
       // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
       const clutzSymbolName = 'module$contents$' + clutzModuleName + '_' + symbol.name;
 
+      const {params, paramsWithContraint} = getGenericTypeParameters(symbol);
+
       if (symbol.flags & ts.SymbolFlags.Class) {
         // classes need special care to match clutz, which seperates class types into a
         // type for the static properties and a type for the instance properties
-        reexports += `\t\ttype ${clutzSymbolName} = ${symbol.name};\n`;
-        reexports += `\t\tconst ${clutzSymbolName}: typeof ${symbol.name};\n`;
-        reexports += `\t\ttype ${clutzSymbolName}_Instance = ${symbol.name};\n`;
-        reexports += `\t\tconst ${clutzSymbolName}_Instance: typeof ${symbol.name};\n`;
+        reexports.push(`type ${clutzSymbolName}${paramsWithContraint} = ${symbol.name}${params};`);
+        reexports.push(`const ${clutzSymbolName}: typeof ${symbol.name};`);
+        reexports.push(
+            `type ${clutzSymbolName}_Instance${paramsWithContraint} = ${symbol.name}${params};`);
+        reexports.push(`const ${clutzSymbolName}_Instance: typeof ${symbol.name};`);
         continue;
       }
 
       if (symbol.flags & ts.SymbolFlags.Type) {
-        reexports += `\t\ttype ${clutzSymbolName} = ${symbol.name};\n`;
+        reexports.push(`type ${clutzSymbolName}${paramsWithContraint} = ${symbol.name}${params};`);
       }
       if (symbol.flags & ts.SymbolFlags.Value) {
-        reexports += `\t\tconst ${clutzSymbolName}: typeof ${symbol.name};\n`;
+        reexports.push(`const ${clutzSymbolName}: typeof ${symbol.name};`);
       }
     }
   }
 
-  if (reexports) {
+  if (reexports.length) {
     dtsFileContent += 'declare global {\n';
     dtsFileContent += `\tnamespace ಠ_ಠ.clutz {\n`;
-    dtsFileContent += reexports;
+    for (const reexport of reexports) {
+      dtsFileContent += `\t\t${reexport}\n`;
+    }
     dtsFileContent += '\t}\n}\n';
   }
 
   return dtsFileContent;
+}
+
+/**
+ * Returns 2 strings specifying the generic type arguments for the symbol.  The constrained params
+ * include any `T extends foo` arguments, the regular params are just a list of the type symbols,
+ * since we need the constraints on the LHS of the alias declaration, but can't have them on the
+ * RHS.
+ */
+function getGenericTypeParameters(symbol: ts.Symbol):
+    {params: string, paramsWithContraint: string} {
+  if (!symbol.declarations) {
+    return {params: '', paramsWithContraint: ''};
+  }
+
+  // All declarations have to have matching generic types, so we're safe just looking at
+  // the first one.
+  if (!symbol.declarations[0]) {
+    return {params: '', paramsWithContraint: ''};
+  }
+
+  const declaration = symbol.declarations[0];
+
+  if ([
+        ts.SyntaxKind.FunctionDeclaration, ts.SyntaxKind.ConstructorKeyword,
+        ts.SyntaxKind.ClassDeclaration, ts.SyntaxKind.InterfaceDeclaration,
+        ts.SyntaxKind.TypeAliasDeclaration
+      ].indexOf(declaration.kind) === -1) {
+    return {params: '', paramsWithContraint: ''};
+  }
+
+  const declarationWithTypeParameters: ts.DeclarationWithTypeParameters =
+      declaration as ts.DeclarationWithTypeParameters;
+
+  if (!declarationWithTypeParameters.typeParameters) {
+    return {params: '', paramsWithContraint: ''};
+  }
+
+  const paramList: string[] = [];
+  const constrainedParamList: string[] = [];
+  for (const param of declarationWithTypeParameters.typeParameters) {
+    let constrainedParam = param.name.getText();
+    if (param.constraint) {
+      constrainedParam += ` extends ${param.constraint.getText()}`;
+    }
+    if (param.default) {
+      constrainedParam += ` = ${param.default.getText()}`;
+    }
+    constrainedParamList.push(constrainedParam);
+    paramList.push(param.name.getText());
+  }
+
+  const params = `<${paramList.join(',')}>`;
+  const paramsWithContraint = `<${constrainedParamList.join(',')}>`;
+
+  return {params, paramsWithContraint};
 }
 
 function skipTransformForSourceFileIfNeeded(
