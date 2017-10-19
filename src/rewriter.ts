@@ -197,6 +197,14 @@ export function getIdentifierText(identifier: ts.Identifier): string {
   return identifier.getText();
 }
 
+/** Returns a dot-joined qualified name (foo.bar.Baz). */
+export function getEntityNameText(name: ts.EntityName): string {
+  if (ts.isIdentifier(name)) {
+    return getIdentifierText(name);
+  }
+  return getEntityNameText(name.left) + '.' + getIdentifierText(name.right);
+}
+
 /**
  * Converts an escaped TypeScript name into the original source name.
  * Prefer getIdentifierText() instead if possible.

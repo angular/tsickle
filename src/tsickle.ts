@@ -17,7 +17,7 @@ import * as es5processor from './es5processor';
 import {transformFileoverviewComment} from './fileoverview_comment_transformer';
 import * as jsdoc from './jsdoc';
 import {ModulesManifest} from './modules_manifest';
-import {getIdentifierText, Rewriter, unescapeName} from './rewriter';
+import {getEntityNameText, getIdentifierText, Rewriter, unescapeName} from './rewriter';
 import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeInlineSourceMap, setInlineSourceMap, SourceMapper, SourcePosition} from './source_map_utils';
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
@@ -1611,6 +1611,18 @@ class ExternsWriter extends ClosureRewriter {
         for (const stmt of block.statements) {
           this.visit(stmt, namespace);
         }
+        break;
+      case ts.SyntaxKind.ImportEqualsDeclaration:
+        const importEquals = node as ts.ImportEqualsDeclaration;
+        const localName = getIdentifierText(importEquals.name);
+        if (importEquals.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference) {
+          this.emit(`\n/* TODO: import ${localName} = require(...) */\n`);
+          break;
+        }
+        const qn = getEntityNameText(importEquals.moduleReference);
+        // @const so that Closure Compiler understands this is an alias.
+        if (namespace.length === 0) this.emit('/** @const */\n');
+        this.writeExternsVariable(localName, namespace, qn);
         break;
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
