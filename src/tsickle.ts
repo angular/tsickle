@@ -1615,6 +1615,10 @@ class ExternsWriter extends ClosureRewriter {
       case ts.SyntaxKind.ImportEqualsDeclaration:
         const importEquals = node as ts.ImportEqualsDeclaration;
         const localName = getIdentifierText(importEquals.name);
+        if (localName === 'ng') {
+          this.emit(`\n/* Skipping problematic import ng = ...; */\n`);
+          break;
+        }
         if (importEquals.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference) {
           this.emit(`\n/* TODO: import ${localName} = require(...) */\n`);
           break;

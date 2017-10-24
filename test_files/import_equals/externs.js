@@ -15,3 +15,5 @@ var importEquals = {};
 importEquals.React = __React;
 /** @const */
 var React = __React;
+
+/* Skipping problematic import ng = ...; */
