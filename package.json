@@ -18,7 +18,7 @@
     "source-map-support": "^0.4.2"
   },
   "peerDependencies": {
-    "typescript": "2.4.2"
+    "typescript": "2.5.3"
   },
   "devDependencies": {
     "@bazel/typescript": "0.1.0",
@@ -48,7 +48,7 @@
     "mocha": "^3.2.0",
     "temp": "^0.8.1",
     "tslint": "^5.4.2",
-    "typescript": "~2.4.2"
+    "typescript": "~2.5.3"
   },
   "scripts": {
     "prepublish": "bazel build ...",

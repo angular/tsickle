@@ -23,7 +23,6 @@ import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
 import * as typeTranslator from './type-translator';
 
-export {convertDecorators} from './decorator-annotator';
 export {FileMap, ModulesManifest} from './modules_manifest';
 
 export interface AnnotatorHost {
@@ -990,12 +989,17 @@ class Annotator extends ClosureRewriter {
     const reexports = new Set<ts.Symbol>();
     for (const sym of exports) {
       const name = unescapeName(sym.name);
-      if (moduleExports.has(name)) {
-        // This name is shadowed by a local definition, such as:
-        // - export var foo ...
-        // - export {foo} from ...
-        // - export {bar as foo} from ...
-        continue;
+      if (moduleExports instanceof Map) {
+        if (moduleExports.has(name)) {
+          // This name is shadowed by a local definition, such as:
+          // - export var foo ...
+          // - export {foo} from ...
+          // - export {bar as foo} from ...
+          continue;
+        }
+      } else {
+        // TODO(#634): check if this is a safe cast.
+        if (moduleExports.has(name as ts.__String)) continue;
       }
       if (this.generatedExports.has(name)) {
         // Already exported via an earlier expansion of an "export * from ...".
@@ -1135,7 +1139,8 @@ class Annotator extends ClosureRewriter {
     }
   }
 
-  private getNamedSymbols(specifiers: Array<ts.ImportSpecifier|ts.ExportSpecifier>): NamedSymbol[] {
+  private getNamedSymbols(specifiers: ReadonlyArray<ts.ImportSpecifier|ts.ExportSpecifier>):
+      NamedSymbol[] {
     return specifiers.map(e => {
       return {
         // e.name might be renaming symbol as in `export {Foo as Bar}`, where e.name would be 'Bar'
