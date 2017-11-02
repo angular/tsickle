@@ -31,10 +31,6 @@ builds that are seen outside of Google.
 We would like to make tsickle usable for everyone but right now if you'd like
 to try it you should expect to spend some time debugging and reporting bugs.
 
-## Installation
-
-- Execute `npm i` to install the dependencies.
-
 ## Usage
 
 ### Project Setup
@@ -101,6 +97,16 @@ Example:
     class DoNotRenameThisClass { ... }
 
 ## Development
+
+### One-time setup
+
+Run `bazel run @yarn//:yarn --script_path=yarn_install.sh && ./yarn_install.sh`
+to install the dependencies.
+
+> This avoids occupying the `bazel` server, so that `yarn` can call `bazel`
+> again.
+> Ideally we should just use `bazel-run.sh @yarn//:yarn`, see
+> https://stackoverflow.com/questions/47082298/how-can-users-get-bazel-run-sh
 
 ### Test commands
 
