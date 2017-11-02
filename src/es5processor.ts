@@ -206,11 +206,12 @@ class ES5Processor extends Rewriter {
       // It's possibly of the form:
       // - require(...);
       // - __export(require(...));
-      // Both are CallExpressions.
+      // - tslib_1.__exportStar(require(...));
+      // All are CallExpressions.
       const exprStmt = node as ts.ExpressionStatement;
       const expr = exprStmt.expression;
       if (expr.kind !== ts.SyntaxKind.CallExpression) return false;
-      const call = expr as ts.CallExpression;
+      let call = expr as ts.CallExpression;
 
       let require = this.isRequire(call);
       let isExport = false;
@@ -220,8 +221,11 @@ class ES5Processor extends Rewriter {
         //   __export(x);
         // This extra variable is necessary in case there's a later import of the
         // same module name.
-        require = this.isExportRequire(call);
-        isExport = require != null;
+        const innerCall = this.isExportRequire(call);
+        if (!innerCall) return false;
+        isExport = true;
+        call = innerCall;  // Update call to point at the require() expression.
+        require = this.isRequire(call);
       }
       if (!require) return false;
 
@@ -229,7 +233,12 @@ class ES5Processor extends Rewriter {
       const varName = this.emitGoogRequire(null, require);
 
       if (isExport) {
-        this.emit(`__export(${varName});`);
+        // node is a statement containing a require() in it, while
+        // requireCall is that call.  We replace the require() call
+        // with the variable we emitted.
+        const fullStatement = node.getText();
+        const requireCall = call.getText();
+        this.emit(fullStatement.replace(requireCall, varName));
       }
       return true;
     } else {
@@ -306,19 +315,31 @@ class ES5Processor extends Rewriter {
   }
 
   /**
-   * Returns the inner string if call is of the form
-   *   __export(require('foo'))
+   * Returns the require() call node if the outer call is of the forms:
+   * - __export(require('foo'))
+   * - tslib_1.__exportStar(require('foo'), bar)
    */
-  isExportRequire(call: ts.CallExpression): string|null {
-    if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
-    const ident = call.expression as ts.Identifier;
-    if (ident.getText() !== '__export') return null;
+  isExportRequire(call: ts.CallExpression): ts.CallExpression|null {
+    switch (call.expression.kind) {
+      case ts.SyntaxKind.Identifier:
+        const ident = call.expression as ts.Identifier;
+        if (ident.text !== '__export') return null;
+        break;
+      case ts.SyntaxKind.PropertyAccessExpression:
+        const propAccess = call.expression as ts.PropertyAccessExpression;
+        if (propAccess.name.text !== '__exportStar') return null;
+        break;
+      default:
+        return null;
+    }
 
-    // Verify the call takes a single call argument and check it.
-    if (call.arguments.length !== 1) return null;
+    // Verify the call takes at least one argument and check it.
+    if (call.arguments.length < 1) return null;
     const arg = call.arguments[0];
     if (arg.kind !== ts.SyntaxKind.CallExpression) return null;
-    return this.isRequire(arg as ts.CallExpression);
+    const innerCall = arg as ts.CallExpression;
+    if (!this.isRequire(innerCall)) return null;
+    return innerCall;
   }
 
   isEsModuleProperty(expr: ts.ExpressionStatement): boolean {
