@@ -9,3 +9,6 @@
 
 # Bazel working directories
 /bazel-*
+
+# See reference to this file in the README.md
+yarn_install.sh

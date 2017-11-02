@@ -100,12 +100,13 @@ Example:
 
 ### One-time setup
 
-1. Run `bazel run @yarn//:yarn` to install the dependencies.  (Note: using your
-   local yarn may not work, use this command.)
-   See https://github.com/bazelbuild/rules_nodejs/issues/46 .
-2. When it says "Another command is running", ctl-C to interrupt.
-3. You now have the dependencies, and ordinary bazel commands will keep you up
-   to date.
+Run `bazel run @yarn//:yarn --script_path=yarn_install.sh && ./yarn_install.sh`
+to install the dependencies.
+
+> This avoids occupying the `bazel` server, so that `yarn` can call `bazel`
+> again.
+> Ideally we should just use `bazel-run.sh @yarn//:yarn`, see
+> https://stackoverflow.com/questions/47082298/how-can-users-get-bazel-run-sh
 
 ### Test commands
 
