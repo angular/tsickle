@@ -113,6 +113,12 @@ __export(require('req/mod'));`)
               `goog.module('a');var module = module || {id: 'a.js'};var mod = goog.require('req.mod');
 __export(mod);`);
     });
+
+    it('converts tslib exportStar usage', () => {
+      expectCommonJs('a.js', `tslib_1.__exportStar(require("./decorators"), exports);`)
+          .to.equal(
+              `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('decorators');tslib_1.__exportStar(tsickle_module_0_, exports);`);
+    });
   });
 
   it('resolves relative module URIs', () => {

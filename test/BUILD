@@ -1,12 +1,13 @@
-package(default_visibility=["//visibility:public"])
+package(default_visibility = ["//visibility:public"])
+
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
 
 ts_library(
     name = "test_support",
     srcs = ["test_support.ts"],
-    deps = ["//src"],
     tsconfig = "//:tsconfig.json",
+    deps = ["//src"],
 )
 
 ts_library(
@@ -22,11 +23,11 @@ ts_library(
         "tsickle_test.ts",
         "type-translator_test.ts",
     ],
-    deps = [
-        "//src",
-        ":test_support",
-    ],
     tsconfig = "//:tsconfig.json",
+    deps = [
+        ":test_support",
+        "//src",
+    ],
 )
 
 jasmine_node_test(
@@ -43,11 +44,11 @@ ts_library(
         "e2e_source_map_test.ts",
         "e2e_test.ts",
     ],
-    deps = [
-        "//src",
-        ":test_support",
-    ],
     tsconfig = "//:tsconfig.json",
+    deps = [
+        ":test_support",
+        "//src",
+    ],
 )
 
 jasmine_node_test(
@@ -61,11 +62,11 @@ ts_library(
     srcs = [
         "golden_tsickle_test.ts",
     ],
-    deps = [
-        "//src",
-        ":test_support",
-    ],
     tsconfig = "//:tsconfig.json",
+    deps = [
+        ":test_support",
+        "//src",
+    ],
 )
 
 jasmine_node_test(
