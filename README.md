@@ -31,10 +31,6 @@ builds that are seen outside of Google.
 We would like to make tsickle usable for everyone but right now if you'd like
 to try it you should expect to spend some time debugging and reporting bugs.
 
-## Installation
-
-- Execute `npm i` to install the dependencies.
-
 ## Usage
 
 ### Project Setup
@@ -101,6 +97,15 @@ Example:
     class DoNotRenameThisClass { ... }
 
 ## Development
+
+### One-time setup
+
+1. Run `bazel run @yarn//:yarn` to install the dependencies.  (Note: using your
+   local yarn may not work, use this command.)
+   See https://github.com/bazelbuild/rules_nodejs/issues/46 .
+2. When it says "Another command is running", ctl-C to interrupt.
+3. You now have the dependencies, and ordinary bazel commands will keep you up
+   to date.
 
 ### Test commands
 
