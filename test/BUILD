@@ -14,6 +14,7 @@ ts_library(
     srcs = [
         "ast_printing_transform.ts",
         "decorator-annotator_test.ts",
+        "es5processor_test.ts",
         "jsdoc_test.ts",
         "source_map_test.ts",
         "source_map_utils_test.ts",
