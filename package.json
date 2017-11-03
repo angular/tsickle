@@ -21,7 +21,7 @@
     "typescript": "2.5.3"
   },
   "devDependencies": {
-    "@bazel/typescript": "0.1.0",
+    "@bazel/typescript": "^0.3.1",
     "@types/chai": "^3.4.32",
     "@types/diff": "^3.2.0",
     "@types/glob": "^5.0.29",
