@@ -8,7 +8,11 @@
 
 import * as path from 'path';
 
-// Postprocess generated JS.
+/**
+ * Converts a path in the given context to a Closure module name.
+ * Both context and fileName must be logical paths, i.e. they must have rootDir
+ * and outDir, respectively, stripped.
+ */
 export function pathToModuleName(context: string, fileName: string): string {
   fileName = fileName.replace(/\.js$/, '');
 

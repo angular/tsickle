@@ -270,6 +270,7 @@ class ES5Processor extends Rewriter {
       modName = nsImport;
       isNamespaceImport = true;
     } else {
+      // TODO(martinprobst): why doesn't this need stripping "rootDir"?
       modName = this.host.pathToModuleName(this.file.fileName, tsImport);
     }
 
@@ -383,7 +384,8 @@ class ES5Processor extends Rewriter {
  * Converts TypeScript's JS+CommonJS output to Closure goog.module etc.
  * For use as a postprocessing step *after* TypeScript emits JavaScript.
  *
- * @param fileName The source file name.
+ * @param fileName The logical JavaScript source file name, i.e. with any
+ *     outDir prefix removed.
  * @param moduleId The "module id", a module-identifying string that is
  *     the value module.id in the scope of the module.
  * @param pathToModuleName A function that maps a filesystem .ts path to a

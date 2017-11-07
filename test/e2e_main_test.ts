@@ -19,12 +19,13 @@ describe('toClosureJS', () => {
 
     const filePaths =
         ['test_files/underscore/export_underscore.ts', 'test_files/underscore/underscore.ts'];
-    const compilerOptionsWithRoot = {...compilerOptions, rootDir: 'test_files'};
+    const compilerOptionsWithRoot = {...compilerOptions, rootDir: 'test_files/', outDir: 'out/'};
     const sources = readSources(filePaths);
 
     const files = new Map<string, string>();
+    // NB: the code below only passes underscore.ts, and then resolves export_underscore.
     const result = toClosureJS(
-        compilerOptionsWithRoot, filePaths, {isTyped: true},
+        compilerOptionsWithRoot, ['test_files/underscore/underscore.ts'], {isTyped: true},
         (filePath: string, contents: string) => {
           files.set(filePath, contents);
         });
@@ -40,11 +41,13 @@ var __NS = {};
 __NS.__ns1;
 `);
 
-    const underscoreDotJs = files.get('./underscore/underscore.js');
+    const underscoreDotJs = files.get('out/underscore/underscore.js');
     expect(underscoreDotJs).to.contain(`goog.module('underscore.underscore')`);
+    expect(underscoreDotJs).to.contain(`goog.require('underscore.export_underscore')`);
+    expect(underscoreDotJs).to.contain(`goog.forwardDeclare("underscore.export_underscore")`);
     expect(underscoreDotJs).to.contain(`/** @type {string} */`);
 
-    const exportUnderscoreDotJs = files.get('./underscore/export_underscore.js');
+    const exportUnderscoreDotJs = files.get('out/underscore/export_underscore.js');
     expect(exportUnderscoreDotJs).to.contain(`goog.module('underscore.export_underscore')`);
   });
 });

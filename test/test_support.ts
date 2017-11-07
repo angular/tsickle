@@ -172,7 +172,10 @@ export function emit(program: ts.Program): {[fileName: string]: string} {
       es5Mode: true,
       prelude: '',
     };
-    transformed[fileName] = es5processor.processES5(host, fileName, data).output;
+    const outDir = program.getCompilerOptions().outDir || '';
+    const logicalFileName =
+        fileName.startsWith(outDir) ? fileName.substring(outDir.length) : fileName;
+    transformed[fileName] = es5processor.processES5(host, logicalFileName, data).output;
   });
   if (diagnostics.length > 0) {
     throw new Error(tsickle.formatDiagnostics(diagnostics));
