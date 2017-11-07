@@ -53,18 +53,6 @@ export const compilerOptions: ts.CompilerOptions = {
   emitDecoratorMetadata: true,
   noEmitHelpers: true,
   jsx: ts.JsxEmit.React,
-  /**
-   * The 'conceptual path' of source files in TypeScript is their path relative to the current
-   * directory, or relative to rootDir if set.
-   *
-   * This path ends up in sourceFile.fileName, which tsickle converts to the goog.module name and
-   * also uses for source map contents. Together with outDir, this causes file writes to happen with
-   * the same path as their original .ts file, which is what tests expect. Setting it here
-   * explicitly makes sure files end up with the right path in both places.
-   */
-  rootDir: '',
-  /**  */
-  outDir: '.',
 };
 
 /**
@@ -122,9 +110,10 @@ export function createProgram(
 /**
  * Creates a ts.CompilerHost that only resolves the given source files.
  *
- * Map keys in sources should be relative paths. The host simulates an environment where the sources exist immediately underneath the current directory
+ * Map keys in sources should be relative paths. The host simulates an environment where the sources
+ * exist immediately underneath the current directory, which is BASE_PATH.
  *
- * Additionally, this host caches
+ * Additionally, this host caches `lib.d.ts` to speed up tests.
  */
 export function createHostWithSources(
     sources: Map<string, string>,
@@ -136,7 +125,7 @@ export function createHostWithSources(
     return path.relative(BASE_PATH, p);
   }
 
-  // host.getCurrentDirectory = () => BASE_PATH;
+  host.getCurrentDirectory = () => BASE_PATH;
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
                         onError?: (msg: string) => void): ts.SourceFile => {
     // Normalize path to fix wrong directory separators on Windows which
