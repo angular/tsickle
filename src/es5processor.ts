@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
-import {isDtsFileName} from './tsickle';
+import {isDtsFileName} from './util';
 
 export interface Es5ProcessorHost {
   /**
