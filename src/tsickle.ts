@@ -22,6 +22,7 @@ import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeI
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
 import * as typeTranslator from './type-translator';
+import {hasModifierFlag, isDtsFileName} from './util';
 
 export {FileMap, ModulesManifest} from './modules_manifest';
 
@@ -97,11 +98,6 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
 }
 
 /** @return true if node has the specified modifier flag set. */
-export function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean {
-  return (ts.getCombinedModifierFlags(node) & flag) !== 0;
-}
-
-/** @return true if node has the specified modifier flag set. */
 function isAmbient(node: ts.Node): boolean {
   let current: ts.Node|undefined = node;
   while (current) {
@@ -128,10 +124,6 @@ function isValidClosurePropertyName(name: string): boolean {
   // In local experimentation, it appears that reserved words like 'var' and
   // 'if' are legal JS and still accepted by Closure.
   return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
-}
-
-export function isDtsFileName(fileName: string): boolean {
-  return /\.d\.ts$/.test(fileName);
 }
 
 /** Returns the Closure name of a function parameter, special-casing destructuring. */

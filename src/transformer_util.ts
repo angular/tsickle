@@ -7,7 +7,7 @@
  */
 
 import * as ts from 'typescript';
-import * as tsickle from './tsickle';
+import {hasModifierFlag} from './util';
 
 /**
  * Adjusts the given CustomTransformers with additional transformers
@@ -171,7 +171,7 @@ function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.Transf
           }
         } else if (
             parent3 && parent3.kind === ts.SyntaxKind.VariableStatement &&
-            tsickle.hasModifierFlag(parent3, ts.ModifierFlags.Export)) {
+            hasModifierFlag(parent3, ts.ModifierFlags.Export)) {
           // TypeScript ignores synthetic comments on exported variables.
           // find the parent ExpressionStatement like exports.foo = ...
           const expressionStmt =
@@ -298,7 +298,7 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
   let allowTextRange = node.kind !== ts.SyntaxKind.ClassDeclaration &&
       node.kind !== ts.SyntaxKind.VariableDeclaration &&
       !(node.kind === ts.SyntaxKind.VariableStatement &&
-        tsickle.hasModifierFlag(node, ts.ModifierFlags.Export));
+        hasModifierFlag(node, ts.ModifierFlags.Export));
   if (node.kind === ts.SyntaxKind.PropertyDeclaration) {
     allowTextRange = false;
     const pd = node as ts.Node as ts.PropertyDeclaration;
