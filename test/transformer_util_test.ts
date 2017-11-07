@@ -70,6 +70,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
+      console.error('sources ended up being', Array.from(Object.keys(jsSources)));
       expect(jsSources['./a.js']).to.eq([
         `/*<${ts.SyntaxKind.NotEmittedStatement}>fc*/`,
         `/*<${ts.SyntaxKind.VariableStatement}>sc*/`,

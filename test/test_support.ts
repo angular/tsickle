@@ -19,6 +19,21 @@ import {toClosureJS} from '../src/main';
 import {sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
+/**
+ * The BASE_PATH that test source file paths are relative to.
+ *
+ * This is the path that contains the 'test_files' or 'test' folder. This can be the bazel runfiles
+ * directory (i.e. the workspace root), or potentially a subdirectory if the tsickle source
+ * code exists in a subdirectory in a different bazel workspace.
+ */
+const BASE_PATH = (() => {
+  const runfiles = process.env['RUNFILES'];
+  const candidate =
+      path.join(runfiles, 'google3', 'third_party', 'javascript', 'node_modules', 'tsickle');
+  if (fs.existsSync(candidate)) return candidate;
+  return path.join(runfiles, 'io_angular_tsickle');
+})();
+
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2015,
@@ -38,8 +53,17 @@ export const compilerOptions: ts.CompilerOptions = {
   emitDecoratorMetadata: true,
   noEmitHelpers: true,
   jsx: ts.JsxEmit.React,
-  // Flags below are needed to make sure source paths are correctly set on write calls.
-  rootDir: path.resolve(process.cwd()),
+  /**
+   * The 'conceptual path' of source files in TypeScript is their path relative to the current
+   * directory, or relative to rootDir if set.
+   *
+   * This path ends up in sourceFile.fileName, which tsickle converts to the goog.module name and
+   * also uses for source map contents. Together with outDir, this causes file writes to happen with
+   * the same path as their original .ts file, which is what tests expect. Setting it here
+   * explicitly makes sure files end up with the right path in both places.
+   */
+  rootDir: '',
+  /**  */
   outDir: '.',
 };
 
@@ -95,32 +119,47 @@ export function createProgram(
   return createProgramAndHost(sources, tsCompilerOptions).program;
 }
 
-export function createSourceCachingHost(
+/**
+ * Creates a ts.CompilerHost that only resolves the given source files.
+ *
+ * Map keys in sources should be relative paths. The host simulates an environment where the sources exist immediately underneath the current directory
+ *
+ * Additionally, this host caches
+ */
+export function createHostWithSources(
     sources: Map<string, string>,
     tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.CompilerHost {
   const host = ts.createCompilerHost(tsCompilerOptions);
 
+  function relativeToBase(p: string) {
+    if (!path.isAbsolute(p)) return p;
+    return path.relative(BASE_PATH, p);
+  }
+
+  // host.getCurrentDirectory = () => BASE_PATH;
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
                         onError?: (msg: string) => void): ts.SourceFile => {
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
     fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
-    if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
+    fileName = relativeToBase(fileName);
     const contents = sources.get(fileName);
     if (contents !== undefined) {
       return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
     }
-    throw new Error(
-        'unexpected file read of ' + fileName + ' not in ' + Array.from(sources.keys()));
+    throw new Error(`unexpected file read of ${fileName} not in ${Array.from(sources.keys())}`);
   };
   const originalFileExists = host.fileExists;
   host.fileExists = (fileName: string): boolean => {
-    if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
+    // It's either one of our known sources.
+    fileName = relativeToBase(fileName);
     if (sources.has(fileName)) {
       return true;
     }
-    return originalFileExists.call(host, fileName);
+    // ... or the standard library.
+    fileName = path.normalize(fileName);
+    return fileName === cachedLibPath;
   };
 
   return host;
@@ -129,8 +168,7 @@ export function createSourceCachingHost(
 export function createProgramAndHost(
     sources: Map<string, string>, tsCompilerOptions: ts.CompilerOptions = compilerOptions):
     {host: ts.CompilerHost, program: ts.Program} {
-  const host = createSourceCachingHost(sources);
-
+  const host = createHostWithSources(sources);
   const program = ts.createProgram(Array.from(sources.keys()), tsCompilerOptions, host);
   return {program, host};
 }
@@ -195,13 +233,13 @@ export class GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  const basePath = path.join(process.env['RUNFILES'], 'io_angular_tsickle', 'test_files');
-  const testNames = fs.readdirSync(basePath);
+  const testFilesPath = path.join(BASE_PATH, 'test_files');
+  const testNames = fs.readdirSync(testFilesPath);
 
-  const testDirs = testNames.map(testName => path.join(basePath, testName))
+  const testDirs = testNames.map(testName => path.join(testFilesPath, testName))
                        .filter(testDir => fs.statSync(testDir).isDirectory());
   const tests = testDirs.map(testDir => {
-    testDir = path.relative(process.cwd(), testDir);
+    testDir = path.relative(testFilesPath, testDir);
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
@@ -292,7 +330,7 @@ export function getSourceMapWithName(
 export function compileWithTransfromer(
     sources: Map<string, string>, compilerOptions: ts.CompilerOptions) {
   const fileNames = Array.from(sources.keys());
-  const tsHost = createSourceCachingHost(sources, compilerOptions);
+  const tsHost = createHostWithSources(sources, compilerOptions);
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
   expect(ts.getPreEmitDiagnostics(program))
       .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
