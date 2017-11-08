@@ -28,8 +28,7 @@ import * as tsickle from '../src/tsickle';
  */
 const BASE_PATH = (() => {
   const runfiles = process.env['RUNFILES'];
-  const candidate =
-      path.join(runfiles, 'google3', 'third_party', 'javascript', 'node_modules', 'tsickle');
+  const candidate = path.join(runfiles, 'google3/third_party/javascript/node_modules/tsickle');
   if (fs.existsSync(candidate)) return candidate;
   return path.join(runfiles, 'io_angular_tsickle');
 })();
