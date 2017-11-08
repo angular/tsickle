@@ -1179,7 +1179,7 @@ class Annotator extends ClosureRewriter {
     // Convert the source fileName to a logical fileName.
     const rootDir = (this.tsOpts && this.tsOpts.rootDir) || '';
     const logicalFileName = this.file.fileName.startsWith(rootDir) ?
-        this.file.fileName.substring(rootDir.length) :
+        path.relative(rootDir, this.file.fileName) :
         this.file.fileName;
     const moduleNamespace =
         nsImport !== null ? nsImport : this.host.pathToModuleName(logicalFileName, importPath);
@@ -2013,7 +2013,7 @@ export function emitWithTsickle(
           }
           const outDir = program.getCompilerOptions().outDir || '';
           const logicalFileName =
-              fileName.startsWith(outDir) ? fileName.substring(outDir.length) : fileName;
+              fileName.startsWith(outDir) ? path.relative(outDir, fileName) : fileName;
           content = es5processor.convertCommonJsToGoogModuleIfNeeded(
               host, modulesManifest, logicalFileName, content);
         } else {
