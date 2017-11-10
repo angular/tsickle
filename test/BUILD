@@ -61,6 +61,7 @@ ts_library(
     name = "golden_test_lib",
     srcs = [
         "golden_tsickle_test.ts",
+        "chai-diff.d.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [

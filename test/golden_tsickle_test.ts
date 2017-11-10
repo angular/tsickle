@@ -6,7 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
+import {expect, use as chaiUse} from 'chai';
+// tslint:disable-next-line:no-require-imports chai-diff needs a CommonJS import.
+import chaiDiff = require('chai-diff');
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
@@ -15,6 +17,8 @@ import * as tsickle from '../src/tsickle';
 import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
+
+chaiUse(chaiDiff);
 
 // Set TEST_FILTER=foo to only run tests from the foo package.
 // Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
@@ -92,7 +96,7 @@ function compareAgainstGolden(
       }
     }
   } else {
-    expect(output).to.equal(golden, `${goldenPath}`);
+    expect(output).not.differentFrom(golden!, {});
   }
 }
 
