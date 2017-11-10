@@ -110,6 +110,8 @@ testFn('golden tests with transformer', () => {
       emitDeclarations = false;
     }
     it(test.name, () => {
+      // tslint:disable-next-line:no-unused-expression mocha .to.be.empty getters.
+      expect(test.tsFiles).not.to.be.empty;
       // Read all the inputs into a map, and create a ts.Program from them.
       const tsSources = new Map<string, string>();
       for (const tsFile of test.tsFiles) {
@@ -136,7 +138,6 @@ testFn('golden tests with transformer', () => {
           throw new Error(tsickle.formatDiagnostics(diagnostics));
         }
       }
-      const allDiagnostics: ts.Diagnostic[] = [];
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
       const transformerHost: tsickle.TsickleHost = {
         es5Mode: true,
@@ -150,7 +151,6 @@ testFn('golden tests with transformer', () => {
         addDtsClutzAliases: /\.declaration\b/.test(test.name),
         untyped: /\.untyped\b/.test(test.name),
         logWarning: (diag: ts.Diagnostic) => {
-          allDiagnostics.push(diag);
           let diags = diagnosticsByFile.get(diag.file!.fileName);
           if (!diags) {
             diags = [];
@@ -183,17 +183,27 @@ testFn('golden tests with transformer', () => {
               Array.from(tsSources.keys())}`);
         }
       }
+      const isDeclarationTest = /\.declaration\b/.test(test.name);
       const {diagnostics, externs} = tsickle.emitWithTsickle(
           program, transformerHost, tsHost, tsCompilerOptions, targetSource,
           (fileName: string, data: string) => {
-            if (!fileName.endsWith(/\.declaration\b/.test(test.name) ? '.js' : '.d.ts')) {
-              // Normally we don't check .d.ts files, we are only interested to test that
-              // we don't throw when we generate them, but if we're in a .declaration test,
-              // we only care about the .d.ts files
-              tscOutput[fileName] = data;
+            if (isDeclarationTest) {
+              // Only compare .d.ts files for declaration tests.
+              if (!fileName.endsWith('.d.ts')) return;
+            } else {
+              // Only compare .js files for regular test runs (non-declaration).
+              if (!fileName.endsWith('.js')) return;
             }
+            // Normally we don't check .d.ts files, we are only interested to test that
+            // we don't throw when we generate them, but if we're in a .declaration test,
+            // we only care about the .d.ts files
+            tscOutput[fileName] = data;
           });
-      allDiagnostics.push(...diagnostics);
+      if (!isDeclarationTest) {
+        const sortedPaths = test.jsPaths.sort();
+        const actualPaths = Object.keys(tscOutput).map(p => p.replace(/^\.\//, '')).sort();
+        expect(sortedPaths).to.eql(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
+      }
       let allExterns: string|null = null;
       if (!test.name.endsWith('.no_externs')) {
         for (const tsPath of tsSources.keys()) {
