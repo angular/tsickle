@@ -23,6 +23,8 @@ let /** @type {{optional: (undefined|string|boolean)}} */ typeOptionalUnion = {}
 let /** @type {function(): void} */ typeFunc = function () { };
 let /** @type {function(number, ?): string} */ typeFunc2 = function (a, b) { return ''; };
 let /** @type {function(number, function(number): string): string} */ typeFunc3 = function (x, cb) { return ''; };
+let /** @type {function(number, (undefined|!Object)=): string} */ typeFuncOptionalArg;
+let /** @type {function(number, ...number): void} */ typeFuncVarArgs;
 /**
  * @param {function(number): number} callback
  * @return {void}

@@ -589,6 +589,7 @@ export class TypeTranslator {
 
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
+    // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
     const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
@@ -601,10 +602,27 @@ export class TypeTranslator {
   }
 
   private convertParams(sig: ts.Signature): string[] {
-    return sig.parameters.map(param => {
-      const paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
-      return this.translate(paramType);
-    });
+    const paramTypes: string[] = [];
+    // The Signature itself does not include information on optional and var arg parameters.
+    // Use its declaration to recover that information.
+    const decl = sig.declaration;
+    for (let i = 0; i < sig.parameters.length; i++) {
+      const param = sig.parameters[i];
+
+      const paramDecl = decl.parameters[i];
+      const optional = !!paramDecl.questionToken;
+      const varArgs = !!paramDecl.dotDotDotToken;
+      let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      if (varArgs) {
+        const typeRef = paramType as ts.TypeReference;
+        paramType = typeRef.typeArguments![0];
+      }
+      let typeStr = this.translate(paramType);
+      if (varArgs) typeStr = '...' + typeStr;
+      if (optional) typeStr = typeStr + '=';
+      paramTypes.push(typeStr);
+    }
+    return paramTypes;
   }
 
   warn(msg: string) {

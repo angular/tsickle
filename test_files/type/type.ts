@@ -27,8 +27,9 @@ let typeOptionalUnion: {optional?: string|boolean} = {};
 
 let typeFunc: () => void = function() {};
 let typeFunc2: (a: number, b: any) => string = function(a, b) { return ''; };
-let typeFunc3: (x: number, callback: (x: number) => string) => string = function(x, cb) { return ''; }
-// TODO: let typeFunc4: (a: number, ...args: number[]) => void;
+let typeFunc3: (x: number, callback: (x: number) => string) => string = function(x, cb) { return ''; };
+let typeFuncOptionalArg: (a: number, b?: {}) => string;
+let typeFuncVarArgs: (a: number, ...args: number[]) => void;
 
 function typeCallback(callback: (val: number) => number) { }
 typeCallback(val => val + 1);
