@@ -7,7 +7,7 @@
  */
 
 import {SourceMapGenerator} from 'source-map';
-import * as ts from 'typescript';
+import * as ts from './typescript';
 
 import {getDecoratorDeclarations} from './decorators';
 import {getIdentifierText, Rewriter} from './rewriter';

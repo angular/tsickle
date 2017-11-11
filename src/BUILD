@@ -19,7 +19,9 @@ ts_library(
         "transformer_util.ts",
         "tsickle.ts",
         "type-translator.ts",
+        "typescript.ts",
         "util.ts",
+        "typescripts/typescript-2.4.d.ts"
     ],
     deps = [],
     data = ["closure_externs.js"],

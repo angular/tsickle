@@ -7,7 +7,7 @@
  */
 
 import {BasicSourceMapConsumer, RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
-import * as ts from 'typescript';
+import * as ts from './typescript';
 
 /**
  * Return a new RegExp object every time we want one because the
