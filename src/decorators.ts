@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from 'typescript';
+import * as ts from './typescript';
 
 /**
  * Returns the declarations for the given decorator.
  */
-export function getDecoratorDeclarations(decorator: ts.Decorator, typeChecker: ts.TypeChecker) {
+export function getDecoratorDeclarations(decorator: ts.Decorator, typeChecker: ts.TypeChecker): ts.Declaration[] {
   // Walk down the expression to find the identifier of the decorator function.
   let node: ts.Node = decorator;
   while (node.kind !== ts.SyntaxKind.Identifier) {

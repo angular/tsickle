@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from 'typescript';
+// import * as ts from 'typescript';
+import * as ts from './typescript';
 
 import {shouldLower} from './decorator-annotator';
 import {visitEachChild} from './transformer_util';

@@ -8,7 +8,7 @@
 
 import * as path from 'path';
 import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
-import * as ts from 'typescript';
+import * as ts from './typescript';
 
 import {classDecoratorDownlevelTransformer} from './class_decorator_downlevel_transformer';
 import * as decorator from './decorator-annotator';

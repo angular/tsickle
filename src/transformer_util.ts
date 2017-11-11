@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from 'typescript';
+import * as ts from './typescript';
 import {hasModifierFlag} from './util';
 
 /**
@@ -288,8 +288,7 @@ export function visitNodeWithSynthesizedComments<T extends ts.Node>(
  * @param node
  */
 function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T): T {
-  // tslint:disable-next-line:no-any TS 2.5 typescript.d.ts does not expose getEmitFlags.
-  ts.setEmitFlags(node, ((ts as any).getEmitFlags(node) || 0) | ts.EmitFlags.NoComments);
+  ts.setEmitFlags(node, (ts.getEmitFlags(node) || 0) | ts.EmitFlags.NoComments);
   // See also addSyntheticCommentsAfterTsTransformer.
   // Note: Don't reset the textRange for ts.ExportDeclaration / ts.ImportDeclaration
   // until after the TypeScript transformer as we need the source location
@@ -573,7 +572,7 @@ function synthesizeCommentRanges(
 /**
  * Creates a non emitted statement that can be used to store synthesized comments.
  */
-export function createNotEmittedStatement(sourceFile: ts.SourceFile) {
+export function createNotEmittedStatement(sourceFile: ts.SourceFile): ts.NotEmittedStatement {
   const stmt = ts.createNotEmittedStatement(sourceFile);
   ts.setOriginalNode(stmt, undefined);
   ts.setTextRange(stmt, {pos: 0, end: 0});
@@ -613,7 +612,7 @@ function getAllLeadingCommentRanges(
  * @param statements
  */
 export function visitEachChild(
-    node: ts.Node, visitor: ts.Visitor, context: ts.TransformationContext) {
+    node: ts.Node, visitor: ts.Visitor, context: ts.TransformationContext): ts.Node {
   if (node.kind === ts.SyntaxKind.SourceFile) {
     const sf = node as ts.SourceFile;
     return updateSourceFileNode(sf, ts.visitLexicalEnvironment(sf.statements, visitor, context));
