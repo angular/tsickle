@@ -32,6 +32,10 @@ export interface AnnotatorHost {
    * by default.
    */
   logWarning?: (warning: ts.Diagnostic) => void;
+  /**
+   * Convert an import path in the given context into a Closure module name.
+   * context and import path must have rootDir or outDir prefixes stripped.
+   */
   pathToModuleName: (context: string, importPath: string) => string;
   /**
    * If true, convert every type to the Closure {?} type, which means
@@ -1163,8 +1167,7 @@ class Annotator extends ClosureRewriter {
     const importPath = this.resolveModuleSpecifier(specifier);
     const nsImport = es5processor.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
-    const moduleNamespace =
-        nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
+
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
     // Scripts do not have a symbol. Scripts can still be imported, either as side effect imports or
     // with an empty import set ("{}"). TypeScript does not emit a runtime load for an import with
@@ -1172,13 +1175,22 @@ class Annotator extends ClosureRewriter {
     // be visible, which is what users use this for. No symbols from the script need forward
     // declaration, so just return.
     if (!moduleSymbol) return;
-    const exports = this.typeChecker.getExportsOfModule(moduleSymbol);
+
+    // Convert the source fileName to a logical fileName.
+    const rootDir = (this.tsOpts && this.tsOpts.rootDir) || '';
+    const logicalFileName = this.file.fileName.startsWith(rootDir) ?
+        path.relative(rootDir, this.file.fileName) :
+        this.file.fileName;
+    const moduleNamespace =
+        nsImport !== null ? nsImport : this.host.pathToModuleName(logicalFileName, importPath);
+
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
     // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
     // here would cause a change in load order, which is observable (and can lead to errors).
     // Instead, goog.forwardDeclare types, which allows using them in type annotations without
     // causing a load. See below for the exception to the rule.
     this.emit(`\nconst ${forwardDeclarePrefix} = goog.forwardDeclare("${moduleNamespace}");`);
+    const exports = this.typeChecker.getExportsOfModule(moduleSymbol);
     const hasValues = exports.some(e => (e.flags & ts.SymbolFlags.Value) !== 0);
     if (!hasValues) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
@@ -1999,8 +2011,11 @@ export function emitWithTsickle(
           } else {
             content = removeInlineSourceMap(content);
           }
+          const outDir = program.getCompilerOptions().outDir || '';
+          const logicalFileName =
+              fileName.startsWith(outDir) ? path.relative(outDir, fileName) : fileName;
           content = es5processor.convertCommonJsToGoogModuleIfNeeded(
-              host, modulesManifest, fileName, content);
+              host, modulesManifest, logicalFileName, content);
         } else {
           content = combineSourceMaps(program, fileName, content);
         }

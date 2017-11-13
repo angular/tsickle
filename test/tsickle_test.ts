@@ -78,7 +78,7 @@ describe('emitWithTsickle', () => {
         },
         {beforeTs: [transformValue]});
 
-    expect(jsSources['./a.js']).to.contain('exports.x = 2;');
+    expect(jsSources['a.js']).to.contain('exports.x = 2;');
   });
 
 
@@ -93,7 +93,7 @@ describe('emitWithTsickle', () => {
              },
              {es5Mode: false, googmodule: false});
 
-         expect(jsSources['./b.d.ts']).to.eq(`export * from './a';\n`);
+         expect(jsSources['b.d.ts']).to.eq(`export * from './a';\n`);
        });
 
   });
