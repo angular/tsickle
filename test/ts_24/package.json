@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "jasmine": "^2.8.0",
+    "typescript": "2.4"
+  }
+}

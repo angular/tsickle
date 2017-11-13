@@ -139,8 +139,8 @@ export function getEmitFlags(node: ts.Node): ts.EmitFlags | undefined {
 // Between TypeScript 2.4 and 2.5 updateProperty was modified. If called with 2.4 re-order the parameters.
 export let updateProperty = ts.updateProperty;
 
-let version = ts.version.split('.');
-if (version[0] === '2' && version[1] == '4') {
+let [major, minor] = ts.version.split('.');
+if (major === '2' && minor == '4') {
   const updateProperty24 = ts.updateProperty as any as typeof ts24.updateProperty;
   updateProperty = (node: ts.PropertyDeclaration, decorators: ReadonlyArray<ts.Decorator> | undefined, 
     modifiers: ReadonlyArray<ts.Modifier> | undefined, name: string | ts.PropertyName, questionToken: ts.QuestionToken | undefined, type: ts.TypeNode | undefined, initializer: ts.Expression | undefined): ts.PropertyDeclaration => {
