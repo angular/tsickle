@@ -12,7 +12,7 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 
 # NOTE: this rule installs nodejs, npm, and yarn, but does NOT install
 # your npm dependencies. You must still run the package manager.
-node_repositories(package_json = ["//:package.json"])
+node_repositories(package_json = ["//:package.json", "//test/ts_24:package.json"])
 
 # Include @bazel/typescript in package.json#devDependencies
 local_repository(
