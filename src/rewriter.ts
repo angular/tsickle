@@ -6,9 +6,8 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from './typescript';
-
 import {NOOP_SOURCE_MAPPER, SourceMapper, SourcePosition} from './source_map_utils';
+import * as ts from './typescript';
 
 /**
  * A Rewriter manages iterating through a ts.SourceFile, copying input

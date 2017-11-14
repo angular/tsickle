@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from './typescript';
-
 import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
+import * as ts from './typescript';
 import {isDtsFileName} from './util';
 
 export interface Es5ProcessorHost {
@@ -323,11 +322,17 @@ class ES5Processor extends Rewriter {
     switch (call.expression.kind) {
       case ts.SyntaxKind.Identifier:
         const ident = call.expression as ts.Identifier;
-        if (ident.text !== '__export') return null;
+        // TS_24_COMPAT: accept three leading underscores
+        if (ident.text !== '__export' && ident.text !== '___export') {
+          return null;
+        }
         break;
       case ts.SyntaxKind.PropertyAccessExpression:
         const propAccess = call.expression as ts.PropertyAccessExpression;
-        if (propAccess.name.text !== '__exportStar') return null;
+        // TS_24_COMPAT: accept three leading underscores
+        if (propAccess.name.text !== '__exportStar' && propAccess.name.text !== '___exportStar') {
+          return null;
+        }
         break;
       default:
         return null;

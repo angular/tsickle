@@ -7,12 +7,12 @@
  */
 
 import {SourceMapGenerator} from 'source-map';
-import * as ts from './typescript';
 
 import {getDecoratorDeclarations} from './decorators';
 import {getIdentifierText, Rewriter} from './rewriter';
 import {SourceMapper} from './source_map_utils';
 import {TypeTranslator} from './type-translator';
+import * as ts from './typescript';
 
 /**
  * ConstructorParameters are gathered from constructors, so that their type information and

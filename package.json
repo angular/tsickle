@@ -50,7 +50,7 @@
     "typescript": "~2.5.3"
   },
   "scripts": {
-    "prepublish": "bazel build ...",
+    "prepublish": "bazel build //src/...",
     "prepack": "mkdir built && cp -R bazel-bin/src built/src",
     "postpack": "rm -rf built",
     "test": "gulp test.check-format && gulp test.check-lint && bazel test ..."
