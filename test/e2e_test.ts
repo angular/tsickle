@@ -11,19 +11,29 @@ import * as closure from 'google-closure-compiler';
 
 import {goldenTests} from './test_support';
 
-export function checkClosureCompile(jsFiles: string[], externsFiles: string[], done: DoneFn) {
+export function checkClosureCompile(useNewTypeInferece: boolean, done: DoneFn) {
+  // Declaration tests do not produce .js files.
+  const tests = goldenTests().filter(t => !t.isDeclarationTest);
+  const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
+  goldenJs.push('src/closure_externs.js');
+  goldenJs.push('test_files/helpers.js');
+  goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
+  goldenJs.push('test_files/clutz.no_externs/some_other.js');
+  goldenJs.push('test_files/import_from_goog/closure_Module.js');
+  goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
+  const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
   const startTime = Date.now();
-  const total = jsFiles.length;
-  if (!total) throw new Error('No JS files in ' + JSON.stringify(jsFiles));
+  const total = goldenJs.length;
+  if (!total) throw new Error('No JS files in ' + JSON.stringify(goldenJs));
 
   const CLOSURE_COMPILER_OPTS: closure.CompileOptions = {
     'checks_only': true,
     'jscomp_error': 'checkTypes',
     // NTI enabled mostly to get more precise errors on template type instantiation.
-    'new_type_inf': true,
+    'new_type_inf': useNewTypeInferece,
     'warning_level': 'VERBOSE',
-    'js': jsFiles,
-    'externs': externsFiles,
+    'js': goldenJs,
+    'externs': externs,
     'language_in': 'ECMASCRIPT6_STRICT',
     'language_out': 'ECMASCRIPT5',
   };
@@ -37,17 +47,10 @@ export function checkClosureCompile(jsFiles: string[], externsFiles: string[], d
 }
 
 describe('golden file tests', () => {
-  it('generates correct Closure code', (done) => {
-    // Declaration tests do not produce .js files.
-    const tests = goldenTests().filter(t => !t.isDeclarationTest);
-    const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
-    goldenJs.push('src/closure_externs.js');
-    goldenJs.push('test_files/helpers.js');
-    goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
-    goldenJs.push('test_files/clutz.no_externs/some_other.js');
-    goldenJs.push('test_files/import_from_goog/closure_Module.js');
-    goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
-    const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
-    checkClosureCompile(goldenJs, externs, done);
+  it('compile with Closure (New Type Inference)', (done) => {
+    checkClosureCompile(true /* NTI */, done);
+  }, 15000 /* ms timeout */);
+  it('compile with Closure (Old Type Inference)', (done) => {
+    checkClosureCompile(false /* OTI */, done);
   }, 15000 /* ms timeout */);
 });
