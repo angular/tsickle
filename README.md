@@ -120,7 +120,7 @@ to install the dependencies.
 
 ### Updating Goldens
 
-Run `UPDATE_GOLDENS=y bazel run test:golden_test` to have the test suite update 
+Run `UPDATE_GOLDENS=y bazel run test:golden_test` to have the test suite update
 the goldens in `test_files/...`.
 
 ### Environment variables
@@ -133,6 +133,8 @@ regex.
 
 On a new branch, run `npm version <major|minor|patch|...> -m 'rel: %s'` (see
 `npm help version` for details) to update the version in `package.json`, commit
-the changes, and create a git tag. Push the branch, get it reviewed and merged,
-then run `npm publish` from the master branch (you must be logged into the
+the changes, and create a git tag. Push the branch, get it reviewed and merged.
+For the next step, make sure you use npm version 5 or greater (`npm -v`) due to
+our `prepack` script in package.json.
+Run `npm publish` from the master branch (you must be logged into the
 `angular` shared npm account).
