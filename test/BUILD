@@ -35,12 +35,6 @@ jasmine_node_test(
     srcs = [":unit_test_lib"],
 )
 
-jasmine_node_test(
-    name = "unit_test_ts24",
-    srcs = [":unit_test_lib"],
-    node_modules = "//test/ts_24:node_modules"
-)
-
 ts_library(
     name = "e2e_test_lib",
     srcs = [

@@ -8,7 +8,6 @@
 
 import * as path from 'path';
 import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
-import * as ts from './typescript';
 
 import {classDecoratorDownlevelTransformer} from './class_decorator_downlevel_transformer';
 import * as decorator from './decorator-annotator';
@@ -22,6 +21,7 @@ import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeI
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
 import * as typeTranslator from './type-translator';
+import * as ts from './typescript';
 import {hasModifierFlag, isDtsFileName} from './util';
 
 export {FileMap, ModulesManifest} from './modules_manifest';

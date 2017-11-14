@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from './typescript';
-
 import {SourceMapper, SourcePosition} from './source_map_utils';
 import {isTypeNodeKind, updateSourceFileNode, visitNodeWithSynthesizedComments} from './transformer_util';
+import * as ts from './typescript';
 
 /**
  * @fileoverview Creates a TypeScript transformer that parses code into a new `ts.SourceFile`,
