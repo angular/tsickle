@@ -49,8 +49,8 @@ export function checkClosureCompile(useNewTypeInferece: boolean, done: DoneFn) {
 describe('golden file tests', () => {
   it('compile with Closure (New Type Inference)', (done) => {
     checkClosureCompile(true /* NTI */, done);
-  }, 15000 /* ms timeout */);
+  }, 30000 /* ms timeout */);
   it('compile with Closure (Old Type Inference)', (done) => {
     checkClosureCompile(false /* OTI */, done);
-  }, 15000 /* ms timeout */);
+  }, 30000 /* ms timeout */);
 });
