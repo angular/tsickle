@@ -8,6 +8,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
+import {getIdentifierText} from './rewriter';
 
 /**
  * Determines if fileName refers to a builtin lib.d.ts file.
@@ -142,7 +143,8 @@ export class TypeTranslator {
    *     any reference to symbols defined in these paths should by typed
    *     as {?}.
    * @param symbolsToAliasedNames a mapping from symbols (`Foo`) to a name in scope they should be
-   *     emitted as (e.g. `tsickle_forward_declare_1.Foo`).
+   *     emitted as (e.g. `tsickle_forward_declare_1.Foo`). Can be augmented during type
+   *     translation, e.g. to blacklist a symbol.
    */
   constructor(
       private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
@@ -590,6 +592,20 @@ export class TypeTranslator {
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
     // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
+
+    // Closure doesn not support type parameters for function types, i.e. generic function types.
+    // Blacklist the symbols declared by them and emit a ? for the types.
+    if (sig.declaration.typeParameters) {
+      for (const tpd of sig.declaration.typeParameters) {
+        const sym = this.typeChecker.getSymbolAtLocation(tpd.name);
+        if (!sym) {
+          this.warn(`type parameter with no symbol`);
+          continue;
+        }
+        this.symbolsToAliasedNames.set(sym, '?');
+      }
+    }
+
     const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
