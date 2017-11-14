@@ -173,6 +173,14 @@ export class GoldenFileTest {
         .map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
   }
 
+  get isDeclarationTest(): boolean {
+    return /\.declaration\b/.test(this.name);
+  }
+
+  get isUntypedTest(): boolean {
+    return /\.untyped\b/.test(this.name);
+  }
+
   /**
    * Find the absolute path to the tsickle root directory by reading the
    * symlink bazel puts into bazel-bin back into the test_files directory

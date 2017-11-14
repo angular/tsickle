@@ -19,7 +19,7 @@ import {compileWithTransfromer, createProgram, goldenTests} from './test_support
 
 describe('clutz dts', () => {
   it('produces a valid .d.ts', () => {
-    const tests = goldenTests().filter(t => /\.declaration\b/.test(t.name));
+    const tests = goldenTests().filter(t => t.isDeclarationTest);
 
     const dtsSources = new Map<string, string>();
 

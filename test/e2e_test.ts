@@ -12,7 +12,7 @@ import * as closure from 'google-closure-compiler';
 import {goldenTests} from './test_support';
 
 export function checkClosureCompile(
-    jsFiles: string[], externsFiles: string[], done: (err?: Error) => void) {
+    jsFiles: string[], externsFiles: string[], done: DoneFn) {
   const startTime = Date.now();
   const total = jsFiles.length;
   if (!total) throw new Error('No JS files in ' + JSON.stringify(jsFiles));
@@ -20,6 +20,8 @@ export function checkClosureCompile(
   const CLOSURE_COMPILER_OPTS: closure.CompileOptions = {
     'checks_only': true,
     'jscomp_error': 'checkTypes',
+    // TODO(martinprobst): enable when NTI is ready. Currently doesn't support enum union types.
+    // 'new_type_inf': true,
     'warning_level': 'VERBOSE',
     'js': jsFiles,
     'externs': externsFiles,
@@ -30,17 +32,15 @@ export function checkClosureCompile(
   const compiler = new closure.compiler(CLOSURE_COMPILER_OPTS);
   compiler.run((exitCode, stdout, stderr) => {
     console.log('Closure compilation:', total, 'done after', Date.now() - startTime, 'ms');
-    if (exitCode !== 0) {
-      done(new Error(stderr));
-    } else {
+      expect(exitCode).toBe(0, stderr);
       done();
-    }
   });
 }
 
 describe('golden file tests', () => {
-  it('generates correct Closure code', (done: (err?: Error) => void) => {
-    const tests = goldenTests();
+  it('generates correct Closure code', (done) => {
+    // Declaration tests do not produce .js files.
+    const tests = goldenTests().filter(t => !t.isDeclarationTest);
     const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
     goldenJs.push('src/closure_externs.js');
     goldenJs.push('test_files/helpers.js');

@@ -152,8 +152,8 @@ testFn('golden tests with transformer', () => {
         convertIndexImportShorthand: true,
         transformDecorators: true,
         transformTypesToClosure: true,
-        addDtsClutzAliases: /\.declaration\b/.test(test.name),
-        untyped: /\.untyped\b/.test(test.name),
+        addDtsClutzAliases: test.isDeclarationTest,
+        untyped: test.isUntypedTest,
         logWarning: (diag: ts.Diagnostic) => {
           let diags = diagnosticsByFile.get(diag.file!.fileName);
           if (!diags) {
@@ -187,11 +187,10 @@ testFn('golden tests with transformer', () => {
               Array.from(tsSources.keys())}`);
         }
       }
-      const isDeclarationTest = /\.declaration\b/.test(test.name);
       const {diagnostics, externs} = tsickle.emitWithTsickle(
           program, transformerHost, tsHost, tsCompilerOptions, targetSource,
           (fileName: string, data: string) => {
-            if (isDeclarationTest) {
+            if (test.isDeclarationTest) {
               // Only compare .d.ts files for declaration tests.
               if (!fileName.endsWith('.d.ts')) return;
             } else {
@@ -203,7 +202,7 @@ testFn('golden tests with transformer', () => {
             // we only care about the .d.ts files
             tscOutput[fileName] = data;
           });
-      if (!isDeclarationTest) {
+      if (!test.isDeclarationTest) {
         const sortedPaths = test.jsPaths.sort();
         const actualPaths = Object.keys(tscOutput).map(p => p.replace(/^\.\//, '')).sort();
         expect(sortedPaths).to.eql(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
