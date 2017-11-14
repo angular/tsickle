@@ -11,8 +11,7 @@ import * as closure from 'google-closure-compiler';
 
 import {goldenTests} from './test_support';
 
-export function checkClosureCompile(
-    jsFiles: string[], externsFiles: string[], done: DoneFn) {
+export function checkClosureCompile(jsFiles: string[], externsFiles: string[], done: DoneFn) {
   const startTime = Date.now();
   const total = jsFiles.length;
   if (!total) throw new Error('No JS files in ' + JSON.stringify(jsFiles));
@@ -32,8 +31,8 @@ export function checkClosureCompile(
   const compiler = new closure.compiler(CLOSURE_COMPILER_OPTS);
   compiler.run((exitCode, stdout, stderr) => {
     console.log('Closure compilation:', total, 'done after', Date.now() - startTime, 'ms');
-      expect(exitCode).toBe(0, stderr);
-      done();
+    expect(exitCode).toBe(0, stderr);
+    done();
   });
 }
 

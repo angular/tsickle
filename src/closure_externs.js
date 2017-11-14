@@ -61,3 +61,14 @@ function ReadonlyMap() {}
  * @extends {Set<T>}
  */
 function ReadonlySet() {}
+
+/**
+ * @record
+ * @template T
+ * @extends {IThenable<T>}
+ */
+function PromiseLike() {};
+
+/** @typedef {function(new:Promise)} */
+var PromiseConstructor;
+

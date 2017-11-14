@@ -1,0 +1,1 @@
+let promiseLikeOfString: PromiseLike<string>;
