@@ -49,5 +49,5 @@ describe('golden file tests', () => {
     goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
     const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
     checkClosureCompile(goldenJs, externs, done);
-  });
+  }, 15000 /* ms timeout */);
 });
