@@ -141,8 +141,8 @@ export class TypeTranslator {
    * @param pathBlackList is a set of paths that should never get typed;
    *     any reference to symbols defined in these paths should by typed
    *     as {?}.
-   * @param symbolsToPrefix a mapping from symbols (`Foo`) to a prefix they should be emitted with
-   *     (`tsickle_import.Foo`).
+   * @param symbolsToAliasedNames a mapping from symbols (`Foo`) to a name in scope they should be
+   *     emitted as (e.g. `tsickle_forward_declare_1.Foo`).
    */
   constructor(
       private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
