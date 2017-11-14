@@ -750,6 +750,7 @@ class Annotator extends ClosureRewriter {
         }
 
         this.emitFunctionType([fnDecl], tags);
+        this.newTypeTranslator(fnDecl).blacklistTypeParameters(fnDecl.typeParameters);
         this.writeNodeFrom(fnDecl, fnDecl.getStart());
         return true;
       case ts.SyntaxKind.TypeAliasDeclaration:
