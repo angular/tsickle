@@ -20,8 +20,8 @@ export function checkClosureCompile(
   const CLOSURE_COMPILER_OPTS: closure.CompileOptions = {
     'checks_only': true,
     'jscomp_error': 'checkTypes',
-    // TODO(martinprobst): enable when NTI is ready. Currently doesn't support enum union types.
-    // 'new_type_inf': true,
+    // NTI enabled mostly to get more precise errors on template type instantiation.
+    'new_type_inf': true,
     'warning_level': 'VERBOSE',
     'js': jsFiles,
     'externs': externsFiles,

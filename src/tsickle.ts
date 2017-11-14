@@ -1437,7 +1437,7 @@ class Annotator extends ClosureRewriter {
       }
     }
     if (hasNumber && hasString) {
-      return 'number|string';
+      return '?';  // Closure's new type inference doesn't support enums of unions.
     } else if (hasNumber) {
       return 'number';
     } else if (hasString) {

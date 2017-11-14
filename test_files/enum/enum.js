@@ -76,7 +76,7 @@ const StringEnum = {
     STR: 'abc',
     OTHER_STR: 'xyz',
 };
-/** @enum {number|string} */
+/** @enum {?} */
 const MixedEnum = {
     STR: 'abc',
     NUM: 3,
