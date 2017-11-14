@@ -29,21 +29,35 @@ var HTMLTableHeaderCellElement;
 
 /**
  * Closure's NodeList is parameterized itself, there is no NodeListOf.
- * @typedef {!NodeList}
+ * @constructor
+ * @template T
+ * @extends {NodeList<T>}
  */
 var NodeListOf;
 
 /**
  * Closure models this as a plain Array.
- * @typedef {Array<string>|null}
+ * @typedef {!IArrayLike<string>|null}
  */
 var RegExpExecArray;
 
-/** @typedef {!Array} */
-var ReadonlyArray;
+/**
+ * @record
+ * @template T
+ * @extends {IArrayLike<T>}
+ */
+function ReadonlyArray() {}
 
-/** @typedef {!Map} */
-var ReadonlyMap;
+/**
+ * @constructor
+ * @template K, V
+ * @extends {Map<K, V>}
+ */
+function ReadonlyMap() {}
 
-/** @typedef {!Set} */
-var ReadonlySet;
+/**
+ * @constructor
+ * @template T
+ * @extends {Set<T>}
+ */
+function ReadonlySet() {}
