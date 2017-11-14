@@ -593,18 +593,7 @@ export class TypeTranslator {
   private signatureToClosure(sig: ts.Signature): string {
     // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
 
-    // Closure doesn not support type parameters for function types, i.e. generic function types.
-    // Blacklist the symbols declared by them and emit a ? for the types.
-    if (sig.declaration.typeParameters) {
-      for (const tpd of sig.declaration.typeParameters) {
-        const sym = this.typeChecker.getSymbolAtLocation(tpd.name);
-        if (!sym) {
-          this.warn(`type parameter with no symbol`);
-          continue;
-        }
-        this.symbolsToAliasedNames.set(sym, '?');
-      }
-    }
+    this.blacklistTypeParameters(sig.declaration.typeParameters);
 
     const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
@@ -656,5 +645,25 @@ export class TypeTranslator {
       const fileName = path.normalize(n.getSourceFile().fileName);
       return pathBlackList.has(fileName);
     });
+  }
+
+  /**
+   * Closure doesn not support type parameters for function types, i.e. generic function types.
+   * Blacklist the symbols declared by them and emit a ? for the types.
+   *
+   * This mutates the shared symbolsToAliasesMap. The map's scope is one file, and symbols are
+   * unique objects, so this should neither lead to excessive memory consumption nor introduce
+   * errors.
+   */
+  blacklistTypeParameters(decls: ts.NodeArray<ts.TypeParameterDeclaration>|undefined) {
+    if (!decls || !decls.length) return;
+    for (const tpd of decls) {
+      const sym = this.typeChecker.getSymbolAtLocation(tpd.name);
+      if (!sym) {
+        this.warn(`type parameter with no symbol`);
+        continue;
+      }
+      this.symbolsToAliasedNames.set(sym, '?');
+    }
   }
 }

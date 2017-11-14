@@ -1391,6 +1391,8 @@ class Annotator extends ClosureRewriter {
     // TypeScript drops exports that are never assigned to (and Closure
     // requires us to not assign to typedef exports).  Instead, emit the
     // "exports.foo;" line directly in that case.
+    this.newTypeTranslator(node).blacklistTypeParameters(node.typeParameters);
+
     this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
     if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
       this.emit('exports.');
