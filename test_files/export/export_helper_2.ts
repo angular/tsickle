@@ -13,7 +13,7 @@ export const enum ConstEnum {
 
 export declare type DeclaredType = {
   a: number
-}
+};
 
 export declare interface DeclaredInterface {
   a: number;

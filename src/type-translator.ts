@@ -125,10 +125,10 @@ export function symbolToDebugString(sym: ts.Symbol): string {
 /** TypeTranslator translates TypeScript types to Closure types. */
 export class TypeTranslator {
   /**
-   * A list of types we've encountered while emitting; used to avoid getting stuck in recursive
-   * types.
+   * A list of type literals we've encountered while emitting; used to avoid getting stuck in
+   * recursive types.
    */
-  private readonly seenTypes: ts.Type[] = [];
+  private readonly seenTypeLiterals = new Set<ts.Type>();
 
   /**
    * Whether to write types suitable for an \@externs file. Externs types must not refer to
@@ -248,7 +248,7 @@ export class TypeTranslator {
     return name;
   }
 
-  translate(type: ts.Type): string {
+  translate(type: ts.Type, resolveAlias = false): string {
     // NOTE: Though type.flags has the name "flags", it usually can only be one
     // of the enum options at a time (except for unions of literal types, e.g. unions of boolean
     // values, string values, enum values). This switch handles all the cases in the ts.TypeFlags
@@ -261,6 +261,17 @@ export class TypeTranslator {
 
     // NonPrimitive occurs on its own on the lower case "object" type. Special case to "!Object".
     if (type.flags === ts.TypeFlags.NonPrimitive) return '!Object';
+
+    // Avoid infinite loops on recursive type literals.
+    // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol
+    // below), but Closure Compiler does not allow recursive type definitions.
+    if (this.seenTypeLiterals.has(type)) return '?';
+
+    // If type is an alias, e.g. from type X = A|B, then always emit the alias, not the underlying
+    // union type, as the alias is the user visible, imported symbol.
+    if (!resolveAlias && type.aliasSymbol) {
+      return this.symbolToString(type.aliasSymbol, /* useFqn */ true);
+    }
 
     let isAmbient = false;
     let isNamespace = false;
@@ -496,13 +507,7 @@ export class TypeTranslator {
    *   let x: {a: number};
    */
   private translateTypeLiteral(type: ts.Type): string {
-    // Avoid infinite loops on recursive types.
-    // It would be nice to just emit the name of the recursive type here,
-    // but type.symbol doesn't seem to have the name here (perhaps something
-    // to do with aliases?).
-    if (this.seenTypes.indexOf(type) !== -1) return '?';
-    this.seenTypes.push(type);
-
+    this.seenTypeLiterals.add(type);
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;

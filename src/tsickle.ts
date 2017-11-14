@@ -492,8 +492,10 @@ class ClosureRewriter extends Rewriter {
    * @param context The ts.Node containing the type reference; used for resolving symbols
    *     in context.
    * @param type The type to translate; if not provided, the Node's type will be used.
+   * @param resolveAlias If true, do not emit aliases as their symbol, but rather as the resolved
+   *     type underlying the alias. This should be true only when emitting the typedef itself.
    */
-  typeToClosure(context: ts.Node, type?: ts.Type): string {
+  typeToClosure(context: ts.Node, type?: ts.Type, resolveAlias?: boolean): string {
     if (this.host.untyped) {
       return '?';
     }
@@ -502,7 +504,7 @@ class ClosureRewriter extends Rewriter {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    return this.newTypeTranslator(context).translate(type);
+    return this.newTypeTranslator(context).translate(type, resolveAlias);
   }
 
   newTypeTranslator(context: ts.Node) {
@@ -1396,7 +1398,8 @@ class Annotator extends ClosureRewriter {
     this.newTypeTranslator(node).blacklistTypeParameters(
         this.symbolsToAliasedNames, node.typeParameters);
 
-    this.emit(`\n/** @typedef {${this.typeToClosure(node)}} */\n`);
+    const typeStr = this.typeToClosure(node, undefined, true /* resolveAlias */);
+    this.emit(`\n/** @typedef {${typeStr}} */\n`);
     if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
       this.emit('exports.');
     } else {
@@ -1843,7 +1846,8 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsTypeAlias(decl: ts.TypeAliasDeclaration, namespace: string[]) {
-    this.emit(`\n/** @typedef {${this.typeToClosure(decl)}} */\n`);
+    const typeStr = this.typeToClosure(decl, undefined, true /* resolveAlias */);
+    this.emit(`\n/** @typedef {${typeStr}} */\n`);
     this.writeExternsVariable(getIdentifierText(decl.name), namespace);
   }
 }
