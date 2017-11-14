@@ -22,5 +22,6 @@ ts_library(
         "util.ts",
     ],
     deps = [],
+    data = ["closure_externs.js"],
     tsconfig = "//:tsconfig.json",
 )
