@@ -1100,8 +1100,8 @@ class Annotator extends ClosureRewriter {
       // named bindings, respectively).
       // tsickle references types in JSDoc. Because the module prefixes are not predictable, and
       // because TypeScript might remove imports entirely if they are only for types, the code below
-      // inserts an artificial `const prefix = goog.require` call for the module, and then registers
-      // all symbols from this import to be prefixed.
+      // inserts an artificial `const prefix = goog.forwardDeclare` call for the module, and then
+      // registers all symbols from this import to be prefixed.
       if (!this.host.untyped) {
         let symbols: NamedSymbol[] = [];
         if (importClause.name) {
@@ -1128,6 +1128,18 @@ class Annotator extends ClosureRewriter {
       this.visit(importClause);
       this.emit(` from '${importPath}';`);
       this.addSourceMapping(decl);
+
+      // Introduce a goog.forwardDeclare for the module, so that if TypeScript does not emit the
+      // module because it's only used in type positions, the JSDoc comments still reference a valid
+      // Closure level symbol.
+      const sym = this.typeChecker.getSymbolAtLocation(decl.moduleSpecifier);
+      if (!sym) {
+        return true;  // modules might not have a symbol if they are unused.
+      }
+      // forwardDeclare all symbols that can be imported from the module.
+      const namedSyms =
+          this.typeChecker.getExportsOfModule(sym).map(sym => ({name: sym.name, sym}));
+      this.forwardDeclare(decl.moduleSpecifier, namedSyms, false);
       return true;
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
