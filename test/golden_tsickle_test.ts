@@ -142,7 +142,7 @@ testFn('golden tests with transformer', () => {
           throw new Error(tsickle.formatDiagnostics(diagnostics));
         }
       }
-      const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
+      const allDiagnostics = new Set<ts.Diagnostic>();
       const transformerHost: tsickle.TsickleHost = {
         es5Mode: true,
         prelude: '',
@@ -155,12 +155,7 @@ testFn('golden tests with transformer', () => {
         addDtsClutzAliases: test.isDeclarationTest,
         untyped: test.isUntypedTest,
         logWarning: (diag: ts.Diagnostic) => {
-          let diags = diagnosticsByFile.get(diag.file!.fileName);
-          if (!diags) {
-            diags = [];
-            diagnosticsByFile.set(diag.file!.fileName, diags);
-          }
-          diags.push(diag);
+          allDiagnostics.add(diag);
         },
         shouldSkipTsickleProcessing: (fileName) => !tsSources.has(fileName),
         shouldIgnoreWarningsForPath: () => false,
@@ -202,6 +197,13 @@ testFn('golden tests with transformer', () => {
             // we only care about the .d.ts files
             tscOutput[fileName] = data;
           });
+      for (const d of diagnostics) allDiagnostics.add(d);
+      const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
+      for (const d of allDiagnostics) {
+        let diags = diagnosticsByFile.get(d.file!.fileName);
+        if (!diags) diagnosticsByFile.set(d.file!.fileName, diags = []);
+        diags.push(d);
+      }
       if (!test.isDeclarationTest) {
         const sortedPaths = test.jsPaths.sort();
         const actualPaths = Object.keys(tscOutput).map(p => p.replace(/^\.\//, '')).sort();
