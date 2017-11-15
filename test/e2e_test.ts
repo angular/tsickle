@@ -12,6 +12,8 @@ import * as closure from 'google-closure-compiler';
 import {goldenTests} from './test_support';
 
 export function checkClosureCompile(useNewTypeInferece: boolean, done: DoneFn) {
+  const ntiOtiMsg = useNewTypeInferece ? '(New Type Inference)' : '(Old Type Inference)';
+
   // Declaration tests do not produce .js files.
   const tests = goldenTests().filter(t => !t.isDeclarationTest);
   const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
@@ -40,17 +42,17 @@ export function checkClosureCompile(useNewTypeInferece: boolean, done: DoneFn) {
 
   const compiler = new closure.compiler(CLOSURE_COMPILER_OPTS);
   compiler.run((exitCode, stdout, stderr) => {
-    console.log('Closure compilation:', total, 'done after', Date.now() - startTime, 'ms');
+    const durationMs = Date.now() - startTime;
+    console.error(
+        'Closure compilation', ntiOtiMsg, 'of', total, 'files done after', durationMs, 'ms');
     expect(exitCode).toBe(0, stderr);
     done();
   });
 }
 
 describe('golden file tests', () => {
-  it('compile with Closure (New Type Inference)', (done) => {
+  it('compile with Closure', (done) => {
     checkClosureCompile(true /* NTI */, done);
-  }, 30000 /* ms timeout */);
-  it('compile with Closure (Old Type Inference)', (done) => {
     checkClosureCompile(false /* OTI */, done);
   }, 30000 /* ms timeout */);
 });
