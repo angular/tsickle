@@ -32,6 +32,13 @@ function isClosureProvidedType(symbol: ts.Symbol): boolean {
 export function typeToDebugString(type: ts.Type): string {
   let debugString = `flags:0x${type.flags.toString(16)}`;
 
+  if (type.aliasSymbol) {
+    debugString += ` alias:${symbolToDebugString(type.aliasSymbol)}`;
+  }
+  if (type.aliasTypeArguments) {
+    debugString += ` aliasArgs:<${type.aliasTypeArguments.map(typeToDebugString).join(',')}>`;
+  }
+
   // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const basicTypes: ts.TypeFlags[] = [
     ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
