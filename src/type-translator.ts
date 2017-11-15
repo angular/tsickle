@@ -593,7 +593,7 @@ export class TypeTranslator {
   private signatureToClosure(sig: ts.Signature): string {
     // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
 
-    this.blacklistTypeParameters(sig.declaration.typeParameters);
+    this.blacklistTypeParameters(this.symbolsToAliasedNames, sig.declaration.typeParameters);
 
     const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
@@ -651,11 +651,18 @@ export class TypeTranslator {
    * Closure doesn not support type parameters for function types, i.e. generic function types.
    * Blacklist the symbols declared by them and emit a ? for the types.
    *
-   * This mutates the shared symbolsToAliasesMap. The map's scope is one file, and symbols are
+   * This mutates the given blacklist map. The map's scope is one file, and symbols are
    * unique objects, so this should neither lead to excessive memory consumption nor introduce
    * errors.
+   *
+   * @param blacklist a map to store the blacklisted symbols in, with a value of '?'. In practice,
+   *     this is always === this.symbolsToAliasedNames, but we're passing it explicitly to make it
+   *    clear that the map is mutated (in particular when used from outside the class).
+   * @param decls the declarations whose symbols should be blacklisted.
    */
-  blacklistTypeParameters(decls: ts.NodeArray<ts.TypeParameterDeclaration>|undefined) {
+  blacklistTypeParameters(
+      blacklist: Map<ts.Symbol, string>,
+      decls: ts.NodeArray<ts.TypeParameterDeclaration>|undefined) {
     if (!decls || !decls.length) return;
     for (const tpd of decls) {
       const sym = this.typeChecker.getSymbolAtLocation(tpd.name);
