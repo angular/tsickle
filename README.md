@@ -132,9 +132,9 @@ regex.
 ### Releasing
 
 On a new branch, run `npm version <major|minor|patch|...> -m 'rel: %s'` (see
-`npm help version` for details) to update the version in `package.json`, commit
-the changes, and create a git tag. Push the branch, get it reviewed and merged.
-For the next step, make sure you use npm version 5 or greater (`npm -v`) due to
-our `prepack` script in package.json.
-Run `npm publish` from the master branch (you must be logged into the
+`npm help version` for details). It will update the version in `package.json`,
+commit the changes, and create a git tag. Now you push the branch, get it
+reviewed and merged.
+
+Run `./publish.sh` from the master branch (you must be logged into the
 `angular` shared npm account).

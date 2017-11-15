@@ -203,7 +203,7 @@ export class GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  const basePath = path.join(process.env['RUNFILES'], 'io_angular_tsickle', 'test_files');
+  const basePath = path.join(process.env['RUNFILES'], 'tsickle', 'test_files');
   const testNames = fs.readdirSync(basePath);
 
   const testDirs = testNames.map(testName => path.join(basePath, testName))

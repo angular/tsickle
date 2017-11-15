@@ -11,7 +11,7 @@
         "--timeout=0",
         "./../../../test/"
       ],
-      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/io_angular_tsickle",
+      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/tsickle",
       "runtimeArgs": [
         "--nolazy"
       ],
@@ -33,7 +33,7 @@
         "--timeout=0",
         "./../../../test/golden_tsickle_test.js"
       ],
-      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/io_angular_tsickle",
+      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/tsickle",
       "runtimeArgs": [
         "--nolazy"
       ],

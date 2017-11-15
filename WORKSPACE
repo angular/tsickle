@@ -1,4 +1,4 @@
-workspace(name="io_angular_tsickle")
+workspace(name="tsickle")
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 

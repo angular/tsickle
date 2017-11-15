@@ -1,15 +1,15 @@
 {
   "name": "tsickle",
-  "version": "0.25.4",
+  "version": "0.25.5",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
-  "main": "built/src/tsickle.js",
-  "typings": "built/src/tsickle.d.ts",
-  "bin": "built/src/main.js",
+  "main": "src/tsickle.js",
+  "typings": "src/tsickle.d.ts",
+  "bin": "src/main.js",
   "directories": {
     "test": "test"
   },
   "files": [
-    "built/src/*"
+    "src/*"
   ],
   "dependencies": {
     "minimist": "^1.2.0",
@@ -50,9 +50,9 @@
     "typescript": "~2.5.3"
   },
   "scripts": {
-    "prepublish": "bazel build //src/...",
-    "prepack": "mkdir built && cp -R bazel-bin/src built/src",
-    "postpack": "rm -rf built",
+    "prepublishOnly": "echo 'DO NOT PUBLISH HERE, RUN ./publish.sh'; false",
+    "build": "bazel build //src/... && mkdir built && cp -R bazel-bin/src built/src && cp package.json README.md built",
+    "clean": "rm -rf built",
     "test": "gulp test.check-format && gulp test.check-lint && bazel test ..."
   },
   "repository": {
