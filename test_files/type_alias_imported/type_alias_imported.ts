@@ -1,3 +1,4 @@
 import {XY} from './type_alias_exporter';
 
-let xy: XY;
+let usingTypeAlias: XY;
+let usingTypeAliasInUnion: XY|boolean;

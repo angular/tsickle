@@ -378,6 +378,26 @@ export class TypeTranslator {
     }
   }
 
+  /**
+   * Special-case translation of union types to work off the syntactical type representation
+   * (`ts.Node` object), as opposed to the semantic type representation (`ts.Type` object).
+   *
+   * Unlike with othe types, TypeScript expands aliased union types as they are added into another
+   * union. This means we cannot recover the original type nodes and names from the union type, and
+   * must fall back to the syntactical representation.
+   */
+  translateUnionTypeNode(n: ts.UnionTypeNode) {
+    return '(' +
+        n.types
+            .map(tn => {
+              const type = this.typeChecker.getTypeAtLocation(tn);
+              return this.translate(type, false);
+            })
+            .join('|') +
+        ')';
+  }
+
+
   private translateUnion(type: ts.UnionType): string {
     let parts = type.types.map(t => this.translate(t));
     // Union types that include literals (e.g. boolean, enum) can end up repeating the same Closure

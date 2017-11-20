@@ -277,7 +277,7 @@ class ClosureRewriter extends Rewriter {
           if (!typeRef.typeArguments) throw new Error('invalid rest param');
           type = typeRef.typeArguments![0];
         }
-        newTag.type = this.typeToClosure(fnDecl, type);
+        newTag.type = this.typeToClosure(paramNode, type);
 
         for (const {tagName, parameterName, text} of docTags) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
@@ -495,15 +495,21 @@ class ClosureRewriter extends Rewriter {
    * @param resolveAlias If true, do not emit aliases as their symbol, but rather as the resolved
    *     type underlying the alias. This should be true only when emitting the typedef itself.
    */
-  typeToClosure(context: ts.Node, type?: ts.Type, resolveAlias?: boolean): string {
+  typeToClosure(context: ts.Node&{type?: ts.TypeNode}, type?: ts.Type, resolveAlias?: boolean):
+      string {
     if (this.host.untyped) {
       return '?';
     }
 
     const typeChecker = this.typeChecker;
+    if (context.type && ts.isUnionTypeNode(context.type)) {
+      // Special case union types.
+      return this.newTypeTranslator(context).translateUnionTypeNode(context.type);
+    }
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
+
     return this.newTypeTranslator(context).translate(type, resolveAlias);
   }
 
@@ -1370,17 +1376,15 @@ class Annotator extends ClosureRewriter {
     let type = this.typeToClosure(prop);
     // When a property is optional, e.g.
     //   foo?: string;
-    // Then the TypeScript type of the property is string|undefined, the
-    // typeToClosure translation handles it correctly, and string|undefined is
-    // how you write an optional property in Closure.
-    //
-    // But in the special case of an optional property with type any:
-    //   foo?: any;
-    // The TypeScript type of the property is just "any" (because any includes
-    // undefined as well) so our default translation of the type is just "?".
-    // To mark the property as optional in Closure it must have "|undefined",
+    // to mark the property as optional in Closure, it must have "|undefined",
     // so the Closure type must be ?|undefined.
-    if (optional && type === '?') type += '|undefined';
+    // The underlying TypeScript type of the property is e.g. "string|undefined"
+    // when a concrete type is given. However translation doesn't include
+    // "|undefined" in two corner cases:
+    // - for union types, we translate the syntactical type node
+    // - for any types, TS translation only includes ? (as any includes
+    //   "|undefined"), but Closure's ? type does not include absence
+    if (optional) type += '|undefined';
 
     const tags = this.getJSDoc(prop) || [];
     tags.push({tagName: 'type', type});
