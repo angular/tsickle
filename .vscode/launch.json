@@ -2,49 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Tests",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "args": [
-        "--colors",
-        "--timeout=0",
-        "./../../../test/"
-      ],
-      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/tsickle",
-      "runtimeArgs": [
-        "--nolazy"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "RUNFILES": ".."
-      },
-      "console": "internalConsole",
-      "sourceMaps": true,
-      "outDir": "${workspaceRoot}/bazel-out/local-fastbuild/bin"
-    },
-    {
-      "name": "Run file based tests",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "args": [
-        "--colors",
-        "--timeout=0",
-        "./../../../test/golden_tsickle_test.js"
-      ],
-      "cwd": "${workspaceRoot}/bazel-out/local-fastbuild/bin/test/golden_test.runfiles/tsickle",
-      "runtimeArgs": [
-        "--nolazy"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "RUNFILES": ".."
-      },
-      "console": "internalConsole",
-      "sourceMaps": true,
-      "outDir": "${workspaceRoot}/bazel-out/local-fastbuild/bin"
+      "request": "attach",
+      "name": "Attach using --inspect",
+      "port": 9229
     }
-
   ]
 }
