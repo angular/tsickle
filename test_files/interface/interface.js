@@ -49,9 +49,9 @@ function TrickyInterface_tsickle_Closure_declarations() {
     (x: number): __ yuck __
           number;
     */
-    /** @type {(string|string)|undefined} */
+    /** @type {(string|undefined)} */
     TrickyInterface.prototype.foobar;
-    /** @type {(?|string)|undefined} */
+    /** @type {(?|undefined)} */
     TrickyInterface.prototype.optAny;
     /**
      * \@param a some string value

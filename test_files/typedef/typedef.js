@@ -12,7 +12,7 @@ var Recursive;
 var UnionTypeAlias;
 const /** @type {UnionTypeAlias} */ unionUser = 1;
 const /** @type {(UnionTypeAlias|boolean)} */ unionUserInUnion = false;
-/** @typedef {{x: (string|number|boolean)}} */
+/** @typedef {{x: (UnionTypeAlias|boolean)}} */
 var UnionTypeAliasUsingUnion;
 /**
  * @param {(UnionTypeAlias|boolean)} x
@@ -21,3 +21,21 @@ var UnionTypeAliasUsingUnion;
 function paramUsingUnion(x) { }
 /** @typedef {string} */
 exports.ExportedType;
+/**
+ * @record
+ * @template T, U
+ */
+function TypeWithGenericArgAndDefault() { }
+function TypeWithGenericArgAndDefault_tsickle_Closure_declarations() {
+}
+/** @typedef {!TypeWithGenericArgAndDefault<number, UnionTypeAlias>} */
+var TypeAliasWithDefaultArgs;
+/**
+ * @record
+ * @template T
+ */
+function TypeWithGenericArg() { }
+function TypeWithGenericArg_tsickle_Closure_declarations() {
+}
+/** @typedef {!TypeWithGenericArg<?>} */
+var TypeAliasWithTypeArgs;

@@ -268,6 +268,7 @@ class ClosureRewriter extends Rewriter {
         };
 
         let type = typeChecker.getTypeAtLocation(paramNode);
+        let typeNode = paramNode.type;
         if (paramNode.dotDotDotToken !== undefined) {
           newTag.restParam = true;
           // In TypeScript you write "...x: number[]", but in Closure
@@ -276,8 +277,13 @@ class ClosureRewriter extends Rewriter {
           const typeRef = type as ts.TypeReference;
           if (!typeRef.typeArguments) throw new Error('invalid rest param');
           type = typeRef.typeArguments![0];
+          if (typeNode && ts.isArrayTypeNode(typeNode)) {
+            typeNode = (typeNode as ts.ArrayTypeNode).elementType;
+          } else if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+            typeNode = typeNode.typeArguments && typeNode.typeArguments[0];
+          }
         }
-        newTag.type = this.typeToClosure(paramNode, type);
+        newTag.type = this.typeToClosure(paramNode, typeNode, type);
 
         for (const {tagName, parameterName, text} of docTags) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
@@ -292,7 +298,7 @@ class ClosureRewriter extends Rewriter {
       // Return type.
       if (!isConstructor) {
         const retType = typeChecker.getReturnTypeOfSignature(sig);
-        const retTypeString: string = this.typeToClosure(fnDecl, retType);
+        const retTypeString: string = this.typeToClosure(fnDecl, fnDecl.type, retType);
         let returnDoc: string|undefined;
         for (const {tagName, text} of docTags) {
           if (tagName === 'return') {
@@ -478,12 +484,13 @@ class ClosureRewriter extends Rewriter {
   }
 
   /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
-  emitJSDocType(node: ts.Node, additionalDocTag?: string, type?: ts.Type) {
+  emitJSDocType(
+      node: ts.Node, typeNode: ts.TypeNode|undefined, additionalDocTag?: string, type?: ts.Type) {
     this.emit(' /**');
     if (additionalDocTag) {
       this.emit(' ' + additionalDocTag);
     }
-    this.emit(` @type {${this.typeToClosure(node, type)}} */`);
+    this.emit(` @type {${this.typeToClosure(node, typeNode, type)}} */`);
   }
 
   /**
@@ -495,22 +502,19 @@ class ClosureRewriter extends Rewriter {
    * @param resolveAlias If true, do not emit aliases as their symbol, but rather as the resolved
    *     type underlying the alias. This should be true only when emitting the typedef itself.
    */
-  typeToClosure(context: ts.Node&{type?: ts.TypeNode}, type?: ts.Type, resolveAlias?: boolean):
-      string {
+  typeToClosure(
+      context: ts.Node, typeNode: ts.TypeNode|undefined, type?: ts.Type,
+      resolveAlias?: boolean): string {
     if (this.host.untyped) {
       return '?';
     }
 
     const typeChecker = this.typeChecker;
-    if (context.type && ts.isUnionTypeNode(context.type)) {
-      // Special case union types.
-      return this.newTypeTranslator(context).translateUnionTypeNode(context.type);
-    }
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
 
-    return this.newTypeTranslator(context).translate(type, resolveAlias);
+    return this.newTypeTranslator(context).translate(type, typeNode, resolveAlias);
   }
 
   newTypeTranslator(context: ts.Node) {
@@ -712,7 +716,7 @@ class Annotator extends ClosureRewriter {
         // See b/64389806
         if (this.polymerBehaviorStackCount === 0 &&
             varDecl.name.kind === ts.SyntaxKind.Identifier) {
-          this.emitJSDocType(varDecl);
+          this.emitJSDocType(varDecl, varDecl.type);
         }
         return false;
       case ts.SyntaxKind.ClassDeclaration:
@@ -794,7 +798,7 @@ class Annotator extends ClosureRewriter {
         if (this.templateSpanStackCount > 0) {
           this.emit('(');
         }
-        this.emitJSDocType(typeAssertion);
+        this.emitJSDocType(typeAssertion, typeAssertion.type);
         // When TypeScript emits JS, it removes one layer of "redundant"
         // parens, but we need them for the Closure type assertion.  Work
         // around this by using two parens.  See test_files/coerce.*.
@@ -825,7 +829,7 @@ class Annotator extends ClosureRewriter {
         if (this.templateSpanStackCount > 0) {
           this.emit('(');
         }
-        this.emitJSDocType(nnexpr, undefined, type);
+        this.emitJSDocType(nnexpr, undefined, undefined, type);
         // See comment above.
         this.emit('((');
         this.writeNode(nnexpr.expression);
@@ -1366,25 +1370,28 @@ class Annotator extends ClosureRewriter {
   /**
    * @param optional If true, property is optional (e.g. written "foo?: string").
    */
-  private visitProperty(namespace: string[], prop: ts.Declaration, optional = false) {
+  private visitProperty(
+      namespace: string[], prop: ts.Declaration&{type?: ts.TypeNode}, optional = false) {
     const name = this.propertyName(prop);
     if (!name) {
       this.emit(`/* TODO: handle strange member:\n${this.escapeForComment(prop.getText())}\n*/\n`);
       return;
     }
 
-    let type = this.typeToClosure(prop);
+    let type = this.typeToClosure(prop, prop.type);
     // When a property is optional, e.g.
     //   foo?: string;
     // to mark the property as optional in Closure, it must have "|undefined",
     // so the Closure type must be ?|undefined.
     // The underlying TypeScript type of the property is e.g. "string|undefined"
     // when a concrete type is given. However translation doesn't include
-    // "|undefined" in two corner cases:
+    // "|undefined" in some corner cases:
     // - for union types, we translate the syntactical type node
     // - for any types, TS translation only includes ? (as any includes
     //   "|undefined"), but Closure's ? type does not include absence
-    if (optional) type += '|undefined';
+    // A union including `|undefined` multiple times is harmless, so we just
+    // unconditionally append |undefined here.
+    if (optional) type = `(${type}|undefined)`;
 
     const tags = this.getJSDoc(prop) || [];
     tags.push({tagName: 'type', type});
@@ -1414,7 +1421,7 @@ class Annotator extends ClosureRewriter {
     this.newTypeTranslator(node).blacklistTypeParameters(
         this.symbolsToAliasedNames, node.typeParameters);
 
-    const typeStr = this.typeToClosure(node, undefined, true /* resolveAlias */);
+    const typeStr = this.typeToClosure(node, node.type, undefined, true /* resolveAlias */);
     this.emit(`\n/** @typedef {${typeStr}} */\n`);
     if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
       this.emit('exports.');
@@ -1740,7 +1747,7 @@ class ExternsWriter extends ClosureRewriter {
         case ts.SyntaxKind.PropertyDeclaration:
           const prop = member as ts.PropertySignature;
           if (prop.name.kind === ts.SyntaxKind.Identifier) {
-            this.emitJSDocType(prop);
+            this.emitJSDocType(prop, prop.type);
             if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
               this.emit(`\n${typeName}.${prop.name.getText()};\n`);
             } else {
@@ -1801,7 +1808,7 @@ class ExternsWriter extends ClosureRewriter {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
       const name = getIdentifierText(decl.name as ts.Identifier);
       if (closureExternsBlacklist.indexOf(name) >= 0) return;
-      this.emitJSDocType(decl);
+      this.emitJSDocType(decl, decl.type);
       this.emit('\n');
       this.writeExternsVariable(name, namespace);
     } else {
@@ -1862,7 +1869,7 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsTypeAlias(decl: ts.TypeAliasDeclaration, namespace: string[]) {
-    const typeStr = this.typeToClosure(decl, undefined, true /* resolveAlias */);
+    const typeStr = this.typeToClosure(decl, decl.type, undefined, true /* resolveAlias */);
     this.emit(`\n/** @typedef {${typeStr}} */\n`);
     this.writeExternsVariable(getIdentifierText(decl.name), namespace);
   }

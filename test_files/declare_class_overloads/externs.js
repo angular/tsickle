@@ -130,7 +130,7 @@ OverloadValueOf.prototype.valueOf = function() {};
 function Merged() {}
 
 /**
- * @param {(string|number|!Array<!OverloadBigMix>|!Array<!OverloadBigMix>)} a_or_c_or_e_or_f
+ * @param {(string|number|!Array<!OverloadBigMix>)} a_or_c_or_e_or_f
  * @param {number} opt_b
  * @return {(void|number|boolean)}
  */

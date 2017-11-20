@@ -255,7 +255,17 @@ export class TypeTranslator {
     return name;
   }
 
-  translate(type: ts.Type, resolveAlias = false): string {
+  /**
+   * Translates the given type to a Closure-compatible string representation.
+   *
+   * @param type the TypeScript type to convert.
+   * @param typeNode If not undefined, will be used to emit certain types (unions currently)
+   *     using their syntactical representation, instead of the semantic represetnation in `type`.
+   *     This fixes specific issues with union types, see implementation docs in translateUnion.
+   * @param resolveAlias optional. If true, do not emit type aliases as their alias names, but
+   *     rather emit the underlying type.
+   */
+  translate(type: ts.Type, typeNode: ts.TypeNode|undefined, resolveAlias = false): string {
     // NOTE: Though type.flags has the name "flags", it usually can only be one
     // of the enum options at a time (except for unions of literal types, e.g. unions of boolean
     // values, string values, enum values). This switch handles all the cases in the ts.TypeFlags
@@ -347,9 +357,9 @@ export class TypeTranslator {
         const useFqn = false;
         return this.symbolToString(type.symbol, useFqn);
       case ts.TypeFlags.Object:
-        return this.translateObject(type as ts.ObjectType);
+        return this.translateObject(type as ts.ObjectType, typeNode);
       case ts.TypeFlags.Union:
-        return this.translateUnion(type as ts.UnionType);
+        return this.translateUnion(type as ts.UnionType, typeNode as ts.UnionTypeNode);
       case ts.TypeFlags.Intersection:
       case ts.TypeFlags.Index:
       case ts.TypeFlags.IndexedAccess:
@@ -366,7 +376,7 @@ export class TypeTranslator {
         // Note also that in a more complex union, e.g. boolean|number, then it's a union of three
         // things (true|false|number) and ts.TypeFlags.Boolean doesn't show up at all.
         if (type.flags & ts.TypeFlags.Union) {
-          return this.translateUnion(type as ts.UnionType);
+          return this.translateUnion(type as ts.UnionType, typeNode as ts.UnionTypeNode);
         }
 
         if (type.flags & ts.TypeFlags.EnumLiteral) {
@@ -378,28 +388,23 @@ export class TypeTranslator {
     }
   }
 
-  /**
-   * Special-case translation of union types to work off the syntactical type representation
-   * (`ts.Node` object), as opposed to the semantic type representation (`ts.Type` object).
-   *
-   * Unlike with othe types, TypeScript expands aliased union types as they are added into another
-   * union. This means we cannot recover the original type nodes and names from the union type, and
-   * must fall back to the syntactical representation.
-   */
-  translateUnionTypeNode(n: ts.UnionTypeNode) {
-    return '(' +
-        n.types
-            .map(tn => {
-              const type = this.typeChecker.getTypeAtLocation(tn);
-              return this.translate(type, false);
-            })
-            .join('|') +
-        ')';
-  }
-
-
-  private translateUnion(type: ts.UnionType): string {
-    let parts = type.types.map(t => this.translate(t));
+  private translateUnion(type: ts.UnionType, typeNode: ts.UnionTypeNode|undefined): string {
+    // TypeScript expands type aliases in union members, which drops the distinction between a union
+    // of a type alias and some member (`StringOrNumber|boolean`), and a union of the members of
+    // that type alias (`string|number|boolean`). That's a problem if the constituent types are not
+    // valid symbols in the lexical context (e.g. not imported). The code below solves the problem
+    // by emitting union types from their syntactical representation (`typeNode`) rather than their
+    // semantic representation (`type`) if available.
+    let parts: string[];
+    if (typeNode && typeNode.types) {
+      parts = typeNode.types.map((tn, i) => {
+        // Correlating i and typeNodes.types[i] is safe, but do not access type.types[i] here!
+        const type = this.typeChecker.getTypeAtLocation(tn);
+        return this.translate(type, typeNode.types[i]);
+      });
+    } else {
+      parts = type.types.map(t => this.translate(t, undefined));
+    }
     // Union types that include literals (e.g. boolean, enum) can end up repeating the same Closure
     // type. For example: true | boolean will be translated to boolean | boolean.
     // Remove duplicates to produce types that read better.
@@ -427,7 +432,7 @@ export class TypeTranslator {
 
   // translateObject translates a ts.ObjectType, which is the type of all
   // object-like things in TS, such as classes and interfaces.
-  private translateObject(type: ts.ObjectType): string {
+  private translateObject(type: ts.ObjectType, typeNode: ts.TypeNode|undefined): string {
     if (type.symbol && this.isBlackListed(type.symbol)) return '?';
 
     // NOTE: objectFlags is an enum, but a given type can have multiple flags.
@@ -482,12 +487,25 @@ export class TypeTranslator {
         throw new Error(
             `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
       }
-      typeStr += this.translate(referenceType.target);
+      typeStr += this.translate(referenceType.target, undefined);
       // Translate can return '?' for a number of situations, e.g. type/value conflicts.
       // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
       if (typeStr === '?') return '?';
       if (referenceType.typeArguments) {
-        const params = referenceType.typeArguments.map(t => this.translate(t));
+        let typeNodeArgs: ts.TypeNode[] = [];
+        if (!typeNode) {
+          // just keep the empty array.
+        } else if (ts.isTypeReferenceNode(typeNode) && typeNode.typeArguments) {
+          typeNodeArgs = [...typeNode.typeArguments];
+        } else if (ts.isArrayTypeNode(typeNode)) {
+          typeNodeArgs = [typeNode.elementType];
+        }
+        const params = referenceType.typeArguments.map((t, i) => {
+          // Correlating i and typeNodes.types[i] is safe after caring for ArrayTypeNode, as there
+          // must actually be exactly one generic type argument per generic type typenode.
+          // TODO(martinprobst): is this assumption correct? what about default generic args?
+          return this.translate(t, typeNodeArgs[i]);
+        });
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
@@ -538,6 +556,7 @@ export class TypeTranslator {
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;
+    let memberTypeDecl: ts.TypeNode|undefined;
     const fields: string[] = [];
     if (!type.symbol || !type.symbol.members) {
       this.warn('type literal has no symbol');
@@ -551,7 +570,7 @@ export class TypeTranslator {
       // (not expressible in Closure), nor multiple constructors (same).
       const params = this.convertParams(ctors[0]);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
-      const constructedType = this.translate(ctors[0].getReturnType());
+      const constructedType = this.translate(ctors[0].getReturnType(), ctors[0].declaration.type!);
       // In the specific case of the "new" in a function, it appears that
       //   function(new: !Bar)
       // fails to parse, while
@@ -565,20 +584,25 @@ export class TypeTranslator {
 
     // members is an ES6 map, but the .d.ts defining it defined their own map
     // type, so typescript doesn't believe that .keys() is iterable
-    // tslint:disable-next-line:no-any
-    for (const field of (type.symbol.members.keys() as any)) {
+    for (const [field, member] of(type.symbol.members as {} as Map<string, ts.Symbol>)) {
       switch (field) {
         case '__call':
           callable = true;
           break;
         case '__index':
           indexable = true;
+          memberTypeDecl = member.declarations && member.declarations[0] &&
+              (member.declarations[0] as ts.PropertySignature).type;
           break;
         default:
-          const member = type.symbol.members.get(field)!;
-          // optional members are handled by the type including |undefined in a union type.
-          const memberType =
-              this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
+          // const member = type.symbol.members.get(field)!;
+          const memberDecl = member.declarations && member.declarations[0] as ts.PropertySignature;
+          let memberType = this.translate(
+              this.typeChecker.getTypeOfSymbolAtLocation(member, this.node),
+              memberDecl && memberDecl.type);
+          // optional members are generally handled by the type, except if translating "any" or
+          // when translating members lexically (via memberDecl.type).
+          if (memberDecl && memberDecl.questionToken) memberType = `(${memberType}|undefined)`;
           fields.push(`${field}: ${memberType}`);
           break;
       }
@@ -604,7 +628,7 @@ export class TypeTranslator {
           this.warn('unknown index key type');
           return `!Object<?,?>`;
         }
-        return `!Object<${keyType},${this.translate(valType)}>`;
+        return `!Object<${keyType},${this.translate(valType, memberTypeDecl)}>`;
       } else if (!callable && !indexable) {
         // Special-case the empty object {} because Closure doesn't like it.
         // TODO(evanm): revisit this if it is a problem.
@@ -630,7 +654,8 @@ export class TypeTranslator {
     const params = this.convertParams(sig);
     let typeStr = `function(${params.join(', ')})`;
 
-    const retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
+    const retType =
+        this.translate(this.typeChecker.getReturnTypeOfSignature(sig), sig.declaration.type);
     if (retType) {
       typeStr += `: ${retType}`;
     }
@@ -654,7 +679,7 @@ export class TypeTranslator {
         const typeRef = paramType as ts.TypeReference;
         paramType = typeRef.typeArguments![0];
       }
-      let typeStr = this.translate(paramType);
+      let typeStr = this.translate(paramType, paramDecl.type);
       if (varArgs) typeStr = '...' + typeStr;
       if (optional) typeStr = typeStr + '=';
       paramTypes.push(typeStr);
