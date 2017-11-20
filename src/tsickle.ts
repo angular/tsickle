@@ -20,7 +20,7 @@ import {getEntityNameText, getIdentifierText, Rewriter, unescapeName} from './re
 import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeInlineSourceMap, setInlineSourceMap, SourceMapper, SourcePosition} from './source_map_utils';
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
-import * as typeTranslator from './type-translator';
+import * as typeTranslator from './type_translator';
 import * as ts from './typescript';
 import {hasModifierFlag, isDtsFileName} from './util';
 
