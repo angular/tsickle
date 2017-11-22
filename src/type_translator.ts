@@ -451,7 +451,9 @@ export class TypeTranslator {
         this.warn('class has no symbol');
         return '?';
       }
-      return '!' + this.symbolToString(symbol, /* useFqn */ true);
+      const sym = this.symbolToString(symbol, /* useFqn */ true);
+      if (sym === '?') return '?';
+      return '!' + sym;
     } else if (type.objectFlags & ts.ObjectFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
@@ -473,7 +475,9 @@ export class TypeTranslator {
           return '?';
         }
       }
-      return '!' + this.symbolToString(symbol, /* useFqn */ true);
+      const sym = this.symbolToString(symbol, /* useFqn */ true);
+      if (sym === '?') return '?';
+      return '!' + sym;
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.

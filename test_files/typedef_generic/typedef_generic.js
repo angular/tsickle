@@ -27,3 +27,7 @@ var TypeAliasWithTypeArgs;
 // This variable must use TypeAliasWithTypeArgs as its name, and must not emit
 // the generic <string> argument, as Closure doesn't support those.
 const /** @type {!Array<!TypeAliasWithTypeArgs>} */ varUsingArrayOfGenericAlias = [];
+/** @typedef {function(?): ?} */
+var GenericFn;
+/** @typedef {function(?): ?} */
+var GenericGenericFn;
