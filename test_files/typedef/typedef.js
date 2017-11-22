@@ -39,3 +39,6 @@ function TypeWithGenericArg_tsickle_Closure_declarations() {
 }
 /** @typedef {!TypeWithGenericArg<?>} */
 var TypeAliasWithTypeArgs;
+// Repro to ensure we pass on the syntactical type node (TypeAliasWithTypeArgs)
+// through a two-level generic type argument.
+const /** @type {!Array<!TypeAliasWithTypeArgs<string>>} */ varUsingArrayOfGenericAlias = [];

@@ -432,18 +432,26 @@ export class TypeTranslator {
 
   // translateObject translates a ts.ObjectType, which is the type of all
   // object-like things in TS, such as classes and interfaces.
-  private translateObject(type: ts.ObjectType, typeNode: ts.TypeNode|undefined): string {
+  private translateObject(type: ts.ObjectType, typeNode: ts.TypeNode|ts.EntityName|undefined):
+      string {
     if (type.symbol && this.isBlackListed(type.symbol)) return '?';
+
+    // Prefer the syntactic symbol of the type. TypeScript dereferences type aliases used in generic
+    // locations.
+    let symbol = type.symbol;
+    if (typeNode && ts.isEntityName(typeNode)) {
+      symbol = this.typeChecker.getSymbolAtLocation(typeNode) || symbol;
+    }
 
     // NOTE: objectFlags is an enum, but a given type can have multiple flags.
     // Array<string> is both ts.ObjectFlags.Reference and ts.ObjectFlags.Interface.
 
     if (type.objectFlags & ts.ObjectFlags.Class) {
-      if (!type.symbol) {
+      if (!symbol) {
         this.warn('class has no symbol');
         return '?';
       }
-      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
+      return '!' + this.symbolToString(symbol, /* useFqn */ true);
     } else if (type.objectFlags & ts.ObjectFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
@@ -452,20 +460,20 @@ export class TypeTranslator {
       // InterfaceType "Array", but the "number" type parameter is
       // part of the outer TypeReference, not a typeParameter on
       // the InterfaceType.
-      if (!type.symbol) {
+      if (!symbol) {
         this.warn('interface has no symbol');
         return '?';
       }
-      if (type.symbol.flags & ts.SymbolFlags.Value) {
+      if (symbol.flags & ts.SymbolFlags.Value) {
         // The symbol is both a type and a value.
         // For user-defined types in this state, we don't have a Closure name
         // for the type.  See the type_and_value test.
-        if (!isClosureProvidedType(type.symbol)) {
-          this.warn(`type/symbol conflict for ${type.symbol.name}, using {?} for now`);
+        if (!isClosureProvidedType(symbol)) {
+          this.warn(`type/symbol conflict for ${symbol.name}, using {?} for now`);
           return '?';
         }
       }
-      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
+      return '!' + this.symbolToString(symbol, /* useFqn */ true);
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.
@@ -487,7 +495,11 @@ export class TypeTranslator {
         throw new Error(
             `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
       }
-      typeStr += this.translate(referenceType.target, undefined);
+      if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+        typeStr += this.translateObject(referenceType.target, typeNode.typeName);
+      } else {
+        typeStr += this.translate(referenceType.target, undefined);
+      }
       // Translate can return '?' for a number of situations, e.g. type/value conflicts.
       // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
       if (typeStr === '?') return '?';
@@ -510,7 +522,7 @@ export class TypeTranslator {
       }
       return typeStr;
     } else if (type.objectFlags & ts.ObjectFlags.Anonymous) {
-      if (!type.symbol) {
+      if (!symbol) {
         // This comes up when generating code for an arrow function as passed
         // to a generic function.  The passed-in type is tagged as anonymous
         // and has no properties so it's hard to figure out what to generate.
@@ -519,11 +531,9 @@ export class TypeTranslator {
         return '?';
       }
 
-      if (type.symbol.flags & ts.SymbolFlags.TypeLiteral) {
+      if (symbol.flags & ts.SymbolFlags.TypeLiteral) {
         return this.translateTypeLiteral(type);
-      } else if (
-          type.symbol.flags & ts.SymbolFlags.Function ||
-          type.symbol.flags & ts.SymbolFlags.Method) {
+      } else if (symbol.flags & ts.SymbolFlags.Function || symbol.flags & ts.SymbolFlags.Method) {
         const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
