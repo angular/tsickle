@@ -21,21 +21,3 @@ var UnionTypeAliasUsingUnion;
 function paramUsingUnion(x) { }
 /** @typedef {string} */
 exports.ExportedType;
-/**
- * @record
- * @template T, U
- */
-function TypeWithGenericArgAndDefault() { }
-function TypeWithGenericArgAndDefault_tsickle_Closure_declarations() {
-}
-/** @typedef {!TypeWithGenericArgAndDefault<number, UnionTypeAlias>} */
-var TypeAliasWithDefaultArgs;
-/**
- * @record
- * @template T
- */
-function TypeWithGenericArg() { }
-function TypeWithGenericArg_tsickle_Closure_declarations() {
-}
-/** @typedef {!TypeWithGenericArg<?>} */
-var TypeAliasWithTypeArgs;

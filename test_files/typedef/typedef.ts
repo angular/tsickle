@@ -17,9 +17,3 @@ type UnionTypeAliasUsingUnion = {x: UnionTypeAlias|boolean};
 function paramUsingUnion(x: UnionTypeAlias|boolean) {}
 
 export type ExportedType = string;
-
-interface TypeWithGenericArgAndDefault<T, U=UnionTypeAlias> {}
-type TypeAliasWithDefaultArgs = TypeWithGenericArgAndDefault<number>;
-
-interface TypeWithGenericArg<T> {}
-type TypeAliasWithTypeArgs<T> = TypeWithGenericArg<T>;
