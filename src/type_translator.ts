@@ -495,8 +495,15 @@ export class TypeTranslator {
         throw new Error(
             `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
       }
+      // Check if the target type in `Target<R>` is a type alias itself.
+      let isAlias = false;
       if (typeNode && ts.isTypeReferenceNode(typeNode)) {
         typeStr += this.translateObject(referenceType.target, typeNode.typeName);
+        const originalSymbol = this.typeChecker.getSymbolAtLocation(typeNode.typeName);
+        if (originalSymbol && originalSymbol.declarations) {
+          isAlias =
+              originalSymbol.declarations.some(d => d.kind === ts.SyntaxKind.TypeAliasDeclaration);
+        }
       } else {
         typeStr += this.translate(referenceType.target, undefined);
       }
@@ -504,6 +511,8 @@ export class TypeTranslator {
       // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
       if (typeStr === '?') return '?';
       if (referenceType.typeArguments) {
+        // Closure does not support instantiating generic types through type aliases.
+        if (isAlias) return typeStr;
         let typeNodeArgs: ts.TypeNode[] = [];
         if (!typeNode) {
           // just keep the empty array.

@@ -24,4 +24,6 @@ function TypeWithGenericArg_tsickle_Closure_declarations() {
 var TypeAliasWithTypeArgs;
 // Repro to ensure we pass on the syntactical type node (TypeAliasWithTypeArgs)
 // through a two-level generic type argument.
-const /** @type {!Array<!TypeAliasWithTypeArgs<string>>} */ varUsingArrayOfGenericAlias = [];
+// This variable must use TypeAliasWithTypeArgs as its name, and must not emit
+// the generic <string> argument, as Closure doesn't support those.
+const /** @type {!Array<!TypeAliasWithTypeArgs>} */ varUsingArrayOfGenericAlias = [];
