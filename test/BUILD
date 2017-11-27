@@ -21,7 +21,7 @@ ts_library(
         "source_map_utils_test.ts",
         "transformer_util_test.ts",
         "tsickle_test.ts",
-        "type-translator_test.ts",
+        "type_translator_test.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [

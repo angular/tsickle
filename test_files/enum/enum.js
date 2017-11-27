@@ -27,7 +27,7 @@ enumTestFunction(enumTestValue);
 let /** @type {EnumTest1} */ enumTestLookup = EnumTest1["XYZ"];
 let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
-let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
+let /** @type {(EnumTest1|boolean)} */ enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
 const EnumTest2 = { XYZ: 0, PI: 3.14159, };
 exports.EnumTest2 = EnumTest2;

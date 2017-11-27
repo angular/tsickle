@@ -11,7 +11,7 @@ import {SourceMapGenerator} from 'source-map';
 import {getDecoratorDeclarations} from './decorators';
 import {getIdentifierText, Rewriter} from './rewriter';
 import {SourceMapper} from './source_map_utils';
-import {TypeTranslator} from './type-translator';
+import {TypeTranslator} from './type_translator';
 import * as ts from './typescript';
 
 /**

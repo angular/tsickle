@@ -118,6 +118,24 @@ to install the dependencies.
   `clang-format`,
 - `yarn test` runs unit tests, e2e tests and checks the source code formatting.
 
+### Debugging
+
+You can debug tests by using `bazel run` and passing `--node_options=--inspect`. For example, to
+debug a specific golden test:
+
+```shell
+TEST_FILTER=my_golden_test ibazel run //test:golden_test -- --node_options=--inspect
+```
+
+Then open [about:inspect] in Chrome and choose "about:inspect". Chrome will launch a debugging
+session on any node process that starts with a debugger listening on one of the listed ports. The
+tsickle tests and Chrome both default to `localhost:9229`, so things should work out of the box.
+
+VS Code can also connect using the inspect protocol. It doesn't support automatically reconnecting
+or any way to re-run the test suite though, so it is a less convenient. You can start the node
+process passing an extra `--node_options=--debug-brk` (in addition to the parameters above) to have
+Node wait before program execution, so you have time to attach VS Code.
+
 ### Updating Goldens
 
 Run `UPDATE_GOLDENS=y bazel run test:golden_test` to have the test suite update
