@@ -4,4 +4,5 @@ goog.module('test_files.type_alias_imported.type_alias_imported');var module = m
  */
 
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.type_alias_imported.type_alias_exporter");
-let /** @type {tsickle_forward_declare_1.XY} */ xy;
+let /** @type {tsickle_forward_declare_1.XY} */ usingTypeAlias;
+let /** @type {(tsickle_forward_declare_1.XY|boolean)} */ usingTypeAliasInUnion;

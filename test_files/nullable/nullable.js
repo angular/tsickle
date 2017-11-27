@@ -5,11 +5,11 @@ goog.module('test_files.nullable.nullable');var module = module || {id: 'test_fi
 class Primitives {
 }
 function Primitives_tsickle_Closure_declarations() {
-    /** @type {(null|string)} */
+    /** @type {(string|null)} */
     Primitives.prototype.nullable;
-    /** @type {(undefined|number)} */
+    /** @type {(number|undefined)} */
     Primitives.prototype.undefinable;
-    /** @type {(undefined|null|string)} */
+    /** @type {(string|null|undefined)} */
     Primitives.prototype.nullableUndefinable;
     /** @type {(undefined|string)} */
     Primitives.prototype.optional;
@@ -21,11 +21,11 @@ class NonPrimitives {
 function NonPrimitives_tsickle_Closure_declarations() {
     /** @type {!NonPrimitive} */
     NonPrimitives.prototype.nonNull;
-    /** @type {(null|!NonPrimitive)} */
+    /** @type {(!NonPrimitive|null)} */
     NonPrimitives.prototype.nullable;
-    /** @type {(undefined|!NonPrimitive)} */
+    /** @type {(!NonPrimitive|undefined)} */
     NonPrimitives.prototype.undefinable;
-    /** @type {(undefined|null|!NonPrimitive)} */
+    /** @type {(!NonPrimitive|null|undefined)} */
     NonPrimitives.prototype.nullableUndefinable;
     /** @type {(undefined|!NonPrimitive)} */
     NonPrimitives.prototype.optional;
@@ -35,7 +35,7 @@ function NonPrimitives_tsickle_Closure_declarations() {
  * @return {void}
  */
 function takesNonNullable(val) { }
-let /** @type {{field: (null|string|number)}} */ x = { field: null };
+let /** @type {{field: (string|null|number)}} */ x = { field: null };
 takesNonNullable(/** @type {(string|number)} */ ((x.field)));
 takesNonNullable(`${(/** @type {(string|number)} */ ((x.field)))}`);
 let /** @type {?} */ ctx;

@@ -8,7 +8,7 @@ goog.module('test_files.use_closure_externs.use_closure_externs');var module = m
 console.log('work around TS dropping consecutive comments');
 let /** @type {!NodeListOf<!HTMLParagraphElement>} */ x = document.getElementsByTagName('p');
 console.log(x);
-const /** @type {(null|!RegExpExecArray)} */ res = /** @type {!RegExpExecArray} */ ((/asd/.exec('asd asd')));
+const /** @type {(!RegExpExecArray|null)} */ res = /** @type {!RegExpExecArray} */ ((/asd/.exec('asd asd')));
 console.log(res);
 let /** @type {!ReadonlyArray<string>} */ a = [''];
 let /** @type {!ReadonlyMap<string, string>} */ m = new Map();

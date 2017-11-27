@@ -29,7 +29,7 @@ ts_library(
         "transformer_sourcemap.ts",
         "transformer_util.ts",
         "tsickle.ts",
-        "type-translator.ts",
+        "type_translator.ts",
         "typescript.ts",
         "util.ts",
         ":typescript-2.4.d.ts",

@@ -132,7 +132,7 @@ function Merged() {}
 /**
  * @param {(string|number|!Array<!OverloadBigMix>)} a_or_c_or_e_or_f
  * @param {number} opt_b
- * @return {(number|boolean|void)}
+ * @return {(void|number|boolean)}
  */
 Merged.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
 

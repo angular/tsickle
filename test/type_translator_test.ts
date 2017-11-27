@@ -8,7 +8,7 @@
 
 import {expect} from 'chai';
 
-import * as typeTranslator from '../src/type-translator';
+import * as typeTranslator from '../src/type_translator';
 
 describe('isBuiltinLibDTS', () => {
   it('matches builtins', () => {
