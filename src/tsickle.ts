@@ -85,16 +85,22 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .map((d) => {
         let res = ts.DiagnosticCategory[d.category];
         if (d.file) {
-          res += ' at ' + d.file.fileName + ':';
-          if (d.start) {
-            const {line, character} = d.file.getLineAndCharacterOfPosition(d.start);
-            res += (line + 1) + ':' + (character + 1) + ':';
-          }
+          res += ' at ' + formatLocation(d.file, d.start) + ':';
         }
         res += ' ' + ts.flattenDiagnosticMessageText(d.messageText, '\n');
         return res;
       })
       .join('\n');
+}
+
+/** Returns a fileName:line:column string for the given position in the file. */
+export function formatLocation(sf: ts.SourceFile, start: number|undefined) {
+  let res = sf.fileName;
+  if (start !== undefined) {
+    const {line, character} = sf.getLineAndCharacterOfPosition(start);
+    res += ':' + (line + 1) + ':' + (character + 1);
+  }
+  return res;
 }
 
 /** @return true if node has the specified modifier flag set. */
@@ -169,7 +175,7 @@ interface NamedSymbol {
  * One Rewriter subclass manages .ts => .ts+Closure translation.
  * Another Rewriter subclass manages .ts => externs translation.
  */
-class ClosureRewriter extends Rewriter {
+abstract class ClosureRewriter extends Rewriter {
   /**
    * A mapping of aliases for symbols in the current file, used when emitting types.
    * TypeScript emits imported symbols with unpredictable prefixes. To generate correct type
@@ -184,6 +190,36 @@ class ClosureRewriter extends Rewriter {
       sourceMapper?: SourceMapper) {
     super(file, sourceMapper);
   }
+
+  /** Finds an exported (i.e. not global) declaration for the given symbol. */
+  protected findExportedDeclaration(sym: ts.Symbol): ts.Declaration|undefined {
+    // TODO(martinprobst): it's unclear when a symbol wouldn't have a declaration, maybe just for
+    // some builtins (e.g. Symbol)?
+    if (!sym.declarations || sym.declarations.length === 0) return undefined;
+    // A symbol declared in this file does not need to be imported.
+    if (sym.declarations.some(d => d.getSourceFile() === this.file)) return undefined;
+
+    // Find an exported declaration.
+    // Because tsickle runs with the --declaration flag, all types referenced from exported types
+    // must be exported, too, so there must either be some declaration that is exported, or the
+    // symbol is actually a global declaration (declared in a script file, not a module).
+    const decl = sym.declarations.find(d => {
+      // Check for Export | Default (default being a default export).
+      if (!hasModifierFlag(d, ts.ModifierFlags.ExportDefault)) return false;
+      // Exclude symbols declared in `declare global {...}` blocks, they are global and don't need
+      // imports.
+      let current: ts.Node|undefined = d;
+      while (current) {
+        if (current.flags & ts.NodeFlags.GlobalAugmentation) return false;
+        current = current.parent;
+      }
+      return true;
+    });
+    return decl;
+  }
+
+  /** Called to ensure that a symbol is declared in the current file's scope. */
+  protected abstract ensureSymbolDeclared(sym: ts.Symbol): void;
 
   /**
    * Get the ts.Symbol at a location or throw.
@@ -509,7 +545,8 @@ class ClosureRewriter extends Rewriter {
 
   newTypeTranslator(context: ts.Node) {
     const translator = new typeTranslator.TypeTranslator(
-        this.typeChecker, context, this.host.typeBlackListPaths, this.symbolsToAliasedNames);
+        this.typeChecker, context, this.host.typeBlackListPaths, this.symbolsToAliasedNames,
+        (sym: ts.Symbol) => this.ensureSymbolDeclared(sym));
     translator.warn = msg => this.debugWarn(context, msg);
     return translator;
   }
@@ -557,6 +594,15 @@ class Annotator extends ClosureRewriter {
   private templateSpanStackCount = 0;
   private polymerBehaviorStackCount = 0;
 
+  /**
+   * The set of module symbols forward declared in the local namespace (with goog.forwarDeclare).
+   *
+   * Symbols not imported must be declared, which is done by adding forward declares to
+   * `extraImports` below.
+   */
+  private forwardDeclaredModules = new Set<ts.Symbol>();
+  private extraDeclares = '';
+
   constructor(
       typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
       private tsHost?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions,
@@ -564,9 +610,26 @@ class Annotator extends ClosureRewriter {
     super(typeChecker, file, host, sourceMapper);
   }
 
-  annotate() {
+  annotate(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.visit(this.file);
-    return this.getOutput();
+    return this.getOutput(this.extraDeclares);
+  }
+
+  protected ensureSymbolDeclared(sym: ts.Symbol) {
+    const decl = this.findExportedDeclaration(sym);
+    if (!decl) return;
+
+    // Actually import the symbol.
+    const sf = decl.getSourceFile();
+    const moduleSymbol = this.typeChecker.getSymbolAtLocation(sf);
+    if (!moduleSymbol) {
+      return;  // A source file might not have a symbol if it's not a module (no ES6 im/exports).
+    }
+    // Already imported?
+    if (this.forwardDeclaredModules.has(moduleSymbol)) return;
+    // TODO(martinprobst): this should possibly use fileNameToModuleId.
+    const text = this.getForwardDeclareText(sf.fileName, moduleSymbol);
+    this.extraDeclares += text;
   }
 
   getExportDeclarationNames(node: ts.Node): ts.Identifier[] {
@@ -685,7 +748,7 @@ class Annotator extends ClosureRewriter {
         }
         this.addSourceMapping(node);
         if (exportDecl.moduleSpecifier) {
-          this.forwardDeclare(exportDecl.moduleSpecifier, exportedSymbols);
+          this.forwardDeclare(exportDecl.moduleSpecifier);
         }
         if (exportedSymbols.length) {
           this.emitTypeDefExports(exportedSymbols);
@@ -1091,35 +1154,18 @@ class Annotator extends ClosureRewriter {
       this.addSourceMapping(decl);
 
       // importClause.name implies
-      //   import a from ...;
+      //   import defaultName from ...;
       // namedBindings being NamedImports implies
-      //   import {a as b} from ...;
+      //   import {a, b as c} from ...;
       //
       // Both of these forms create a local name "a", which after TypeScript CommonJS compilation
-      // will become some renamed variable like "module_1.default" or "module_1.a" (for default vs
-      // named bindings, respectively).
+      // will become some renamed variable like "module_1.default" or "module_1.a" or "module_1.c"
+      // (for default vs named vs renamed bindings, respectively).
       // tsickle references types in JSDoc. Because the module prefixes are not predictable, and
       // because TypeScript might remove imports entirely if they are only for types, the code below
       // inserts an artificial `const prefix = goog.forwardDeclare` call for the module, and then
       // registers all symbols from this import to be prefixed.
-      if (!this.host.untyped) {
-        let symbols: NamedSymbol[] = [];
-        if (importClause.name) {
-          // import a from ...;
-          symbols = [{
-            name: getIdentifierText(importClause.name),
-            sym: this.mustGetSymbolAtLocation(importClause.name),
-          }];
-        } else {
-          // import {a as b} from ...;
-          if (!importClause.namedBindings ||
-              importClause.namedBindings.kind !== ts.SyntaxKind.NamedImports) {
-            throw new Error('unreached');  // Guaranteed by if check above.
-          }
-          symbols = this.getNamedSymbols(importClause.namedBindings.elements);
-        }
-        this.forwardDeclare(decl.moduleSpecifier, symbols, !!importClause.name);
-      }
+      this.forwardDeclare(decl.moduleSpecifier, /** default import? */ !!importClause.name);
       return true;
     } else if (
         importClause.namedBindings &&
@@ -1136,10 +1182,7 @@ class Annotator extends ClosureRewriter {
       if (!sym) {
         return true;  // modules might not have a symbol if they are unused.
       }
-      // forwardDeclare all symbols that can be imported from the module.
-      const namedSyms =
-          this.typeChecker.getExportsOfModule(sym).map(sym => ({name: sym.name, sym}));
-      this.forwardDeclare(decl.moduleSpecifier, namedSyms, false);
+      this.forwardDeclare(decl.moduleSpecifier, false);
       return true;
     } else {
       this.errorUnimplementedKind(decl, 'unexpected kind of import');
@@ -1165,28 +1208,38 @@ class Annotator extends ClosureRewriter {
    * Emits a `goog.forwardDeclare` alias for each symbol from the given list.
    * @param specifier the import specifier, i.e. module path ("from '...'").
    */
-  private forwardDeclare(
-      specifier: ts.Expression, exportedSymbols: NamedSymbol[], isDefaultImport = false) {
-    if (this.host.untyped) return;
+  private forwardDeclare(specifier: ts.Expression, isDefaultImport = false) {
     const importPath = this.resolveModuleSpecifier(specifier);
+    const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
+    this.emit(this.getForwardDeclareText(importPath, moduleSymbol, isDefaultImport));
+  }
+
+  /**
+   * Returns the `const x = goog.forwardDeclare...` text for an import of the given `importPath`.
+   * This also registers aliases for symbols from the module that map to this forward declare.
+   */
+  private getForwardDeclareText(
+      importPath: string, moduleSymbol: ts.Symbol|undefined, isDefaultImport = false): string {
+    if (this.host.untyped) return '';
     const nsImport = es5processor.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
     const moduleNamespace =
         nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
-    const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
-    // Scripts do not have a symbol. Scripts can still be imported, either as side effect imports or
-    // with an empty import set ("{}"). TypeScript does not emit a runtime load for an import with
-    // an empty list of symbols, but the import forces any global declarations from the library to
-    // be visible, which is what users use this for. No symbols from the script need forward
-    // declaration, so just return.
-    if (!moduleSymbol) return;
-    const exports = this.typeChecker.getExportsOfModule(moduleSymbol);
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
     // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
     // here would cause a change in load order, which is observable (and can lead to errors).
     // Instead, goog.forwardDeclare types, which allows using them in type annotations without
     // causing a load. See below for the exception to the rule.
-    this.emit(`\nconst ${forwardDeclarePrefix} = goog.forwardDeclare("${moduleNamespace}");`);
+    let emitText = `\nconst ${forwardDeclarePrefix} = goog.forwardDeclare("${moduleNamespace}");`;
+
+    // Scripts do not have a symbol. Scripts can still be imported, either as side effect imports or
+    // with an empty import set ("{}"). TypeScript does not emit a runtime load for an import with
+    // an empty list of symbols, but the import forces any global declarations from the library to
+    // be visible, which is what users use this for. No symbols from the script need forward
+    // declaration, so just return.
+    if (!moduleSymbol) return '';
+    this.forwardDeclaredModules.add(moduleSymbol);
+    const exports = this.typeChecker.getExportsOfModule(moduleSymbol);
     const hasValues = exports.some(e => (e.flags & ts.SymbolFlags.Value) !== 0);
     if (!hasValues) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
@@ -1199,16 +1252,18 @@ class Annotator extends ClosureRewriter {
       // This is a heuristic - if the module exports some values, but those are never imported,
       // the file will still end up not being imported. Hopefully modules that export values are
       // imported for their value in some place.
-      this.emit(`\ngoog.require("${moduleNamespace}"); // force type-only module to be loaded`);
+      emitText += `\ngoog.require("${moduleNamespace}"); // force type-only module to be loaded`;
     }
-    for (const exp of exportedSymbols) {
-      if (exp.sym.flags & ts.SymbolFlags.Alias)
-        exp.sym = this.typeChecker.getAliasedSymbol(exp.sym);
+    for (let sym of exports) {
+      if (sym.flags & ts.SymbolFlags.Alias) {
+        sym = this.typeChecker.getAliasedSymbol(sym);
+      }
       // goog: imports don't actually use the .default property that TS thinks they have.
       const qualifiedName = nsImport && isDefaultImport ? forwardDeclarePrefix :
-                                                          forwardDeclarePrefix + '.' + exp.sym.name;
-      this.symbolsToAliasedNames.set(exp.sym, qualifiedName);
+                                                          forwardDeclarePrefix + '.' + sym.name;
+      this.symbolsToAliasedNames.set(sym, qualifiedName);
     }
+    return emitText;
   }
 
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
@@ -1544,6 +1599,15 @@ class ExternsWriter extends ClosureRewriter {
   process(): {output: string, diagnostics: ts.Diagnostic[]} {
     this.findExternRoots().forEach(node => this.visit(node));
     return this.getOutput();
+  }
+
+  protected ensureSymbolDeclared(sym: ts.Symbol): void {
+    const decl = this.findExportedDeclaration(sym);
+    if (!decl) return;  // symbol does not need declaring.
+    this.error(
+        this.file,
+        `Cannot reference a non-global symbol from an externs: ${sym.name} declared at ${
+            formatLocation(decl.getSourceFile(), decl.getStart())}`);
   }
 
   newTypeTranslator(context: ts.Node) {

@@ -156,7 +156,8 @@ export class TypeTranslator {
   constructor(
       private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
       private readonly pathBlackList?: Set<string>,
-      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>()) {
+      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>(),
+      private readonly ensureSymbolDeclared: (sym: ts.Symbol) => void = () => {}) {
     // Normalize paths to not break checks on Windows.
     if (this.pathBlackList != null) {
       this.pathBlackList =
@@ -175,14 +176,6 @@ export class TypeTranslator {
    *     would be fully qualified. I.e. this flag is false for generic types.
    */
   public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
-    // This follows getSingleLineStringWriter in the TypeScript compiler.
-    let str = '';
-    let symAlias = sym;
-    if (symAlias.flags & ts.SymbolFlags.Alias) {
-      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
-    }
-    const alias = this.symbolsToAliasedNames.get(symAlias);
-    if (alias) return alias;
     if (useFqn && this.isForExterns) {
       // For regular type emit, we can use TypeScript's naming rules, as they match Closure's name
       // scoping rules. However when emitting externs files for ambients, naming rules change. As
@@ -216,6 +209,20 @@ export class TypeTranslator {
       }
       return this.stripClutzNamespace(fqn);
     }
+    // TypeScript resolves e.g. union types to their members, which can include symbols not declared
+    // in the current scope. Ensure that all symbols found this way are actually declared.
+    // This must happen before the alias check below, it might introduce a new alias for the symbol.
+    if ((sym.flags & ts.SymbolFlags.TypeParameter) === 0) this.ensureSymbolDeclared(sym);
+
+    let symAlias = sym;
+    if (symAlias.flags & ts.SymbolFlags.Alias) {
+      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
+    }
+    const alias = this.symbolsToAliasedNames.get(symAlias);
+    if (alias) return alias;
+
+    // This follows getSingleLineStringWriter in the TypeScript compiler.
+    let str = '';
     const writeText = (text: string) => str += text;
     const doNothing = () => {
       return;
