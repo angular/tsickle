@@ -156,7 +156,7 @@ export function toClosureJS(
       program, transformerHost, compilerHost, options, undefined, writeFile);
 }
 
-function main(args: string[]): number {
+export function main(args: string[]): number {
   const {settings, tscArgs} = loadSettingsFromArgs(args);
   const config = loadTscConfig(tscArgs);
   if (config.errors.length) {
