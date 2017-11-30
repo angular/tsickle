@@ -349,7 +349,7 @@ class DecoratorRewriter extends Rewriter {
   private importedNames: Array<{name: ts.Identifier, declarationNames: ts.Identifier[]}> = [];
 
   constructor(
-      private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, sourceMapper?: SourceMapper) {
+      private typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, sourceMapper: SourceMapper) {
     super(sourceFile, sourceMapper);
   }
 
@@ -464,6 +464,6 @@ export function visitClassContentIncludingDecorators(
 
 export function convertDecorators(
     typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
-    sourceMapper?: SourceMapper): {output: string, diagnostics: ts.Diagnostic[]} {
+    sourceMapper: SourceMapper): {output: string, diagnostics: ts.Diagnostic[]} {
   return new DecoratorRewriter(typeChecker, sourceFile, sourceMapper).process();
 }

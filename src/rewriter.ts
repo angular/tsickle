@@ -34,12 +34,17 @@ export abstract class Rewriter {
   constructor(public file: ts.SourceFile, private sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
   }
 
-  getOutput(): {output: string, diagnostics: ts.Diagnostic[]} {
+  getOutput(prefix?: string): {output: string, diagnostics: ts.Diagnostic[]} {
     if (this.indent !== 0) {
       throw new Error('visit() failed to track nesting');
     }
+    let out = this.output.join('');
+    if (prefix) {
+      out = prefix + out;
+      this.sourceMapper.shiftByOffset(prefix.length);
+    }
     return {
-      output: this.output.join(''),
+      output: out,
       diagnostics: this.diagnostics,
     };
   }
