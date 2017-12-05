@@ -6,8 +6,10 @@ goog.module('test_files.type_alias_imported.type_alias_declare');var module = mo
  * @suppress {checkTypes} checked by tsc
  */
 
-class X {
-}
+/**
+ * @record
+ */
+function X() { }
 exports.X = X;
 function X_tsickle_Closure_declarations() {
     /** @type {string} */

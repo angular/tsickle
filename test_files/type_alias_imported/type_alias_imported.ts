@@ -1,8 +1,8 @@
 /** @fileoverview Make sure imports are inserted *after* the fileoverview. */
 
+import {SOME_CONSTANT} from './export_constant';
 import {XY} from './type_alias_exporter';
 import ImportedDefaultExport from './type_alias_default_exporter';
-import {SOME_CONSTANT} from './export_constant';
 
 // The union types below use members from the exporting files that are not
 // explicitly imported into this file. tsickle must emit extra forwardDeclare

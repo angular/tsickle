@@ -1230,7 +1230,7 @@ class Annotator extends ClosureRewriter {
     // here would cause a change in load order, which is observable (and can lead to errors).
     // Instead, goog.forwardDeclare types, which allows using them in type annotations without
     // causing a load. See below for the exception to the rule.
-    let emitText = `\nconst ${forwardDeclarePrefix} = goog.forwardDeclare("${moduleNamespace}");`;
+    let emitText = `const ${forwardDeclarePrefix} = goog.forwardDeclare("${moduleNamespace}");\n`;
 
     // Scripts do not have a symbol. Scripts can still be imported, either as side effect imports or
     // with an empty import set ("{}"). TypeScript does not emit a runtime load for an import with
@@ -1252,7 +1252,7 @@ class Annotator extends ClosureRewriter {
       // This is a heuristic - if the module exports some values, but those are never imported,
       // the file will still end up not being imported. Hopefully modules that export values are
       // imported for their value in some place.
-      emitText += `\ngoog.require("${moduleNamespace}"); // force type-only module to be loaded`;
+      emitText += `goog.require("${moduleNamespace}"); // force type-only module to be loaded\n`;
     }
     for (let sym of exports) {
       if (sym.flags & ts.SymbolFlags.Alias) {

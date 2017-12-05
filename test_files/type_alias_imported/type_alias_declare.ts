@@ -3,4 +3,4 @@
  * must ultimately be imported by type_alias_imported.
  */
 
-export class X { private x: string; }
+export interface X { x: string; }
