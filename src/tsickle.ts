@@ -1240,7 +1240,14 @@ class Annotator extends ClosureRewriter {
     if (!moduleSymbol) return '';
     this.forwardDeclaredModules.add(moduleSymbol);
     const exports = this.typeChecker.getExportsOfModule(moduleSymbol);
-    const hasValues = exports.some(e => (e.flags & ts.SymbolFlags.Value) !== 0);
+    const hasValues = exports.some(e => {
+      const isValue = (e.flags & ts.SymbolFlags.Value) !== 0;
+      const isConstEnum = (e.flags & ts.SymbolFlags.ConstEnum) !== 0;
+      // const enums are inlined by TypeScript (if preserveConstEnums=false), so there is never a
+      // value import generated for them. That means for the purpose of force-importing modules,
+      // they do not count as values. If preserveConstEnums=true, this shouldn't hurt.
+      return isValue && !isConstEnum;
+    });
     if (!hasValues) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
       // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
