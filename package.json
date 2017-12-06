@@ -21,7 +21,6 @@
     "typescript": ">=2.4.2 <2.6"
   },
   "devDependencies": {
-    "@bazel/typescript": "^0.3.1",
     "@types/chai": "^3.4.32",
     "@types/diff": "^3.2.0",
     "@types/glob": "^5.0.29",
@@ -50,7 +49,6 @@
     "typescript": "~2.5.3"
   },
   "scripts": {
-    "prepublishOnly": "echo 'DO NOT PUBLISH HERE, RUN ./publish.sh'; false",
     "build": "bazel build //src/... && mkdir built && cp -R bazel-bin/src built/src && cp package.json README.md built",
     "clean": "rm -rf built",
     "test": "gulp test.check-format && gulp test.check-lint && bazel test ..."
