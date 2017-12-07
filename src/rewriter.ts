@@ -34,12 +34,19 @@ export abstract class Rewriter {
   constructor(public file: ts.SourceFile, private sourceMapper: SourceMapper = NOOP_SOURCE_MAPPER) {
   }
 
-  getOutput(): {output: string, diagnostics: ts.Diagnostic[]} {
+  getOutput(prefix?: string): {output: string, diagnostics: ts.Diagnostic[]} {
     if (this.indent !== 0) {
       throw new Error('visit() failed to track nesting');
     }
+    let out = this.output.join('');
+    if (prefix) {
+      // Insert prefix after any leading trivia so that @fileoverview comments do not get broken.
+      const firstCode = this.file.getStart();
+      out = out.substring(0, firstCode) + prefix + out.substring(firstCode);
+      this.sourceMapper.shiftByOffset(prefix.length);
+    }
     return {
-      output: this.output.join(''),
+      output: out,
       diagnostics: this.diagnostics,
     };
   }
@@ -179,7 +186,7 @@ export abstract class Rewriter {
 
   error(node: ts.Node, messageText: string) {
     this.diagnostics.push({
-      file: this.file,
+      file: node.getSourceFile(),
       start: node.getStart(),
       length: node.getEnd() - node.getStart(),
       messageText,

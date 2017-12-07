@@ -109,48 +109,37 @@ export function sourceMapTextToGenerator(sourceMapText: string): SourceMapGenera
   return SourceMapGenerator.fromSourceMap(sourceMapTextToConsumer(sourceMapText));
 }
 
+/**
+ * A position in a source map. All offsets are zero-based.
+ */
 export interface SourcePosition {
-  // 0 based
+  /** 0 based */
   column: number;
-  // 0 based
+  /** 0 based */
   line: number;
-  // 0 based
+  /** 0 based full offset in the file. */
   position: number;
 }
 
 export interface SourceMapper {
+  /**
+   * Logically shift all source positions by `offset`.
+   *
+   * This method is useful if code has to prepend additional text to the generated output after
+   * source mappings have already been generated. The source maps are then transparently adjusted
+   * during TypeScript output generation.
+   */
+  shiftByOffset(offset: number): void;
+  /**
+   * Adds a mapping from `originalNode` in `original` position to its new location in the output,
+   * spanning from `generated` (an offset in the file) for `length` characters.
+   */
   addMapping(
       originalNode: ts.Node, original: SourcePosition, generated: SourcePosition,
       length: number): void;
 }
 
 export const NOOP_SOURCE_MAPPER: SourceMapper = {
-  // tslint:disable-next-line:no-empty
-  addMapping() {}
+  shiftByOffset() {/* no-op */},
+  addMapping() {/* no-op */},
 };
-
-export class DefaultSourceMapper implements SourceMapper {
-  /** The source map that's generated while rewriting this file. */
-  public sourceMap = new SourceMapGenerator();
-
-  constructor(private fileName: string) {
-    this.sourceMap.addMapping({
-      // tsc's source maps use 1-indexed lines, 0-indexed columns
-      original: {line: 1, column: 0},
-      generated: {line: 1, column: 0},
-      source: this.fileName,
-    });
-  }
-
-  addMapping(node: ts.Node, original: SourcePosition, generated: SourcePosition, length: number):
-      void {
-    if (length > 0) {
-      this.sourceMap.addMapping({
-        // tsc's source maps use 1-indexed lines, 0-indexed columns
-        original: {line: original.line + 1, column: original.column},
-        generated: {line: generated.line + 1, column: generated.column},
-        source: this.fileName,
-      });
-    }
-  }
-}

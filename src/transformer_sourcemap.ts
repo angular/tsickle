@@ -11,17 +11,25 @@ import {isTypeNodeKind, updateSourceFileNode, visitNodeWithSynthesizedComments} 
 import * as ts from './typescript';
 
 /**
- * @fileoverview Creates a TypeScript transformer that parses code into a new `ts.SourceFile`,
- * marks the nodes as synthetic and where possible maps the new nodes back to the original nodes
- * via sourcemap information.
+ * Creates a TypeScript transformer based on a source->text transformation.
+ *
+ * TypeScript transformers operate on AST nodes. Newly created nodes must be marked as replacing an
+ * older AST node. This shim allows running a transformation step that's based on emitting new text
+ * as a node based transformer. It achieves that by running the transformation, collecting a source
+ * mapping in the process, and then afterwards parsing the source text into a new AST and marking
+ * the new nodes as representations of the old nodes based on their source map positions.
+ *
+ * The process marks all nodes as synthesized except for a handful of special cases (identifiers
+ * etc).
  */
 export function createTransformerFromSourceMap(
-    operator: (sourceFile: ts.SourceFile, sourceMapper: SourceMapper) =>
+    sourceBasedTransformer: (sourceFile: ts.SourceFile, sourceMapper: SourceMapper) =>
         string): ts.TransformerFactory<ts.SourceFile> {
   return (context) => (sourceFile) => {
     const sourceMapper = new NodeSourceMapper();
+    const transformedSourceText = sourceBasedTransformer(sourceFile, sourceMapper);
     const newFile = ts.createSourceFile(
-        sourceFile.fileName, operator(sourceFile, sourceMapper), ts.ScriptTarget.Latest, true);
+        sourceFile.fileName, transformedSourceText, ts.ScriptTarget.Latest, true);
     const mappedFile = visitNode(newFile);
     return updateSourceFileNode(sourceFile, mappedFile.statements);
 
@@ -92,6 +100,8 @@ export function createTransformerFromSourceMap(
 class NodeSourceMapper implements SourceMapper {
   private originalNodeByGeneratedRange = new Map<string, ts.Node>();
   private genStartPositions = new Map<ts.Node, number>();
+  /** Conceptual offset for all nodes in this mapping. */
+  private offset = 0;
 
   private addFullNodeRange(node: ts.Node, genStartPos: number) {
     this.originalNodeByGeneratedRange.set(
@@ -99,6 +109,10 @@ class NodeSourceMapper implements SourceMapper {
         node);
     node.forEachChild(
         child => this.addFullNodeRange(child, genStartPos + (child.getStart() - node.getStart())));
+  }
+
+  shiftByOffset(offset: number) {
+    this.offset += offset;
   }
 
   addMapping(
@@ -128,9 +142,24 @@ class NodeSourceMapper implements SourceMapper {
     });
   }
 
+  /** For the newly parsed `node`, find what node corresponded to it in the original source text. */
   getOriginalNode(node: ts.Node): ts.Node|undefined {
-    return this.originalNodeByGeneratedRange.get(
-        this.nodeCacheKey(node.kind, node.getStart(), node.getEnd()));
+    // Apply the offset: if there is an offset > 0, all nodes are conceptually shifted by so many
+    // characters from the start of the file.
+    let start = node.getStart() - this.offset;
+    if (start < 0) {
+      // Special case: the source file conceptually spans all of the file, including any added
+      // prefix added that causes offset to be set.
+      if (node.kind !== ts.SyntaxKind.SourceFile) {
+        // Nodes within [0, offset] of the new file (start < 0) is the additional prefix that has no
+        // corresponding nodes in the original source, so return undefined.
+        return undefined;
+      }
+      start = 0;
+    }
+    const end = node.getEnd() - this.offset;
+    const key = this.nodeCacheKey(node.kind, start, end);
+    return this.originalNodeByGeneratedRange.get(key);
   }
 
   private nodeCacheKey(kind: ts.SyntaxKind, start: number, end: number): string {

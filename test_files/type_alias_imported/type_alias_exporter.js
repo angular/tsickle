@@ -3,19 +3,10 @@ goog.module('test_files.type_alias_imported.type_alias_exporter');var module = m
  * @suppress {checkTypes} checked by tsc
  */
 
-class X {
-}
-exports.X = X;
-function X_tsickle_Closure_declarations() {
-    /** @type {string} */
-    X.prototype.x;
-}
+const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.type_alias_imported.type_alias_declare");
+goog.require("test_files.type_alias_imported.type_alias_declare"); // force type-only module to be loaded
 class Y {
 }
 exports.Y = Y;
-function Y_tsickle_Closure_declarations() {
-    /** @type {string} */
-    Y.prototype.x;
-}
-/** @typedef {(!X|!Y)} */
+/** @typedef {(!tsickle_forward_declare_1.X|!Y)} */
 exports.XY;

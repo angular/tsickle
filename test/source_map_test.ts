@@ -7,11 +7,46 @@
  */
 
 import {expect} from 'chai';
-import {SourceMapConsumer} from 'source-map';
-import {DefaultSourceMapper} from '../src/source_map_utils';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import * as ts from 'typescript';
+
+import {SourceMapper, SourcePosition} from '../src/source_map_utils';
 import {annotate, AnnotatorHost} from '../src/tsickle';
 
 import {createProgram} from './test_support';
+
+/**
+ * A SourceMapper that directly maps into a source map generator.
+ * Used to test the source mapping implementation (see below).
+ */
+class TestSourceMapper implements SourceMapper {
+  /** The source map that's generated while rewriting this file. */
+  sourceMap = new SourceMapGenerator();
+
+  constructor(private fileName: string) {
+    this.sourceMap.addMapping({
+      // tsc's source maps use 1-indexed lines, 0-indexed columns
+      original: {line: 1, column: 0},
+      generated: {line: 1, column: 0},
+      source: this.fileName,
+    });
+  }
+
+  shiftByOffset(n: number) {
+    throw new Error('not implemented');
+  }
+
+  addMapping(node: ts.Node, original: SourcePosition, generated: SourcePosition, length: number):
+      void {
+    if (length <= 0) return;
+    this.sourceMap.addMapping({
+      // tsc's source maps use 1-indexed lines, 0-indexed columns
+      original: {line: original.line + 1, column: original.column},
+      generated: {line: generated.line + 1, column: generated.column},
+      source: this.fileName,
+    });
+  }
+}
 
 describe('source maps', () => {
   it('generates a source map', () => {
@@ -20,7 +55,7 @@ describe('source maps', () => {
       class X { field: number; }
       class Y { field2: string; }`);
     const program = createProgram(sources);
-    const sourceMapper = new DefaultSourceMapper('input.ts');
+    const sourceMapper = new TestSourceMapper('input.ts');
     const annotated = annotate(
         program.getTypeChecker(), program.getSourceFile('input.ts'),
         {pathToModuleName: () => 'input'}, undefined, undefined, sourceMapper);

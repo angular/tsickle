@@ -156,7 +156,8 @@ export class TypeTranslator {
   constructor(
       private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
       private readonly pathBlackList?: Set<string>,
-      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>()) {
+      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>(),
+      private readonly ensureSymbolDeclared: (sym: ts.Symbol) => void = () => {}) {
     // Normalize paths to not break checks on Windows.
     if (this.pathBlackList != null) {
       this.pathBlackList =
@@ -175,14 +176,6 @@ export class TypeTranslator {
    *     would be fully qualified. I.e. this flag is false for generic types.
    */
   public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
-    // This follows getSingleLineStringWriter in the TypeScript compiler.
-    let str = '';
-    let symAlias = sym;
-    if (symAlias.flags & ts.SymbolFlags.Alias) {
-      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
-    }
-    const alias = this.symbolsToAliasedNames.get(symAlias);
-    if (alias) return alias;
     if (useFqn && this.isForExterns) {
       // For regular type emit, we can use TypeScript's naming rules, as they match Closure's name
       // scoping rules. However when emitting externs files for ambients, naming rules change. As
@@ -216,6 +209,20 @@ export class TypeTranslator {
       }
       return this.stripClutzNamespace(fqn);
     }
+    // TypeScript resolves e.g. union types to their members, which can include symbols not declared
+    // in the current scope. Ensure that all symbols found this way are actually declared.
+    // This must happen before the alias check below, it might introduce a new alias for the symbol.
+    if ((sym.flags & ts.SymbolFlags.TypeParameter) === 0) this.ensureSymbolDeclared(sym);
+
+    let symAlias = sym;
+    if (symAlias.flags & ts.SymbolFlags.Alias) {
+      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
+    }
+    const alias = this.symbolsToAliasedNames.get(symAlias);
+    if (alias) return alias;
+
+    // This follows getSingleLineStringWriter in the TypeScript compiler.
+    let str = '';
     const writeText = (text: string) => str += text;
     const doNothing = () => {
       return;
@@ -529,7 +536,7 @@ export class TypeTranslator {
     if (ctors.length) {
       // TODO(martinprobst): this does not support additional properties defined on constructors
       // (not expressible in Closure), nor multiple constructors (same).
-      const params = this.convertParams(ctors[0]);
+      const params = this.convertParams(ctors[0], ctors[0].declaration.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
       // In the specific case of the "new" in a function, it appears that
@@ -607,8 +614,24 @@ export class TypeTranslator {
 
     this.blacklistTypeParameters(this.symbolsToAliasedNames, sig.declaration.typeParameters);
 
-    const params = this.convertParams(sig);
-    let typeStr = `function(${params.join(', ')})`;
+    let typeStr = `function(`;
+
+    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> = sig.declaration.parameters;
+    const maybeThisParam = paramDecls[0];
+    // Oddly, the this type shows up in paramDecls, but not in the type's parameters.
+    // Handle it here and then pass paramDecls down without its first element.
+    if (maybeThisParam && maybeThisParam.name.getText() === 'this') {
+      if (maybeThisParam.type) {
+        const thisType = this.typeChecker.getTypeAtLocation(maybeThisParam.type);
+        typeStr += `this: (${this.translate(thisType)}), `;
+      } else {
+        this.warn('this type without type');
+      }
+      paramDecls = paramDecls.slice(1);
+    }
+
+    const params = this.convertParams(sig, paramDecls);
+    typeStr += `${params.join(', ')})`;
 
     const retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
     if (retType) {
@@ -618,7 +641,13 @@ export class TypeTranslator {
     return typeStr;
   }
 
-  private convertParams(sig: ts.Signature): string[] {
+  /**
+   * Converts parameters for the given signature. Takes parameter declarations as those might not
+   * match the signature parameters (e.g. there might be an additional this parameter). This
+   * difference is handled by the caller, as is converting the "this" parameter.
+   */
+  private convertParams(sig: ts.Signature, paramDecls: ReadonlyArray<ts.ParameterDeclaration>):
+      string[] {
     const paramTypes: string[] = [];
     // The Signature itself does not include information on optional and var arg parameters.
     // Use its declaration to recover that information.
@@ -626,7 +655,7 @@ export class TypeTranslator {
     for (let i = 0; i < sig.parameters.length; i++) {
       const param = sig.parameters[i];
 
-      const paramDecl = decl.parameters[i];
+      const paramDecl = paramDecls[i];
       const optional = !!paramDecl.questionToken;
       const varArgs = !!paramDecl.dotDotDotToken;
       let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
