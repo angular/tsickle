@@ -113,8 +113,14 @@ export abstract class Rewriter {
     this.skipCommentsUpToOffset = oldSkipCommentsUpToOffset;
   }
 
-  writeLeadingTrivia(node: ts.Node) {
-    this.writeRange(node, node.getFullStart(), node.getStart());
+  /**
+   * Writes all leading trivia (whitespace or comments) on node, or all trivia up to the given
+   * position. Also marks those trivia as "already emitted" by shifting the skipCommentsUpTo marker.
+   */
+  writeLeadingTrivia(node: ts.Node, upTo = 0) {
+    const upToOffset = upTo || node.getStart();
+    this.writeRange(node, node.getFullStart(), upTo || node.getStart());
+    this.skipCommentsUpToOffset = upToOffset;
   }
 
   addSourceMapping(node: ts.Node) {

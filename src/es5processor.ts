@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {isClosureFileoverviewComment} from './fileoverview_comment_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
 import * as ts from './typescript';
@@ -78,9 +79,9 @@ class ES5Processor extends Rewriter {
   }
 
   process(): {output: string, referencedModules: string[]} {
+    this.emitFileComment();
+
     const moduleId = this.host.fileNameToModuleId(this.file.fileName);
-    // TODO(evanm): only emit the goog.module *after* the first comment,
-    // so that @suppress statements work.
     const moduleName = this.host.pathToModuleName('', this.file.fileName);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
@@ -114,6 +115,22 @@ class ES5Processor extends Rewriter {
     // they occur in the source file.
     const {output} = this.getOutput();
     return {output, referencedModules};
+  }
+
+  /**
+   * Emits file comments for the current source file, if any.
+   */
+  private emitFileComment() {
+    const leadingComments = ts.getLeadingCommentRanges(this.file.getFullText(), 0) || [];
+    const fileComment = leadingComments.find(c => {
+      if (c.kind !== ts.SyntaxKind.MultiLineCommentTrivia) return false;
+      const commentText = this.file.getFullText().substring(c.pos, c.end);
+      return isClosureFileoverviewComment(commentText);
+    });
+    if (!fileComment) return;
+    let end = fileComment.end;
+    if (fileComment.hasTrailingNewLine) end++;
+    this.writeLeadingTrivia(this.file, end);
   }
 
   /**

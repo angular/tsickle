@@ -156,19 +156,31 @@ console.log(this.default);
 console.log(foo.bar.default);`);
   });
 
-  it('inserts the module after "use strict"', () => {
+  it('strips "use strict" (implied by goog.module)', () => {
     expectCommonJs(
         'a/b.js',
         `/**
-* docstring here
-*/
+ * docstring here
+ */
 "use strict";
 var foo = bar;
 `).to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};/**
-* docstring here
-*/
+ * docstring here
+ */
 
 var foo = bar;
+`);
+  });
+
+  it('inserts goog.module after fileoverview comments', () => {
+    expectCommonJs('a/b.js', `/**
+ * @fileoverview comment here.
+ */
+var foo = bar;
+`).to.equal(`/**
+ * @fileoverview comment here.
+ */
+goog.module('a.b');var module = module || {id: 'a/b.js'};var foo = bar;
 `);
   });
 
