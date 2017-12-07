@@ -2130,6 +2130,23 @@ export function emitWithTsickle(
   };
 }
 
+function areAnyDeclarationsFromSourceFile(
+    declarations: ts.Declaration[], sourceFile: ts.SourceFile) {
+  for (const decl of declarations) {
+    if (decl.getSourceFile() === sourceFile) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * A tsickle produced declaration file might be consumed be referenced by Clutz
+ * produced .d.ts files, which use symbol names based on Closure's internal
+ * naming conventions, so we need to provide aliases for all the exported symbols
+ * in the Clutz naming convention.
+ */
 function addClutzAliases(
     fileName: string, dtsFileContent: string, sourceFiles: ts.SourceFile[],
     typeChecker: ts.TypeChecker, host: TsickleHost): string {
@@ -2150,6 +2167,14 @@ function addClutzAliases(
     // moduleExports is a ts.Map<ts.Symbol> which is an es6 Map, but has a
     // different type for no reason
     for (const symbol of moduleExports) {
+      // We only want to add clutz aliases in the file the symbol was originally
+      // exported from, not in any files where the symbol was reexported, since
+      // the alias will refer to a symbol that might not be present in the reexporting
+      // file.  If there are no declarations, be conservative and emit the aliases.
+      const declarations = symbol.getDeclarations();
+      if (declarations && !areAnyDeclarationsFromSourceFile(declarations, sf)) {
+        continue;
+      }
       // Want to alias the symbol to match what clutz would produce, so clutz .d.ts's
       // can reference symbols from typescript .d.ts's. See examples at:
       // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
