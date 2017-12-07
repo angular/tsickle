@@ -12,3 +12,9 @@ node_modules
 
 # See reference to this file in the README.md
 yarn_install.sh
+
+# build result directory
+/built/
+
+# No, I don't need to commit this crap
+/**/package-lock.json
