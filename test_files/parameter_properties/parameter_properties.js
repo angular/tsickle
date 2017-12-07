@@ -1,8 +1,8 @@
-goog.module('test_files.parameter_properties.parameter_properties');var module = module || {id: 'test_files/parameter_properties/parameter_properties.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-class ParamProps {
+goog.module('test_files.parameter_properties.parameter_properties');var module = module || {id: 'test_files/parameter_properties/parameter_properties.js'};class ParamProps {
     /**
      * @param {string} publicExportedP
      * @param {string} publicP

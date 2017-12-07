@@ -1,8 +1,8 @@
-goog.module('test_files.decorator.external');var module = module || {id: 'test_files/decorator/external.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-
+goog.module('test_files.decorator.external');var module = module || {id: 'test_files/decorator/external.js'};
 var external2_1 = goog.require('test_files.decorator.external2');
 exports.ReexportedOtherClass = external2_1.OtherClass;
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.external2");

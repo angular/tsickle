@@ -18,11 +18,11 @@
 // Warning at test_files/jsdoc/jsdoc.ts:77:1: @extends annotations are redundant with TypeScript equivalents
 // @implements annotations are redundant with TypeScript equivalents
 // Warning at test_files/jsdoc/jsdoc.ts:84:3: @constructor annotations are redundant with TypeScript equivalents
-goog.module('test_files.jsdoc.jsdoc');var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-/**
+goog.module('test_files.jsdoc.jsdoc');var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.

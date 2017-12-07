@@ -1,8 +1,8 @@
-goog.module('test_files.methods.methods');var module = module || {id: 'test_files/methods/methods.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-class HasMethods {
+goog.module('test_files.methods.methods');var module = module || {id: 'test_files/methods/methods.js'};class HasMethods {
     /**
      * @return {void}
      */

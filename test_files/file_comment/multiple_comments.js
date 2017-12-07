@@ -1,4 +1,4 @@
-goog.module('test_files.file_comment.multiple_comments');var module = module || {id: 'test_files/file_comment/multiple_comments.js'};/**
+/**
  * @license
  * Copyright Google Inc. All Rights Reserved.
  *
@@ -9,7 +9,7 @@ goog.module('test_files.file_comment.multiple_comments');var module = module || 
  * @fileoverview This comment is ignore by Closure compiler.
  * @suppress {undefinedVars}
  */
-/**
+goog.module('test_files.file_comment.multiple_comments');var module = module || {id: 'test_files/file_comment/multiple_comments.js'};/**
  *
  * @fileoverview The last fileoverview actually takes effect.
  * @suppress {globalThis,checkTypes}

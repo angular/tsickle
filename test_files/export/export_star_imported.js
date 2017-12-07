@@ -1,8 +1,8 @@
-goog.module('test_files.export.export_star_imported');var module = module || {id: 'test_files/export/export_star_imported.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-
+goog.module('test_files.export.export_star_imported');var module = module || {id: 'test_files/export/export_star_imported.js'};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper");
 var export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export1 = export_helper_1.export1;

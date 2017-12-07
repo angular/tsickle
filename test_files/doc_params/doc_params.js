@@ -1,8 +1,8 @@
-goog.module('test_files.doc_params.doc_params');var module = module || {id: 'test_files/doc_params/doc_params.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-class Foo {
+goog.module('test_files.doc_params.doc_params');var module = module || {id: 'test_files/doc_params/doc_params.js'};class Foo {
     /**
      * @ngInject
      * @param {string} a

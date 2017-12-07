@@ -1,8 +1,8 @@
-goog.module('test_files.jsdoc_types.untyped.jsdoc_types');var module = module || {id: 'test_files/jsdoc_types.untyped/jsdoc_types.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-/**
+goog.module('test_files.jsdoc_types.untyped.jsdoc_types');var module = module || {id: 'test_files/jsdoc_types.untyped/jsdoc_types.js'};/**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
  */

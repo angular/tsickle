@@ -1,11 +1,11 @@
 // Warning at test_files/enum/enum.ts:2:7: should not emit a 'never' type
 // Warning at test_files/enum/enum.ts:8:33: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 // Warning at test_files/enum/enum.ts:15:22: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
-goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum/enum.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-
+goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum/enum.js'};
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
 /** @enum {number} */

@@ -1,8 +1,8 @@
-goog.module('test_files.export.export');var module = module || {id: 'test_files/export/export.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-
+goog.module('test_files.export.export');var module = module || {id: 'test_files/export/export.js'};
 var export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export2 = export_helper_1.export2;
 exports.export5 = export_helper_1.export5;

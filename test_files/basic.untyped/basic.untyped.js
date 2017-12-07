@@ -1,8 +1,8 @@
-goog.module('test_files.basic.untyped.basic.untyped');var module = module || {id: 'test_files/basic.untyped/basic.untyped.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-/**
+goog.module('test_files.basic.untyped.basic.untyped');var module = module || {id: 'test_files/basic.untyped/basic.untyped.js'};/**
  * @param {?} arg1
  * @return {?}
  */

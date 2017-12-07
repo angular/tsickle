@@ -1,8 +1,8 @@
-goog.module('test_files.functions.functions');var module = module || {id: 'test_files/functions/functions.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-/**
+goog.module('test_files.functions.functions');var module = module || {id: 'test_files/functions/functions.js'};/**
  * @param {number} a
  * @return {number}
  */

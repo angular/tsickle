@@ -1,8 +1,8 @@
-goog.module('test_files.decorator.decorator');var module = module || {id: 'test_files/decorator/decorator.js'};/**
+/**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-
+goog.module('test_files.decorator.decorator');var module = module || {id: 'test_files/decorator/decorator.js'};
 // OtherClass is reachable via the imports for './external' and './external2'.
 // Test that were using it from the right import, and not just the first
 // that allows access to the value. That is important when imports are elided.
