@@ -120,6 +120,12 @@ export function createSourceCachingHost(
     if (sources.has(fileName)) {
       return true;
     }
+    // Typescript occasionally needs to look on disk for files we don't pass into
+    // the program as a source (eg to resolve a module that's in node_modules),
+    // but only .ts files explicitly passed in should be findable
+    if (/\.ts$/.test(fileName)) {
+      return false;
+    }
     return originalFileExists.call(host, fileName);
   };
 
