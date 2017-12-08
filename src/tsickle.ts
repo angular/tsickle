@@ -2141,6 +2141,15 @@ function areAnyDeclarationsFromSourceFile(
   return false;
 }
 
+function addToMultiMap<T, U>(map: Map<T, U[]>, key: T, value: U) {
+  const array = map.get(key);
+  if (array) {
+    array.push(value);
+  } else {
+    map.set(key, [value]);
+  }
+}
+
 /**
  * A tsickle produced declaration file might be consumed be referenced by Clutz
  * produced .d.ts files, which use symbol names based on Closure's internal
@@ -2150,7 +2159,7 @@ function areAnyDeclarationsFromSourceFile(
 function addClutzAliases(
     fileName: string, dtsFileContent: string, sourceFiles: ts.SourceFile[],
     typeChecker: ts.TypeChecker, host: TsickleHost): string {
-  const reexports: string[] = [];
+  const reexportsByNamespace: Map<string, string[]> = new Map();
   for (const sf of sourceFiles) {
     const moduleSymbol = typeChecker.getSymbolAtLocation(sf);
     const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
@@ -2178,37 +2187,63 @@ function addClutzAliases(
       // Want to alias the symbol to match what clutz would produce, so clutz .d.ts's
       // can reference symbols from typescript .d.ts's. See examples at:
       // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
-      const clutzSymbolName = 'module$contents$' + clutzModuleName + '_' + symbol.name;
-
+      // The first symbol name is that currently produced by clutz, and the second
+      // is what incremental clutz will produce.
+      const reexports = [];
+      reexports.push({
+        namespace: 'ಠ_ಠ.clutz',
+        clutzSymbolName: `module$contents$${clutzModuleName}_${symbol.name}`,
+        aliasedSymbolName: symbol.name
+      });
+      reexports.push({
+        namespace: 'ಠ_ಠ.clutz.module$exports$' + clutzModuleName,
+        clutzSymbolName: symbol.name,
+        aliasedSymbolName: `module$contents$${clutzModuleName}_${symbol.name}`
+      });
       const {params, paramsWithContraint} = getGenericTypeParameters(symbol);
 
       if (symbol.flags & ts.SymbolFlags.Class) {
         // classes need special care to match clutz, which seperates class types into a
         // type for the static properties and a type for the instance properties
-        reexports.push(`type ${clutzSymbolName}${paramsWithContraint} = ${symbol.name}${params};`);
-        reexports.push(`const ${clutzSymbolName}: typeof ${symbol.name};`);
-        reexports.push(
-            `type ${clutzSymbolName}_Instance${paramsWithContraint} = ${symbol.name}${params};`);
-        reexports.push(`const ${clutzSymbolName}_Instance: typeof ${symbol.name};`);
-        continue;
+        reexports.push({
+          namespace: 'ಠ_ಠ.clutz',
+          clutzSymbolName: `module$contents$${clutzModuleName}_${symbol.name}_Instance`,
+          aliasedSymbolName: symbol.name
+        });
+        reexports.push({
+          namespace: 'ಠ_ಠ.clutz.module$exports$' + clutzModuleName,
+          clutzSymbolName: symbol.name + '_Instance',
+          aliasedSymbolName: `module$contents$${clutzModuleName}_${symbol.name}`
+        });
       }
 
-      if (symbol.flags & ts.SymbolFlags.Type) {
-        reexports.push(`type ${clutzSymbolName}${paramsWithContraint} = ${symbol.name}${params};`);
+      if (symbol.flags & ts.SymbolFlags.Type || symbol.flags & ts.SymbolFlags.Class) {
+        for (const {namespace, clutzSymbolName, aliasedSymbolName} of reexports) {
+          addToMultiMap(
+              reexportsByNamespace, namespace,
+              `type ${clutzSymbolName}${paramsWithContraint} = ${aliasedSymbolName}${params};`);
+        }
       }
-      if (symbol.flags & ts.SymbolFlags.Value) {
-        reexports.push(`const ${clutzSymbolName}: typeof ${symbol.name};`);
+      if (symbol.flags & ts.SymbolFlags.Value || symbol.flags & ts.SymbolFlags.Class) {
+        for (const {namespace, clutzSymbolName, aliasedSymbolName} of reexports) {
+          addToMultiMap(
+              reexportsByNamespace, namespace,
+              `const ${clutzSymbolName}: typeof ${aliasedSymbolName};`);
+        }
       }
     }
   }
 
-  if (reexports.length) {
+  if (reexportsByNamespace.size) {
     dtsFileContent += 'declare global {\n';
-    dtsFileContent += `\tnamespace ಠ_ಠ.clutz {\n`;
-    for (const reexport of reexports) {
-      dtsFileContent += `\t\t${reexport}\n`;
+    for (const [namespace, rexps] of reexportsByNamespace) {
+      dtsFileContent += `\tnamespace ${namespace} {\n`;
+      for (const rexp of rexps) {
+        dtsFileContent += `\t\t${rexp}\n`;
+      }
+      dtsFileContent += '\t}\n';
     }
-    dtsFileContent += '\t}\n}\n';
+    dtsFileContent += '}\n';
   }
 
   return dtsFileContent;
