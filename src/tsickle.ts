@@ -777,19 +777,6 @@ class Annotator extends ClosureRewriter {
         // Emit the TS interface verbatim, with no tsickle processing of properties.
         this.writeRange(node, node.getFullStart(), node.getEnd());
         return true;
-      case ts.SyntaxKind.VariableDeclaration:
-        const varDecl = node as ts.VariableDeclaration;
-        // Only emit a type annotation when it's a plain variable and
-        // not a binding pattern, as Closure doesn't(?) have a syntax
-        // for annotating binding patterns.  See issue #128.
-        // Don't emit type annotation when the variable statement is a @polymerBehavior,
-        // as otherwise the polymer closure checker will fail.
-        // See b/64389806
-        if (this.polymerBehaviorStackCount === 0 &&
-            varDecl.name.kind === ts.SyntaxKind.Identifier) {
-          this.emitJSDocType(varDecl);
-        }
-        return false;
       case ts.SyntaxKind.ClassDeclaration:
         const classNode = node as ts.ClassDeclaration;
         this.visitClassDeclaration(classNode);
@@ -914,18 +901,27 @@ class Annotator extends ClosureRewriter {
         }
 
         if (docTags.length > 0 && node.getFirstToken()) {
-          this.emit('\n');
-          this.emit(jsdoc.toString(docTags));
           const isPolymerBehavior = docTags.some(t => t.tagName === 'polymerBehavior');
           if (isPolymerBehavior) {
             this.polymerBehaviorStackCount++;
           }
-          this.writeNodeFrom(node, node.getStart());
+          if (ts.isVariableStatement(node)) {
+            this.visitVariableStatement(node, docTags);
+          } else {
+            // Property declaration.
+            this.emit('\n');
+            this.emit(jsdoc.toString(docTags));
+            this.writeNodeFrom(node, node.getStart());
+          }
           if (isPolymerBehavior) {
             this.polymerBehaviorStackCount--;
           }
           return true;
+        } else if (ts.isVariableStatement(node)) {
+          this.visitVariableStatement(node, docTags);
+          return true;
         }
+        // Property declaration without doc tags.
         break;
       case ts.SyntaxKind.PropertyAssignment:
         const pa = node as ts.PropertyAssignment;
@@ -1209,6 +1205,43 @@ class Annotator extends ClosureRewriter {
     return emitText;
   }
 
+  /** Emits a variable statement per declaration in this variable statement, duplicating JSDoc. */
+  private visitVariableStatement(varStmt: ts.VariableStatement, docTags: jsdoc.Tag[]) {
+    // Previously tsickle would emit inline types (`var /** @type {string} */ x;`), but TypeScript's
+    // emit strips those comments for exports. Instead, break up the variable declaration list into
+    // separate variable statements, each with a leading (not inline) comment.
+    const keyword = varStmt.declarationList.getFirstToken().getText();
+    const additionalTags = jsdoc.toStringWithoutStartEnd(docTags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
+    for (const decl of varStmt.declarationList.declarations) {
+      this.emit('\n');
+      this.addSourceMapping(decl);
+      // Only emit a type for plain identifiers. Binding patterns have no type syntax in Closure
+      // Compiler, and TypeScript 2.6 crashes on "getTypeAtLocation(bindingpattern)". By omitting a
+      // type altogether, there is a chance Closure Compiler infers the correct type.
+      if (ts.isIdentifier(decl.name)) {
+        // Don't emit type annotation when the variable statement is a @polymerBehavior, as
+        // otherwise the polymer closure checker will fail. See b/64389806.
+        if (this.polymerBehaviorStackCount === 0) {
+          this.emitJSDocType(decl, additionalTags);
+        } else {
+          this.emit(`/**${additionalTags}*/`);
+        }
+      }
+      this.emit('\n');
+      const finishMapping = this.startSourceMapping(varStmt);
+      if (hasModifierFlag(varStmt, ts.ModifierFlags.Export)) this.emit('export ');
+      this.addSourceMapping(decl);
+      this.emit(keyword);
+      this.visit(decl.name);
+      if (decl.initializer) {
+        this.emit(' = ');
+        this.visit(decl.initializer);
+      }
+      this.emit(';');
+      finishMapping();
+    }
+  }
+
   private visitClassDeclaration(classDecl: ts.ClassDeclaration) {
     this.addSourceMapping(classDecl);
     const docTags = this.getJSDoc(classDecl) || [];
@@ -1379,7 +1412,7 @@ class Annotator extends ClosureRewriter {
     }
     // Avoid printing annotations that can conflict with @type
     // This avoids Closure's error "type annotation incompatible with other annotations"
-    this.emit(jsdoc.toString(tags, new Set(['param', 'return'])));
+    this.emit(jsdoc.toString(tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE));
     namespace = namespace.concat([name]);
     this.emit(`${namespace.join('.')};\n`);
   }

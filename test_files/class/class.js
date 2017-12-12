@@ -52,7 +52,8 @@ function InterfaceExtendsInterface_tsickle_Closure_declarations() {
     /** @type {function(): void} */
     InterfaceExtendsInterface.prototype.interfaceFunc2;
 }
-let /** @type {!InterfaceExtendsInterface} */ interfaceExtendsInterface = {
+/** @type {!InterfaceExtendsInterface} */
+let interfaceExtendsInterface = {
     /**
      * @return {void}
      */
@@ -177,18 +178,18 @@ class ImplementsTypeAlias {
      */
     classFunc() { }
 }
-// Verify Closure accepts the various subtypes of Interface.
-let /** @type {!Interface} */ interfaceVar;
+/** @type {!Interface} */
+let interfaceVar;
 interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
-// Verify Closure accepts the various subtypes of Class.
-let /** @type {!Class} */ classVar;
+/** @type {!Class} */
+let classVar;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
-// Verify Closure accepts the various subtypes of AbstractClass.
-let /** @type {!AbstractClass} */ abstractClassVar;
+/** @type {!AbstractClass} */
+let abstractClassVar;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 /**

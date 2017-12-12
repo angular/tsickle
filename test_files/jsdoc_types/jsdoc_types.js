@@ -16,26 +16,36 @@ var default_1 = goog.require('test_files.jsdoc_types.default');
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.jsdoc_types.default");
 const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.jsdoc_types.nevertyped");
 goog.require("test_files.jsdoc_types.nevertyped"); // force type-only module to be loaded
-// Check that imported types get the proper names in JSDoc.
-let /** @type {!tsickle_forward_declare_1.Class} */ useNamespacedClass = new module1.Class();
-let /** @type {!tsickle_forward_declare_1.Class} */ useNamespacedClassAsType;
-let /** @type {!tsickle_forward_declare_1.Interface} */ useNamespacedType;
-// Should be references to the symbols in module2, perhaps via locals.
-let /** @type {!tsickle_forward_declare_2.ClassOne} */ useLocalClass = new module2_1.ClassOne();
-let /** @type {!tsickle_forward_declare_2.ClassOne} */ useLocalClassRenamed = new module2_1.ClassOne();
-let /** @type {!tsickle_forward_declare_2.ClassTwo} */ useLocalClassRenamedTwo = new module2_1.ClassTwo();
-let /** @type {!tsickle_forward_declare_2.ClassOne} */ useLocalClassAsTypeRenamed;
-let /** @type {!tsickle_forward_declare_2.Interface} */ useLocalInterface;
-let /** @type {!tsickle_forward_declare_2.ClassWithParams<number>} */ useClassWithParams;
-// This is purely a value; it doesn't need renaming.
-let /** @type {number} */ useLocalValue = module2_1.value;
-// Check a default import.
-let /** @type {!tsickle_forward_declare_3.default} */ useDefaultClass = new default_1.default();
-let /** @type {!tsickle_forward_declare_3.default} */ useDefaultClassAsType;
-// NeverTyped should be {?}, even in typed mode.
-let /** @type {?} */ useNeverTyped;
-let /** @type {(string|?)} */ useNeverTyped2;
-let /** @type {?} */ useNeverTypedTemplated;
+/** @type {!tsickle_forward_declare_1.Class} */
+let useNamespacedClass = new module1.Class();
+/** @type {!tsickle_forward_declare_1.Class} */
+let useNamespacedClassAsType;
+/** @type {!tsickle_forward_declare_1.Interface} */
+let useNamespacedType;
+/** @type {!tsickle_forward_declare_2.ClassOne} */
+let useLocalClass = new module2_1.ClassOne();
+/** @type {!tsickle_forward_declare_2.ClassOne} */
+let useLocalClassRenamed = new module2_1.ClassOne();
+/** @type {!tsickle_forward_declare_2.ClassTwo} */
+let useLocalClassRenamedTwo = new module2_1.ClassTwo();
+/** @type {!tsickle_forward_declare_2.ClassOne} */
+let useLocalClassAsTypeRenamed;
+/** @type {!tsickle_forward_declare_2.Interface} */
+let useLocalInterface;
+/** @type {!tsickle_forward_declare_2.ClassWithParams<number>} */
+let useClassWithParams;
+/** @type {number} */
+let useLocalValue = module2_1.value;
+/** @type {!tsickle_forward_declare_3.default} */
+let useDefaultClass = new default_1.default();
+/** @type {!tsickle_forward_declare_3.default} */
+let useDefaultClassAsType;
+/** @type {?} */
+let useNeverTyped;
+/** @type {(string|?)} */
+let useNeverTyped2;
+/** @type {?} */
+let useNeverTypedTemplated;
 /**
  * Note: no implements JSDoc clause because the type is blacklisted.
  */

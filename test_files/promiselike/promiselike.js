@@ -4,4 +4,5 @@
  */
 goog.module('test_files.promiselike.promiselike');
 var module = module || { id: 'test_files/promiselike/promiselike.ts' };
-let /** @type {!PromiseLike<string>} */ promiseLikeOfString;
+/** @type {!PromiseLike<string>} */
+let promiseLikeOfString;

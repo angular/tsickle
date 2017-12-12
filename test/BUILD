@@ -38,12 +38,10 @@ jasmine_node_test(
 ts_library(
     name = "e2e_test_lib",
     srcs = [
-        "closure.ts",
         "e2e_clutz_dts_test.ts",
         "e2e_main_test.ts",
         "e2e_node_kind_source_map_test.ts",
         "e2e_source_map_test.ts",
-        "e2e_test.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [
@@ -54,6 +52,33 @@ ts_library(
 
 jasmine_node_test(
     name = "e2e_test",
+    srcs = [":e2e_test_lib"],
+    data = ["//:test_files"],
+)
+
+test_suite(
+    name = "small_tests",
+    tests = [
+        ":e2e_test",
+        ":unit_test",
+    ],
+)
+
+ts_library(
+    name = "closure_e2e_test_lib",
+    srcs = [
+        "closure.ts",
+        "e2e_test.ts",
+    ],
+    tsconfig = "//:tsconfig.json",
+    deps = [
+        ":test_support",
+        "//src",
+    ],
+)
+
+jasmine_node_test(
+    name = "closure_e2e_test",
     srcs = [":e2e_test_lib"],
     data = ["//:test_files"],
 )

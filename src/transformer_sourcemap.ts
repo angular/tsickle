@@ -126,6 +126,14 @@ class NodeSourceMapper implements SourceMapper {
   /** Conceptual offset for all nodes in this mapping. */
   private offset = 0;
 
+  /**
+   * Recursively adds a source mapping for node and each of its children, mapping ranges from the
+   * generated start position plus the child nodes offset up to its length.
+   *
+   * This is a useful catch all that works for most nodes, as long as their distance from the parent
+   * does not change during emit and their own length does not change during emit (e.g. there are no
+   * comments added inside them, no rewrites happening).
+   */
   private addFullNodeRange(node: ts.Node, genStartPos: number) {
     this.originalNodeByGeneratedRange.set(
         this.nodeCacheKey(node.kind, genStartPos, genStartPos + (node.getEnd() - node.getStart())),
@@ -136,6 +144,19 @@ class NodeSourceMapper implements SourceMapper {
 
   shiftByOffset(offset: number) {
     this.offset += offset;
+  }
+
+  /**
+   * Adds a mapping for the specific start/end range in the generated output back to the
+   * originalNode.
+   */
+  addMappingForRange(originalNode: ts.Node, startPos: number, endPos: number) {
+    // TODO(martinprobst): This glaringly duplicates addMapping below. However attempting to unify
+    // these causes failures around exported variable nodes. Additionally, inspecting this code
+    // longer suggests that it really only barely works by accident, and should much rather be
+    // replaced by proper transformers :-(
+    const cc = this.nodeCacheKey(originalNode.kind, startPos, endPos);
+    this.originalNodeByGeneratedRange.set(cc, originalNode);
   }
 
   addMapping(
@@ -153,10 +174,9 @@ class NodeSourceMapper implements SourceMapper {
       this.genStartPositions.set(originalNode, genStartPos);
     }
     if (originalStartPos + length === originalNode.getEnd()) {
-      this.originalNodeByGeneratedRange.set(
-          this.nodeCacheKey(
-              originalNode.kind, this.genStartPositions.get(originalNode)!, genStartPos + length),
-          originalNode);
+      const cc = this.nodeCacheKey(
+          originalNode.kind, this.genStartPositions.get(originalNode)!, genStartPos + length);
+      this.originalNodeByGeneratedRange.set(cc, originalNode);
     }
     originalNode.forEachChild((child) => {
       if (child.getStart() >= originalStartPos && child.getEnd() <= originalStartPos + length) {

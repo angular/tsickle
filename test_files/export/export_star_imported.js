@@ -23,5 +23,6 @@ exports.Interface; // re-export typedef
 exports.DeclaredType; // re-export typedef
 /** @typedef {!tsickle_forward_declare_2.DeclaredInterface} */
 exports.DeclaredInterface; // re-export typedef
-const /** @type {number} */ something = 1;
+/** @type {number} */
+const something = 1;
 exports.export2 = something;

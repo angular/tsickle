@@ -33,7 +33,8 @@ function User_tsickle_Closure_declarations() {
 function usePoint(p) {
     return p.x + p.y;
 }
-let /** @type {!Point} */ p = { x: 1, y: 1 };
+/** @type {!Point} */
+let p = { x: 1, y: 1 };
 usePoint(p);
 usePoint({ x: 1, y: 1 });
 /**

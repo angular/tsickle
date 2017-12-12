@@ -135,21 +135,21 @@ class RedundantJSDocShouldBeStripped {
  * @return {void}
  */
 function JSDocWithBadTag() { }
-/**
+/** *
  * For example,
  * \@madeUpTag
- */
-const /** @type {string} */ c = 'c';
-/**
+  @type {string} */
+const c = 'c';
+/***
  * Don't emit type comments for Polymer behaviors,
  * as this breaks their closure plugin :-(
  *
  * @polymerBehavior
  */
 const somePolymerBehavior = {};
-/**
+/** *
  * Don't emit type comments for Polymer behaviors
  * if they are declared via the Polymer function.
- */
-let /** @type {?} */ Polymer;
+  @type {?} */
+let Polymer;
 Polymer({ behaviors: ['test'] });

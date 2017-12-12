@@ -22,20 +22,17 @@ exports.DeclaredType; // re-export typedef
 /** @typedef {!tsickle_forward_declare_1.DeclaredInterface} */
 exports.DeclaredInterface; // re-export typedef
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");
-// These conflict with an export discovered via the above exports,
-// so the above export's versions should not show up.
+/** @type {string} */
 exports.export1 = 'wins';
 var export_helper_2 = export_helper_1;
 exports.export3 = export_helper_2.export4;
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.export.export_helper");
 /** @typedef {!tsickle_forward_declare_3.Interface} */
 exports.RenamedInterface; // re-export typedef
-// This local should be fine to export.
+/** @type {number} */
 exports.exportLocal = 3;
-// The existence of a local should not prevent "export2" from making
-// it to the exports list.  export2 should only show up once in the
-// above two "export *" lines, though.
-let /** @type {number} */ export2 = 3;
+/** @type {number} */
+let export2 = 3;
 const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.export.export_helper");
 var type_and_value_1 = goog.require('test_files.export.type_and_value');
 exports.TypeAndValue = type_and_value_1.TypeAndValue;

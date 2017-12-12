@@ -25,7 +25,5 @@ function Interface_tsickle_Closure_declarations() {
 class ClassWithParams {
 }
 exports.ClassWithParams = ClassWithParams;
-// TODO(evanm):
-// export type TypeAlias = number;
-// export type TypeAliasWithParam<T> = T[];
+/** @type {number} */
 exports.value = 3;

@@ -9,7 +9,8 @@ var module = module || { id: 'test_files/underscore/underscore.ts' };
 var export_underscore_1 = goog.require('test_files.underscore.export_underscore');
 exports.__test = export_underscore_1.__test;
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.underscore.export_underscore");
-let /** @type {number} */ __foo = 3;
+/** @type {number} */
+let __foo = 3;
 exports.__bar = __foo;
 class __Class {
     /**

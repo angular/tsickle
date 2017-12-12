@@ -37,8 +37,10 @@ function NonPrimitives_tsickle_Closure_declarations() {
  * @return {void}
  */
 function takesNonNullable(val) { }
-let /** @type {{field: (null|string|number)}} */ x = { field: null };
+/** @type {{field: (null|string|number)}} */
+let x = { field: null };
 takesNonNullable(/** @type {(string|number)} */ ((x.field)));
 takesNonNullable(`${(/** @type {(string|number)} */ ((x.field)))}`);
-let /** @type {?} */ ctx;
+/** @type {?} */
+let ctx;
 takesNonNullable(`org/${(/** @type {?} */ ((ctx.getTargetOrganization()))).key}/admin/folders`);

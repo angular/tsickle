@@ -4,7 +4,8 @@
  */
 goog.module('test_files.ctors.ctors');
 var module = module || { id: 'test_files/ctors/ctors.ts' };
-let /** @type {function(new: (!Document)): ?} */ x = Document;
+/** @type {function(new: (!Document)): ?} */
+let x = Document;
 class X {
     /**
      * @param {number} a
@@ -17,4 +18,5 @@ function X_tsickle_Closure_declarations() {
     /** @type {number} */
     X.prototype.a;
 }
-let /** @type {function(new: (!X), number): ?} */ y = X;
+/** @type {function(new: (!X), number): ?} */
+let y = X;

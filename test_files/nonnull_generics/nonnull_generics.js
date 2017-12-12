@@ -20,7 +20,8 @@ function getOrDefault(value, def) {
  * @return {string}
  */
 function getMsg() {
-    const /** @type {(null|string)} */ maybeNull = Math.random() > 0.5 ? 'hello' : null;
+    /** @type {(null|string)} */
+    const maybeNull = Math.random() > 0.5 ? 'hello' : null;
     // The value below is inferred as string|null, which would normally cause Closure Compiler to
     // complain about an inconsistent nullable return type. However the @suppress {checkTypes}
     // inserted by tsickle at the top will supprress that error.

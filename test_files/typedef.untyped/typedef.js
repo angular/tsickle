@@ -4,4 +4,5 @@
  */
 goog.module('test_files.typedef.untyped.typedef');
 var module = module || { id: 'test_files/typedef.untyped/typedef.ts' };
-var /** @type {?} */ y = 3;
+/** @type {?} */
+var y = 3;

@@ -263,6 +263,9 @@ function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
 /** Tags that must only occur onces in a comment (filtered below). */
 const SINGLETON_TAGS = new Set(['deprecated']);
 
+/** Tags that conflict with \@type in Closure Compiler (e.g. \@param). */
+export const TAGS_CONFLICTING_WITH_TYPE = new Set(['param', 'return']);
+
 /** Serializes a Comment out to a string, but does not include the start and end comment tokens. */
 export function toStringWithoutStartEnd(tags: Tag[], escapeExtraTags = new Set<string>()): string {
   return serialize(tags, false, escapeExtraTags);

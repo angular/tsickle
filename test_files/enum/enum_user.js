@@ -14,4 +14,5 @@ function EnumUsingIf_tsickle_Closure_declarations() {
     /** @type {tsickle_forward_declare_1.ConstEnum} */
     EnumUsingIf.prototype.field;
 }
-const /** @type {tsickle_forward_declare_1.ConstEnum} */ fieldUsingConstEnum = 0 /* EMITTED_ENUM_VALUE */;
+/** @type {tsickle_forward_declare_1.ConstEnum} */
+const fieldUsingConstEnum = 0 /* EMITTED_ENUM_VALUE */;

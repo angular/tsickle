@@ -17,7 +17,8 @@ function Quoted_tsickle_Closure_declarations() {
     [k: string]: number;
     */
 }
-let /** @type {!Quoted} */ quoted = {};
+/** @type {!Quoted} */
+let quoted = {};
 console.log(quoted["hello"]);
 quoted["hello"] = 1;
 quoted['hello'] = 1;
@@ -37,7 +38,8 @@ function QuotedMixed_tsickle_Closure_declarations() {
     /** @type {number} */
     QuotedMixed.prototype.quotedIdent;
 }
-let /** @type {!QuotedMixed} */ quotedMixed = { foo: 1, 'invalid-identifier': 2, 'quotedIdent': 3 };
+/** @type {!QuotedMixed} */
+let quotedMixed = { foo: 1, 'invalid-identifier': 2, 'quotedIdent': 3 };
 console.log(quotedMixed.foo);
 quotedMixed.foo = 1;
 // Intentionally kept as a quoted access, but gives a warning.
@@ -47,6 +49,6 @@ quotedMixed['foo'] = 1;
 quotedMixed['invalid-identifier'] = 1;
 // Must not be converted to non-quoted access because it was declared quoted.
 quotedMixed['quotedIdent'] = 1;
-// any does not declare any symbols.
-let /** @type {?} */ anyTyped;
+/** @type {?} */
+let anyTyped;
 console.log(anyTyped['token']);

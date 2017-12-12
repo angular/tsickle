@@ -16,16 +16,22 @@ goog.module('test_files.declare_export.declare_export');
 var module = module || { id: 'test_files/declare_export/declare_export.ts' };
 /** @typedef {!ExportDeclaredIf} */
 exports.ExportDeclaredIf;
-let /** @type {!ExportDeclaredIf} */ user1;
+/** @type {!ExportDeclaredIf} */
+let user1;
 exports.exportedDeclaredVar = window.exportedDeclaredVar;
-let /** @type {number} */ user2 = exports.exportedDeclaredVar;
+/** @type {number} */
+let user2 = exports.exportedDeclaredVar;
 exports.ExportDeclaredClass = ExportDeclaredClass;
-let /** @type {!ExportDeclaredClass} */ user3;
+/** @type {!ExportDeclaredClass} */
+let user3;
 exports.exportedDeclaredFn = exportedDeclaredFn;
-let /** @type {function(): string} */ user4 = exportedDeclaredFn;
+/** @type {function(): string} */
+let user4 = exportedDeclaredFn;
 exports.multiExportedDeclaredVar1 = window.multiExportedDeclaredVar1;
 exports.multiExportedDeclaredVar2 = window.multiExportedDeclaredVar2;
-let /** @type {string} */ user5 = exports.multiExportedDeclaredVar1;
+/** @type {string} */
+let user5 = exports.multiExportedDeclaredVar1;
 /** @typedef {!X} */
 exports.X;
-let /** @type {string} */ user6;
+/** @type {string} */
+let user6;

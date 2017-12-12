@@ -230,18 +230,24 @@ export function readSources(filePaths: string[]): Map<string, string> {
 }
 
 function getLineAndColumn(source: string, token: string): {line: number, column: number} {
-  const lines = source.split('\n');
-  const line = lines.findIndex(l => l.indexOf(token) !== -1) + 1;
-  if (line === 0) {
-    throw new Error(`Couldn't find token '${token}' in source`);
+  const idx = source.indexOf(token);
+  if (idx === -1) {
+    throw new Error(`Couldn't find token '${token}' in source ${source}`);
   }
-  const column = lines[line - 1].indexOf(token);
+  let line = 1, column = 0;
+  for (let i = 0; i < idx; i++) {
+    column++;
+    if (source[i] === '\n') {
+      line++;
+      column = 0;
+    }
+  }
   return {line, column};
 }
 
 export function assertSourceMapping(
     compiledJs: string, sourceMap: SourceMapConsumer, sourceSnippet: string,
-    expectedPosition: {line?: number, column?: number, source?: string}) {
+    expectedPosition: {source: string, line?: number, column?: number}) {
   const {line, column} = getLineAndColumn(compiledJs, sourceSnippet);
   const originalPosition = sourceMap.originalPositionFor({line, column});
   if (expectedPosition.line) {

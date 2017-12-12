@@ -442,6 +442,7 @@ function visitNodeStatementsWithSynthesizedComments<T extends ts.Node>(
     if (trailing.lastCommentEnd !== -1) {
       fileContext.lastCommentEnd = trailing.lastCommentEnd;
     }
+    ts.setOriginalNode((leading.commentStmt || trailing.commentStmt)!, node);
     return node;
   }
   return visitor(node, statements);
@@ -592,7 +593,7 @@ function synthesizeCommentRanges(
       commentText = commentText.replace(/(^\/\*)|(\*\/$)/g, '');
     } else if (kind === ts.SyntaxKind.SingleLineCommentTrivia) {
       if (commentText.startsWith('///')) {
-        // tripple-slash comments are typescript specific, ignore them in the output.
+        // triple-slash comments are typescript specific, ignore them in the output.
         return;
       }
       commentText = commentText.replace(/(^\/\/)/g, '');

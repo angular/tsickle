@@ -4,7 +4,24 @@
  */
 goog.module('test_files.variables.variables');
 var module = module || { id: 'test_files/variables/variables.ts' };
-var /** @type {string} */ v1;
-var /** @type {string} */ v2, /** @type {number} */ v3;
-// Tests that tsickle emits a precise type for the inferred anonymous type of `inferred`.
-const /** @type {{a: number, b: !Array<{c: string}>}} */ inferred = { a: 1, b: [{ c: '2' }] };
+/** @type {string} */
+var v1;
+/** @type {string} */
+var v2;
+/** @type {number} */
+var v3;
+/** @type {{a: number, b: !Array<{c: string}>}} */
+const inferred = { a: 1, b: [{ c: '2' }] };
+/** @type {number} */
+exports.v4 = 1;
+/** @type {number} */
+exports.v6 = 1;
+/** @type {number} */
+let v7 = 1;
+/** @type {number} */
+let v8 = 1;
+const [destructured1, destructured2] = ['destructured1', 'destructured2'];
+const { destructured3, destructured4 } = {
+    destructured3: 3,
+    destructured4: 4
+};

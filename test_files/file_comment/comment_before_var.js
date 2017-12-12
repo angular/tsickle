@@ -8,4 +8,5 @@
  */
 goog.module('test_files.file_comment.comment_before_var');
 var module = module || { id: 'test_files/file_comment/comment_before_var.ts' };
+/** @type {number} */
 exports.y = 3;

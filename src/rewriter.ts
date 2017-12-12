@@ -139,6 +139,19 @@ export abstract class Rewriter {
   }
 
   /**
+   * Start a source mapping for the given node. This allows adding source mappings for statements
+   * that are not yet finished, and whose total length is unknown. Does not add recursive mappings
+   * for child nodes.
+   * @return a handler to finish the mapping.
+   */
+  startSourceMapping(node: ts.Node) {
+    const startPos = this.position.position;
+    return () => {
+      this.sourceMapper.addMappingForRange(node, startPos, this.position.position);
+    };
+  }
+
+  /**
    * Write a span of the input file as expressed by absolute offsets.
    * These offsets are found in attributes like node.getFullStart() and
    * node.getEnd().

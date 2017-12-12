@@ -7,30 +7,34 @@
  */
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
-// Line with a missing semicolon should not break the following enum.
-const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
+/** @type {!Array<?>} */
+const EnumTestMissingSemi = [];
 /** @enum {number} */
 const EnumTest1 = {
     XYZ: 0, PI: 3.14159,
 };
 EnumTest1[EnumTest1.XYZ] = 'XYZ';
 EnumTest1[EnumTest1.PI] = 'PI';
-// Verify that the resulting TypeScript still allows you to index into the enum with all the various
-// ways allowed of enums.
-let /** @type {EnumTest1} */ enumTestValue = EnumTest1.XYZ;
-let /** @type {EnumTest1} */ enumTestValue2 = EnumTest1['XYZ'];
-let /** @type {string} */ enumNumIndex = EnumTest1[/** @type {number} */ ((null))];
-let /** @type {number} */ enumStrIndex = EnumTest1[/** @type {string} */ ((null))];
+/** @type {EnumTest1} */
+let enumTestValue = EnumTest1.XYZ;
+/** @type {EnumTest1} */
+let enumTestValue2 = EnumTest1['XYZ'];
+/** @type {string} */
+let enumNumIndex = EnumTest1[/** @type {number} */ ((null))];
+/** @type {number} */
+let enumStrIndex = EnumTest1[/** @type {string} */ ((null))];
 /**
  * @param {EnumTest1} val
  * @return {void}
  */
 function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
-let /** @type {EnumTest1} */ enumTestLookup = EnumTest1["XYZ"];
-let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
-// Verify that unions of enum members and other values are handled correctly.
-let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
+/** @type {EnumTest1} */
+let enumTestLookup = EnumTest1["XYZ"];
+/** @type {?} */
+let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
+/** @type {(boolean|EnumTest1)} */
+let enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
 const EnumTest2 = {
     XYZ: 0, PI: 3.14159,
@@ -38,7 +42,8 @@ const EnumTest2 = {
 exports.EnumTest2 = EnumTest2;
 EnumTest2[EnumTest2.XYZ] = 'XYZ';
 EnumTest2[EnumTest2.PI] = 'PI';
-let /** @type {EnumTest2} */ variableUsingExportedEnum;
+/** @type {EnumTest2} */
+let variableUsingExportedEnum;
 /** @enum {number} */
 const ComponentIndex = {
     Scheme: 1,
@@ -57,7 +62,8 @@ const ConstEnum = {
     EMITTED_ENUM_VALUE_2: 1,
 };
 exports.ConstEnum = ConstEnum;
-let /** @type {ConstEnum} */ constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
+/** @type {ConstEnum} */
+let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
 /**
  * @record
  */

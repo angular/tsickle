@@ -4,5 +4,6 @@
  */
 goog.module('test_files.import_alias.exporter');
 var module = module || { id: 'test_files/import_alias/exporter.ts' };
-const /** @type {number} */ FOO = 1;
+/** @type {number} */
+const FOO = 1;
 exports.FOO = FOO;

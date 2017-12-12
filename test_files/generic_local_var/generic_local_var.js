@@ -20,10 +20,10 @@ class Container {
      * @return {void}
      */
     method(u) {
-        const /** @type {T} */ myT = this.tField;
-        // Closure Compiler's Old Type Inference does not support using generic
-        // method parameters as local symbols, so myU must be emitted as ?.
-        const /** @type {?} */ myU = u;
+        /** @type {T} */
+        const myT = this.tField;
+        /** @type {?} */
+        const myU = u;
         console.log(myT, myU);
     }
 }

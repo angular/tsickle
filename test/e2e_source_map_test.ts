@@ -232,22 +232,4 @@ describe('source maps with transformer', () => {
     assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
     assertSourceMapping(compiledJs, sourceMap, 'another string', {line: 3, source: 'input2.ts'});
   });
-
-  it('maps at the start of lines correctly', () => {
-    const sources = new Map([[
-      'input.ts', `let x : number = 2;
-      x + 1;
-      let y = {z: 2};
-      y.z;`
-    ]]);
-
-    const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions);
-    const compiledJs = files.get('input.js')!;
-    const sourceMap = getSourceMapWithName('input.js.map', files);
-
-    assertSourceMapping(
-        compiledJs, sourceMap, 'let /** @type {number} */ x', {line: 1, source: 'input.ts'});
-    assertSourceMapping(compiledJs, sourceMap, 'x + 1', {line: 2, source: 'input.ts'});
-    assertSourceMapping(compiledJs, sourceMap, 'y.z', {line: 4, source: 'input.ts'});
-  });
 });

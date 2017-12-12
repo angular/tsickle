@@ -4,9 +4,12 @@
  */
 goog.module('test_files.jsx.jsx.tsx');
 var module = module || { id: 'test_files/jsx/jsx.tsx' };
-let /** @type {!JSX.Element} */ simple = React.createElement("div", null);
-let /** @type {string} */ hello = 'hello';
-let /** @type {!JSX.Element} */ helloDiv = React.createElement("div", null,
+/** @type {!JSX.Element} */
+let simple = React.createElement("div", null);
+/** @type {string} */
+let hello = 'hello';
+/** @type {!JSX.Element} */
+let helloDiv = React.createElement("div", null,
     hello,
     "hello, world",
     React.createElement(Component, null));

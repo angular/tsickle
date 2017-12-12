@@ -29,10 +29,8 @@ function Foo_tsickle_Closure_declarations() {
 // These two declarations should not have a @type annotation,
 // regardless of untyped.
 (function () {
-    // With a type annotation:
     let { a, b } = { a: '', b: 0 };
 })();
 (function () {
-    // Without a type annotation:
     let { a, b } = { a: null, b: null };
 })();

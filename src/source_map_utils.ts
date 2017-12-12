@@ -164,9 +164,17 @@ export interface SourceMapper {
   addMapping(
       originalNode: ts.Node, original: SourcePosition, generated: SourcePosition,
       length: number): void;
+  /**
+   * Adds a mapping from `startPosition` to `endPosition` in the generated output. Contrary to
+   * addMapping, this method does not attempt to add mappings for child nodes, nor does it always
+   * emit a mapping for the given `originalNode`. It also does not adjust original positions for any
+   * leading comments.
+   */
+  addMappingForRange(originalNode: ts.Node, startPosition: number, endPosition: number): void;
 }
 
 export const NOOP_SOURCE_MAPPER: SourceMapper = {
   shiftByOffset() {/* no-op */},
   addMapping() {/* no-op */},
+  addMappingForRange() {/* no-op */},
 };

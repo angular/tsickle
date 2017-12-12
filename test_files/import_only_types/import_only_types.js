@@ -8,6 +8,8 @@ const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.import_only_ty
 goog.require("test_files.import_only_types.types_only"); // force type-only module to be loaded
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.import_only_types.types_and_constenum");
 goog.require("test_files.import_only_types.types_and_constenum"); // force type-only module to be loaded
-let /** @type {!tsickle_forward_declare_1.Foo} */ x = { x: 'x' };
-let /** @type {!tsickle_forward_declare_2.SomeInterface} */ y = x;
+/** @type {!tsickle_forward_declare_1.Foo} */
+let x = { x: 'x' };
+/** @type {!tsickle_forward_declare_2.SomeInterface} */
+let y = x;
 console.log(y);
