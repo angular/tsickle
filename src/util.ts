@@ -37,7 +37,7 @@ export function createSourceReplacingCompilerHost(
 
   function getSourceFile(
       fileName: string, languageVersion: ts.ScriptTarget,
-      onError?: (message: string) => void): ts.SourceFile {
+      onError?: (message: string) => void): ts.SourceFile|undefined {
     const path: string = ts.sys.resolvePath(fileName);
     const sourceText = substituteSource.get(path);
     if (sourceText !== undefined) {

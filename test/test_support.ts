@@ -101,7 +101,7 @@ export function createSourceCachingHost(
   const host = ts.createCompilerHost(tsCompilerOptions);
 
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
-                        onError?: (msg: string) => void): ts.SourceFile => {
+                        onError?: (msg: string) => void): ts.SourceFile|undefined => {
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
     fileName = path.normalize(fileName);
