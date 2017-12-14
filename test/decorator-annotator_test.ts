@@ -52,6 +52,8 @@ describe('decorator-annotator', () => {
       googmodule: true,
       es5Mode: false,
       untyped: false,
+      options: compilerOptions,
+      host,
     };
 
     const files = new Map<string, string>();

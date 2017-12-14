@@ -6,11 +6,16 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as path from 'path';
+
 import {isClosureFileoverviewComment} from './fileoverview_comment_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {getIdentifierText, Rewriter} from './rewriter';
 import * as ts from './typescript';
 import {isDtsFileName} from './util';
+
+// Matches common extensions of TypeScript input filenames
+const TS_EXTENSIONS = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
 
 export interface Es5ProcessorHost {
   /**
@@ -28,10 +33,15 @@ export interface Es5ProcessorHost {
   googmodule?: boolean;
   /** Whether the emit targets ES5 or ES6+. */
   es5Mode?: boolean;
+  /** expand "import 'foo';" to "import 'foo/index';" if it points to an index file. */
+  convertIndexImportShorthand?: boolean;
   /**
    * An additional prelude to insert in front of the emitted code, e.g. to import a shared library.
    */
   prelude?: string;
+
+  options: ts.CompilerOptions;
+  host: ts.ModuleResolutionHost;
 }
 
 /**
@@ -41,6 +51,26 @@ export interface Es5ProcessorHost {
 export function extractGoogNamespaceImport(tsImport: string): string|null {
   if (tsImport.match(/^goog:/)) return tsImport.substring('goog:'.length);
   return null;
+}
+
+/**
+ * Convert from implicit `import {} from 'pkg'` to `import {} from 'pkg/index'.
+ * TypeScript supports the shorthand, but not all ES6 module loaders do.
+ * Workaround for https://github.com/Microsoft/TypeScript/issues/12597
+ */
+export function resolveIndexShorthand(
+    host: {options: ts.CompilerOptions, host: ts.ModuleResolutionHost}, fileName: string,
+    imported: string): string {
+  const resolved = ts.resolveModuleName(imported, fileName, host.options, host.host);
+  if (!resolved || !resolved.resolvedModule) return imported;
+  const requestedModule = imported.replace(TS_EXTENSIONS, '');
+  const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(TS_EXTENSIONS, '');
+  if (resolvedModule.indexOf('node_modules') === -1 &&
+      requestedModule.substr(requestedModule.lastIndexOf('/')) !==
+          resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
+    imported = './' + path.relative(path.dirname(fileName), resolvedModule).replace(path.sep, '/');
+  }
+  return imported;
 }
 
 /**
@@ -117,10 +147,7 @@ class ES5Processor extends Rewriter {
     return {output, referencedModules};
   }
 
-  /**
-   * Emits file comments for the current source file, if any.
-   * oddityasds
-   */
+  /** Emits file comments for the current source file, if any. */
   private emitFileComment() {
     const leadingComments = ts.getLeadingCommentRanges(this.file.getFullText(), 0) || [];
     const fileComment = leadingComments.find(c => {
@@ -214,7 +241,7 @@ class ES5Processor extends Rewriter {
       const varName = getIdentifierText(decl.name as ts.Identifier);
       if (!decl.initializer || decl.initializer.kind !== ts.SyntaxKind.CallExpression) return false;
       const call = decl.initializer as ts.CallExpression;
-      const require = this.isRequire(call);
+      const require = this.extractRequire(call);
       if (!require) return false;
       this.writeLeadingTrivia(node);
       this.emitGoogRequire(varName, require);
@@ -230,7 +257,7 @@ class ES5Processor extends Rewriter {
       if (expr.kind !== ts.SyntaxKind.CallExpression) return false;
       let call = expr as ts.CallExpression;
 
-      let require = this.isRequire(call);
+      let require = this.extractRequire(call);
       let isExport = false;
       if (!require) {
         // If it's an __export(require(...)), we emit:
@@ -242,7 +269,7 @@ class ES5Processor extends Rewriter {
         if (!innerCall) return false;
         isExport = true;
         call = innerCall;  // Update call to point at the require() expression.
-        require = this.isRequire(call);
+        require = this.extractRequire(call);
       }
       if (!require) return false;
 
@@ -287,6 +314,9 @@ class ES5Processor extends Rewriter {
       modName = nsImport;
       isNamespaceImport = true;
     } else {
+      if (this.host.convertIndexImportShorthand) {
+        tsImport = resolveIndexShorthand(this.host, this.file.fileName, tsImport);
+      }
       modName = this.host.pathToModuleName(this.file.fileName, tsImport);
     }
 
@@ -318,7 +348,7 @@ class ES5Processor extends Rewriter {
    * Returns the string argument if call is of the form
    *   require('foo')
    */
-  isRequire(call: ts.CallExpression): string|null {
+  extractRequire(call: ts.CallExpression): string|null {
     // Verify that the call is a call to require(...).
     if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
     const ident = call.expression as ts.Identifier;
@@ -361,7 +391,7 @@ class ES5Processor extends Rewriter {
     const arg = call.arguments[0];
     if (arg.kind !== ts.SyntaxKind.CallExpression) return null;
     const innerCall = arg as ts.CallExpression;
-    if (!this.isRequire(innerCall)) return null;
+    if (!this.extractRequire(innerCall)) return null;
     return innerCall;
   }
 

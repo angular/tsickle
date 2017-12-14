@@ -141,24 +141,6 @@ export function createProgramAndHost(
   return {program, host};
 }
 
-/** Emits transpiled output with tsickle postprocessing.  Throws an exception on errors. */
-export function emit(program: ts.Program): {[fileName: string]: string} {
-  const transformed: {[fileName: string]: string} = {};
-  const {diagnostics} = program.emit(undefined, (fileName: string, data: string) => {
-    const host: es5processor.Es5ProcessorHost = {
-      fileNameToModuleId: (fn) => fn.replace(/^\.\//, ''),
-      pathToModuleName: cliSupport.pathToModuleName,
-      es5Mode: true,
-      prelude: '',
-    };
-    transformed[fileName] = es5processor.processES5(host, fileName, data).output;
-  });
-  if (diagnostics.length > 0) {
-    throw new Error(tsickle.formatDiagnostics(diagnostics));
-  }
-  return transformed;
-}
-
 export class GoldenFileTest {
   constructor(public path: string, public tsFiles: string[]) {}
 
@@ -322,6 +304,8 @@ export function compileWithTransfromer(
     googmodule: true,
     es5Mode: false,
     untyped: false,
+    options: compilerOptions,
+    host: tsHost,
   };
 
   const files = new Map<string, string>();

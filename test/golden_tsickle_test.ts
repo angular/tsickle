@@ -165,6 +165,8 @@ testFn('golden tests with transformer', () => {
           return importPath.replace(/\/|\\/g, '.');
         },
         fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
+        options: tsCompilerOptions,
+        host: tsHost,
       };
       const tscOutput: {[fileName: string]: string} = {};
       let targetSource: ts.SourceFile|undefined = undefined;

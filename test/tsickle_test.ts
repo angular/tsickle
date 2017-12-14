@@ -44,7 +44,9 @@ describe('emitWithTsickle', () => {
         return importPath.replace(/\/|\\/g, '.');
       },
       fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
-      ...tsickleHostOverride
+      ...tsickleHostOverride,
+      options: tsCompilerOptions,
+      host: tsHost,
     };
     const jsSources: {[fileName: string]: string} = {};
     tsickle.emitWithTsickle(

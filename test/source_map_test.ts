@@ -13,7 +13,7 @@ import * as ts from 'typescript';
 import {SourceMapper, SourcePosition} from '../src/source_map_utils';
 import {annotate, AnnotatorHost} from '../src/tsickle';
 
-import {createProgram} from './test_support';
+import {createProgramAndHost} from './test_support';
 
 /**
  * A SourceMapper that directly maps into a source map generator.
@@ -54,11 +54,11 @@ describe('source maps', () => {
     sources.set('input.ts', `
       class X { field: number; }
       class Y { field2: string; }`);
-    const program = createProgram(sources);
+    const {program, host} = createProgramAndHost(sources);
     const sourceMapper = new TestSourceMapper('input.ts');
     const annotated = annotate(
         program.getTypeChecker(), program.getSourceFile('input.ts'),
-        {pathToModuleName: () => 'input'}, undefined, undefined, sourceMapper);
+        {pathToModuleName: () => 'input'}, host, program.getCompilerOptions(), sourceMapper);
     const rawMap = sourceMapper.sourceMap.toJSON();
     const consumer = new SourceMapConsumer(rawMap);
     const lines = annotated.output.split('\n');

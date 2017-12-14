@@ -7,17 +7,24 @@
  */
 
 import {expect} from 'chai';
+import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
+import * as testSupport from './test_support';
+
 describe('convertCommonJsToGoogModule', () => {
   function processES5(fileName: string, content: string, isES5 = true, prelude = '') {
+    const options = testSupport.compilerOptions;
+    const tsHost = ts.createCompilerHost(options);
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn,
       pathToModuleName: cliSupport.pathToModuleName,
       es5Mode: isES5,
       prelude,
+      options: testSupport.compilerOptions,
+      host: tsHost,
     };
     return es5processor.processES5(host, fileName, content);
   }

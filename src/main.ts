@@ -141,6 +141,8 @@ export function toClosureJS(
     typeBlackListPaths: new Set(),
     untyped: false,
     logWarning: (warning) => console.error(tsickle.formatDiagnostics([warning])),
+    options,
+    host: compilerHost,
   };
   const diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length > 0) {

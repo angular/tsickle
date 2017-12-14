@@ -576,9 +576,6 @@ abstract class ClosureRewriter extends Rewriter {
 type HasTypeParameters =
     ts.InterfaceDeclaration|ts.ClassLikeDeclaration|ts.TypeAliasDeclaration|ts.SignatureDeclaration;
 
-// Matches common extensions of TypeScript input filenames
-const extension = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
-
 const FILEOVERVIEW_COMMENTS: ReadonlySet<string> =
     new Set(['fileoverview', 'externs', 'modName', 'mods', 'pintomodule']);
 
@@ -605,7 +602,7 @@ class Annotator extends ClosureRewriter {
 
   constructor(
       typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
-      private tsHost?: ts.ModuleResolutionHost, private tsOpts?: ts.CompilerOptions,
+      private tsHost: ts.ModuleResolutionHost, private tsOpts: ts.CompilerOptions,
       sourceMapper?: SourceMapper) {
     super(typeChecker, file, host, sourceMapper);
   }
@@ -719,46 +716,59 @@ class Annotator extends ClosureRewriter {
         this.handleSourceFile(node as ts.SourceFile);
         return true;
       case ts.SyntaxKind.ImportDeclaration:
-        this.importedNames.push(
-            ...decorator.collectImportedNames(this.typeChecker, node as ts.ImportDeclaration));
-        return this.emitImportDeclaration(node as ts.ImportDeclaration);
+        const importDecl = node as ts.ImportDeclaration;
+        this.importedNames.push(...decorator.collectImportedNames(this.typeChecker, importDecl));
+        // No need to forward declare side effect imports.
+        if (!importDecl.importClause) break;
+        // Introduce a goog.forwardDeclare for the module, so that if TypeScript does not emit the
+        // module because it's only used in type positions, the JSDoc comments still reference a
+        // valid Closure level symbol.
+        const sym = this.typeChecker.getSymbolAtLocation(importDecl.moduleSpecifier);
+        // modules might not have a symbol if they are unused.
+        if (!sym) break;
+        // Write the export declaration here so that forward declares come after it, and
+        // fileoverview comments do not get moved behind statements.
+        this.writeNode(importDecl);
+        this.forwardDeclare(
+            importDecl.moduleSpecifier, /* default import? */ !!importDecl.importClause.name);
+        this.addSourceMapping(node);
+        return true;
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
         let exportedSymbols: NamedSymbol[] = [];
-        let customEmit = false;
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
           // It's an "export * from ..." statement.
           // Rewrite it to re-export each exported symbol directly.
           exportedSymbols = this.expandSymbolsFromExportStar(exportDecl);
-          if (exportedSymbols.length === 0) {
-            // Skip the emit entirely.
-            customEmit = true;
-          }
           const exportSymbolsToEmit =
               exportedSymbols.filter(s => this.shouldEmitExportSymbol(s.sym));
+          this.writeLeadingTrivia(exportDecl);
+          // Only emit the export if any non-type symbols are exported; otherwise it is not needed,
+          // as type only exports are elided by TS anyway.
           if (exportSymbolsToEmit.length) {
-            this.writeLeadingTrivia(node);
             this.emit('export');
             this.emit(` {${exportSymbolsToEmit.map(e => unescapeName(e.name)).join(',')}}`);
             this.emit(' from ');
-            this.visit(exportDecl.moduleSpecifier);
+            this.visit(exportDecl.moduleSpecifier!);
             this.emit(';');
-            this.addSourceMapping(node);
-            customEmit = true;
+            this.addSourceMapping(exportDecl);
           }
         } else {
+          // Write the export declaration here so that forward declares come after it, and
+          // fileoverview comments do not get moved behind statements.
+          this.writeNode(exportDecl);
           if (exportDecl.exportClause) {
             exportedSymbols = this.getNamedSymbols(exportDecl.exportClause.elements);
           }
         }
-        this.addSourceMapping(node);
         if (exportDecl.moduleSpecifier) {
           this.forwardDeclare(exportDecl.moduleSpecifier);
         }
         if (exportedSymbols.length) {
           this.emitTypeDefExports(exportedSymbols);
         }
-        return customEmit;
+        this.addSourceMapping(node);
+        return true;
       case ts.SyntaxKind.InterfaceDeclaration:
         this.emitInterface(node as ts.InterfaceDeclaration);
         // Emit the TS interface verbatim, with no tsickle processing of properties.
@@ -1099,99 +1109,7 @@ class Annotator extends ClosureRewriter {
               (exp.sym.flags & ts.SymbolFlags.Value) === 0;
       if (!isTypeAlias) continue;
       const typeName = this.symbolsToAliasedNames.get(exp.sym) || exp.sym.name;
-      this.emit(`\n/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef`);
-    }
-  }
-
-  /**
-   * Convert from implicit `import {} from 'pkg'` to `import {} from 'pkg/index'.
-   * TypeScript supports the shorthand, but not all ES6 module loaders do.
-   * Workaround for https://github.com/Microsoft/TypeScript/issues/12597
-   */
-  private resolveModuleSpecifier(moduleSpecifier: ts.Expression): string {
-    if (moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
-      throw new Error(`unhandled moduleSpecifier kind: ${ts.SyntaxKind[moduleSpecifier.kind]}`);
-    }
-    let moduleId = (moduleSpecifier as ts.StringLiteral).text;
-    if (this.host.convertIndexImportShorthand) {
-      if (!this.tsOpts || !this.tsHost) {
-        throw new Error(
-            'option convertIndexImportShorthand requires that annotate be called with a TypeScript host and options.');
-      }
-      const resolved = ts.resolveModuleName(moduleId, this.file.fileName, this.tsOpts, this.tsHost);
-      if (resolved && resolved.resolvedModule) {
-        const requestedModule = moduleId.replace(extension, '');
-        const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(extension, '');
-        if (resolvedModule.indexOf('node_modules') === -1 &&
-            requestedModule.substr(requestedModule.lastIndexOf('/')) !==
-                resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
-          moduleId = './' +
-              path.relative(path.dirname(this.file.fileName), resolvedModule)
-                  .replace(path.sep, '/');
-        }
-      }
-    }
-    return moduleId;
-  }
-
-  /**
-   * Handles emit of an "import ..." statement.
-   * We need to do a bit of rewriting so that imported types show up under the
-   * correct name in JSDoc.
-   * @return true if the decl was handled, false to allow default processing.
-   */
-  private emitImportDeclaration(decl: ts.ImportDeclaration): boolean {
-    this.writeLeadingTrivia(decl);
-    this.emit('import');
-    const importPath = this.resolveModuleSpecifier(decl.moduleSpecifier);
-    const importClause = decl.importClause;
-    if (!importClause) {
-      // import './foo';
-      this.emit(`'${importPath}';`);
-      this.addSourceMapping(decl);
-      return true;
-    } else if (
-        importClause.name ||
-        (importClause.namedBindings &&
-         importClause.namedBindings.kind === ts.SyntaxKind.NamedImports)) {
-      this.visit(importClause);
-      this.emit(` from '${importPath}';`);
-      this.addSourceMapping(decl);
-
-      // importClause.name implies
-      //   import defaultName from ...;
-      // namedBindings being NamedImports implies
-      //   import {a, b as c} from ...;
-      //
-      // Both of these forms create a local name "a", which after TypeScript CommonJS compilation
-      // will become some renamed variable like "module_1.default" or "module_1.a" or "module_1.c"
-      // (for default vs named vs renamed bindings, respectively).
-      // tsickle references types in JSDoc. Because the module prefixes are not predictable, and
-      // because TypeScript might remove imports entirely if they are only for types, the code below
-      // inserts an artificial `const prefix = goog.forwardDeclare` call for the module, and then
-      // registers all symbols from this import to be prefixed.
-      this.forwardDeclare(decl.moduleSpecifier, /** default import? */ !!importClause.name);
-      return true;
-    } else if (
-        importClause.namedBindings &&
-        importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
-      // import * as foo from ...;
-      this.visit(importClause);
-      this.emit(` from '${importPath}';`);
-      this.addSourceMapping(decl);
-
-      // Introduce a goog.forwardDeclare for the module, so that if TypeScript does not emit the
-      // module because it's only used in type positions, the JSDoc comments still reference a valid
-      // Closure level symbol.
-      const sym = this.typeChecker.getSymbolAtLocation(decl.moduleSpecifier);
-      if (!sym) {
-        return true;  // modules might not have a symbol if they are unused.
-      }
-      this.forwardDeclare(decl.moduleSpecifier, false);
-      return true;
-    } else {
-      this.errorUnimplementedKind(decl, 'unexpected kind of import');
-      return false;  // Use default processing.
+      this.emit(`/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef\n`);
     }
   }
 
@@ -1214,7 +1132,9 @@ class Annotator extends ClosureRewriter {
    * @param specifier the import specifier, i.e. module path ("from '...'").
    */
   private forwardDeclare(specifier: ts.Expression, isDefaultImport = false) {
-    const importPath = this.resolveModuleSpecifier(specifier);
+    const importPath = es5processor.resolveIndexShorthand(
+        {options: this.tsOpts, host: this.tsHost}, this.file.fileName,
+        (specifier as ts.StringLiteral).text);
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
     this.emit(this.getForwardDeclareText(importPath, moduleSymbol, isDefaultImport));
   }
@@ -1954,7 +1874,7 @@ function isPolymerBehaviorPropertyInCallExpression(pa: ts.PropertyAssignment): b
 
 export function annotate(
     typeChecker: ts.TypeChecker, file: ts.SourceFile, host: AnnotatorHost,
-    tsHost?: ts.ModuleResolutionHost, tsOpts?: ts.CompilerOptions,
+    tsHost: ts.ModuleResolutionHost, tsOpts: ts.CompilerOptions,
     sourceMapper?: SourceMapper): {output: string, diagnostics: ts.Diagnostic[]} {
   return new Annotator(typeChecker, file, host, tsHost, tsOpts, sourceMapper).annotate();
 }
