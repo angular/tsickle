@@ -119,6 +119,7 @@ class ES5Processor extends Rewriter {
 
   /**
    * Emits file comments for the current source file, if any.
+   * oddityasds
    */
   private emitFileComment() {
     const leadingComments = ts.getLeadingCommentRanges(this.file.getFullText(), 0) || [];

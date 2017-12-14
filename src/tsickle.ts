@@ -724,27 +724,32 @@ class Annotator extends ClosureRewriter {
         return this.emitImportDeclaration(node as ts.ImportDeclaration);
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
-        this.writeLeadingTrivia(node);
-        this.emit('export');
         let exportedSymbols: NamedSymbol[] = [];
+        let customEmit = false;
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
           // It's an "export * from ..." statement.
           // Rewrite it to re-export each exported symbol directly.
           exportedSymbols = this.expandSymbolsFromExportStar(exportDecl);
+          if (exportedSymbols.length === 0) {
+            // Skip the emit entirely.
+            customEmit = true;
+          }
           const exportSymbolsToEmit =
               exportedSymbols.filter(s => this.shouldEmitExportSymbol(s.sym));
-          this.emit(` {${exportSymbolsToEmit.map(e => unescapeName(e.name)).join(',')}}`);
+          if (exportSymbolsToEmit.length) {
+            this.writeLeadingTrivia(node);
+            this.emit('export');
+            this.emit(` {${exportSymbolsToEmit.map(e => unescapeName(e.name)).join(',')}}`);
+            this.emit(' from ');
+            this.visit(exportDecl.moduleSpecifier);
+            this.emit(';');
+            this.addSourceMapping(node);
+            customEmit = true;
+          }
         } else {
           if (exportDecl.exportClause) {
             exportedSymbols = this.getNamedSymbols(exportDecl.exportClause.elements);
-            this.visit(exportDecl.exportClause);
           }
-        }
-        if (exportDecl.moduleSpecifier) {
-          this.emit(` from '${this.resolveModuleSpecifier(exportDecl.moduleSpecifier)}';`);
-        } else {
-          // export {...};
-          this.emit(';');
         }
         this.addSourceMapping(node);
         if (exportDecl.moduleSpecifier) {
@@ -753,7 +758,7 @@ class Annotator extends ClosureRewriter {
         if (exportedSymbols.length) {
           this.emitTypeDefExports(exportedSymbols);
         }
-        return true;
+        return customEmit;
       case ts.SyntaxKind.InterfaceDeclaration:
         this.emitInterface(node as ts.InterfaceDeclaration);
         // Emit the TS interface verbatim, with no tsickle processing of properties.

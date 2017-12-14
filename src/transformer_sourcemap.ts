@@ -49,10 +49,33 @@ export function createTransformerFromSourceMap(
       //    regarding comment synthesization
       // - types: as they are not emited anyways
       //          and it leads to errors with `extends` cases.
-      if (originalNode &&
-          (isLiteralKind(node.kind) || node.kind === ts.SyntaxKind.Identifier ||
-           isTypeNodeKind(node.kind) || node.kind === ts.SyntaxKind.IndexSignature)) {
-        return originalNode;
+      // - imports/exports: as TypeScript will only attempt to elide type only
+      //                    imports if the new node is identical to the original node.
+      if (originalNode) {
+        if (isLiteralKind(node.kind) || node.kind === ts.SyntaxKind.Identifier ||
+            isTypeNodeKind(node.kind) || node.kind === ts.SyntaxKind.IndexSignature) {
+          return originalNode;
+        }
+        if (node.kind === ts.SyntaxKind.ImportDeclaration ||
+            node.kind === ts.SyntaxKind.ImportEqualsDeclaration ||
+            node.kind === ts.SyntaxKind.ExportAssignment) {
+          return originalNode;
+        }
+        if (ts.isExportDeclaration(node)) {
+          // Return the original nodes for export declarations, unless they were expanded from an
+          // export * to specific exported symbols.
+          const originalExport = originalNode as ts.ExportDeclaration;
+          if (!node.moduleSpecifier) {
+            // export {a, b, c};
+            return originalNode;
+          }
+          if (!!originalExport.exportClause === !!node.exportClause) {
+            // This already was exported with symbols (export {...}) or was not expanded.
+            return originalNode;
+          }
+          // Rewrote export * -> export {...}, the export declaration must be emitted in the updated
+          // form.
+        }
       }
       node = ts.visitEachChild(node, visitNode, context);
 
