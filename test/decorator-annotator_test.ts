@@ -442,6 +442,41 @@ class ViewUtils {
 `);
     });
 
+    // Regression #674
+    it('should leave annotations not down-leveled', () => {
+      expectTranslated(`
+        /** @Annotation */ var RemoveMe: Function = undefined as any;
+
+        var KeepMe: Function = undefined as any;
+
+        @KeepMe()
+        @RemoveMe()
+        class ViewUtils {
+          constructor() {}
+        }
+        `).to.equal(`/** @Annotation */ var RemoveMe: Function = (undefined as any);
+var KeepMe: Function = (undefined as any);
+@KeepMe()
+class ViewUtils {
+    constructor() { }
+    static decorators: {
+        type: Function;
+        args?: any[];
+    }[] = [
+        { type: RemoveMe },
+    ];
+    /** @nocollapse */
+    static ctorParameters: () => ({
+        type: any;
+        decorators?: {
+            type: Function;
+            args?: any[];
+        }[];
+    } | null)[] = () => [];
+}
+`);
+    });
+
     it('strips generic type arguments', () => {
       expectTranslated(`
 /** @Annotation */ let Inject: Function;

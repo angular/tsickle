@@ -122,9 +122,12 @@ export function classDecoratorDownlevelTransformer(
           if (decorators === undefined || decorators.length === 0) return cd;
 
           const decoratorList = [];
+          const decoratorsToKeep: ts.Decorator[] = [];
           for (const decorator of decorators) {
             if (shouldLower(decorator, typeChecker)) {
               decoratorList.push(extractMetadataFromSingleDecorator(decorator, diagnostics));
+            } else {
+              decoratorsToKeep.push(decorator);
             }
           }
 
@@ -135,7 +138,8 @@ export function classDecoratorDownlevelTransformer(
           newClassDeclaration.members = insertBeforeDecoratorProperties(
               newClassDeclaration.members, createDecoratorClassProperty(decoratorList));
 
-          newClassDeclaration.decorators = undefined;
+          newClassDeclaration.decorators =
+              decoratorsToKeep.length ? ts.createNodeArray(decoratorsToKeep) : undefined;
 
           return newClassDeclaration;
         default:
