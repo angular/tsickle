@@ -54,5 +54,5 @@ describe('golden file tests', () => {
   it('compile with Closure', (done) => {
     checkClosureCompile(true /* NTI */, done);
     checkClosureCompile(false /* OTI */, done);
-  }, 30000 /* ms timeout */);
+  }, 60000 /* ms timeout */);
 });
