@@ -13,9 +13,10 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 # NOTE: this rule installs nodejs, npm, and yarn, but does NOT install
 # your npm dependencies. You must still run the package manager.
 node_repositories(package_json = [
-    # Install TS 2.4 first, since the other package.json relies on it
+    # Install TS 2.4 + 2.5 first, since the other package.json relies on it
     # in order to build its sources.
     "//test_ts24:package.json",
+    "//test_ts25:package.json",
     "//:package.json",
 ])
 
