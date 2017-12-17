@@ -24,7 +24,7 @@ const FILEOVERVIEW_COMMENT_MARKERS: ReadonlySet<string> =
  * is a comment separated from the rest of the file by a double newline.
  */
 export function isClosureFileoverviewComment(text: string) {
-  const current = jsdoc.parseContents(text);
+  const current = jsdoc.parse(text);
   return current !== null && current.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName));
 }
 

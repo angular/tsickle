@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {isClosureFileoverviewComment} from './fileoverview_comment_transformer';
 import {NOOP_SOURCE_MAPPER, SourceMapper, SourcePosition} from './source_map_utils';
 import * as ts from './typescript';
 
@@ -40,9 +41,19 @@ export abstract class Rewriter {
     }
     let out = this.output.join('');
     if (prefix) {
-      // Insert prefix after any leading trivia so that @fileoverview comments do not get broken.
-      const firstCode = this.file.getStart();
-      out = out.substring(0, firstCode) + prefix + out.substring(firstCode);
+      // Insert prefix after any leading @fileoverview comments, so they still come first in the
+      // file. This must not use file.getStart() (comment position in the input file), but rahter
+      // check comments in the new output, as those (in particular for comments) are unrelated.
+      let insertionIdx = 0;
+      for (const cr of ts.getLeadingCommentRanges(out, 0) || []) {
+        if (isClosureFileoverviewComment(out.substring(cr.pos, cr.end))) {
+          insertionIdx = cr.end;
+          // Include space (in particular line breaks) after a @fileoverview comment; without the
+          // space seperating it, TypeScript might elide the emit.
+          while (insertionIdx < out.length && out[insertionIdx].match(/\s/)) insertionIdx++;
+        }
+      }
+      out = out.substring(0, insertionIdx) + prefix + out.substring(insertionIdx);
       this.sourceMapper.shiftByOffset(prefix.length);
     }
     return {
