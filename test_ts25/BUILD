@@ -14,6 +14,16 @@ jasmine_node_test(
 )
 
 jasmine_node_test(
+    name = "golden_test",
+    srcs = [
+        "check_ts_version.js",
+        "//test:golden_test_lib",
+    ],
+    node_modules = ":node_modules",
+    data = ["//:test_files"],
+)
+
+jasmine_node_test(
     name = "e2e_test",
     srcs = [
       "check_ts_version.js",
