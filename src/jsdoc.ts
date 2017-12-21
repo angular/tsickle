@@ -330,7 +330,12 @@ export function merge(tags: Tag[]): Tag {
   const type = types.size > 0 ? Array.from(types).join('|') : undefined;
   const text = texts.size > 0 ? Array.from(texts).join(' / ') : undefined;
   const tag: Tag = {tagName, parameterName, type, text};
-  if (optional) tag.optional = true;
-  if (restParam) tag.restParam = true;
+  // Note: a param can either be optional or a rest param; if we merged an
+  // optional and rest param together, prefer marking it as a rest param.
+  if (restParam) {
+    tag.restParam = true;
+  } else if (optional) {
+    tag.optional = true;
+  }
   return tag;
 }
