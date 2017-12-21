@@ -89,6 +89,10 @@ declare function redirect(url: string, status: number): void;
 declare function TestOverload(a: number, ...b: any[]): string;
 declare function TestOverload(a: number, b: string, c: string): string;
 
+// Test an overload with a rest param unioning with an optional param.
+declare function TestOverload2(a: number, ...b: any[]): void;
+declare function TestOverload2(a: number, b?: string): void;
+
 // An interface that is not tagged with "declare", but exists in a
 // d.ts file so it should show up in the externs anyway.
 interface BareInterface {

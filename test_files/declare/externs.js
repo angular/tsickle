@@ -163,6 +163,13 @@ function redirect(url_or_status, url_or_status1) {}
  * @return {string}
  */
 function TestOverload(a, b) {}
+
+/**
+ * @param {number} a
+ * @param {...?|(undefined|string)} b
+ * @return {void}
+ */
+function TestOverload2(a, b) {}
 /**
  * @record
  * @struct
