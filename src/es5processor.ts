@@ -129,7 +129,9 @@ class ES5Processor extends Rewriter {
       // accesses exports through the module object, so mutable exports work.
       // It is only inserted in ES6 because we strip `.default` accesses in ES5 mode, which breaks
       // when assigning an `exports = {}` object and then later accessing it.
-      this.emit(` exports = {}; var module = {id: '${moduleId}'};`);
+      // The module=module bit suppresses an unused variable warning which
+      // may trigger depending on the compilation flags.
+      this.emit(` exports = {}; var module = {id: '${moduleId}'}; module = module;`);
     }
 
     let pos = 0;
