@@ -46,6 +46,10 @@ export interface AnnotatorHost {
    * Annotation will be slower because every import must be resolved.
    */
   convertIndexImportShorthand?: boolean;
+  /**
+   * If true, do not modify quotes around property accessors.
+   */
+  disableAutoQuoting?: boolean;
 }
 
 /**
@@ -972,6 +976,9 @@ class Annotator extends ClosureRewriter {
         // this.emit(`.${propName}`);
         return false;
       case ts.SyntaxKind.PropertyAccessExpression:
+        if (this.host.disableAutoQuoting) {
+          return false;
+        }
         // Convert dotted accesses to types that have an index type declared to quoted accesses, to
         // avoid Closure renaming one access but not the other.
         // This can happen because TS allows dotted access to string index types.

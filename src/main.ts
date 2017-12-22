@@ -21,6 +21,9 @@ import {createSourceReplacingCompilerHost} from './util';
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
+  /** If provided, do not modify quoting of property accesses. */
+  disableAutoQuoting?: boolean;
+
   /** If provided, path to save externs to. */
   externsPath?: string;
 
@@ -38,8 +41,9 @@ example:
   tsickle --externs=foo/externs.js -- -p src --noImplicitAny
 
 tsickle flags are:
-  --externs=PATH     save generated Closure externs.js to PATH
-  --typed            [experimental] attempt to provide Closure types instead of {?}
+  --externs=PATH        save generated Closure externs.js to PATH
+  --typed               [experimental] attempt to provide Closure types instead of {?}
+  --disableAutoQuoting  do not automatically apply quotes to property accesses
 `);
 }
 
@@ -66,6 +70,8 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
       case 'verbose':
         settings.verbose = true;
         break;
+      case 'disableAutoQuoting':
+        settings.disableAutoQuoting = true;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
         break;
@@ -139,6 +145,7 @@ export function toClosureJS(
     transformDecorators: true,
     transformTypesToClosure: true,
     typeBlackListPaths: new Set(),
+    disableAutoQuoting: settings.disableAutoQuoting,
     untyped: false,
     logWarning: (warning) => console.error(tsickle.formatDiagnostics([warning])),
     options,
