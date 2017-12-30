@@ -625,7 +625,8 @@ class Annotator extends ClosureRewriter {
     // Already imported?
     if (this.forwardDeclaredModules.has(moduleSymbol)) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    const text = this.getForwardDeclareText(sf.fileName, moduleSymbol);
+    const text =
+        this.getForwardDeclareText(sf.fileName, moduleSymbol, /* forceTypeOnlyLoads */ false);
     this.extraDeclares += text;
   }
 
@@ -1136,15 +1137,18 @@ class Annotator extends ClosureRewriter {
         {options: this.tsOpts, host: this.tsHost}, this.file.fileName,
         (specifier as ts.StringLiteral).text);
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
-    this.emit(this.getForwardDeclareText(importPath, moduleSymbol, isDefaultImport));
+    this.emit(this.getForwardDeclareText(
+        importPath, moduleSymbol, /*forceTypeOnlyLoads*/ true, isDefaultImport));
   }
 
   /**
    * Returns the `const x = goog.forwardDeclare...` text for an import of the given `importPath`.
    * This also registers aliases for symbols from the module that map to this forward declare.
+   * @param forceTypeOnlyLoads if true, emit a hard goog.require for modules that only export types.
    */
   private getForwardDeclareText(
-      importPath: string, moduleSymbol: ts.Symbol|undefined, isDefaultImport = false): string {
+      importPath: string, moduleSymbol: ts.Symbol|undefined, forceTypeOnlyLoads: boolean,
+      isDefaultImport = false): string {
     if (this.host.untyped) return '';
     const nsImport = es5processor.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
@@ -1173,7 +1177,7 @@ class Annotator extends ClosureRewriter {
       // they do not count as values. If preserveConstEnums=true, this shouldn't hurt.
       return isValue && !isConstEnum;
     });
-    if (!hasValues) {
+    if (forceTypeOnlyLoads && !hasValues) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
       // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
       // complaining about values not matching 'NoResolvedType', or modules not having a certain
