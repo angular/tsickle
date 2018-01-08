@@ -623,7 +623,8 @@ export class TypeTranslator {
     if (maybeThisParam && maybeThisParam.name.getText() === 'this') {
       if (maybeThisParam.type) {
         const thisType = this.typeChecker.getTypeAtLocation(maybeThisParam.type);
-        typeStr += `this: (${this.translate(thisType)}), `;
+        typeStr += `this: (${this.translate(thisType)})`;
+        if (paramDecls.length > 1) typeStr += ', ';
       } else {
         this.warn('this type without type');
       }

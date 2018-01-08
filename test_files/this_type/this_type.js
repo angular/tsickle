@@ -10,3 +10,9 @@ function SomeClass_tsickle_Closure_declarations() {
     SomeClass.prototype.x;
 }
 const /** @type {function(this: (!SomeClass), string): number} */ variableWithFunctionTypeUsingThis = () => 1;
+/**
+ * @return {(undefined|function(this: (string)): string)}
+ */
+function foo() {
+    return undefined;
+}
