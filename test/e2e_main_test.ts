@@ -16,7 +16,6 @@ import {compilerOptions, createSourceCachingHost, findFileContentsByName, readSo
 
 describe('toClosureJS', () => {
   it('creates externs, adds type comments and rewrites imports', () => {
-
     const filePaths =
         ['test_files/underscore/export_underscore.ts', 'test_files/underscore/underscore.ts'];
     const sources = readSources(filePaths);

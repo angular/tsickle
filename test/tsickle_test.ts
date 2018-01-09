@@ -97,7 +97,6 @@ describe('emitWithTsickle', () => {
 
          expect(jsSources['./b.d.ts']).to.eq(`export * from './a';\n`);
        });
-
   });
 });
 

@@ -80,7 +80,8 @@ console.log('hello');`);
   it('converts require calls without assignments on a new line', () => {
     expectCommonJs('a.js', `
 require('req/mod');
-require('other');`).to.equal(`goog.module('a');var module = module || {id: 'a.js'};
+require('other');`)
+        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
 var tsickle_module_0_ = goog.require('req.mod');
 var tsickle_module_1_ = goog.require('other');`);
   });
@@ -88,7 +89,8 @@ var tsickle_module_1_ = goog.require('other');`);
   it('converts require calls without assignments after comments', () => {
     expectCommonJs('a.js', `
 // Comment
-require('req/mod');`).to.equal(`goog.module('a');var module = module || {id: 'a.js'};
+require('req/mod');`)
+        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
 // Comment
 var tsickle_module_0_ = goog.require('req.mod');`);
   });
@@ -164,9 +166,7 @@ console.log(foo.bar.default);`);
   });
 
   it('strips "use strict" (implied by goog.module)', () => {
-    expectCommonJs(
-        'a/b.js',
-        `/**
+    expectCommonJs('a/b.js', `/**
  * docstring here
  */
 "use strict";
@@ -195,9 +195,7 @@ goog.module('a.b');var module = module || {id: 'a/b.js'};var foo = bar;
     expectCommonJs('a/b.js', `var foo_1 = require('goog:foo');
 var foo_2 = require('goog:foo');
 foo_1.A, foo_2.B, foo_2.default, foo_3.default;
-`)
-        .to.equal(
-            `goog.module('a.b');var module = module || {id: 'a/b.js'};var foo_1 = goog.require('foo');
+`).to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};var foo_1 = goog.require('foo');
 var foo_2 = foo_1;
 foo_1.A, foo_2.B, foo_2        , foo_3.default;
 `);
