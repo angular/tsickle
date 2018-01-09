@@ -28,7 +28,7 @@
     "@types/jasmine": "2.8.3",
     "@types/minimatch": "3.0.3",
     "@types/minimist": "1.2.0",
-    "@types/mkdirp": "0.3.29",
+    "@types/mkdirp": "0.5.2",
     "@types/node": "6.0.96",
     "@types/source-map": "0.5.1",
     "@types/source-map-support": "0.2.28",
