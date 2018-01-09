@@ -37,7 +37,6 @@ describe('transformer util', () => {
   }
 
   describe('comments', () => {
-
     function transformComments(context: ts.TransformationContext) {
       return (sourceFile: ts.SourceFile): ts.SourceFile => {
         return visitNode(sourceFile);
