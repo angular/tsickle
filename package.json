@@ -32,7 +32,7 @@
     "@types/node": "6.0.96",
     "@types/source-map": "0.5.1",
     "@types/source-map-support": "0.2.28",
-    "chai": "3.5.0",
+    "chai": "4.1.2",
     "chai-diff": "1.0.1",
     "clang-format": "1.2.2",
     "diff": "3.4.0",
