@@ -72,6 +72,7 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'disableAutoQuoting':
         settings.disableAutoQuoting = true;
+        break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
         break;
