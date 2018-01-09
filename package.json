@@ -21,7 +21,7 @@
     "typescript": ">=2.4.2 <2.7"
   },
   "devDependencies": {
-    "@types/chai": "3.5.2",
+    "@types/chai": "4.1.0",
     "@types/diff": "3.2.2",
     "@types/glob": "5.0.34",
     "@types/google-closure-compiler": "0.0.18",
