@@ -30,7 +30,7 @@
     "@types/minimist": "1.2.0",
     "@types/mkdirp": "0.3.29",
     "@types/node": "6.0.96",
-    "@types/source-map": "0.5.7",
+    "@types/source-map": "0.5.1",
     "@types/source-map-support": "0.2.28",
     "chai": "3.5.0",
     "chai-diff": "1.0.1",
