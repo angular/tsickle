@@ -43,7 +43,7 @@
     "gulp-tslint": "8.1.2",
     "gulp-typescript": "3.2.3",
     "jasmine": "2.8.0",
-    "merge2": "1.2.0",
+    "merge2": "1.2.1",
     "temp": "0.8.3",
     "tslint": "5.8.0",
     "typescript": "2.6.2"
