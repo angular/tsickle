@@ -26,6 +26,6 @@ git_repository(
     tag = "0.9.0",
 )
 
-load("@build_bazel_rules_typescript//:defs.bzl", "ts_repositories")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
 
-ts_repositories()
+ts_setup_workspace()
