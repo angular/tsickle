@@ -133,9 +133,12 @@ export function toClosureJS(
     writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
   const compilerHost = ts.createCompilerHost(options);
   const program = ts.createProgram(fileNames, options, compilerHost);
+  // Use absolute paths to determine what files to process since files may be imported using
+  // relative or absolute paths
+  const filesToProcess = new Set(fileNames.map(i => path.resolve(i)));
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName: string) => {
-      return fileNames.indexOf(fileName) === -1;
+      return !filesToProcess.has(path.resolve(fileName));
     },
     shouldIgnoreWarningsForPath: (fileName: string) => false,
     pathToModuleName: cliSupport.pathToModuleName,
