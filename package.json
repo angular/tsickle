@@ -41,7 +41,7 @@
     "gulp": "3.9.1",
     "gulp-clang-format": "1.0.25",
     "gulp-tslint": "8.1.2",
-    "gulp-typescript": "3.2.3",
+    "gulp-typescript": "3.2.4",
     "jasmine": "2.9.0",
     "merge2": "1.2.1",
     "temp": "0.8.3",
