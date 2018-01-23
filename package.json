@@ -37,7 +37,7 @@
     "clang-format": "1.2.2",
     "diff": "3.4.0",
     "glob": "7.1.2",
-    "google-closure-compiler": "20161024.3.0",
+    "google-closure-compiler": "20180101.0.0",
     "gulp": "3.9.1",
     "gulp-clang-format": "1.0.25",
     "gulp-tslint": "8.1.2",
