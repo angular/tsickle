@@ -126,16 +126,41 @@ function loadTscConfig(args: string[]):
 }
 
 /**
+ * Determine the lowest-level common parent directory of the given list of files.
+ */
+function getCommonParentDirectory(fileNames: string[]): string {
+  const pathSplitter = /[\/\\]+/;
+  const commonParent = fileNames[0].split(pathSplitter);
+  for (let i = 1; i < fileNames.length; i++) {
+    const thisPath = fileNames[i].split(pathSplitter);
+    let j = 0;
+    while (thisPath[j] === commonParent[j]) {
+      j++;
+    }
+    commonParent.splice(j, Infinity);  // Truncate without copying the array
+  }
+  if (commonParent.length === 0) {
+    return '/';
+  } else {
+    return commonParent.join(path.sep);
+  }
+}
+
+/**
  * Compiles TypeScript code into Closure-compiler-ready JS.
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
-  const compilerHost = ts.createCompilerHost(options);
-  const program = ts.createProgram(fileNames, options, compilerHost);
+
   // Use absolute paths to determine what files to process since files may be imported using
   // relative or absolute paths
-  const filesToProcess = new Set(fileNames.map(i => path.resolve(i)));
+  const absoluteFileNames = fileNames.map(i => path.resolve(i));
+  cliSupport.setRootModulePath(getCommonParentDirectory(absoluteFileNames));
+
+  const compilerHost = ts.createCompilerHost(options);
+  const program = ts.createProgram(fileNames, options, compilerHost);
+  const filesToProcess = new Set(absoluteFileNames);
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName: string) => {
       return !filesToProcess.has(path.resolve(fileName));
