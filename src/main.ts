@@ -152,7 +152,6 @@ function getCommonParentDirectory(fileNames: string[]): string {
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
-
   // Use absolute paths to determine what files to process since files may be imported using
   // relative or absolute paths
   const absoluteFileNames = fileNames.map(i => path.resolve(i));
