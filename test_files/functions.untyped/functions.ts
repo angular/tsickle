@@ -33,3 +33,7 @@ TestSplat3(1, 2);
 
 function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
 defaultBeforeRequired(undefined, 2, 'h', 3);
+
+function templated<T>(t: T): number {
+  return 1;
+}

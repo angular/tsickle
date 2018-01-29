@@ -1216,8 +1216,8 @@ class Annotator extends ClosureRewriter {
       docTags.push({tagName: 'abstract'});
     }
 
+    this.maybeAddTemplateClause(docTags, classDecl);
     if (!this.host.untyped) {
-      this.maybeAddTemplateClause(docTags, classDecl);
       this.maybeAddHeritageClauses(docTags, classDecl);
     }
 
@@ -1238,8 +1238,8 @@ class Annotator extends ClosureRewriter {
 
     const docTags = this.getJSDoc(iface) || [];
     docTags.push({tagName: 'record'});
+    this.maybeAddTemplateClause(docTags, iface);
     if (!this.host.untyped) {
-      this.maybeAddTemplateClause(docTags, iface);
       this.maybeAddHeritageClauses(docTags, iface);
     }
 
