@@ -28,7 +28,7 @@ node_repositories(package_json = [
 git_repository(
     name = "build_bazel_rules_typescript",
     remote = "https://github.com/bazelbuild/rules_typescript.git",
-    tag = "0.9.0",
+    tag = "0.10.0",
 )
 
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
