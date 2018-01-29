@@ -82,3 +82,11 @@ TestSplat3(1, 2);
  */
 function defaultBeforeRequired(x = 1, y, ...z) { }
 defaultBeforeRequired(undefined, 2, 'h', 3);
+/**
+ * @template T
+ * @param {?} t
+ * @return {?}
+ */
+function templated(t) {
+    return 1;
+}

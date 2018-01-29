@@ -18,6 +18,9 @@ function Interface_tsickle_Closure_declarations() {
     /** @type {?} */
     Interface.prototype.x;
 }
+/**
+ * @template T
+ */
 class ClassWithParams {
 }
 exports.ClassWithParams = ClassWithParams;
