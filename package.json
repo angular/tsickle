@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/chai": "4.1.2",
     "@types/diff": "3.2.2",
-    "@types/glob": "5.0.34",
+    "@types/glob": "5.0.35",
     "@types/google-closure-compiler": "0.0.18",
     "@types/jasmine": "2.8.6",
     "@types/minimatch": "3.0.3",
