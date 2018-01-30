@@ -2,5 +2,13 @@
   "extends": [
     "config:base"
   ],
+  "packageRules": [
+    {
+      "extends": ["group:all"],
+      "excludePackagePatterns": ["google-closure-compiler"],
+      "groupName": "deps",
+      "schedule": ["on the first day of the month"]
+    }
+  ],
   "ignorePaths": ["test*/**"]
 }
