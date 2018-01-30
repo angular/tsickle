@@ -476,7 +476,26 @@ abstract class ClosureRewriter extends Rewriter {
         // But it's fine to translate TS "implements Class" into Closure
         // "@extends {Class}" because this is just a type hint.
         const typeChecker = this.typeChecker;
-        const sym = this.mustGetSymbolAtLocation(impl.expression);
+        const sym = this.typeChecker.getSymbolAtLocation(impl.expression);
+        if (!sym) {
+          // It's possible for a class declaration to extend an expression that
+          // does not have have a symbol, for example when a mixin function is
+          // used to build a base class, as in `declare MyClass extends
+          // MyMixin(MyBaseClass)`.
+          //
+          // Handling this correctly is tricky. Closure throws on this
+          // `extends <expression>` syntax (see
+          // https://github.com/google/closure-compiler/issues/2182). We would
+          // probably need to generate an intermediate class declaration and
+          // extend that. For now, just omit the `extends` annotation.
+          this.debugWarn(decl, `could not resolve supertype: ${impl.getText()}`);
+          docTags.push({
+            tagName: '',
+            text: 'NOTE: tsickle could not resolve supertype, ' +
+                'class definition may be incomplete.\n'
+          });
+          continue;
+        }
         let alias: ts.Symbol = sym;
         if (sym.flags & ts.SymbolFlags.TypeAlias) {
           // It's implementing a type alias.  Follow the type alias back
