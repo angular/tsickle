@@ -1,6 +1,16 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    ":semanticCommitsDisabled"
+  ],
+  "packageRules": [
+    {
+      "excludePackageNames": ["google-closure-compiler"],
+      "extends": [
+        "group:all",
+        "schedule:monthly"
+      ]
+    }
   ],
   "ignorePaths": ["test*/**"]
 }
