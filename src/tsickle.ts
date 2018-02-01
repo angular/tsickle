@@ -1745,7 +1745,8 @@ class ExternsWriter extends ClosureRewriter {
         this.writeExternsTypeAlias(node as ts.TypeAliasDeclaration, namespace);
         break;
       default:
-        this.emit(`\n/* TODO: ${ts.SyntaxKind[node.kind]} in ${namespace.join('.')} */\n`);
+        const locationStr = namespace.join('.') || path.basename(node.getSourceFile().fileName);
+        this.emit(`\n// TODO(tsickle): ${ts.SyntaxKind[node.kind]} in ${locationStr}\n`);
         break;
     }
   }
