@@ -2018,8 +2018,11 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
 export interface EmitResult extends ts.EmitResult {
   // The manifest of JS modules output by the compiler.
   modulesManifest: ModulesManifest;
-  /** externs.js files produced by tsickle, if any. */
-  externs: {[fileName: string]: string};
+  /**
+   * externs.js files produced by tsickle, if any. module IDs are relative paths from
+   * fileNameToModuleId.
+   */
+  externs: {[moduleId: string]: string};
 }
 
 export interface EmitTransformers {
@@ -2113,9 +2116,14 @@ export function emitWithTsickle(
       if (isDtsFileName(sf.fileName) && host.shouldSkipTsickleProcessing(sf.fileName)) {
         return;
       }
+      // fileName might be absolute, which would cause emits different by checkout location or
+      // non-deterministic output for build systems that use hashed work directories (bazel).
+      // fileNameToModuleId gives the logical, base path relative ID for the given fileName, which
+      // avoids this issue.
+      const moduleId = host.fileNameToModuleId(sf.fileName);
       const {output, diagnostics} = writeExterns(typeChecker, sf, host);
       if (output) {
-        externs[sf.fileName] = output;
+        externs[moduleId] = output;
       }
       if (diagnostics) {
         tsickleDiagnostics.push(...diagnostics);

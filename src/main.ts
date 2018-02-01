@@ -145,7 +145,7 @@ export function toClosureJS(
     },
     shouldIgnoreWarningsForPath: (fileName: string) => false,
     pathToModuleName: cliSupport.pathToModuleName.bind(null, rootModulePath),
-    fileNameToModuleId: (fileName) => fileName,
+    fileNameToModuleId: (fileName) => path.relative(rootModulePath, fileName),
     es5Mode: true,
     googmodule: true,
     transformDecorators: true,
