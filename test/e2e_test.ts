@@ -45,7 +45,11 @@ export function checkClosureCompile(useNewTypeInferece: boolean, done: DoneFn) {
     const durationMs = Date.now() - startTime;
     console.error(
         'Closure compilation', ntiOtiMsg, 'of', total, 'files done after', durationMs, 'ms');
-    expect(exitCode).toBe(0, stderr);
+    if (exitCode !== 0) {
+      // expect() with a message abbreviates the text, so just emit everything here.
+      console.error(stderr);
+    }
+    expect(exitCode).toBe(0, 'Closure Compiler exit code');
     done();
   });
 }
