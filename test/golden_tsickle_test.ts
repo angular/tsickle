@@ -149,7 +149,7 @@ testFn('golden tests with transformer', () => {
         pathToModuleName: (context, importPath) => {
           importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
           if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-          return importPath.replace(/\/|\\/g, '.');
+          return importPath.replace(/\/|\\/g, '.').replace(/[^a-zA-Z$.0-9_]/g, '_');
         },
         fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
         options: tsCompilerOptions,
