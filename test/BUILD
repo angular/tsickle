@@ -22,6 +22,7 @@ ts_library(
         "transformer_util_test.ts",
         "tsickle_test.ts",
         "type-translator_test.ts",
+        "chai-diff.d.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [

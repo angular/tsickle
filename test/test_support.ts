@@ -236,13 +236,13 @@ export function assertSourceMapping(
   const {line, column} = getLineAndColumn(compiledJs, sourceSnippet);
   const originalPosition = sourceMap.originalPositionFor({line, column});
   if (expectedPosition.line) {
-    expect(originalPosition.line).to.equal(expectedPosition.line);
+    expect(originalPosition.line, 'original line number').to.equal(expectedPosition.line);
   }
   if (expectedPosition.column) {
-    expect(originalPosition.column).to.equal(expectedPosition.column);
+    expect(originalPosition.column, 'original column').to.equal(expectedPosition.column);
   }
   if (expectedPosition.source) {
-    expect(originalPosition.source).to.equal(expectedPosition.source);
+    expect(originalPosition.source, 'original source file').to.equal(expectedPosition.source);
   }
 }
 

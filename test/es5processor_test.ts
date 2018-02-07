@@ -6,13 +6,17 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
+import {expect, use as chaiUse} from 'chai';
 import * as ts from 'typescript';
+// tslint:disable-next-line:no-require-imports chai-diff needs a CommonJS import.
+import chaiDiff = require('chai-diff');
 
 import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
 import * as testSupport from './test_support';
+
+chaiUse(chaiDiff);
 
 describe('convertCommonJsToGoogModule', () => {
   function processES5(fileName: string, content: string, isES5 = true, prelude = '') {
@@ -36,43 +40,45 @@ describe('convertCommonJsToGoogModule', () => {
   it('adds a goog.module call', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `console.log('hello');`)
-        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};console.log('hello');`);
+        .not.differentFrom(
+            `goog.module('a');var module = module || {id: 'a.js'};console.log('hello');`);
   });
 
   it('adds a goog.module call for ES6 mode', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `console.log('hello');`, false)
-        .to.equal(
+        .not.differentFrom(
             `goog.module('a'); exports = {}; var module = {id: 'a.js'}; module = module;console.log('hello');`);
   });
 
   it('adds a goog.module call to empty files', () => {
-    expectCommonJs('a.js', ``).to.equal(`goog.module('a');var module = module || {id: 'a.js'};`);
+    expectCommonJs('a.js', ``)
+        .not.differentFrom(`goog.module('a');var module = module || {id: 'a.js'};`);
   });
 
   it('adds a goog.module call to empty-looking files', () => {
     expectCommonJs('a.js', `// empty`)
-        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};// empty`);
+        .not.differentFrom(`goog.module('a');var module = module || {id: 'a.js'};// empty`);
   });
 
   it('strips use strict directives', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `"use strict";
 console.log('hello');`)
-        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
+        .not.differentFrom(`goog.module('a');var module = module || {id: 'a.js'};
 console.log('hello');`);
   });
 
   it('converts require calls', () => {
     expectCommonJs('a.js', `var r = require('req/mod');`)
-        .to.equal(
+        .not.differentFrom(
             `goog.module('a');var module = module || {id: 'a.js'};` +
             `var r = goog.require('req.mod');`);
   });
 
   it('converts require calls without assignments on first line', () => {
     expectCommonJs('a.js', `require('req/mod');`)
-        .to.equal(
+        .not.differentFrom(
             `goog.module('a');var module = module || {id: 'a.js'};` +
             `var tsickle_module_0_ = goog.require('req.mod');`);
   });
@@ -81,7 +87,7 @@ console.log('hello');`);
     expectCommonJs('a.js', `
 require('req/mod');
 require('other');`)
-        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
+        .not.differentFrom(`goog.module('a');var module = module || {id: 'a.js'};
 var tsickle_module_0_ = goog.require('req.mod');
 var tsickle_module_1_ = goog.require('other');`);
   });
@@ -90,14 +96,14 @@ var tsickle_module_1_ = goog.require('other');`);
     expectCommonJs('a.js', `
 // Comment
 require('req/mod');`)
-        .to.equal(`goog.module('a');var module = module || {id: 'a.js'};
+        .not.differentFrom(`goog.module('a');var module = module || {id: 'a.js'};
 // Comment
 var tsickle_module_0_ = goog.require('req.mod');`);
   });
 
   it('converts const require calls', () => {
     expectCommonJs('a.js', `const r = require('req/mod');`)
-        .to.equal(
+        .not.differentFrom(
             `goog.module('a');var module = module || {id: 'a.js'};` +
             `var r = goog.require('req.mod');`);
   });
@@ -105,27 +111,27 @@ var tsickle_module_0_ = goog.require('req.mod');`);
   describe('ES5 export *', () => {
     it('converts export * statements', () => {
       expectCommonJs('a.js', `__export(require('req/mod'));`)
-          .to.equal(
+          .not.differentFrom(
               `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('req.mod');__export(tsickle_module_0_);`);
     });
     it('uses correct module name with subsequent exports', () => {
       expectCommonJs('a.js', `__export(require('req/mod'));
 var mod2 = require('req/mod');`)
-          .to.equal(
+          .not.differentFrom(
               `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('req.mod');__export(tsickle_module_0_);
 var mod2 = tsickle_module_0_;`);
     });
     it('reuses an existing imported variable name', () => {
       expectCommonJs('a.js', `var mod = require('req/mod');
 __export(require('req/mod'));`)
-          .to.equal(
+          .not.differentFrom(
               `goog.module('a');var module = module || {id: 'a.js'};var mod = goog.require('req.mod');
 __export(mod);`);
     });
 
     it('converts tslib exportStar usage', () => {
       expectCommonJs('a.js', `tslib_1.__exportStar(require("./decorators"), exports);`)
-          .to.equal(
+          .not.differentFrom(
               `goog.module('a');var module = module || {id: 'a.js'};var tsickle_module_0_ = goog.require('decorators');tslib_1.__exportStar(tsickle_module_0_, exports);`);
     });
   });
@@ -133,14 +139,14 @@ __export(mod);`);
   it('resolves relative module URIs', () => {
     // See below for more fine-grained unit tests.
     expectCommonJs('a/b.js', `var r = require('./req/mod');`)
-        .to.equal(
+        .not.differentFrom(
             `goog.module('a.b');var module = module || {id: 'a/b.js'};var r = goog.require('a.req.mod');`);
   });
 
   it('avoids mangling module names in goog: imports', () => {
     expectCommonJs('a/b.js', `
 var goog_use_Foo_1 = require('goog:foo_bar.baz');`)
-        .to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};
+        .not.differentFrom(`goog.module('a.b');var module = module || {id: 'a/b.js'};
 var goog_use_Foo_1 = goog.require('foo_bar.baz');`);
   });
 
@@ -148,7 +154,7 @@ var goog_use_Foo_1 = goog.require('foo_bar.baz');`);
     expectCommonJs('a/b.js', `
 var goog_use_Foo_1 = require('goog:use.Foo');
 console.log(goog_use_Foo_1.default);`)
-        .to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};
+        .not.differentFrom(`goog.module('a.b');var module = module || {id: 'a/b.js'};
 var goog_use_Foo_1 = goog.require('use.Foo');
 console.log(goog_use_Foo_1        );`);
     // NB: the whitespace above matches the .default part, so that
@@ -160,7 +166,7 @@ console.log(goog_use_Foo_1        );`);
     expectCommonJs('a/b.js', `
 console.log(this.default);
 console.log(foo.bar.default);`)
-        .to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};
+        .not.differentFrom(`goog.module('a.b');var module = module || {id: 'a/b.js'};
 console.log(this.default);
 console.log(foo.bar.default);`);
   });
@@ -171,7 +177,7 @@ console.log(foo.bar.default);`);
  */
 "use strict";
 var foo = bar;
-`).to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};/**
+`).not.differentFrom(`goog.module('a.b');var module = module || {id: 'a/b.js'};/**
  * docstring here
  */
 
@@ -184,7 +190,7 @@ var foo = bar;
  * @fileoverview comment here.
  */
 var foo = bar;
-`).to.equal(`/**
+`).not.differentFrom(`/**
  * @fileoverview comment here.
  */
 goog.module('a.b');var module = module || {id: 'a/b.js'};var foo = bar;
@@ -195,7 +201,9 @@ goog.module('a.b');var module = module || {id: 'a/b.js'};var foo = bar;
     expectCommonJs('a/b.js', `var foo_1 = require('goog:foo');
 var foo_2 = require('goog:foo');
 foo_1.A, foo_2.B, foo_2.default, foo_3.default;
-`).to.equal(`goog.module('a.b');var module = module || {id: 'a/b.js'};var foo_1 = goog.require('foo');
+`)
+        .not.differentFrom(
+            `goog.module('a.b');var module = module || {id: 'a/b.js'};var foo_1 = goog.require('foo');
 var foo_2 = foo_1;
 foo_1.A, foo_2.B, foo_2        , foo_3.default;
 `);
@@ -221,10 +229,19 @@ __export(require('./export_star');
 
   it('inserts a prelude', () => {
     expectCommonJs('a.js', `console.log('hello');`, false, `goog.require('tshelpers');`)
-        .to.equal(
+        .not.differentFrom(
             `goog.module('a');goog.require('tshelpers'); ` +
             `exports = {}; ` +
             `var module = {id: 'a.js'}; module = module;` +
             `console.log('hello');`);
+  });
+
+  it(`skips the exports assignment if there's another one`, () => {
+    expectCommonJs(
+        'a.js', `console.log('hello'); module.exports = 1;`, false, `goog.require('tshelpers');`)
+        .not.differentFrom(
+            `goog.module('a');goog.require('tshelpers'); ` +
+            `var module = {id: 'a.js'}; module = module;` +
+            `console.log('hello'); exports = 1;`);
   });
 });
