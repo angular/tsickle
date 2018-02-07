@@ -72,3 +72,5 @@ function PromiseLike() {};
 /** @typedef {function(new:Promise)} */
 var PromiseConstructor;
 
+/** @typedef {function(new:Promise, function(function(*=), function(*=)))} */
+var PromiseConstructorLike;
