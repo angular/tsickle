@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "jasmine": "^2.8.0",
+    "typescript": "2.6"
+  },
+  "devDependencies": {
+    "source-map-support": "^0.5.0"
+  }
+}

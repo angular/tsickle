@@ -57,7 +57,7 @@ describe('source maps', () => {
     const {program, host} = createProgramAndHost(sources);
     const sourceMapper = new TestSourceMapper('input.ts');
     const annotated = annotate(
-        program.getTypeChecker(), program.getSourceFile('input.ts'),
+        program.getTypeChecker(), program.getSourceFile('input.ts')!,
         {pathToModuleName: () => 'input'}, host, program.getCompilerOptions(), sourceMapper);
     const rawMap = sourceMapper.sourceMap.toJSON();
     const consumer = new SourceMapConsumer(rawMap);
