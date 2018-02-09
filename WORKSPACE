@@ -1,11 +1,10 @@
 workspace(name="tsickle")
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-git_repository(
+http_archive(
     name = "build_bazel_rules_nodejs",
-    remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.4.0",
+    url = "https://github.com/bazelbuild/rules_nodejs/archive/0.4.1.zip",
+    strip_prefix = "rules_nodejs-0.4.1",
+    sha256 = "e9bc013417272b17f302dc169ad597f05561bb277451f010043f4da493417607",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "node_repositories")
@@ -25,10 +24,11 @@ node_repositories(package_json = [
     "//:package.json",
 ])
 
-git_repository(
+http_archive(
     name = "build_bazel_rules_typescript",
-    remote = "https://github.com/bazelbuild/rules_typescript.git",
-    tag = "0.10.0",
+    url = "https://github.com/bazelbuild/rules_typescript/archive/0.10.1.zip",
+    strip_prefix = "rules_typescript-0.10.1",
+    sha256 = "a2c81776a4a492ff9f878f9705639f5647bef345f7f3e1da09c9eeb8dec80485",
 )
 
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
