@@ -1,6 +1,6 @@
 {
   "name": "tsickle",
-  "version": "0.26.0",
+  "version": "0.27.1",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "src/tsickle.js",
   "typings": "src/tsickle.d.ts",
@@ -49,8 +49,7 @@
     "typescript": "2.7.1"
   },
   "scripts": {
-    "build": "bazel build //src/... && mkdir built && cp -R bazel-bin/src built/src && cp package.json README.md built",
-    "clean": "rm -rf built",
+    "build": "bazel build //:npm_package",
     "test": "gulp test.check-format && gulp test.check-lint && bazel test ..."
   },
   "repository": {
