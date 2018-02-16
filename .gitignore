@@ -12,3 +12,6 @@ node_modules
 
 # See reference to this file in the README.md
 yarn_install.sh
+
+# Created by bazel run :npm_package.pack
+tsickle-*.tgz

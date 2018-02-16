@@ -154,5 +154,5 @@ On a new branch, run `npm version <major|minor|patch|...> -m 'rel: %s'` (see
 commit the changes, and create a git tag. Now you push the branch, get it
 reviewed and merged.
 
-Run `./publish.sh` from the master branch (you must be logged into the
-`angular` shared npm account).
+Run `bazel run :npm_package.publish` from the master branch
+(you must be logged into the `angular` shared npm account).
