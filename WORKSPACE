@@ -21,6 +21,7 @@ node_repositories(package_json = [
     # in order to build its sources.
     "//test_ts24:package.json",
     "//test_ts25:package.json",
+    "//test_ts26:package.json",
     "//:package.json",
 ])
 

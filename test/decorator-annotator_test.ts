@@ -89,8 +89,8 @@ describe('decorator-annotator', () => {
 @Decor
 class Foo {
     constructor(
-        @Decor
-        p: number) { }
+    @Decor
+    p: number) { }
     @Decor
     m(): void { }
 }
