@@ -11,4 +11,4 @@ install:
   # See explanation in README.md
   - bazel run @yarn//:yarn --script_path=yarn_install.sh && ./yarn_install.sh
 script:
-  - yarn test
+  - yarn test --config=ci
