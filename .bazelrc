@@ -3,3 +3,9 @@ test --test_output=errors
 
 # Enable debugging tests with --config=debug
 test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
+
+# Workaround https://github.com/bazelbuild/bazel/issues/3645
+# Bazel doesn't calculate the memory ceiling correctly when running under Docker.
+build:ci --local_resources=3072,2.0,1.0
+
+build:ci --noshow_progress
