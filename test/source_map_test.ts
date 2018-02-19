@@ -10,7 +10,7 @@ import {expect} from 'chai';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
-import {SourceMapper, SourcePosition} from '../src/source_map_utils';
+import {SourceMapGeneratorToJson, SourceMapper, SourcePosition} from '../src/source_map_utils';
 import {annotate, AnnotatorHost} from '../src/tsickle';
 
 import {createProgramAndHost} from './test_support';
@@ -59,7 +59,7 @@ describe('source maps', () => {
     const annotated = annotate(
         program.getTypeChecker(), program.getSourceFile('input.ts')!,
         {pathToModuleName: () => 'input'}, host, program.getCompilerOptions(), sourceMapper);
-    const rawMap = sourceMapper.sourceMap.toJSON();
+    const rawMap = (sourceMapper.sourceMap as SourceMapGeneratorToJson).toJSON();
     const consumer = new SourceMapConsumer(rawMap);
     const lines = annotated.output.split('\n');
     // Uncomment to debug contents:

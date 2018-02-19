@@ -60,10 +60,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/source-map@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@types/source-map/-/source-map-0.5.1.tgz#7e74db5d06ab373a712356eebfaea2fad0ea2367"
-
 ansi-gray@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/ansi-gray/-/ansi-gray-0.1.1.tgz#2962cf54ec9792c48510a3deb524436861ef7251"

@@ -10,13 +10,13 @@ import {assert, expect} from 'chai';
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
-import {BasicSourceMapConsumer, SourceMapConsumer} from 'source-map';
+import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 import {toClosureJS} from '../src/main';
-import {sourceMapTextToConsumer} from '../src/source_map_utils';
+import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
 /** Base compiler options to be customized and exposed. */
