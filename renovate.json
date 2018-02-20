@@ -12,5 +12,6 @@
       ]
     }
   ],
-  "ignorePaths": ["test*/**"]
+  "ignorePaths": ["test*/**"],
+  "ignoreDeps": ["source-map"]
 }
