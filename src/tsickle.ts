@@ -1434,30 +1434,40 @@ class Annotator extends ClosureRewriter {
   }
 
   /**
+   * getEnumMemberType computes the type of an enum member by inspecting
+   * its initializer expression.
+   */
+  private getEnumMemberType(member: ts.EnumMember): 'number'|'string' {
+    // Enum members without initialization have type 'number'
+    if (!member.initializer) {
+      return 'number';
+    }
+    const type = this.typeChecker.getTypeAtLocation(member.initializer);
+    // Note: checking against 'NumberLike' instead of just 'Number' means this code
+    // handles both
+    //   MEMBER = 3,  // TypeFlags.NumberLiteral
+    // and
+    //   MEMBER = someFunction(),  // TypeFlags.Number
+    if (type.flags & ts.TypeFlags.NumberLike) {
+      return 'number';
+    }
+    // If the value is not a number, it must be a string.
+    // TypeScript does not allow enum members to have any other type.
+    return 'string';
+  }
+
+  /**
    * getEnumType computes the Closure type of an enum, by iterating through the members
    * and gathering their types.
    */
-  private getEnumType(enumDecl: ts.EnumDeclaration): 'number|string'|'number'|'string'|'?' {
+  private getEnumType(enumDecl: ts.EnumDeclaration): 'number'|'string'|'?' {
     let hasNumber = false;
     let hasString = false;
     for (const member of enumDecl.members) {
-      if (member.initializer) {
-        const type = this.typeChecker.getTypeAtLocation(member.initializer);
-        // Note: checking against 'NumberLike' instead of just 'Number' means this code
-        // handles both
-        //   MEMBER = 3,  // TypeFlags.NumberLiteral
-        // and
-        //   MEMBER = someFunction(),  // TypeFlags.Number
-        if (type.flags & ts.TypeFlags.NumberLike) {
-          hasNumber = true;
-        } else if (type.flags & ts.TypeFlags.StringLike) {
-          hasString = true;
-        } else {
-          // Enum contains something other than a string or a number; bail.
-          return '?';
-        }
-      } else {
-        // Members without initializers default to numeric.
+      const type = this.getEnumMemberType(member);
+      if (type === 'string') {
+        hasString = true;
+      } else if (type === 'number') {
         hasNumber = true;
       }
     }
@@ -1542,11 +1552,21 @@ class Annotator extends ClosureRewriter {
       return;
     }
 
-    // Emit the reverse mapping of foo[foo.BAR] = 'BAR'; lines for number enums.
-    if (enumType === 'number') {
-      for (const member of node.members) {
-        const memberName = member.name.getText();
+    // Emit the reverse mapping of foo[foo.BAR] = 'BAR'; lines for number enum members
+    for (const member of node.members) {
+      const memberName = member.name.getText();
+      const memberType = this.getEnumMemberType(member);
+      if (memberType !== 'number') {
+        continue;
+      }
+      // TypeScript enum members can have Identifier names or String names.
+      // We need to emit slightly different code to support these two syntaxes:
+      if (member.name.kind === ts.SyntaxKind.Identifier) {
+        // Foo[Foo.ABC] = "ABC";
         this.emit(`${name}[${name}.${memberName}] = "${memberName}";\n`);
+      } else {
+        // Foo[Foo["A B C"]] = "A B C";
+        this.emit(`${name}[${name}[${memberName}]] = ${memberName};\n`);
       }
     }
   }
