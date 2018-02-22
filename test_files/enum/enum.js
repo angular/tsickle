@@ -76,8 +76,18 @@ const StringEnum = {
     STR: 'abc',
     OTHER_STR: 'xyz',
 };
+/** @enum {number} */
+const StringKeyEnum = {
+    "string key": 1,
+    "string key 2": 0,
+};
+StringKeyEnum[StringKeyEnum["string key"]] = "string key";
+StringKeyEnum[StringKeyEnum["string key 2"]] = "string key 2";
 /** @enum {?} */
 const MixedEnum = {
     STR: 'abc',
     NUM: 3,
+    "string key": 4,
 };
+MixedEnum[MixedEnum.NUM] = "NUM";
+MixedEnum[MixedEnum["string key"]] = "string key";

@@ -61,7 +61,19 @@ enum StringEnum {
   OTHER_STR = 'xyz',
 }
 
+// Enum members with 'string' keys require slightly different syntax
+// when emitting the reverse mapping, which we test with this block.
+enum StringKeyEnum {
+  'string key' = 1,
+  'string key 2' = 0
+}
+
+// Test emitting for enums with a mixture of features:
+// - string values
+// - number values
+// - string keys
 enum MixedEnum {
   STR = 'abc',
   NUM = 3,
+  'string key' = 4 
 }
