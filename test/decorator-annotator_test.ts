@@ -120,14 +120,6 @@ class Foo {
         { type: Test1 },
         { type: Test2, args: [param,] },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
 }
 `);
     });
@@ -148,14 +140,6 @@ class Foo {
     }[] = [
         { type: Test },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
 }
 `);
     });
@@ -177,14 +161,6 @@ class Foo {
     }[] = [
         { type: Test },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
 }
 `);
     });
@@ -219,14 +195,6 @@ class Foo {
         { type: Test3 },
         { type: Test4, args: [param,] },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
 }
 `);
     });
@@ -246,14 +214,6 @@ export class Foo {
     }[] = [
         { type: Test1 },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
 }
 `);
     });
@@ -282,15 +242,41 @@ export class Foo {
             }[] = [
                 { type: Test2 },
             ];
-            /** @nocollapse */
-            static ctorParameters: () => ({
-                type: any;
-                decorators?: {
-                    type: Function;
-                    args?: any[];
-                }[];
-            } | null)[] = () => [];
         }
+    }
+    static decorators: {
+        type: Function;
+        args?: any[];
+    }[] = [
+        { type: Test1 },
+    ];
+}
+`);
+    });
+  });
+
+  describe('ctor decorator rewriter', () => {
+    it('ignores ctors that have no applicable injects', () => {
+      expectUnchanged(`import { BarService } from 'bar';
+class Foo {
+    constructor(bar: BarService, num: number) {
+    }
+}
+`);
+    });
+
+    it('transforms empty ctors', () => {
+      expectTranslated(`
+import {FakeDecorator} from 'bar';
+/** @Annotation */ let Test1: FakeDecorator;
+@Test1()
+class Foo {
+  constructor() {
+  }
+}`).to.equal(`import { FakeDecorator } from 'bar';
+/** @Annotation */ let Test1: FakeDecorator;
+class Foo {
+    constructor() {
     }
     static decorators: {
         type: Function;
@@ -306,17 +292,6 @@ export class Foo {
             args?: any[];
         }[];
     } | null)[] = () => [];
-}
-`);
-    });
-  });
-
-  describe('ctor decorator rewriter', () => {
-    it('ignores ctors that have no applicable injects', () => {
-      expectUnchanged(`import { BarService } from 'bar';
-class Foo {
-    constructor(bar: BarService, num: number) {
-    }
 }
 `);
     });

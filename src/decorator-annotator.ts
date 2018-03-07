@@ -64,11 +64,11 @@ export function shouldLower(decorator: ts.Decorator, typeChecker: ts.TypeChecker
 // separately for each class we encounter.
 export class DecoratorClassVisitor {
   /** Decorators on the class itself. */
-  decorators: ts.Decorator[];
+  private decorators: ts.Decorator[];
   /** The constructor parameter list and decorators on each param. */
   private ctorParameters: ConstructorParameter[];
   /** Per-method decorators. */
-  propDecorators: Map<string, ts.Decorator[]>;
+  private propDecorators: Map<string, ts.Decorator[]>;
 
   constructor(
       private typeChecker: ts.TypeChecker, private rewriter: Rewriter,
@@ -249,8 +249,12 @@ export class DecoratorClassVisitor {
    */
   emitMetadataAsStaticProperties() {
     const decoratorInvocations = '{type: Function, args?: any[]}[]';
+
     if (this.decorators || this.ctorParameters) {
       this.rewriter.emit(`/** @nocollapse */\n`);
+    }
+
+    if (this.ctorParameters) {
       // ctorParameters may contain forward references in the type: field, so wrap in a function
       // closure
       this.rewriter.emit(

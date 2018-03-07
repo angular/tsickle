@@ -100,7 +100,7 @@ function insertBeforeDecoratorProperties(
   let insertionPoint = classMembers.findIndex(
       m => isNameEqual(m, 'ctorParameters') || isNameEqual(m, 'propDecorators'));
   if (insertionPoint === -1) {
-    insertionPoint = classMembers.length - 1;
+    insertionPoint = classMembers.length;  // Insert at end of list
   }
   const members = [
     ...classMembers.slice(0, insertionPoint), decoratorMetadata,
