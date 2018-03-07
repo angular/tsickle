@@ -50,6 +50,8 @@ export interface AnnotatorHost {
    * If true, do not modify quotes around property accessors.
    */
   disableAutoQuoting?: boolean;
+  /** Whether to add `goog.forwardDeclare` declarations for `goog.module` Closure imports. */
+  googmodule?: boolean;
 }
 
 /**
