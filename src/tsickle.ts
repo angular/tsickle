@@ -1158,7 +1158,7 @@ class Annotator extends ClosureRewriter {
    * @param specifier the import specifier, i.e. module path ("from '...'").
    */
   private forwardDeclare(specifier: ts.Expression, isDefaultImport = false) {
-    if (!this.tsHost.googmodule) {
+    if (!this.host.googmodule) {
       return;
     }
     const importPath = es5processor.resolveIndexShorthand(
