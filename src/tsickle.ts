@@ -1243,7 +1243,8 @@ class Annotator extends ClosureRewriter {
     this.emit('\n');
     if (docTags.length > 0) this.emit(jsdoc.toString(docTags));
     decorator.visitClassContentIncludingDecorators(classDecl, this, this.currentDecoratorConverter);
-    this.emitTypeAnnotationsHelper(classDecl);
+    this.emit('\n');
+    this.emitTypeAnnotations(classDecl);
 
     this.currentDecoratorConverter = oldDecoratorConverter;
     return true;
@@ -1279,13 +1280,15 @@ class Annotator extends ClosureRewriter {
   }
 
   /**
-   * emitTypeAnnotationsHelper produces a _tsickle_typeAnnotationsHelper() where
-   * none existed in the original source. It's necessary in the case where
-   * TypeScript syntax specifies there are additional properties on the class,
-   * because to declare these in Closure you must declare these in a method
-   * somewhere.
+   * emitTypeAnnotations emits a list of type annotations for the
+   * members/statics of a class.  Output is e.g.
+   *
+   *   /** @type {...} * /
+   *   Class.prototype.member;
+   *   /** @type {...} * /
+   *   Class.static;
    */
-  private emitTypeAnnotationsHelper(classDecl: ts.ClassDeclaration) {
+  private emitTypeAnnotations(classDecl: ts.ClassDeclaration) {
     // Gather parameter properties from the constructor, if it exists.
     const ctors: ts.ConstructorDeclaration[] = [];
     let paramProps: ts.ParameterDeclaration[] = [];
@@ -1321,15 +1324,13 @@ class Annotator extends ClosureRewriter {
     if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0 &&
         abstractMethods.length === 0 &&
         !(this.currentDecoratorConverter && this.currentDecoratorConverter.foundDecorators())) {
-      // There are no members so we don't need to emit any type
-      // annotations helper.
+      // There are no members so we don't need to emit any type annotations.
       return;
     }
 
     if (!classDecl.name) return;
     const className = getIdentifierText(classDecl.name);
 
-    this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
     if (this.currentDecoratorConverter) {
       this.currentDecoratorConverter.emitMetadataTypeAnnotationsHelpers();
     }
@@ -1349,8 +1350,6 @@ class Annotator extends ClosureRewriter {
       // memberNamespace because abstract methods cannot be static in TypeScript.
       this.emit(`${memberNamespace.join('.')}.${name} = function(${paramNames.join(', ')}) {};\n`);
     }
-
-    this.emit(`}\n`);
   }
 
   private propertyName(prop: ts.NamedDeclaration): string|null {

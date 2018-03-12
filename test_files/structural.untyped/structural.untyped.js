@@ -8,10 +8,8 @@ goog.module('test_files.structural.untyped.structural.untyped');var module = mod
      */
     method() { return this.field1; }
 }
-function StructuralTest_tsickle_Closure_declarations() {
-    /** @type {?} */
-    StructuralTest.prototype.field1;
-}
+/** @type {?} */
+StructuralTest.prototype.field1;
 /**
  * @param {?} st
  * @return {?}

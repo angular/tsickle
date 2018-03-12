@@ -84,32 +84,28 @@ __decorate([
     decorator,
     __metadata("design:type", external_1.AClass)
 ], DecoratorTest.prototype, "z", void 0);
-function DecoratorTest_tsickle_Closure_declarations() {
-    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
-    DecoratorTest.decorators;
-    /**
-     * @nocollapse
-     * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>)})>}
-     */
-    DecoratorTest.ctorParameters;
-    /** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
-    DecoratorTest.propDecorators;
-    /**
-     * Some comment
-     * @type {number}
-     */
-    DecoratorTest.prototype.x;
-    /** @type {number} */
-    DecoratorTest.prototype.y;
-    /** @type {!tsickle_forward_declare_1.AClass} */
-    DecoratorTest.prototype.z;
-}
+/** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+DecoratorTest.decorators;
+/**
+ * @nocollapse
+ * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>)})>}
+ */
+DecoratorTest.ctorParameters;
+/** @type {!Object<string,!Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
+DecoratorTest.propDecorators;
+/**
+ * Some comment
+ * @type {number}
+ */
+DecoratorTest.prototype.x;
+/** @type {number} */
+DecoratorTest.prototype.y;
+/** @type {!tsickle_forward_declare_1.AClass} */
+DecoratorTest.prototype.z;
 let DecoratedClass = class DecoratedClass {
 };
 DecoratedClass = __decorate([
     classDecorator
 ], DecoratedClass);
-function DecoratedClass_tsickle_Closure_declarations() {
-    /** @type {string} */
-    DecoratedClass.prototype.z;
-}
+/** @type {string} */
+DecoratedClass.prototype.z;

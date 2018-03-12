@@ -18,12 +18,10 @@ class Foo {
         this.field = 'hello';
     }
 }
-function Foo_tsickle_Closure_declarations() {
-    /** @type {?} */
-    Foo.prototype.field;
-    /** @type {?} */
-    Foo.prototype.ctorArg;
-}
+/** @type {?} */
+Foo.prototype.field;
+/** @type {?} */
+Foo.prototype.ctorArg;
 // These two declarations should not have a @type annotation,
 // regardless of untyped.
 (function () {

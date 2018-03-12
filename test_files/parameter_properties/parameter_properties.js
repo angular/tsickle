@@ -20,20 +20,18 @@ goog.module('test_files.parameter_properties.parameter_properties');var module =
         this.publicReadonlyP = publicReadonlyP;
     }
 }
-function ParamProps_tsickle_Closure_declarations() {
-    /**
-     * @export
-     * @type {string}
-     */
-    ParamProps.prototype.publicExportedP;
-    /** @type {string} */
-    ParamProps.prototype.publicP;
-    /** @type {string} */
-    ParamProps.prototype.protectedP;
-    /** @type {string} */
-    ParamProps.prototype.privateP;
-    /** @type {string} */
-    ParamProps.prototype.readonlyP;
-    /** @type {string} */
-    ParamProps.prototype.publicReadonlyP;
-}
+/**
+ * @export
+ * @type {string}
+ */
+ParamProps.prototype.publicExportedP;
+/** @type {string} */
+ParamProps.prototype.publicP;
+/** @type {string} */
+ParamProps.prototype.protectedP;
+/** @type {string} */
+ParamProps.prototype.privateP;
+/** @type {string} */
+ParamProps.prototype.readonlyP;
+/** @type {string} */
+ParamProps.prototype.publicReadonlyP;

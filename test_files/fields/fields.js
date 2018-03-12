@@ -21,16 +21,14 @@ goog.module('test_files.fields.fields');var module = module || {id: 'test_files/
         return this.field1;
     }
 }
-function FieldsTest_tsickle_Closure_declarations() {
-    /** @type {string} */
-    FieldsTest.prototype.field1;
-    /** @type {number} */
-    FieldsTest.prototype.field2;
-    /** @type {string} */
-    FieldsTest.prototype.field4;
-    /** @type {number} */
-    FieldsTest.prototype.field3;
-}
+/** @type {string} */
+FieldsTest.prototype.field1;
+/** @type {number} */
+FieldsTest.prototype.field2;
+/** @type {string} */
+FieldsTest.prototype.field4;
+/** @type {number} */
+FieldsTest.prototype.field3;
 let /** @type {!FieldsTest} */ fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';

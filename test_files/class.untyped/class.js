@@ -57,13 +57,9 @@ superVar = new ImplementsTypeAlias();
 function Zone() { }
 class ZoneImplementsInterface {
 }
-function ZoneImplementsInterface_tsickle_Closure_declarations() {
-    /** @type {?} */
-    ZoneImplementsInterface.prototype.zone;
-}
+/** @type {?} */
+ZoneImplementsInterface.prototype.zone;
 class ZoneImplementsAlias {
 }
-function ZoneImplementsAlias_tsickle_Closure_declarations() {
-    /** @type {?} */
-    ZoneImplementsAlias.prototype.zone;
-}
+/** @type {?} */
+ZoneImplementsAlias.prototype.zone;

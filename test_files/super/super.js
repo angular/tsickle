@@ -13,10 +13,8 @@ class SuperTestBaseOneArg {
         this.x = x;
     }
 }
-function SuperTestBaseOneArg_tsickle_Closure_declarations() {
-    /** @type {number} */
-    SuperTestBaseOneArg.prototype.x;
-}
+/** @type {number} */
+SuperTestBaseOneArg.prototype.x;
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
      * @param {string} y
@@ -26,20 +24,16 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
         this.y = y;
     }
 }
-function SuperTestDerivedParamProps_tsickle_Closure_declarations() {
-    /** @type {string} */
-    SuperTestDerivedParamProps.prototype.y;
-}
+/** @type {string} */
+SuperTestDerivedParamProps.prototype.y;
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     constructor() {
         super(3);
         this.y = 'foo';
     }
 }
-function SuperTestDerivedInitializedProps_tsickle_Closure_declarations() {
-    /** @type {string} */
-    SuperTestDerivedInitializedProps.prototype.y;
-}
+/** @type {string} */
+SuperTestDerivedInitializedProps.prototype.y;
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
     constructor() {
         super(3);
@@ -62,14 +56,10 @@ function SuperTestInterface_tsickle_Closure_declarations() {
  */
 class SuperTestDerivedInterface {
 }
-function SuperTestDerivedInterface_tsickle_Closure_declarations() {
-    /** @type {number} */
-    SuperTestDerivedInterface.prototype.foo;
-}
+/** @type {number} */
+SuperTestDerivedInterface.prototype.foo;
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
-function SuperTestStaticProp_tsickle_Closure_declarations() {
-    /** @type {number} */
-    SuperTestStaticProp.foo;
-}
+/** @type {number} */
+SuperTestStaticProp.foo;

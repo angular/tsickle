@@ -21,10 +21,8 @@ function Point_tsickle_Closure_declarations() {
 class User {
 }
 exports.User = User;
-function User_tsickle_Closure_declarations() {
-    /** @type {number} */
-    User.prototype.shoeSize;
-}
+/** @type {number} */
+User.prototype.shoeSize;
 /**
  * @param {!Point} p
  * @return {number}
