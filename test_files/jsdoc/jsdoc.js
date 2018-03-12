@@ -61,35 +61,33 @@ class JSDocTest {
  * \@internal
  */
 JSDocTest.X = [];
-function JSDocTest_tsickle_Closure_declarations() {
-    /**
-     * \@internal
-     * @type {!Array<string>}
-     */
-    JSDocTest.X;
-    /**
-     * \@internal
-     * @type {!Array<string>}
-     */
-    JSDocTest.prototype.x;
-    /**
-     * @export
-     * @type {string}
-     */
-    JSDocTest.prototype.exported;
-    /** @type {string} */
-    JSDocTest.prototype.badExport;
-    /** @type {string} */
-    JSDocTest.prototype.stringWithoutJSDoc;
-    /** @type {number} */
-    JSDocTest.prototype.typedThing;
-    /** @type {?} */
-    JSDocTest.prototype.badEnumThing;
-    /** @type {string} */
-    JSDocTest.prototype.badConstThing;
-    /** @type {string} */
-    JSDocTest.prototype.badTypeDef;
-}
+/**
+ * \@internal
+ * @type {!Array<string>}
+ */
+JSDocTest.X;
+/**
+ * \@internal
+ * @type {!Array<string>}
+ */
+JSDocTest.prototype.x;
+/**
+ * @export
+ * @type {string}
+ */
+JSDocTest.prototype.exported;
+/** @type {string} */
+JSDocTest.prototype.badExport;
+/** @type {string} */
+JSDocTest.prototype.stringWithoutJSDoc;
+/** @type {number} */
+JSDocTest.prototype.typedThing;
+/** @type {?} */
+JSDocTest.prototype.badEnumThing;
+/** @type {string} */
+JSDocTest.prototype.badConstThing;
+/** @type {string} */
+JSDocTest.prototype.badTypeDef;
 class BadTemplated {
 }
 class BadDict {

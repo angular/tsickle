@@ -8,7 +8,5 @@ exports.TemplatizedTypeAndValue = 1;
 class Class {
 }
 exports.Class = Class;
-function Class_tsickle_Closure_declarations() {
-    /** @type {number} */
-    Class.prototype.z;
-}
+/** @type {number} */
+Class.prototype.z;

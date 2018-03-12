@@ -17,34 +17,32 @@ class Base {
         this.hasReturnType();
     }
 }
-function Base_tsickle_Closure_declarations() {
-    /**
-     * @abstract
-     * @return {void}
-     */
-    Base.prototype.simple = function () { };
-    /**
-     * @abstract
-     * @return {void}
-     */
-    Base.prototype.publicAbstract = function () { };
-    /**
-     * @abstract
-     * @param {!Array<number>} x
-     * @return {void}
-     */
-    Base.prototype.params = function (x) { };
-    /**
-     * @abstract
-     * @return {?}
-     */
-    Base.prototype.noReturnType = function () { };
-    /**
-     * @abstract
-     * @return {number}
-     */
-    Base.prototype.hasReturnType = function () { };
-}
+/**
+ * @abstract
+ * @return {void}
+ */
+Base.prototype.simple = function () { };
+/**
+ * @abstract
+ * @return {void}
+ */
+Base.prototype.publicAbstract = function () { };
+/**
+ * @abstract
+ * @param {!Array<number>} x
+ * @return {void}
+ */
+Base.prototype.params = function (x) { };
+/**
+ * @abstract
+ * @return {?}
+ */
+Base.prototype.noReturnType = function () { };
+/**
+ * @abstract
+ * @return {number}
+ */
+Base.prototype.hasReturnType = function () { };
 class Derived extends Base {
     constructor() {
         super();

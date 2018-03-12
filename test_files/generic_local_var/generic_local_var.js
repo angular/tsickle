@@ -25,7 +25,5 @@ class Container {
         console.log(myT, myU);
     }
 }
-function Container_tsickle_Closure_declarations() {
-    /** @type {T} */
-    Container.prototype.tField;
-}
+/** @type {T} */
+Container.prototype.tField;

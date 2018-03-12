@@ -18,12 +18,10 @@ class MyPoint {
         this.y = y;
     }
 }
-function MyPoint_tsickle_Closure_declarations() {
-    /** @type {number} */
-    MyPoint.prototype.x;
-    /** @type {number} */
-    MyPoint.prototype.y;
-}
+/** @type {number} */
+MyPoint.prototype.x;
+/** @type {number} */
+MyPoint.prototype.y;
 /**
  * @extends {tsickle_forward_declare_1.User}
  */
@@ -35,10 +33,8 @@ class ImplementsUser {
         this.shoeSize = shoeSize;
     }
 }
-function ImplementsUser_tsickle_Closure_declarations() {
-    /** @type {number} */
-    ImplementsUser.prototype.shoeSize;
-}
+/** @type {number} */
+ImplementsUser.prototype.shoeSize;
 class ExtendsUser extends interface_1.User {
     constructor() {
         super();

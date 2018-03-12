@@ -34,13 +34,11 @@ class AbstractClass {
      */
     nonAbstractFunc() { }
 }
-function AbstractClass_tsickle_Closure_declarations() {
-    /**
-     * @abstract
-     * @return {void}
-     */
-    AbstractClass.prototype.abstractFunc = function () { };
-}
+/**
+ * @abstract
+ * @return {void}
+ */
+AbstractClass.prototype.abstractFunc = function () { };
 /**
  * @record
  * @extends {Interface}
@@ -195,15 +193,11 @@ abstractClassVar = new ClassExtendsAbstractClass();
 function Zone() { }
 class ZoneImplementsInterface {
 }
-function ZoneImplementsInterface_tsickle_Closure_declarations() {
-    /** @type {string} */
-    ZoneImplementsInterface.prototype.zone;
-}
+/** @type {string} */
+ZoneImplementsInterface.prototype.zone;
 /** @typedef {?} */
 var ZoneAlias;
 class ZoneImplementsAlias {
 }
-function ZoneImplementsAlias_tsickle_Closure_declarations() {
-    /** @type {string} */
-    ZoneImplementsAlias.prototype.zone;
-}
+/** @type {string} */
+ZoneImplementsAlias.prototype.zone;

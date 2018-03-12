@@ -40,16 +40,12 @@ let /** @type {?} */ useNeverTypedTemplated;
  */
 class ImplementsNeverTyped {
 }
-function ImplementsNeverTyped_tsickle_Closure_declarations() {
-    /** @type {number} */
-    ImplementsNeverTyped.prototype.foo;
-}
+/** @type {number} */
+ImplementsNeverTyped.prototype.foo;
 /**
  * @template T
  */
 class ImplementsNeverTypedTemplated {
 }
-function ImplementsNeverTypedTemplated_tsickle_Closure_declarations() {
-    /** @type {T} */
-    ImplementsNeverTypedTemplated.prototype.foo;
-}
+/** @type {T} */
+ImplementsNeverTypedTemplated.prototype.foo;

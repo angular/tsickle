@@ -19,10 +19,8 @@ class __Class {
         return this.__member;
     }
 }
-function __Class_tsickle_Closure_declarations() {
-    /** @type {string} */
-    __Class.prototype.__member;
-}
+/** @type {string} */
+__Class.prototype.__member;
 /**
  * @record
  */

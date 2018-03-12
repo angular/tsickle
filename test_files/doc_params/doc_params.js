@@ -11,7 +11,5 @@ goog.module('test_files.doc_params.doc_params');var module = module || {id: 'tes
         this.a = a;
     }
 }
-function Foo_tsickle_Closure_declarations() {
-    /** @type {string} */
-    Foo.prototype.a;
-}
+/** @type {string} */
+Foo.prototype.a;

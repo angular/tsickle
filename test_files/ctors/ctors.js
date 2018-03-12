@@ -11,8 +11,6 @@ class X {
         this.a = a;
     }
 }
-function X_tsickle_Closure_declarations() {
-    /** @type {number} */
-    X.prototype.a;
-}
+/** @type {number} */
+X.prototype.a;
 let /** @type {function(new: (!X), number): ?} */ y = X;
