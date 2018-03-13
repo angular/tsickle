@@ -36,3 +36,21 @@ let /** @type {!FieldsTest} */ fieldsTest = new FieldsTest(3);
 fieldsTest.field1 = 'hi';
 let /** @type {?} */ AnonymousClass = class {
 };
+class BaseThatThrows {
+    /**
+     * @return {number}
+     */
+    get throwMe() { throw new Error(); }
+}
+class Derived extends BaseThatThrows {
+}
+function Derived_tsickle_Closure_declarations() {
+    /**
+     * Note: in Closure, this type is declared via an annotation on
+     * Derived.prototype.throwMe, which throws if it's evaluated.
+     * So any tsickle output that puts the type declaration at the
+     * top level is wrong.
+     * @type {number}
+     */
+    Derived.prototype.throwMe;
+}

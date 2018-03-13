@@ -22,3 +22,17 @@ fieldsTest.field1 = 'hi';
 let AnonymousClass = class {
   field: number;
 };
+
+
+class BaseThatThrows {
+  get throwMe(): number { throw new Error(); }
+}
+class Derived extends BaseThatThrows {
+  /**
+   * Note: in Closure, this type is declared via an annotation on
+   * Derived.prototype.throwMe, which throws if it's evaluated.
+   * So any tsickle output that puts the type declaration at the
+   * top level is wrong.
+   */
+  throwMe: number;
+}

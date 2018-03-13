@@ -1329,6 +1329,7 @@ class Annotator extends ClosureRewriter {
     if (!classDecl.name) return;
     const className = getIdentifierText(classDecl.name);
 
+    // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
     this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
     if (this.currentDecoratorConverter) {
       this.currentDecoratorConverter.emitMetadataTypeAnnotationsHelpers();
