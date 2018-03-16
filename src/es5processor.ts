@@ -137,7 +137,7 @@ class ES5Processor extends Rewriter {
       }
       // The module=module bit suppresses an unused variable warning which
       // may trigger depending on the compilation flags.
-      this.emit(` var module = {id: '${moduleId}'}; module = module;`);
+      this.emit(` var module = module || {id: '${moduleId}'}; module = module;`);
     }
 
     let pos = 0;

@@ -48,7 +48,7 @@ describe('convertCommonJsToGoogModule', () => {
     // NB: no line break added below.
     expectCommonJs('a.js', `console.log('hello');`, false)
         .not.differentFrom(
-            `goog.module('a'); exports = {}; var module = {id: 'a.js'}; module = module;console.log('hello');`);
+            `goog.module('a'); exports = {}; var module = module || {id: 'a.js'}; module = module;console.log('hello');`);
   });
 
   it('adds a goog.module call to empty files', () => {
@@ -232,7 +232,7 @@ __export(require('./export_star');
         .not.differentFrom(
             `goog.module('a');goog.require('tshelpers'); ` +
             `exports = {}; ` +
-            `var module = {id: 'a.js'}; module = module;` +
+            `var module = module || {id: 'a.js'}; module = module;` +
             `console.log('hello');`);
   });
 
@@ -241,7 +241,7 @@ __export(require('./export_star');
         'a.js', `console.log('hello'); module.exports = 1;`, false, `goog.require('tshelpers');`)
         .not.differentFrom(
             `goog.module('a');goog.require('tshelpers'); ` +
-            `var module = {id: 'a.js'}; module = module;` +
+            `var module = module || {id: 'a.js'}; module = module;` +
             `console.log('hello'); exports = 1;`);
   });
 });
