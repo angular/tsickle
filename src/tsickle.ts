@@ -1043,7 +1043,7 @@ class Annotator extends ClosureRewriter {
       // Note: We create explicit reexports via closure at another place in
       return false;
     }
-    if (sym.flags & ts.SymbolFlags.ConstEnum) {
+    if (!this.tsOpts.preserveConstEnums && sym.flags & ts.SymbolFlags.ConstEnum) {
       return false;
     }
     return true;
