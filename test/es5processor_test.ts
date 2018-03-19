@@ -173,7 +173,9 @@ console.log(foo.bar.default);`);
   });
 
   it('strips "use strict" (implied by goog.module)', () => {
-    expectCommonJs('a/b.js', `/**
+    expectCommonJs(
+        'a/b.js',
+        `/**
  * docstring here
  */
 "use strict";

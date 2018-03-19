@@ -34,7 +34,9 @@ export interface AnnotatorHost {
    */
   logWarning?: (warning: ts.Diagnostic) => void;
   pathToModuleName: (context: string, importPath: string, rootModulePath?: string) => string;
-  /** The file path for the root module. Module names will have their names resolved against this. */
+  /**
+   * The file path for the root module. Module names will have their names resolved against this.
+   */
   rootModulePath?: string;
   /**
    * If true, convert every type to the Closure {?} type, which means
@@ -1176,8 +1178,9 @@ class Annotator extends ClosureRewriter {
     if (this.host.untyped) return '';
     const nsImport = es5processor.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
-    const moduleNamespace =
-        nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath, this.host.rootModulePath);
+    const moduleNamespace = nsImport !== null ?
+        nsImport :
+        this.host.pathToModuleName(this.file.fileName, importPath, this.host.rootModulePath);
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
     // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
     // here would cause a change in load order, which is observable (and can lead to errors).

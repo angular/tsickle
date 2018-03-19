@@ -591,15 +591,13 @@ class ClassWithDecorators {
     });
 
     it('errors on weird class members', () => {
-      const {diagnostics} = translate(
-          `
+      const {diagnostics} = translate(`
 /** @Annotation */ let Test1: Function;
 let param: any;
 class Foo {
   @Test1('somename')
   [param]() {}
-}`,
-          true /* allow errors */);
+}`, true /* allow errors */);
 
       expect(tsickle.formatDiagnostics(diagnostics))
           .to.equal(

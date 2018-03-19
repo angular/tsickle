@@ -39,7 +39,9 @@ export interface Es5ProcessorHost {
    * An additional prelude to insert in front of the emitted code, e.g. to import a shared library.
    */
   prelude?: string;
-  /** The file path for the root module. Module names will have their names resolved against this. */
+  /**
+   * The file path for the root module. Module names will have their names resolved against this.
+   */
   rootModulePath?: string;
 
   options: ts.CompilerOptions;
