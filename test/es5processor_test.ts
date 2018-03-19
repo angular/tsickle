@@ -25,6 +25,7 @@ describe('convertCommonJsToGoogModule', () => {
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn,
       pathToModuleName: cliSupport.pathToModuleName,
+      rootModulePath: '/',
       es5Mode: isES5,
       prelude,
       options: testSupport.compilerOptions,

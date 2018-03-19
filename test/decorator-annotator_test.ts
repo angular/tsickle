@@ -48,6 +48,7 @@ describe('decorator-annotator', () => {
       pathToModuleName: cliSupport.pathToModuleName,
       shouldIgnoreWarningsForPath: (filePath) => false,
       fileNameToModuleId: (filePath) => filePath,
+      rootModulePath: '/',
       transformDecorators: true,
       googmodule: true,
       es5Mode: false,

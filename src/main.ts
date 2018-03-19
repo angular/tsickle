@@ -155,7 +155,6 @@ export function toClosureJS(
   // Use absolute paths to determine what files to process since files may be imported using
   // relative or absolute paths
   const absoluteFileNames = fileNames.map(i => path.resolve(i));
-  cliSupport.setRootModulePath(getCommonParentDirectory(absoluteFileNames));
 
   const compilerHost = ts.createCompilerHost(options);
   const program = ts.createProgram(fileNames, options, compilerHost);
@@ -167,6 +166,7 @@ export function toClosureJS(
     shouldIgnoreWarningsForPath: (fileName: string) => false,
     pathToModuleName: cliSupport.pathToModuleName,
     fileNameToModuleId: (fileName) => fileName,
+    rootModulePath: getCommonParentDirectory(absoluteFileNames),
     es5Mode: true,
     googmodule: true,
     prelude: '',

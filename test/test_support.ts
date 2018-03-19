@@ -298,6 +298,7 @@ export function compileWithTransfromer(
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (filePath) => filePath,
+    rootModulePath: '/',
     transformDecorators: true,
     transformTypesToClosure: true,
     addDtsClutzAliases: true,

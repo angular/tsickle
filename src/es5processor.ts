@@ -22,7 +22,7 @@ export interface Es5ProcessorHost {
    * Takes a context (the current file) and the path of the file to import
    *  and generates a googmodule module name
    */
-  pathToModuleName(context: string, importPath: string): string;
+  pathToModuleName(context: string, importPath: string, rootModulePath?: string): string;
   /**
    * If we do googmodule processing, we polyfill module.id, since that's
    * part of ES6 modules.  This function determines what the module.id will be
@@ -39,6 +39,8 @@ export interface Es5ProcessorHost {
    * An additional prelude to insert in front of the emitted code, e.g. to import a shared library.
    */
   prelude?: string;
+  /** The file path for the root module. Module names will have their names resolved against this. */
+  rootModulePath?: string;
 
   options: ts.CompilerOptions;
   host: ts.ModuleResolutionHost;
@@ -112,7 +114,7 @@ class ES5Processor extends Rewriter {
     this.emitFileComment();
 
     const moduleId = this.host.fileNameToModuleId(this.file.fileName);
-    const moduleName = this.host.pathToModuleName('', this.file.fileName);
+    const moduleName = this.host.pathToModuleName('', this.file.fileName, this.host.rootModulePath);
     // NB: No linebreak after module call so sourcemaps are not offset.
     this.emit(`goog.module('${moduleName}');`);
     if (this.host.prelude) this.emit(this.host.prelude);
@@ -334,7 +336,7 @@ class ES5Processor extends Rewriter {
       if (this.host.convertIndexImportShorthand) {
         tsImport = resolveIndexShorthand(this.host, this.file.fileName, tsImport);
       }
-      modName = this.host.pathToModuleName(this.file.fileName, tsImport);
+      modName = this.host.pathToModuleName(this.file.fileName, tsImport, this.host.rootModulePath);
     }
 
     if (!varName) {
@@ -491,7 +493,7 @@ export function convertCommonJsToGoogModuleIfNeeded(
   }
   const {output, referencedModules} = processES5(host, fileName, content);
 
-  const moduleName = host.pathToModuleName('', fileName);
+  const moduleName = host.pathToModuleName('', fileName, host.rootModulePath);
   modulesManifest.addModule(fileName, moduleName);
   for (const referenced of referencedModules) {
     modulesManifest.addReferencedModule(fileName, referenced);

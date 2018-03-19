@@ -8,10 +8,8 @@
 
 import * as path from 'path';
 
-let rootModulePath: string;
-
 // Postprocess generated JS.
-export function pathToModuleName(context: string, fileName: string): string {
+export function pathToModuleName(context: string, fileName: string, rootModulePath?: string): string {
   fileName = fileName.replace(/\.[tj]s$/, '');
 
   if (fileName[0] === '.') {
@@ -32,12 +30,4 @@ export function pathToModuleName(context: string, fileName: string): string {
       fileName.replace(/\/|\\/g, '.').replace(/^[^a-zA-Z_$]/, '_').replace(/[^a-zA-Z0-9._$]/g, '_');
 
   return moduleName;
-}
-
-/**
- * Set the root path for all modules. If this is set, modules will have their names
- * shortened to paths relative to this path.
- */
-export function setRootModulePath(rootPath: string) {
-  rootModulePath = rootPath;
 }
