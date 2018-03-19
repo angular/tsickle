@@ -32,7 +32,6 @@ describe('source maps each node with transformer', () => {
     const {files} = compileWithTransfromer(sources, sourceMapCompilerOptions, process.cwd());
     const compiledJs = files.get('input.js')!;
     const sourceMap = getSourceMapWithName('input.js.map', files);
-    console.log(compiledJs);
 
     assertSourceMapping(compiledJs, sourceMap, 'var foo', {line: 1, source: 'input.ts'});
     assertSourceMapping(
