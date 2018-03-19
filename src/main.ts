@@ -24,6 +24,9 @@ export interface Settings {
   /** If provided, do not modify quoting of property accesses. */
   disableAutoQuoting?: boolean;
 
+  /** If provided, do not convert to 'goog.module' Closure modules. */
+  disableGoogModule?: boolean;
+
   /** If provided, path to save externs to. */
   externsPath?: string;
 
@@ -44,6 +47,7 @@ tsickle flags are:
   --externs=PATH        save generated Closure externs.js to PATH
   --typed               [experimental] attempt to provide Closure types instead of {?}
   --disableAutoQuoting  do not automatically apply quotes to property accesses
+  --disableGoogModule   do not convert to 'goog.module' Closure modules
 `);
 }
 
@@ -72,6 +76,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'disableAutoQuoting':
         settings.disableAutoQuoting = true;
+        break;
+      case 'disableGoogModule':
+        settings.disableGoogModule = true;
         break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
@@ -144,7 +151,7 @@ export function toClosureJS(
     pathToModuleName: cliSupport.pathToModuleName,
     fileNameToModuleId: (fileName) => fileName,
     es5Mode: true,
-    googmodule: true,
+    googmodule: !settings.disableGoogModule,
     prelude: '',
     transformDecorators: true,
     transformTypesToClosure: true,
