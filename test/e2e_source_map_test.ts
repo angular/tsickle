@@ -217,7 +217,7 @@ describe('source maps with transformer', () => {
     const sourceMap = extractInlineSourceMap(compiledJs);
 
     expect(sourceMap).to.exist;
-    expect(compiledJs).to.contain(`var module = {id: 'input.js'};`);
+    expect(compiledJs).to.contain(`var module = module || {id: 'input.js'};`);
   });
 
   it(`handles mixed source mapped and non source mapped input`, () => {
