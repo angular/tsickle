@@ -17,7 +17,7 @@ import * as ts from './typescript';
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';
 import {ModulesManifest} from './tsickle';
-import {getCommonParentDirectory} from './util';
+import {createSourceReplacingCompilerHost} from './util';
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
@@ -131,13 +131,15 @@ function loadTscConfig(args: string[]):
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
     writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
-  // Use absolute paths to determine what files to process since files may be imported using
-  // relative or absolute paths
-  const absoluteFileNames = fileNames.map(i => path.resolve(i));
-
   const compilerHost = ts.createCompilerHost(options);
   const program = ts.createProgram(fileNames, options, compilerHost);
-  const filesToProcess = new Set(absoluteFileNames);
+<<<<<<< 457a1d58df0d0a4d62d8cd9fd5dc39cf33a347fb
+  // Use absolute paths to determine what files to process since files may be imported using
+  // relative or absolute paths
+=======
+  // Use absolute paths to determine what files to process since files may be imported using any means
+>>>>>>> Resolve all paths before determining whether or not they were specified as source files
+  const filesToProcess = new Set(fileNames.map(i => path.resolve(i)));
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName: string) => {
       return !filesToProcess.has(path.resolve(fileName));
@@ -145,7 +147,6 @@ export function toClosureJS(
     shouldIgnoreWarningsForPath: (fileName: string) => false,
     pathToModuleName: cliSupport.pathToModuleName,
     fileNameToModuleId: (fileName) => fileName,
-    rootModulePath: getCommonParentDirectory(absoluteFileNames),
     es5Mode: true,
     googmodule: true,
     prelude: '',

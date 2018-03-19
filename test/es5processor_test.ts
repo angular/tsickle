@@ -15,6 +15,7 @@ import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
 import * as testSupport from './test_support';
+import {getCommonParentDirectory} from '../src/util';
 
 chaiUse(chaiDiff);
 
@@ -25,7 +26,7 @@ describe('convertCommonJsToGoogModule', () => {
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn,
       pathToModuleName: cliSupport.pathToModuleName,
-      rootModulePath: '/',
+      rootModulePath: process.cwd(),
       es5Mode: isES5,
       prelude,
       options: testSupport.compilerOptions,
@@ -173,9 +174,7 @@ console.log(foo.bar.default);`);
   });
 
   it('strips "use strict" (implied by goog.module)', () => {
-    expectCommonJs(
-        'a/b.js',
-        `/**
+    expectCommonJs('a/b.js', `/**
  * docstring here
  */
 "use strict";

@@ -18,6 +18,7 @@ import * as es5processor from '../src/es5processor';
 import {toClosureJS} from '../src/main';
 import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
+import {getCommonParentDirectory} from '../src/util';
 
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
@@ -286,19 +287,21 @@ export function getSourceMapWithName(
  * downleveling and closurization.
  */
 export function compileWithTransfromer(
-    sources: Map<string, string>, compilerOptions: ts.CompilerOptions) {
+    sources: Map<string, string>, compilerOptions: ts.CompilerOptions, rootPath?: string) {
   const fileNames = Array.from(sources.keys());
   const tsHost = createSourceCachingHost(sources, compilerOptions);
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
   expect(ts.getPreEmitDiagnostics(program))
       .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
 
+  const rootModulePath = rootPath ? rootPath : getCommonParentDirectory(fileNames);
+
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
     pathToModuleName: cliSupport.pathToModuleName,
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (filePath) => filePath,
-    rootModulePath: '/',
+    rootModulePath,
     transformDecorators: true,
     transformTypesToClosure: true,
     addDtsClutzAliases: true,
