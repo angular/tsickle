@@ -1043,7 +1043,7 @@ class Annotator extends ClosureRewriter {
       // Note: We create explicit reexports via closure at another place in
       return false;
     }
-    if (sym.flags & ts.SymbolFlags.ConstEnum) {
+    if (!this.tsOpts.preserveConstEnums && sym.flags & ts.SymbolFlags.ConstEnum) {
       return false;
     }
     return true;
@@ -1329,6 +1329,7 @@ class Annotator extends ClosureRewriter {
     if (!classDecl.name) return;
     const className = getIdentifierText(classDecl.name);
 
+    // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
     this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
     if (this.currentDecoratorConverter) {
       this.currentDecoratorConverter.emitMetadataTypeAnnotationsHelpers();
@@ -2155,6 +2156,15 @@ function addClutzAliases(
       if (declarations && !areAnyDeclarationsFromSourceFile(declarations, sf)) {
         continue;
       }
+
+      // default is a keyword in typescript, so the name of the export being default
+      // means that it's a default export
+      if (symbol.name === 'default') {
+        dtsFileContent +=
+            `// skipped emitting clutz aliases for a default export, which aren't currently supported`;
+        continue;
+      }
+
       // Want to alias the symbol to match what clutz would produce, so clutz .d.ts's
       // can reference symbols from typescript .d.ts's. See examples at:
       // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz

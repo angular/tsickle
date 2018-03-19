@@ -83,6 +83,18 @@ describe('emitWithTsickle', () => {
     expect(jsSources['./a.js']).to.contain('exports.x = 2;');
   });
 
+  it('should export const enums when preserveConstEnums is true', () => {
+    const tsSources = {'a.ts': `export const enum Foo { Bar };`, 'b.ts': `export * from './a';`};
+
+    const jsSources = emitWithTsickle(
+        tsSources, {
+          preserveConstEnums: true,
+          module: ts.ModuleKind.ES2015,
+        },
+        {es5Mode: false, googmodule: false});
+
+    expect(jsSources['./b.js']).to.contain(`export { Foo } from './a';`);
+  });
 
   describe('regressions', () => {
     it('should produce correct .d.ts files when expanding `export *` with es2015 module syntax',
