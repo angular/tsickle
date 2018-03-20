@@ -47,5 +47,5 @@ quotedMixed['invalid-identifier'] = 1;
 // Must not be converted to non-quoted access because it was declared quoted.
 quotedMixed['quotedIdent'] = 1;
 // any does not declare any symbols.
-let /** @type {?} */ anyTyped;
+let anyTyped;
 console.log(anyTyped['token']);

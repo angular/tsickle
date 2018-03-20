@@ -15,7 +15,7 @@ JSX.Element = function() {};
  * @struct
  */
 JSX.IntrinsicElements = function() {};
- /** @type {?} */
+
 JSX.IntrinsicElements.prototype.div;
 
 /* TODO: PropertySignature: JSX."var" */
@@ -34,5 +34,5 @@ React.createElement = function(args) {};
  * @return {void}
  */
 React.render = function(element, node) {};
- /** @type {?} */
+
 var Component;

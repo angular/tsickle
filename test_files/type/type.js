@@ -3,13 +3,13 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.type.type');var module = module || {id: 'test_files/type/type.js'};let /** @type {?} */ typeAny;
+goog.module('test_files.type.type');var module = module || {id: 'test_files/type/type.js'};let typeAny;
 let /** @type {!Array<?>} */ typeArr;
 let /** @type {!Array<?>} */ typeArr2;
 let /** @type {!Array<!Array<{a: ?}>>} */ typeNestedArr;
 let /** @type {{a: number, b: string}} */ typeObject = { a: 3, b: 'b' };
 let /** @type {!Object<string,number>} */ typeObjectIndexable;
-let /** @type {?} */ typeObjectMixedIndexProperty;
+let typeObjectMixedIndexProperty;
 let /** @type {!Object} */ typeObjectEmpty;
 let /** @type {!Object} */ typeNonPrimitive;
 let /** @type {!Array<?>} */ typeTuple = [1, 2];

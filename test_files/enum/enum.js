@@ -25,7 +25,7 @@ let /** @type {number} */ enumStrIndex = EnumTest1[/** @type {string} */ ((null)
 function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
 let /** @type {EnumTest1} */ enumTestLookup = EnumTest1["XYZ"];
-let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
+let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
 let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */

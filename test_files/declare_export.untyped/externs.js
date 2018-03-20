@@ -8,25 +8,25 @@
  * @struct
  */
 function ExportDeclaredIf() {}
- /** @type {?} */
+
 ExportDeclaredIf.prototype.x;
- /** @type {?} */
+
 var exportedDeclaredVar;
 /**
  * @constructor
  * @struct
  */
 function ExportDeclaredClass() {}
- /** @type {?} */
+
 ExportDeclaredClass.prototype.x;
 
 /**
  * @return {?}
  */
 function exportedDeclaredFn() {}
- /** @type {?} */
+
 var multiExportedDeclaredVar1;
- /** @type {?} */
+
 var multiExportedDeclaredVar2;
 
 /** @typedef {?} */
