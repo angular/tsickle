@@ -58,5 +58,5 @@ var exportedNamespaceUsingModuleType = {};
  * @struct
  */
 exportedNamespaceUsingModuleType.User = function() {};
- /** @type {?} */
+
 exportedNamespaceUsingModuleType.User.prototype.field;

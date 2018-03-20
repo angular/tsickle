@@ -3,4 +3,4 @@
  * @suppress {checkTypes} checked by tsc
  */
 goog.module('test_files.typedef.untyped.typedef');var module = module || {id: 'test_files/typedef.untyped/typedef.js'};
-var /** @type {?} */ y = 3;
+var y = 3;

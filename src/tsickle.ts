@@ -538,11 +538,16 @@ abstract class ClosureRewriter extends Rewriter {
 
   /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
   emitJSDocType(node: ts.Node, additionalDocTag?: string, type?: ts.Type) {
-    this.emit(' /**');
-    if (additionalDocTag) {
-      this.emit(' ' + additionalDocTag);
+    const typeStr = this.typeToClosure(node, type);
+    // If this results in an unknown type, just emit the JSDoc, skip the type and hope for Closure
+    // Compiler's inference.
+    if (typeStr === '?') {
+      if (additionalDocTag) this.emit(`/** ${additionalDocTag} */`);
+      return;
     }
-    this.emit(` @type {${this.typeToClosure(node, type)}} */`);
+    this.emit(' /**');
+    if (additionalDocTag) this.emit(' ' + additionalDocTag);
+    this.emit(` @type {${typeStr}} */`);
   }
 
   /**

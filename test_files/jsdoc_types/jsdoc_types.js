@@ -32,9 +32,9 @@ let /** @type {number} */ useLocalValue = module2_1.value;
 let /** @type {!tsickle_forward_declare_3.default} */ useDefaultClass = new default_1.default();
 let /** @type {!tsickle_forward_declare_3.default} */ useDefaultClassAsType;
 // NeverTyped should be {?}, even in typed mode.
-let /** @type {?} */ useNeverTyped;
+let useNeverTyped;
 let /** @type {(string|?)} */ useNeverTyped2;
-let /** @type {?} */ useNeverTypedTemplated;
+let useNeverTypedTemplated;
 /**
  * Note: no implements JSDoc clause because the type is blacklisted.
  */

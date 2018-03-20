@@ -21,7 +21,7 @@ class Container {
         const /** @type {T} */ myT = this.tField;
         // Closure Compiler's Old Type Inference does not support using generic
         // method parameters as local symbols, so myU must be emitted as ?.
-        const /** @type {?} */ myU = u;
+        const myU = u;
         console.log(myT, myU);
     }
 }

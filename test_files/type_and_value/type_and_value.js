@@ -13,11 +13,11 @@ const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.type_and_value
 let /** @type {function(new: (!Document)): ?} */ useBuiltInAsValue = Document;
 let /** @type {!Document} */ useBuiltInAsType;
 // Use a user-defined class as both a type and a value.
-let /** @type {?} */ useUserClassAsValue = conflict.Class;
+let useUserClassAsValue = conflict.Class;
 let /** @type {!tsickle_forward_declare_1.Class} */ useUserClassAsType;
 // Use a user-defined interface/value pair as both a type and a value.
 let /** @type {number} */ useAsValue = conflict.TypeAndValue;
 // Note: because of the conflict, we currently just use the type {?} here.
-let /** @type {?} */ useAsType;
+let useAsType;
 // Use a templatized user-defined interface/value pair as a type.
-let /** @type {?} */ useAsTypeTemplatized;
+let useAsTypeTemplatized;
