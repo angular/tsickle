@@ -712,7 +712,7 @@ export class TypeTranslator {
         this.warn(`type parameter with no symbol`);
         continue;
       }
-      this.symbolsToAliasedNames.set(sym, '?');
+      blacklist.set(sym, '?');
     }
   }
 }
