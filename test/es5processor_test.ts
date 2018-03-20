@@ -15,6 +15,7 @@ import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
 
 import * as testSupport from './test_support';
+import {getCommonParentDirectory} from '../src/util';
 
 chaiUse(chaiDiff);
 
@@ -24,7 +25,7 @@ describe('convertCommonJsToGoogModule', () => {
     const tsHost = ts.createCompilerHost(options);
     const host: es5processor.Es5ProcessorHost = {
       fileNameToModuleId: (fn) => fn,
-      pathToModuleName: cliSupport.pathToModuleName,
+      pathToModuleName: cliSupport.pathToModuleName.bind(null, process.cwd()),
       es5Mode: isES5,
       prelude,
       options: testSupport.compilerOptions,

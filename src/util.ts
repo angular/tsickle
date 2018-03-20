@@ -10,6 +10,7 @@
 // ES6 maps and sets when running on node 4, which doesn't
 // support Iterators completely.
 
+import * as path from 'path';
 import * as ts from 'typescript';
 
 /**
@@ -61,4 +62,25 @@ export function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean 
 
 export function isDtsFileName(fileName: string): boolean {
   return /\.d\.ts$/.test(fileName);
+}
+
+/**
+ * Determine the lowest-level common parent directory of the given list of files.
+ */
+export function getCommonParentDirectory(fileNames: string[]): string {
+  const pathSplitter = /[\/\\]+/;
+  const commonParent = fileNames[0].split(pathSplitter);
+  for (let i = 1; i < fileNames.length; i++) {
+    const thisPath = fileNames[i].split(pathSplitter);
+    let j = 0;
+    while (thisPath[j] === commonParent[j]) {
+      j++;
+    }
+    commonParent.length = j;  // Truncate without copying the array
+  }
+  if (commonParent.length === 0) {
+    return '/';
+  } else {
+    return commonParent.join(path.sep);
+  }
 }
