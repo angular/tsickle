@@ -15,7 +15,6 @@ import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as es5processor from '../src/es5processor';
-import {toClosureJS} from '../src/main';
 import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 import {getCommonParentDirectory} from '../src/util';
