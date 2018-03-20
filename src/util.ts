@@ -76,7 +76,7 @@ export function getCommonParentDirectory(fileNames: string[]): string {
     while (thisPath[j] === commonParent[j]) {
       j++;
     }
-    commonParent.splice(j, Infinity);  // Truncate without copying the array
+    commonParent.length = j;  // Truncate without copying the array
   }
   if (commonParent.length === 0) {
     return '/';

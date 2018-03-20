@@ -45,10 +45,9 @@ describe('decorator-annotator', () => {
 
     const transformerHost: tsickle.TsickleHost = {
       shouldSkipTsickleProcessing: (filePath) => !sources(sourceText).has(filePath),
-      pathToModuleName: cliSupport.pathToModuleName,
+      pathToModuleName: cliSupport.pathToModuleName.bind(null, '/'),
       shouldIgnoreWarningsForPath: (filePath) => false,
       fileNameToModuleId: (filePath) => filePath,
-      rootModulePath: '/',
       transformDecorators: true,
       googmodule: true,
       es5Mode: false,

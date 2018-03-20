@@ -10,7 +10,7 @@ import * as path from 'path';
 
 // Postprocess generated JS.
 export function pathToModuleName(
-    context: string, fileName: string, rootModulePath?: string): string {
+    rootModulePath: string, context: string, fileName: string): string {
   fileName = fileName.replace(/\.[tj]s$/, '');
 
   if (fileName[0] === '.') {

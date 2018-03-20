@@ -138,14 +138,14 @@ export function toClosureJS(
   const compilerHost = ts.createCompilerHost(options);
   const program = ts.createProgram(fileNames, options, compilerHost);
   const filesToProcess = new Set(absoluteFileNames);
+  const rootModulePath = options.rootDir || getCommonParentDirectory(absoluteFileNames);
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (fileName: string) => {
       return !filesToProcess.has(path.resolve(fileName));
     },
     shouldIgnoreWarningsForPath: (fileName: string) => false,
-    pathToModuleName: cliSupport.pathToModuleName,
+    pathToModuleName: cliSupport.pathToModuleName.bind(null, rootModulePath),
     fileNameToModuleId: (fileName) => fileName,
-    rootModulePath: getCommonParentDirectory(absoluteFileNames),
     es5Mode: true,
     googmodule: true,
     prelude: '',

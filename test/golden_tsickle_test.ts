@@ -165,7 +165,6 @@ testFn('golden tests with transformer', () => {
           return importPath.replace(/\/|\\/g, '.');
         },
         fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
-        rootModulePath: '/',
         options: tsCompilerOptions,
         host: tsHost,
       };

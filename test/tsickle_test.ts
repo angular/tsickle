@@ -44,7 +44,6 @@ describe('emitWithTsickle', () => {
         return importPath.replace(/\/|\\/g, '.');
       },
       fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
-      rootModulePath: '/',
       ...tsickleHostOverride,
       options: tsCompilerOptions,
       host: tsHost,

@@ -298,10 +298,9 @@ export function compileWithTransfromer(
 
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
-    pathToModuleName: cliSupport.pathToModuleName,
+    pathToModuleName: cliSupport.pathToModuleName.bind(null, rootModulePath),
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (filePath) => filePath,
-    rootModulePath,
     transformDecorators: true,
     transformTypesToClosure: true,
     addDtsClutzAliases: true,

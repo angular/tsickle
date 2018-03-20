@@ -33,11 +33,7 @@ export interface AnnotatorHost {
    * by default.
    */
   logWarning?: (warning: ts.Diagnostic) => void;
-  pathToModuleName: (context: string, importPath: string, rootModulePath?: string) => string;
-  /**
-   * The file path for the root module. Module names will have their names resolved against this.
-   */
-  rootModulePath?: string;
+  pathToModuleName: (context: string, importPath: string) => string;
   /**
    * If true, convert every type to the Closure {?} type, which means
    * "don't check types".
@@ -1178,9 +1174,8 @@ class Annotator extends ClosureRewriter {
     if (this.host.untyped) return '';
     const nsImport = es5processor.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
-    const moduleNamespace = nsImport !== null ?
-        nsImport :
-        this.host.pathToModuleName(this.file.fileName, importPath, this.host.rootModulePath);
+    const moduleNamespace =
+        nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
     // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
     // here would cause a change in load order, which is observable (and can lead to errors).
@@ -2147,7 +2142,7 @@ function addClutzAliases(
 
     // pathToModuleName expects the file name to end in .js
     const jsFileName = fileName.replace('.d.ts', '.js');
-    const moduleName = host.pathToModuleName('', jsFileName, host.rootModulePath);
+    const moduleName = host.pathToModuleName('', jsFileName);
     const clutzModuleName = moduleName.replace(/\./g, '$');
 
     // moduleExports is a ts.Map<ts.Symbol> which is an es6 Map, but has a
