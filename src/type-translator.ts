@@ -135,7 +135,7 @@ export class TypeTranslator {
    * A list of type literals we've encountered while emitting; used to avoid getting stuck in
    * recursive types.
    */
-  private readonly seenTypeLiterals = new Set<ts.Type>();
+  private readonly seenAnonymousTypes = new Set<ts.Type>();
 
   /**
    * Whether to write types suitable for an \@externs file. Externs types must not refer to
@@ -279,7 +279,7 @@ export class TypeTranslator {
     // Avoid infinite loops on recursive type literals.
     // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol
     // below), but Closure Compiler does not allow recursive type definitions.
-    if (this.seenTypeLiterals.has(type)) return '?';
+    if (this.seenAnonymousTypes.has(type)) return '?';
 
     // If type is an alias, e.g. from type X = A|B, then always emit the alias, not the underlying
     // union type, as the alias is the user visible, imported symbol.
@@ -488,18 +488,17 @@ export class TypeTranslator {
         return '?';
       }
 
-      if (type.symbol.flags & ts.SymbolFlags.TypeLiteral) {
-        return this.translateTypeLiteral(type);
-      } else if (
-          type.symbol.flags & ts.SymbolFlags.Function ||
+      if (type.symbol.flags & ts.SymbolFlags.Function ||
           type.symbol.flags & ts.SymbolFlags.Method) {
         const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
+        this.warn('unhandled anonymous type with multiple call signatures');
+        return '?';
+      } else {
+        return this.translateAnonymousType(type);
       }
-      this.warn('unhandled anonymous type');
-      return '?';
     }
 
     /*
@@ -516,18 +515,21 @@ export class TypeTranslator {
   }
 
   /**
-   * translateTypeLiteral translates a ts.SymbolFlags.TypeLiteral type, which
-   * is the anonymous type encountered in e.g.
-   *   let x: {a: number};
+   * translateAnonymousType translates a ts.TypeFlags.ObjectType that is also
+   * ts.ObjectFlags.Anonymous. That is, this type's symbol does not have a name. This is the
+   * anonymous type encountered in e.g.
+   *     let x: {a: number};
+   * But also the inferred type in:
+   *     let x = {a: 1};  // type of x is {a: number}, as above
    */
-  private translateTypeLiteral(type: ts.Type): string {
-    this.seenTypeLiterals.add(type);
+  private translateAnonymousType(type: ts.Type): string {
+    this.seenAnonymousTypes.add(type);
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;
     const fields: string[] = [];
     if (!type.symbol || !type.symbol.members) {
-      this.warn('type literal has no symbol');
+      this.warn('anonymous type has no symbol');
       return '?';
     }
 
@@ -536,6 +538,11 @@ export class TypeTranslator {
     if (ctors.length) {
       // TODO(martinprobst): this does not support additional properties defined on constructors
       // (not expressible in Closure), nor multiple constructors (same).
+
+      if (!ctors[0].declaration) {
+        this.warn('unhandled anonymous type with constructor signature but no declaration');
+        return '?';
+      }
       const params = this.convertParams(ctors[0], ctors[0].declaration.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
@@ -604,7 +611,7 @@ export class TypeTranslator {
       return `{${fields.join(', ')}}`;
     }
 
-    this.warn('unhandled type literal');
+    this.warn('unhandled anonymous type');
     return '?';
   }
 

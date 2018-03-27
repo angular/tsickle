@@ -1,4 +1,4 @@
-// Warning at test_files/type_and_value/type_and_value.ts:10:5: unhandled anonymous type
+// Warning at test_files/type_and_value/type_and_value.ts:10:5: unhandled anonymous type with constructor signature but no declaration
 // Warning at test_files/type_and_value/type_and_value.ts:16:5: type/symbol conflict for TypeAndValue, using {?} for now
 // Warning at test_files/type_and_value/type_and_value.ts:19:5: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 /**

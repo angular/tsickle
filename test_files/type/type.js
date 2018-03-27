@@ -1,4 +1,4 @@
-// Warning at test_files/type/type.ts:14:5: unhandled type literal
+// Warning at test_files/type/type.ts:14:5: unhandled anonymous type
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc

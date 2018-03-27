@@ -1,4 +1,3 @@
-// Warning at test_files/jsdoc/jsdoc.ts:44:3: unhandled anonymous type
 // Warning at test_files/jsdoc/jsdoc.ts:16:1: the type annotation on @param is redundant with its TypeScript type, remove the {...} part
 // Warning at test_files/jsdoc/jsdoc.ts:35:3: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
 // Warning at test_files/jsdoc/jsdoc.ts:40:3: @type annotations are redundant with TypeScript equivalents
@@ -83,7 +82,7 @@ function JSDocTest_tsickle_Closure_declarations() {
     JSDocTest.prototype.stringWithoutJSDoc;
     /** @type {number} */
     JSDocTest.prototype.typedThing;
-    /** @type {?} */
+    /** @type {{A: string}} */
     JSDocTest.prototype.badEnumThing;
     /** @type {string} */
     JSDocTest.prototype.badConstThing;

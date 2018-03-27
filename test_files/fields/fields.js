@@ -1,4 +1,4 @@
-// Warning at test_files/fields/fields.ts:22:5: unhandled anonymous type
+// Warning at test_files/fields/fields.ts:22:5: unhandled anonymous type with constructor signature but no declaration
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
