@@ -70,5 +70,7 @@
   "bugs": {
     "url": "https://github.com/angular/tsickle/issues"
   },
-  "homepage": "https://github.com/angular/tsickle"
+  "homepage": "https://github.com/angular/tsickle",
+  "private": "See release instructions in the README.md",
+  "private": true
 }

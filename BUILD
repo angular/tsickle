@@ -15,6 +15,10 @@ npm_package(
         "README.md",
         "package.json",
     ],
+    replacements = {
+        # Allow the resulting package to be published
+        "\"private\": true": "\"private\": false"
+    },
     deps = [
         "//src"
     ],
