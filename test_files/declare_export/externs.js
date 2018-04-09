@@ -24,7 +24,7 @@ ExportDeclaredClass.prototype.x;
  * @return {string}
  */
 function exportedDeclaredFn() {}
- /** @type {?} */
+ /** @type {string} */
 var multiExportedDeclaredVar1;
  /** @type {number} */
 var multiExportedDeclaredVar2;
