@@ -106,7 +106,7 @@ const testFn = TEST_FILTER ? fdescribe : describe;
 testFn('golden tests with transformer', () => {
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.testName.test(test.name)) {
-      xit(test.name);
+      // do not xit(test.name) as that spams a lot of useless console msgs.
       return;
     }
     let emitDeclarations = true;

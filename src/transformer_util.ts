@@ -183,8 +183,9 @@ function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.Transf
         }
       }
       // TypeScript ignores synthetic comments on reexport / import statements.
-      const moduleName = extractModuleNameFromRequireVariableStatement(node);
-      if (moduleName && fileContext.importOrReexportDeclarations) {
+      // The code below re-adds them one the converted CommonJS import statements, and resets the
+      // text range to prevent previous comments from being emitted.
+      if (isCommonJsRequireStatement(node) && fileContext.importOrReexportDeclarations) {
         // Locate the original import/export declaration via the
         // text range.
         const importOrReexportDeclaration =
@@ -206,28 +207,31 @@ function emitMissingSyntheticCommentsAfterTypescriptTransform(context: ts.Transf
   };
 }
 
-function extractModuleNameFromRequireVariableStatement(node: ts.Node): string|null {
-  if (node.kind !== ts.SyntaxKind.VariableStatement) {
-    return null;
+function isCommonJsRequireStatement(node: ts.Node): boolean {
+  // CommonJS requires can be either "var x = require('...');" or (for side effect imports), just
+  // "require('...');".
+  let callExpr: ts.CallExpression;
+  if (ts.isVariableStatement(node)) {
+    const varStmt = node as ts.VariableStatement;
+    const decls = varStmt.declarationList.declarations;
+    let init: ts.Expression|undefined;
+    if (decls.length !== 1 || !(init = decls[0].initializer) ||
+        init.kind !== ts.SyntaxKind.CallExpression) {
+      return false;
+    }
+    callExpr = init as ts.CallExpression;
+  } else if (ts.isExpressionStatement(node) && ts.isCallExpression(node.expression)) {
+    callExpr = node.expression;
+  } else {
+    return false;
   }
-  const varStmt = node as ts.VariableStatement;
-  const decls = varStmt.declarationList.declarations;
-  let init: ts.Expression|undefined;
-  if (decls.length !== 1 || !(init = decls[0].initializer) ||
-      init.kind !== ts.SyntaxKind.CallExpression) {
-    return null;
-  }
-  const callExpr = init as ts.CallExpression;
   if (callExpr.expression.kind !== ts.SyntaxKind.Identifier ||
       (callExpr.expression as ts.Identifier).text !== 'require' ||
       callExpr.arguments.length !== 1) {
-    return null;
+    return false;
   }
   const moduleExpr = callExpr.arguments[0];
-  if (moduleExpr.kind !== ts.SyntaxKind.StringLiteral) {
-    return null;
-  }
-  return (moduleExpr as ts.StringLiteral).text;
+  return moduleExpr.kind === ts.SyntaxKind.StringLiteral;
 }
 
 function lastNodeWith(nodes: ts.Node[], predicate: (node: ts.Node) => boolean): ts.Node|null {
@@ -289,7 +293,7 @@ export function visitNodeWithSynthesizedComments<T extends ts.Node>(
  */
 function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T): T {
   ts.setEmitFlags(node, (ts.getEmitFlags(node) || 0) | ts.EmitFlags.NoComments);
-  // See also addSyntheticCommentsAfterTsTransformer.
+  // See also emitMissingSyntheticCommentsAfterTypescriptTransform.
   // Note: Don't reset the textRange for ts.ExportDeclaration / ts.ImportDeclaration
   // until after the TypeScript transformer as we need the source location
   // to map the generated `require` calls back to the original
