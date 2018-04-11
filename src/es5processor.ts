@@ -31,6 +31,8 @@ export interface Es5ProcessorHost {
   fileNameToModuleId(fileName: string): string;
   /** Whether to convert CommonJS module syntax to `goog.module` Closure imports. */
   googmodule?: boolean;
+  /** Identifies whether this file is the result of a JS transpilation. */
+  isJsTranspilation?: boolean;
   /** Whether the emit targets ES5 or ES6+. */
   es5Mode?: boolean;
   /** expand "import 'foo';" to "import 'foo/index';" if it points to an index file. */
@@ -74,9 +76,9 @@ export function resolveIndexShorthand(
 }
 
 /**
- * ES5Processor postprocesses TypeScript compilation output JS, to rewrite commonjs require()s into
- * goog.require(). Contrary to its name it handles converting the modules in both ES5 and ES6
- * outputs.
+ * ES5Processor postprocesses the compilation output from TSC. It rewrites commonjs require()s
+ * into goog.require(). Contrary to its name it handles converting the modules in both ES5
+ * and ES6 outputs.
  */
 class ES5Processor extends Rewriter {
   /**
@@ -112,9 +114,14 @@ class ES5Processor extends Rewriter {
     this.emitFileComment();
 
     const moduleId = this.host.fileNameToModuleId(this.file.fileName);
-    const moduleName = this.host.pathToModuleName('', this.file.fileName);
-    // NB: No linebreak after module call so sourcemaps are not offset.
-    this.emit(`goog.module('${moduleName}');`);
+    // The goog.module() call should not be emitted if the file is the result
+    // of transpiling JS sources. Emitting goog.module() would change the semantics
+    // of the file.
+    if (!this.host.isJsTranspilation) {
+      const moduleName = this.host.pathToModuleName('', this.file.fileName);
+      // NB: No linebreak after module call so sourcemaps are not offset.
+      this.emit(`goog.module('${moduleName}');`);
+    }
     if (this.host.prelude) this.emit(this.host.prelude);
     // Allow code to use `module.id` to discover its module URL, e.g. to resolve
     // a template URL against.
@@ -122,7 +129,9 @@ class ES5Processor extends Rewriter {
     // The following pattern ensures closure doesn't throw an error in advanced
     // optimizations mode.
     if (this.host.es5Mode) {
-      this.emit(`var module = module || {id: '${moduleId}'};`);
+      if (!this.host.isJsTranspilation) {
+        this.emit(`var module = module || {id: '${moduleId}'};`);
+      }
     } else {
       // The `exports = {}` serves as a default export to disable Closure Compiler's error checking
       // for mutable exports. That's OK because TS compiler makes sure that consuming code always
@@ -260,6 +269,10 @@ class ES5Processor extends Rewriter {
       const call = decl.initializer as ts.CallExpression;
       const require = this.extractRequire(call);
       if (!require) return false;
+      // In JS transpilation, the only require('...') that needs to be
+      // rewritten is require('tslib'), which is emitted by TSC when loading
+      // ES6 polyfills.
+      if (this.host.isJsTranspilation && require !== 'tslib') return false;
       this.writeLeadingTrivia(node);
       this.emitGoogRequire(varName, require);
       return true;
@@ -290,6 +303,10 @@ class ES5Processor extends Rewriter {
       }
       if (!require) return false;
 
+      // In JS transpilation, the only require('...') that needs to be
+      // rewritten is require('tslib'), which is emitted by TSC when loading
+      // ES6 polyfills.
+      if (this.host.isJsTranspilation && require !== 'tslib') return false;
       this.writeLeadingTrivia(node);
       const varName = this.emitGoogRequire(null, require);
 

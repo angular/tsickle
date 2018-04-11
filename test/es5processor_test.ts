@@ -19,23 +19,26 @@ import {getCommonParentDirectory} from '../src/util';
 
 chaiUse(chaiDiff);
 
-describe('convertCommonJsToGoogModule', () => {
-  function processES5(fileName: string, content: string, isES5 = true, prelude = '') {
-    const options = testSupport.compilerOptions;
-    const tsHost = ts.createCompilerHost(options);
-    const host: es5processor.Es5ProcessorHost = {
-      fileNameToModuleId: (fn) => fn,
-      pathToModuleName: cliSupport.pathToModuleName.bind(null, process.cwd()),
-      es5Mode: isES5,
-      prelude,
-      options: testSupport.compilerOptions,
-      host: tsHost,
-    };
-    return es5processor.processES5(host, fileName, content);
-  }
+function processES5(
+    fileName: string, content: string,
+    {isES5 = true, prelude = '', isJsTranspilation = false} = {}) {
+  const options = testSupport.compilerOptions;
+  const tsHost = ts.createCompilerHost(options);
+  const host: es5processor.Es5ProcessorHost = {
+    fileNameToModuleId: (fn) => fn,
+    pathToModuleName: cliSupport.pathToModuleName.bind(null, process.cwd()),
+    es5Mode: isES5,
+    prelude,
+    options: testSupport.compilerOptions,
+    host: tsHost,
+    isJsTranspilation,
+  };
+  return es5processor.processES5(host, fileName, content);
+}
 
-  function expectCommonJs(fileName: string, content: string, isES5 = true, prelude = '') {
-    return expect(processES5(fileName, content, isES5, prelude).output);
+describe('convertCommonJsToGoogModule', () => {
+  function expectCommonJs(fileName: string, content: string, {isES5 = true, prelude = ''} = {}) {
+    return expect(processES5(fileName, content, {isES5, prelude}).output);
   }
 
   it('adds a goog.module call', () => {
@@ -47,7 +50,7 @@ describe('convertCommonJsToGoogModule', () => {
 
   it('adds a goog.module call for ES6 mode', () => {
     // NB: no line break added below.
-    expectCommonJs('a.js', `console.log('hello');`, false)
+    expectCommonJs('a.js', `console.log('hello');`, {isES5: false})
         .not.differentFrom(
             `goog.module('a'); exports = {}; var module = module || {id: 'a.js'}; module = module;console.log('hello');`);
   });
@@ -229,7 +232,8 @@ __export(require('./export_star');
   });
 
   it('inserts a prelude', () => {
-    expectCommonJs('a.js', `console.log('hello');`, false, `goog.require('tshelpers');`)
+    expectCommonJs(
+        'a.js', `console.log('hello');`, {isES5: false, prelude: `goog.require('tshelpers');`})
         .not.differentFrom(
             `goog.module('a');goog.require('tshelpers'); ` +
             `exports = {}; ` +
@@ -239,10 +243,36 @@ __export(require('./export_star');
 
   it(`skips the exports assignment if there's another one`, () => {
     expectCommonJs(
-        'a.js', `console.log('hello'); module.exports = 1;`, false, `goog.require('tshelpers');`)
+        'a.js', `console.log('hello'); module.exports = 1;`,
+        {isES5: false, prelude: `goog.require('tshelpers');`})
         .not.differentFrom(
             `goog.module('a');goog.require('tshelpers'); ` +
             `var module = module || {id: 'a.js'}; module = module;` +
             `console.log('hello'); exports = 1;`);
+  });
+});
+
+describe('processing transpiled JS output', () => {
+  function expectJsTranspilation(content: string) {
+    return expect(processES5('irrelevant.js', content, {isJsTranspilation: true}).output);
+  }
+
+  it('does not insert goog.module() or module = ... in JS transpilation outputs', () => {
+    expectJsTranspilation(`alert(1);`).not.differentFrom(`alert(1);`);
+  });
+
+  it('changes require("tslib") to goog.require("tslib")', () => {
+    expectJsTranspilation(`require('tslib');`)
+        .not.differentFrom(`var tsickle_module_0_ = goog.require('tslib');`);
+  });
+
+  it('does not turn require() into goog.require()', () => {
+    expectJsTranspilation(`require('foo'); var x = require('bar');`)
+        .not.differentFrom(`require('foo'); var x = require('bar');`);
+  });
+
+  it('leaves goog.require() alone', () => {
+    expectJsTranspilation(`goog.require('foo'); var x = goog.require('bar');`)
+        .not.differentFrom(`goog.require('foo'); var x = goog.require('bar');`);
   });
 });
