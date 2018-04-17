@@ -6,6 +6,7 @@
     "jsx": "react",
     "types": ["node", "jasmine"],
     "downlevelIteration": true,
+    "target": "es2015",
 
     "noImplicitAny": true,
     "noImplicitThis": true,

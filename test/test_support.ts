@@ -14,7 +14,6 @@ import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
-import * as es5processor from '../src/es5processor';
 import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 import {getCommonParentDirectory} from '../src/util';
@@ -30,6 +29,7 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   module: ts.ModuleKind.CommonJS,
   strictNullChecks: true,
   noImplicitUseStrict: true,
+  allowJs: false,
 };
 
 /** The TypeScript compiler options used by the test suite. */

@@ -5,7 +5,8 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.type_and_value.type_and_value');var module = module || {id: 'test_files/type_and_value/type_and_value.js'};
+goog.module('test_files.type_and_value.type_and_value');
+var module = module || { id: 'test_files/type_and_value/type_and_value.ts' };
 var conflict = goog.require('test_files.type_and_value.module');
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.type_and_value.module");
 // This test deals with symbols that are simultaneously types and values.

@@ -2,11 +2,12 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.jsdoc_types.jsdoc_types');var module = module || {id: 'test_files/jsdoc_types/jsdoc_types.js'};/**
+goog.module('test_files.jsdoc_types.jsdoc_types');
+var module = module || { id: 'test_files/jsdoc_types/jsdoc_types.ts' };
+/**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
  */
-
 var module1 = goog.require('test_files.jsdoc_types.module1');
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.jsdoc_types.module1");
 var module2_1 = goog.require('test_files.jsdoc_types.module2');

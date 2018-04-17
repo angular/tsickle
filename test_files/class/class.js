@@ -3,7 +3,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.class.class');var module = module || {id: 'test_files/class/class.js'};// This test exercises the various ways classes and interfaces can interact.
+goog.module('test_files.class.class');
+var module = module || { id: 'test_files/class/class.ts' };
+// This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:
 //   interface, class, abstract class
 // And there are two keywords for relating them:

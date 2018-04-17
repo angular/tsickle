@@ -2,7 +2,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.promisectorlike.promisectorlike');var module = module || {id: 'test_files/promisectorlike/promisectorlike.js'};/**
+goog.module('test_files.promisectorlike.promisectorlike');
+var module = module || { id: 'test_files/promisectorlike/promisectorlike.ts' };
+/**
  * @param {PromiseConstructorLike} ctorLike
  * @return {!Promise<string>}
  */

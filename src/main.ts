@@ -148,7 +148,6 @@ export function toClosureJS(
     fileNameToModuleId: (fileName) => fileName,
     es5Mode: true,
     googmodule: true,
-    prelude: '',
     transformDecorators: true,
     transformTypesToClosure: true,
     typeBlackListPaths: new Set(),

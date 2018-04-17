@@ -2,7 +2,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.coerce.coerce');var module = module || {id: 'test_files/coerce/coerce.js'};/**
+goog.module('test_files.coerce.coerce');
+var module = module || { id: 'test_files/coerce/coerce.ts' };
+/**
  * @param {string} arg
  * @return {string}
  */

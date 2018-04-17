@@ -2,7 +2,8 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.import_only_types.import_only_types');var module = module || {id: 'test_files/import_only_types/import_only_types.js'};
+goog.module('test_files.import_only_types.import_only_types');
+var module = module || { id: 'test_files/import_only_types/import_only_types.ts' };
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.import_only_types.types_only");
 goog.require("test_files.import_only_types.types_only"); // force type-only module to be loaded
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.import_only_types.types_and_constenum");

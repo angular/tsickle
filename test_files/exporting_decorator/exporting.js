@@ -2,7 +2,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.exporting_decorator.exporting');var module = module || {id: 'test_files/exporting_decorator/exporting.js'};/**
+goog.module('test_files.exporting_decorator.exporting');
+var module = module || { id: 'test_files/exporting_decorator/exporting.ts' };
+/**
  * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}
  */

@@ -12,14 +12,14 @@ import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import {classDecoratorDownlevelTransformer} from './class_decorator_downlevel_transformer';
 import * as decorator from './decorator-annotator';
 import {hasExportingDecorator} from './decorators';
-import * as es5processor from './es5processor';
 import {transformFileoverviewComment} from './fileoverview_comment_transformer';
+import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModulesManifest} from './modules_manifest';
 import {getEntityNameText, getIdentifierText, Rewriter, unescapeName} from './rewriter';
 import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeInlineSourceMap, setInlineSourceMap, SourceMapper, SourcePosition} from './source_map_utils';
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
-import {createCustomTransformers} from './transformer_util';
+import {createCustomTransformers, noOpTransformer} from './transformer_util';
 import * as typeTranslator from './type-translator';
 import * as ts from './typescript';
 import {hasModifierFlag, isDtsFileName} from './util';
@@ -1158,7 +1158,7 @@ class Annotator extends ClosureRewriter {
    * @param specifier the import specifier, i.e. module path ("from '...'").
    */
   private forwardDeclare(specifier: ts.Expression, isDefaultImport = false) {
-    const importPath = es5processor.resolveIndexShorthand(
+    const importPath = googmodule.resolveIndexShorthand(
         {options: this.tsOpts, host: this.tsHost}, this.file.fileName,
         (specifier as ts.StringLiteral).text);
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
@@ -1172,7 +1172,7 @@ class Annotator extends ClosureRewriter {
   private getForwardDeclareText(
       importPath: string, moduleSymbol: ts.Symbol|undefined, isDefaultImport = false): string {
     if (this.host.untyped) return '';
-    const nsImport = es5processor.extractGoogNamespaceImport(importPath);
+    const nsImport = googmodule.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
     const moduleNamespace =
         nsImport !== null ? nsImport : this.host.pathToModuleName(this.file.fileName, importPath);
@@ -1941,7 +1941,7 @@ export function getGeneratedExterns(externs: {[fileName: string]: string}): stri
   return allExterns;
 }
 
-export interface TsickleHost extends es5processor.Es5ProcessorHost, AnnotatorHost {
+export interface TsickleHost extends googmodule.GoogModuleProcessorHost, AnnotatorHost {
   /**
    * Whether to downlevel decorators
    */
@@ -1965,6 +1965,8 @@ export interface TsickleHost extends es5processor.Es5ProcessorHost, AnnotatorHos
    * useful for e.g. third party code.
    */
   shouldIgnoreWarningsForPath(filePath: string): boolean;
+  /** Whether to convert CommonJS require() imports to goog.module() and goog.require() calls. */
+  googmodule: boolean;
 }
 
 export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
@@ -2031,7 +2033,16 @@ export function emitWithTsickle(
   //   sourceMapper.addMapping(sourceFile, {position: 0, line: 0, column: 0}, {position: 0, line: 0,
   //   column: 0}, sourceFile.text.length); return sourceFile.text;
   // }));
-  const tsickleTransformers = createCustomTransformers({before: tsickleSourceTransformers});
+  const modulesManifest = new ModulesManifest();
+  let tsickleTransformers: ts.CustomTransformers = {};
+  if (tsickleSourceTransformers.length) {
+    // Only add the various fixup transformers if tsickle is actually doing a source map powered
+    // transformation. Without a source map transformation, some information is not
+    // available/initialized correctly for these passes to work, which causes subtle emit errors
+    // (such as comments appearing in incorrect locations, breaking source code due to automatic
+    // semicolon insertion).
+    tsickleTransformers = createCustomTransformers({before: tsickleSourceTransformers});
+  }
   const tsTransformers: ts.CustomTransformers = {
     before: [
       ...(customTransformers.beforeTsickle || []),
@@ -2040,12 +2051,15 @@ export function emitWithTsickle(
     ],
     after: [
       ...(customTransformers.afterTs || []),
-      ...(tsickleTransformers.after || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf))
+      ...(tsickleTransformers.after || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
     ]
   };
+  if (host.googmodule) {
+    tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
+        host, modulesManifest, typeChecker, tsickleDiagnostics));
+  }
 
   const writeFileDelegate = writeFile || tsHost.writeFile.bind(tsHost);
-  const modulesManifest = new ModulesManifest();
   const writeFileImpl =
       (fileName: string, content: string, writeByteOrderMark: boolean,
        onError?: (message: string) => void, sourceFiles?: ReadonlyArray<ts.SourceFile>) => {
@@ -2055,8 +2069,6 @@ export function emitWithTsickle(
           } else {
             content = removeInlineSourceMap(content);
           }
-          content = es5processor.convertCommonJsToGoogModuleIfNeeded(
-              host, modulesManifest, fileName, content);
         } else {
           content = combineSourceMaps(program, fileName, content);
         }

@@ -2,7 +2,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.optional.optional');var module = module || {id: 'test_files/optional/optional.js'};/**
+goog.module('test_files.optional.optional');
+var module = module || { id: 'test_files/optional/optional.ts' };
+/**
  * @param {number} x
  * @param {(undefined|string)=} y
  * @return {void}

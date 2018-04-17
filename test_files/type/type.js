@@ -3,7 +3,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.type.type');var module = module || {id: 'test_files/type/type.js'};let /** @type {?} */ typeAny;
+goog.module('test_files.type.type');
+var module = module || { id: 'test_files/type/type.ts' };
+let /** @type {?} */ typeAny;
 let /** @type {!Array<?>} */ typeArr;
 let /** @type {!Array<?>} */ typeArr2;
 let /** @type {!Array<!Array<{a: ?}>>} */ typeNestedArr;

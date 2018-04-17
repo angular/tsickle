@@ -6,5 +6,6 @@
  *
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.file_comment.comment_before_var');var module = module || {id: 'test_files/file_comment/comment_before_var.js'};
+goog.module('test_files.file_comment.comment_before_var');
+var module = module || { id: 'test_files/file_comment/comment_before_var.ts' };
 exports.y = 3;

@@ -2,7 +2,8 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.interface.interface');var module = module || {id: 'test_files/interface/interface.js'};
+goog.module('test_files.interface.interface');
+var module = module || { id: 'test_files/interface/interface.ts' };
 /**
  * Used by implement_import.ts
  * @record

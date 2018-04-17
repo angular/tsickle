@@ -2,7 +2,8 @@
  * @fileoverview Make sure imports are inserted *after* the fileoverview.
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.type_alias_imported.type_alias_imported');var module = module || {id: 'test_files/type_alias_imported/type_alias_imported.js'};
+goog.module('test_files.type_alias_imported.type_alias_imported');
+var module = module || { id: 'test_files/type_alias_imported/type_alias_imported.ts' };
 const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.type_alias_imported.type_alias_declare");
 goog.require("test_files.type_alias_imported.type_alias_declare"); // force type-only module to be loaded
 var export_constant_1 = goog.require('test_files.type_alias_imported.export_constant');

@@ -5,7 +5,8 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.enum.enum');var module = module || {id: 'test_files/enum/enum.js'};
+goog.module('test_files.enum.enum');
+var module = module || { id: 'test_files/enum/enum.ts' };
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
 /** @enum {number} */

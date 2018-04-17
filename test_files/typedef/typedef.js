@@ -2,7 +2,8 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.typedef.typedef');var module = module || {id: 'test_files/typedef/typedef.js'};
+goog.module('test_files.typedef.typedef');
+var module = module || { id: 'test_files/typedef/typedef.ts' };
 /** @typedef {number} */
 var MyType;
 var /** @type {number} */ y = 3;

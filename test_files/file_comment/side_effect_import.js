@@ -6,5 +6,6 @@
  *
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.file_comment.side_effect_import');var module = module || {id: 'test_files/file_comment/side_effect_import.js'};
-var tsickle_module_0_ = goog.require('test_files.file_comment.file_comment');
+goog.module('test_files.file_comment.side_effect_import');
+var module = module || { id: 'test_files/file_comment/side_effect_import.ts' };
+var tsickle_module_1_ = goog.require('test_files.file_comment.file_comment');

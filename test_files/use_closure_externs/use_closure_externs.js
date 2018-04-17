@@ -5,7 +5,9 @@
  *
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.use_closure_externs.use_closure_externs');var module = module || {id: 'test_files/use_closure_externs/use_closure_externs.js'};console.log('work around TS dropping consecutive comments');
+goog.module('test_files.use_closure_externs.use_closure_externs');
+var module = module || { id: 'test_files/use_closure_externs/use_closure_externs.ts' };
+console.log('work around TS dropping consecutive comments');
 let /** @type {!NodeListOf<!HTMLParagraphElement>} */ x = document.getElementsByTagName('p');
 console.log(x);
 const /** @type {(null|!RegExpExecArray)} */ res = /** @type {!RegExpExecArray} */ ((/asd/.exec('asd asd')));

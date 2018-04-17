@@ -23,6 +23,23 @@ export function createCustomTransformers(given: ts.CustomTransformers): ts.Custo
 }
 
 /**
+ * A transformer that does nothing, but emulates (for testing) that source file level comments have
+ * been turned into synthesized comments by transformer_util.ts before the transformer under test
+ * runs.
+ */
+export function noOpTransformer(context: ts.TransformationContext): ts.Transformer<ts.SourceFile> {
+  return (sf: ts.SourceFile) => {
+    function visitNodeRecursively(n: ts.Node): ts.Node {
+      return visitEachChild(
+          n, (n) => visitNodeWithSynthesizedComments(context, sf, n, visitNodeRecursively),
+          context);
+    }
+    return visitNodeWithSynthesizedComments(context, sf, sf, visitNodeRecursively) as ts.SourceFile;
+  };
+}
+
+
+/**
  * Transform that adds the FileContext to the TransformationContext.
  */
 function addFileContexts(context: ts.TransformationContext) {

@@ -5,7 +5,8 @@
  *
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.type_alias_imported.type_alias_declare');var module = module || {id: 'test_files/type_alias_imported/type_alias_declare.js'};
+goog.module('test_files.type_alias_imported.type_alias_declare');
+var module = module || { id: 'test_files/type_alias_imported/type_alias_declare.ts' };
 /**
  * @record
  */

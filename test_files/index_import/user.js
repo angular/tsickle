@@ -2,7 +2,8 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.index_import.user');var module = module || {id: 'test_files/index_import/user.js'};
+goog.module('test_files.index_import.user');
+var module = module || { id: 'test_files/index_import/user.ts' };
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.index_import.has_index.index");
 var has_index_1 = goog.require('test_files.index_import.has_index.index');
 exports.a = has_index_1.a;

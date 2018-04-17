@@ -9,14 +9,15 @@
  * @fileoverview This comment is ignore by Closure compiler.
  * @suppress {undefinedVars}
  */
-goog.module('test_files.file_comment.multiple_comments');var module = module || {id: 'test_files/file_comment/multiple_comments.js'};/**
+/**
  *
  * @fileoverview The last fileoverview actually takes effect.
  * @suppress {globalThis,checkTypes}
  *
  */
 /** Here's another trailing comment */
-
+goog.module('test_files.file_comment.multiple_comments');
+var module = module || { id: 'test_files/file_comment/multiple_comments.ts' };
 /**
  * @return {?}
  */

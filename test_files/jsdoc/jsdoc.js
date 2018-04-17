@@ -21,7 +21,9 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.jsdoc.jsdoc');var module = module || {id: 'test_files/jsdoc/jsdoc.js'};/**
+goog.module('test_files.jsdoc.jsdoc');
+var module = module || { id: 'test_files/jsdoc/jsdoc.ts' };
+/**
  * @param {string} foo a string.
  * @param {string} baz
  * @return {string} return comment.
