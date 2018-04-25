@@ -50,6 +50,8 @@ export interface AnnotatorHost {
    * If true, do not modify quotes around property accessors.
    */
   disableAutoQuoting?: boolean;
+  /** Whether to add `goog.forwardDeclare` declarations for `goog.module` Closure imports. */
+  googmodule?: boolean;
 }
 
 /**
@@ -1158,6 +1160,9 @@ class Annotator extends ClosureRewriter {
    * @param specifier the import specifier, i.e. module path ("from '...'").
    */
   private forwardDeclare(specifier: ts.Expression, isDefaultImport = false) {
+    if (!this.host.googmodule) {
+      return;
+    }
     const importPath = es5processor.resolveIndexShorthand(
         {options: this.tsOpts, host: this.tsHost}, this.file.fileName,
         (specifier as ts.StringLiteral).text);
