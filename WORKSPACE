@@ -2,9 +2,9 @@ workspace(name="tsickle")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    url = "https://github.com/bazelbuild/rules_nodejs/archive/0.7.0.zip",
-    strip_prefix = "rules_nodejs-0.7.0",
-    sha256 = "d0cecf6b149d431ee8349f683d1db6a2a881ee81d8066a66c1b112a4b02748de",
+    url = "https://github.com/bazelbuild/rules_nodejs/archive/092404e3b47e1144ecfc2937d3729b717b1052bf.zip",
+    strip_prefix = "rules_nodejs-092404e3b47e1144ecfc2937d3729b717b1052bf",
+    sha256 = "5e3dd3f76a043687939a14ce6aee3049f8bd97d2cd885ef2105ac344d05213a3",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "node_repositories")
