@@ -2,8 +2,6 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.declare_export.declare_export');
-var module = module || { id: 'test_files/declare_export/declare_export.ts' };
 // All of the types/values declared in this file should
 // 1) generate externs
 // 2) generate an export
@@ -14,6 +12,8 @@ var module = module || { id: 'test_files/declare_export/declare_export.ts' };
 // should be namespaced into a private namespace.
 // E.g. "export declare interface Error" should not conflict with the
 // Closure builtin Error type.
+goog.module('test_files.declare_export.declare_export');
+var module = module || { id: 'test_files/declare_export/declare_export.ts' };
 /** @typedef {ExportDeclaredIf} */
 exports.ExportDeclaredIf;
 let /** @type {!ExportDeclaredIf} */ user1;

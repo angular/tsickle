@@ -23,11 +23,12 @@ export function createCustomTransformers(given: ts.CustomTransformers): ts.Custo
 }
 
 /**
- * A transformer that does nothing, but emulates (for testing) that source file level comments have
- * been turned into synthesized comments by transformer_util.ts before the transformer under test
- * runs.
+ * A transformer that does nothing, but synthesizes all comments. This allows testing transformers
+ * in isolation, but with an AST and comment placement that matches what'd happen after a source map
+ * based transformer ran.
  */
-export function noOpTransformer(context: ts.TransformationContext): ts.Transformer<ts.SourceFile> {
+export function synthesizeCommentsTransformer(context: ts.TransformationContext):
+    ts.Transformer<ts.SourceFile> {
   return (sf: ts.SourceFile) => {
     function visitNodeRecursively(n: ts.Node): ts.Node {
       return visitEachChild(
@@ -37,7 +38,6 @@ export function noOpTransformer(context: ts.TransformationContext): ts.Transform
     return visitNodeWithSynthesizedComments(context, sf, sf, visitNodeRecursively) as ts.SourceFile;
   };
 }
-
 
 /**
  * Transform that adds the FileContext to the TransformationContext.
@@ -564,6 +564,25 @@ function getDetachedLeadingCommentRanges(
 
 function getLineOfPos(sourceFile: ts.SourceFile, pos: number): number {
   return ts.getLineAndCharacterOfPosition(sourceFile, pos).line;
+}
+
+/**
+ * ts.createNotEmittedStatement will create a node whose comments are never emitted except for very
+ * specific special cases (/// comments). createNotEmittedStatementWithComments creates a not
+ * emitted statement and adds comment ranges from the original statement as synthetic comments to
+ * it, so that they get retained in the output.
+ */
+export function createNotEmittedStatementWithComments(
+    sourceFile: ts.SourceFile, original: ts.Node): ts.Statement {
+  let replacement = ts.createNotEmittedStatement(original);
+  // NB: synthetic nodes can have pos/end == -1. This is handled by the underlying implementation.
+  const leading = ts.getLeadingCommentRanges(sourceFile.text, original.pos) || [];
+  const trailing = ts.getTrailingCommentRanges(sourceFile.text, original.end) || [];
+  replacement =
+      ts.setSyntheticLeadingComments(replacement, synthesizeCommentRanges(sourceFile, leading));
+  replacement =
+      ts.setSyntheticTrailingComments(replacement, synthesizeCommentRanges(sourceFile, trailing));
+  return replacement;
 }
 
 /**

@@ -149,8 +149,8 @@ testFn('golden tests with transformer', () => {
         // See test_files/jsdoc_types/nevertyped.ts.
         typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
         convertIndexImportShorthand: true,
-        transformDecorators: true,
-        transformTypesToClosure: true,
+        transformDecorators: !test.isPureTransformerTest,
+        transformTypesToClosure: !test.isPureTransformerTest,
         addDtsClutzAliases: test.isDeclarationTest,
         untyped: test.isUntypedTest,
         logWarning: (diag: ts.Diagnostic) => {

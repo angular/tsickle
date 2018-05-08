@@ -3,8 +3,6 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
-goog.module('test_files.class.class');
-var module = module || { id: 'test_files/class/class.ts' };
 // This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:
 //   interface, class, abstract class
@@ -13,6 +11,8 @@ var module = module || { id: 'test_files/class/class.ts' };
 // You can legally use them in almost any configuration the cross product implies;
 // for example, you can "implements" a class though it's more rare than the
 // other options.
+goog.module('test_files.class.class');
+var module = module || { id: 'test_files/class/class.ts' };
 /**
  * @record
  */

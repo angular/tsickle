@@ -19,7 +19,7 @@ import {ModulesManifest} from './modules_manifest';
 import {getEntityNameText, getIdentifierText, Rewriter, unescapeName} from './rewriter';
 import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeInlineSourceMap, setInlineSourceMap, SourceMapper, SourcePosition} from './source_map_utils';
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
-import {createCustomTransformers, noOpTransformer} from './transformer_util';
+import {createCustomTransformers} from './transformer_util';
 import * as typeTranslator from './type-translator';
 import * as ts from './typescript';
 import {hasModifierFlag, isDtsFileName} from './util';
@@ -2143,7 +2143,7 @@ function addToMultiMap<T, U>(map: Map<T, U[]>, key: T, value: U) {
 function addClutzAliases(
     fileName: string, dtsFileContent: string, sourceFiles: ReadonlyArray<ts.SourceFile>,
     typeChecker: ts.TypeChecker, host: TsickleHost): string {
-  const reexportsByNamespace: Map<string, string[]> = new Map();
+  const reexportsByNamespace = new Map<string, string[]>();
   for (const sf of sourceFiles) {
     const moduleSymbol = typeChecker.getSymbolAtLocation(sf);
     const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);

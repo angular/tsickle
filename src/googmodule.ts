@@ -9,6 +9,7 @@
 import * as path from 'path';
 
 import {ModulesManifest} from './modules_manifest';
+import {createNotEmittedStatementWithComments} from './transformer_util';
 import * as ts from './typescript';
 
 export interface GoogModuleProcessorHost {
@@ -327,7 +328,7 @@ export function commonJsToGoogmoduleTransformer(
             const exprStmt = node as ts.ExpressionStatement;
             // Check for "use strict" and certain Object.defineProperty and skip it if necessary.
             if (isUseStrict(exprStmt) || isEsModuleProperty(exprStmt)) {
-              stmts.push(ts.createNotEmittedStatement(exprStmt));
+              stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
               return;
             }
             // Check for:
@@ -453,13 +454,14 @@ export function commonJsToGoogmoduleTransformer(
 
       // Insert goog.module() etc after any leading comments in the source file. The comments have
       // been converted to NotEmittedStatements by transformer_util, which this depends on.
-      let insertionIdx = 0;
-      if (stmts.length && stmts[0].kind === ts.SyntaxKind.NotEmittedStatement) {
-        insertionIdx = 1;
+      const insertionIdx = stmts.findIndex(s => s.kind !== ts.SyntaxKind.NotEmittedStatement);
+      if (insertionIdx === -1) {
+        stmts.push(...headerStmts);
+      } else {
+        stmts.splice(insertionIdx, 0, ...headerStmts);
       }
-      stmts.splice(insertionIdx, 0, ...headerStmts);
 
-      return ts.updateSourceFileNode(sf, stmts);
+      return ts.updateSourceFileNode(sf, ts.setTextRange(ts.createNodeArray(stmts), sf.statements));
     };
   };
 }
