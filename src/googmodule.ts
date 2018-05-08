@@ -9,7 +9,6 @@
 import * as path from 'path';
 
 import {ModulesManifest} from './modules_manifest';
-import {visitNodeWithSynthesizedComments} from './transformer_util';
 import * as ts from './typescript';
 
 export interface GoogModuleProcessorHost {
@@ -166,13 +165,11 @@ export function resolveIndexShorthand(
 function importPathToGoogNamespace(
     host: GoogModuleProcessorHost, file: ts.SourceFile, tsImport: string): ts.StringLiteral {
   let modName: string;
-  let isGoogImport = false;
   const nsImport = extractGoogNamespaceImport(tsImport);
   if (nsImport !== null) {
     // This is a namespace import, of the form "goog:foo.bar".
     // Fix it to just "foo.bar".
     modName = nsImport;
-    isGoogImport = true;
   } else {
     if (host.convertIndexImportShorthand) {
       tsImport = resolveIndexShorthand(host, file.fileName, tsImport);
@@ -190,7 +187,6 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
   if (!ts.isBinaryExpression(expr.expression)) return null;
   if (expr.expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return null;
   if (!isPropertyAccess(expr.expression.left, 'module', 'exports')) return null;
-  const modPropAccess = expr.expression.left as ts.PropertyAccessExpression;
   return ts.setOriginalNode(
       ts.setTextRange(
           ts.createStatement(
@@ -219,7 +215,6 @@ export function commonJsToGoogmoduleTransformer(
       if (!ts.isPropertyAccessExpression(node)) return node;
       if (node.name.text !== 'default') return node;
       if (!ts.isIdentifier(node.expression)) return node;
-      const lhs = node.expression.text;
       // Find the import declaration this node comes from.
       // This may be the original node, if the identifier was transformed from it.
       const orig = ts.getOriginalNode(node.expression);
@@ -378,7 +373,6 @@ export function commonJsToGoogmoduleTransformer(
 
             // Grab the variable name (avoiding things like destructuring binds).
             if (decl.name.kind !== ts.SyntaxKind.Identifier) break;
-            const ident = decl.name;
             if (!decl.initializer || !ts.isCallExpression(decl.initializer)) {
               break;
             }
