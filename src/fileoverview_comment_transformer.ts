@@ -81,6 +81,10 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
         text: 'checked by tsc',
       });
     }
+    // Closure compiler fails if a tag at the start of the file has @suppress but no @fileoverview.
+    if (!tags.find(t => t.tagName === 'fileoverview')) {
+      tags.push({tagName: 'fileoverview'});
+    }
     const commentText = jsdoc.toStringWithoutStartEnd(tags);
     comments[fileoverviewIdx].text = commentText;
     // sf does not need to be updated, synthesized comments are mutable.
