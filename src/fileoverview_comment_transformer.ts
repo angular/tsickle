@@ -77,7 +77,7 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
     } else {
       tags.push({
         tagName: 'suppress',
-        type: 'checkTypes',
+        type: 'checkTypes,extraRequire',
         text: 'checked by tsc',
       });
     }

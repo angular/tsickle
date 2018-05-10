@@ -4,7 +4,7 @@
  * special logic to handle comments before import/require() calls. This file
  * tests the export * case.
  *
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.file_comment.export_star');
 var module = module || { id: 'test_files/file_comment/export_star.ts' };
