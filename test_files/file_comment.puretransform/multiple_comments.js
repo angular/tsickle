@@ -20,4 +20,3 @@ function f() {
     // Make sure the globalThis suppression above is maintained.
     return this.x;
 }
-exports.f = f;

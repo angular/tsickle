@@ -15,7 +15,9 @@
  */
 /** Here's another trailing comment */
 
-export function f() {
+function f() {
   // Make sure the globalThis suppression above is maintained.
   return this.x;
 }
+
+export {};
