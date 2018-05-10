@@ -10,7 +10,8 @@ exports.export2 = 3;
 exports.export3 = 3;
 exports.export4 = 3;
 /** @typedef {(string|number)} */
-exports.TypeDef;
+var TypeDef;
+exports.TypeDef = TypeDef;
 /**
  * @record
  */

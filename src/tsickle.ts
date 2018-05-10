@@ -1417,21 +1417,22 @@ class Annotator extends ClosureRewriter {
     if (sym.flags & ts.SymbolFlags.Value) return;
 
     // Write a Closure typedef, which involves an unused "var" declaration.
-    // Note: in the case of an export, we cannot emit a literal "var" because
-    // TypeScript drops exports that are never assigned to (and Closure
-    // requires us to not assign to typedef exports).  Instead, emit the
-    // "exports.foo;" line directly in that case.
     this.newTypeTranslator(node).blacklistTypeParameters(
         this.symbolsToAliasedNames, node.typeParameters);
 
     const typeStr = this.typeToClosure(node, undefined, true /* resolveAlias */);
+    const typeName = node.name.getText();
     this.emit(`\n/** @typedef {${typeStr}} */\n`);
+    this.emit(`var ${typeName};\n`);
+    // In the case of an export, we cannot emit a `export var foo;` because TypeScript drops exports
+    // that are never assigned values (and Closure requires us to not assign values to typedef
+    // exports).
+    // tsickle must also still emit the `var` line above so that the type can be used within the
+    // local module scope (Closure does not allow refering to "exports.Foo" within a module).
+    // With that, emit an additional "exports.foo = foo;" line assigning the unset variable into it.
     if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
-      this.emit('exports.');
-    } else {
-      this.emit('var ');
+      this.emit(`exports.${typeName} = ${typeName}\n`);
     }
-    this.emit(`${node.name.getText()};\n`);
   }
 
   /**
