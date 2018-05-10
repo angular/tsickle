@@ -1216,6 +1216,15 @@ class Annotator extends ClosureRewriter {
       if (sym.flags & ts.SymbolFlags.Alias) {
         sym = this.typeChecker.getAliasedSymbol(sym);
       }
+      // tsickle does not emit exports for ambient namespace declarations:
+      //    "export declare namespace {...}"
+      // So tsickle must not introduce aliases for them that point to the imported module, as those
+      // then don't resolve in Closure Compiler.
+      if (!sym.declarations ||
+          !sym.declarations.some(
+              d => d.kind !== ts.SyntaxKind.ModuleDeclaration || !isAmbient(d))) {
+        continue;
+      }
       // goog: imports don't actually use the .default property that TS thinks they have.
       const qualifiedName = nsImport && isDefaultImport ? forwardDeclarePrefix :
                                                           forwardDeclarePrefix + '.' + sym.name;
