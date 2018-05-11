@@ -1,6 +1,6 @@
 /**
  * @modName {some_mod}
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  * @fileoverview
  */
 goog.module('test_files.file_comment.other_fileoverview_comments');
