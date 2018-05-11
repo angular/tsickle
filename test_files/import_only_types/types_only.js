@@ -15,4 +15,15 @@ function Foo_tsickle_Closure_declarations() {
     Foo.prototype.x;
 }
 /** @typedef {number} */
-exports.Bar;
+var Bar;
+exports.Bar = Bar;
+/** @typedef {function(): void} */
+var FnType;
+exports.FnType = FnType;
+/**
+ * Uses exported types to demonstrate that the symbols can be resolved locally.
+ * @param {!Foo} a
+ * @param {FnType} b
+ * @return {void}
+ */
+function doThing(a, b) { }

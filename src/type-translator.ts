@@ -214,22 +214,34 @@ export class TypeTranslator {
     // This must happen before the alias check below, it might introduce a new alias for the symbol.
     if ((sym.flags & ts.SymbolFlags.TypeParameter) === 0) this.ensureSymbolDeclared(sym);
 
-    let symAlias = sym;
-    if (symAlias.flags & ts.SymbolFlags.Alias) {
-      symAlias = this.typeChecker.getAliasedSymbol(symAlias);
-    }
-    const alias = this.symbolsToAliasedNames.get(symAlias);
-    if (alias) return alias;
-
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
-    const writeText = (text: string) => str += text;
+    function writeText(text: string) {
+      str += text;
+    }
+    const writeSymbol = (text: string, symbol: ts.Symbol) => {
+      // When writing a symbol, check if there is an alias for it in the current scope that should
+      // take precedence, e.g. from a goog.forwardDeclare.
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = this.typeChecker.getAliasedSymbol(symbol);
+      }
+      const alias = this.symbolsToAliasedNames.get(symbol);
+      if (alias) {
+        // If so, discard the entire current text and only use the alias - otherwise if a symbol has
+        // a local alias but appears in a dotted type path (e.g. when it's imported using import *
+        // as foo), str would contain both the prefx *and* the full alias (foo.alias.name).
+        str = alias;
+      } else {
+        str += text;
+      }
+    };
     const doNothing = () => {
       return;
     };
 
     const builder = this.typeChecker.getSymbolDisplayBuilder();
     const writer: ts.SymbolWriter = {
+      writeSymbol,
       writeKeyword: writeText,
       writeOperator: writeText,
       writePunctuation: writeText,
@@ -237,7 +249,6 @@ export class TypeTranslator {
       writeStringLiteral: writeText,
       writeParameter: writeText,
       writeProperty: writeText,
-      writeSymbol: writeText,
       writeLine: doNothing,
       increaseIndent: doNothing,
       decreaseIndent: doNothing,
@@ -288,7 +299,7 @@ export class TypeTranslator {
     }
 
     let isAmbient = false;
-    let isNamespace = false;
+    let isInNamespace = false;
     let isModule = false;
     if (type.symbol) {
       for (const decl of type.symbol.declarations || []) {
@@ -296,14 +307,14 @@ export class TypeTranslator {
         let current: ts.Node|undefined = decl;
         while (current) {
           if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
-          if (current.kind === ts.SyntaxKind.ModuleDeclaration) isNamespace = true;
+          if (current.kind === ts.SyntaxKind.ModuleDeclaration) isInNamespace = true;
           current = current.parent;
         }
       }
     }
 
-    // tsickle cannot generate types for non-ambient namespaces.
-    if (isNamespace && !isAmbient) return '?';
+    // tsickle cannot generate types for non-ambient namespaces nor any symbols contained in them.
+    if (isInNamespace && !isAmbient) return '?';
 
     // Types in externs cannot reference types from external modules.
     // However ambient types in modules get moved to externs, too, so type references work and we

@@ -5,3 +5,9 @@ export interface Foo {
 }
 
 export type Bar = number;
+
+/** A type that will be used within this file below. */
+export type FnType = () => void;
+
+/** Uses exported types to demonstrate that the symbols can be resolved locally. */
+function doThing(a: Foo, b: FnType) {}

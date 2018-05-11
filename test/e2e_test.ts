@@ -24,6 +24,7 @@ export function checkClosureCompile(useNewTypeInferece: boolean, done: DoneFn) {
   goldenJs.push('test_files/import_from_goog/closure_Module.js');
   goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
   goldenJs.push('test_files/export_equals/shim.js');
+  goldenJs.push('test_files/type_propaccess.no_externs/nested_clazz.js');
   const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
   const startTime = Date.now();
   const total = goldenJs.length;
