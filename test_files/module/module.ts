@@ -1,3 +1,6 @@
+// tslint:disable-next-line:no-namespace
 module Reflect {
-  const x = 1;
+  export const x = 1;
 }
+
+console.log(Reflect.x);
