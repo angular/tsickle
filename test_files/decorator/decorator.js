@@ -74,8 +74,8 @@ DecoratorTest.ctorParameters = () => [
     { type: external_1.ReexportedOtherClass, },
 ];
 DecoratorTest.propDecorators = {
-    "w": [{ type: annotationDecorator },],
-    "y": [{ type: annotationDecorator },],
+    w: [{ type: annotationDecorator },],
+    y: [{ type: annotationDecorator },],
 };
 __decorate([
     decorator,
