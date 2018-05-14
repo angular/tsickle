@@ -142,6 +142,9 @@ testFn('golden tests with transformer', () => {
           throw new Error(tsickle.formatDiagnostics(diagnostics));
         }
       }
+      if (test.isEs5Target) {
+        tsCompilerOptions.target = ts.ScriptTarget.ES5;
+      }
       const allDiagnostics = new Set<ts.Diagnostic>();
       const transformerHost: tsickle.TsickleHost = {
         es5Mode: true,

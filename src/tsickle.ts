@@ -2040,11 +2040,6 @@ export function emitWithTsickle(
     tsickleSourceTransformers.push(
         classDecoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
-  // // For debugging: transformer that just emits the same text.
-  // beforeTsTransformers.push(createTransformer(host, typeChecker, (sourceFile, sourceMapper) => {
-  //   sourceMapper.addMapping(sourceFile, {position: 0, line: 0, column: 0}, {position: 0, line: 0,
-  //   column: 0}, sourceFile.text.length); return sourceFile.text;
-  // }));
   const modulesManifest = new ModulesManifest();
   let tsickleTransformers: ts.CustomTransformers = {};
   if (tsickleSourceTransformers.length) {

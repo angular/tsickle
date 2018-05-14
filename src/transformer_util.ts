@@ -286,6 +286,16 @@ export function visitNodeWithSynthesizedComments<T extends ts.Node>(
         context, sourceFile, node, sourceFile.statements,
         (node, stmts) => visitor(updateSourceFileNode(sourceFile, stmts) as ts.Node as T));
   } else {
+    // In arrow functions with expression bodies (`(x) => expr`), do not synthesize comment nodes
+    // that precede the body expression. When downleveling to ES5, TypeScript inserts a return
+    // statement and moves the comment in front of it, but then still emits any syntesized comment
+    // we create here. That can cause a line comment to be emitted after the return, which causes
+    // Automatic Semicolon Insertion, which then breaks the code. See arrow_fn_es5.ts for an
+    // example.
+    if (node.parent && (node as ts.Node).kind !== ts.SyntaxKind.Block &&
+        ts.isArrowFunction(node.parent) && (node as ts.Node) === node.parent.body) {
+      return visitor(node);
+    }
     const fileContext = assertFileContext(context, sourceFile);
     const leadingLastCommentEnd =
         synthesizeLeadingComments(sourceFile, node, fileContext.lastCommentEnd);
