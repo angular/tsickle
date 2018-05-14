@@ -1190,7 +1190,12 @@ class Annotator extends ClosureRewriter {
     // declaration, so just return.
     if (!moduleSymbol) return '';
     this.forwardDeclaredModules.add(moduleSymbol);
-    const exports = this.typeChecker.getExportsOfModule(moduleSymbol);
+    const exports = this.typeChecker.getExportsOfModule(moduleSymbol).map(e => {
+      if (e.flags & ts.SymbolFlags.Alias) {
+        e = this.typeChecker.getAliasedSymbol(e);
+      }
+      return e;
+    });
     const hasValues = exports.some(e => {
       const isValue = (e.flags & ts.SymbolFlags.Value) !== 0;
       const isConstEnum = (e.flags & ts.SymbolFlags.ConstEnum) !== 0;
@@ -1212,10 +1217,7 @@ class Annotator extends ClosureRewriter {
       // imported for their value in some place.
       emitText += `goog.require("${moduleNamespace}"); // force type-only module to be loaded\n`;
     }
-    for (let sym of exports) {
-      if (sym.flags & ts.SymbolFlags.Alias) {
-        sym = this.typeChecker.getAliasedSymbol(sym);
-      }
+    for (const sym of exports) {
       // tsickle does not emit exports for ambient namespace declarations:
       //    "export declare namespace {...}"
       // So tsickle must not introduce aliases for them that point to the imported module, as those
