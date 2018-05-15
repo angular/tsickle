@@ -27,6 +27,13 @@ node_repositories(package_json = [
 ])
 
 http_archive(
+    name = "io_bazel_rules_webtesting",
+    url = "https://github.com/bazelbuild/rules_webtesting/archive/ca7b8062d9cf4ef2fde9193c7d37a0764c4262d7.zip",
+    strip_prefix = "rules_webtesting-ca7b8062d9cf4ef2fde9193c7d37a0764c4262d7",
+    sha256 = "28c73cf9d310fa6dba30e66bdb98071341c99c3feb8662f2d3883a632de97d72",
+)
+
+http_archive(
     name = "build_bazel_rules_typescript",
     url = "https://github.com/bazelbuild/rules_typescript/archive/cfc3bf8220b630436c3102c7b78f62417186f9b9.zip",
     strip_prefix = "rules_typescript-cfc3bf8220b630436c3102c7b78f62417186f9b9",
