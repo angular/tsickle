@@ -120,23 +120,6 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
       fileCtx.syntheticNodeParents.set(node, parent);
 
       const originalNode = ts.getOriginalNode(node);
-      // Needed so that e.g. `module { ... }` prints the variable statement
-      // before the closure.
-      // See https://github.com/Microsoft/TypeScript/issues/17596
-      // tslint:disable-next-line:no-any as `symbol` is @internal in typescript.
-      (node as any).symbol = (originalNode as any).symbol;
-
-      if (originalNode && node.kind === ts.SyntaxKind.ExportDeclaration) {
-        const originalEd = originalNode as ts.ExportDeclaration;
-        const ed = node as ts.ExportDeclaration;
-        if (!!originalEd.exportClause !== !!ed.exportClause) {
-          // Tsickle changes `export * ...` into named exports.
-          // In this case, don't set the original node for the ExportDeclaration
-          // as otherwise TypeScript does not emit the exports.
-          // See https://github.com/Microsoft/TypeScript/issues/17597
-          ts.setOriginalNode(node, undefined);
-        }
-      }
 
       if (node.kind === ts.SyntaxKind.ImportDeclaration ||
           node.kind === ts.SyntaxKind.ExportDeclaration) {
@@ -328,7 +311,8 @@ function resetNodeTextRangeToPreventDuplicateComments<T extends ts.Node>(node: T
   let allowTextRange = node.kind !== ts.SyntaxKind.ClassDeclaration &&
       node.kind !== ts.SyntaxKind.VariableDeclaration &&
       !(node.kind === ts.SyntaxKind.VariableStatement &&
-        hasModifierFlag(node, ts.ModifierFlags.Export));
+        hasModifierFlag(node, ts.ModifierFlags.Export)) &&
+      node.kind !== ts.SyntaxKind.ModuleDeclaration;
   if (node.kind === ts.SyntaxKind.PropertyDeclaration) {
     allowTextRange = false;
     const pd = node as ts.Node as ts.PropertyDeclaration;
