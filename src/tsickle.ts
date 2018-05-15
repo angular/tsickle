@@ -7,7 +7,7 @@
  */
 
 import * as path from 'path';
-import {RawSourceMap, SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 
 import {classDecoratorDownlevelTransformer} from './class_decorator_downlevel_transformer';
 import * as decorator from './decorator-annotator';
@@ -17,7 +17,7 @@ import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModulesManifest} from './modules_manifest';
 import {getEntityNameText, getIdentifierText, Rewriter, unescapeName} from './rewriter';
-import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeInlineSourceMap, setInlineSourceMap, SourceMapper, SourcePosition} from './source_map_utils';
+import {containsInlineSourceMap, extractInlineSourceMap, parseSourceMap, removeInlineSourceMap, setInlineSourceMap, SourceMapper} from './source_map_utils';
 import {createTransformerFromSourceMap} from './transformer_sourcemap';
 import {createCustomTransformers} from './transformer_util';
 import * as typeTranslator from './type-translator';
@@ -598,9 +598,6 @@ abstract class ClosureRewriter extends Rewriter {
 
 type HasTypeParameters =
     ts.InterfaceDeclaration|ts.ClassLikeDeclaration|ts.TypeAliasDeclaration|ts.SignatureDeclaration;
-
-const FILEOVERVIEW_COMMENTS: ReadonlySet<string> =
-    new Set(['fileoverview', 'externs', 'modName', 'mods', 'pintomodule']);
 
 /** Annotator translates a .ts to a .ts with Closure annotations. */
 class Annotator extends ClosureRewriter {

@@ -6,20 +6,19 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {assert, expect} from 'chai';
-import * as ts from 'typescript';
+import {expect} from 'chai';
 
 import {toClosureJS} from '../src/main';
 import * as tsickle from '../src/tsickle';
 
-import {compilerOptions, createSourceCachingHost, findFileContentsByName, readSources} from './test_support';
+import {compilerOptions} from './test_support';
 
 describe('toClosureJS', () => {
   it('creates externs, adds type comments and rewrites imports', () => {
-    const filePaths =
-        ['test_files/underscore/export_underscore.ts', 'test_files/underscore/underscore.ts'];
-    const sources = readSources(filePaths);
-
+    const filePaths = [
+      'test_files/underscore/export_underscore.ts',
+      'test_files/underscore/underscore.ts',
+    ];
     const files = new Map<string, string>();
     const result = toClosureJS(
         compilerOptions, filePaths, {isTyped: true}, (filePath: string, contents: string) => {

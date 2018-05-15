@@ -15,7 +15,7 @@ import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
 
-import {compileWithTransfromer, createProgram, goldenTests} from './test_support';
+import {createProgram, goldenTests} from './test_support';
 
 describe('clutz dts', () => {
   it('produces a valid .d.ts', () => {

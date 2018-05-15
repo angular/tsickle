@@ -6,8 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {SourceMapGenerator} from 'source-map';
-
 import {getDecoratorDeclarations} from './decorators';
 import {getIdentifierText, Rewriter} from './rewriter';
 import {SourceMapper} from './source_map_utils';

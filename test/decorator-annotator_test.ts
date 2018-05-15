@@ -9,14 +9,13 @@
 // tslint:disable:no-unused-expression mocha .to.be.empty getters.
 
 import {expect} from 'chai';
-import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
 
 import {createAstPrintingTransform} from './ast_printing_transform';
-import {compilerOptions, createProgram, createProgramAndHost} from './test_support';
+import {compilerOptions, createProgramAndHost} from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 

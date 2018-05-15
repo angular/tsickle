@@ -6,15 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-// tslint:disable:no-unused-expression mocha .to.be.empty getters.
-
-import {expect} from 'chai';
-import * as path from 'path';
-import * as ts from 'typescript';
-
-import * as tsickle from '../src/tsickle';
-
-import {assertSourceMapping, compileWithTransfromer, findFileContentsByName, getSourceMapWithName, sourceMapCompilerOptions} from './test_support';
+import {assertSourceMapping, compileWithTransfromer, getSourceMapWithName, sourceMapCompilerOptions} from './test_support';
 
 describe('source maps each node with transformer', () => {
   it('maps import declarations correctly', () => {

@@ -21,7 +21,7 @@ describe('transformer util', () => {
   function emitWithTransform(
       tsSources: {[fileName: string]: string},
       transform: ts.TransformerFactory<ts.SourceFile>): {[fileName: string]: string} {
-    const {program, host} = testSupport.createProgramAndHost(objectToMap(tsSources));
+    const {program} = testSupport.createProgramAndHost(objectToMap(tsSources));
 
     const diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length) {

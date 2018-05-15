@@ -18,8 +18,6 @@ import {ModulesManifest} from '../src/modules_manifest';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
-import {getCommonParentDirectory} from '../src/util';
-import {visitNodeWithSynthesizedComments} from '../src/transformer_util';
 
 chaiUse(chaiDiff);
 

@@ -36,20 +36,6 @@ const TEST_FILTER = (() => {
 //     UPDATE_GOLDENS=y bazel run test:golden_test
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
 
-function readGolden(path: string): string|null {
-  let golden: string|null = null;
-  try {
-    golden = fs.readFileSync(path, 'utf-8');
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      return null;
-    } else {
-      throw e;
-    }
-  }
-  return golden;
-}
-
 /**
  * compareAgainstGoldens compares a test output against the content in a golden
  * path, updating the content of the golden when UPDATE_GOLDENS is true.
@@ -173,7 +159,7 @@ testFn('golden tests with transformer', () => {
       const tscOutput: {[fileName: string]: string} = {};
       let targetSource: ts.SourceFile|undefined = undefined;
       if (TEST_FILTER && TEST_FILTER.fileName) {
-        for (const [path, source] of tsSources.entries()) {
+        for (const [path] of tsSources.entries()) {
           if (!TEST_FILTER.fileName.test(path)) continue;
           if (targetSource) {
             throw new Error(

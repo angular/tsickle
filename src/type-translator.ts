@@ -8,7 +8,6 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
-import {getIdentifierText} from './rewriter';
 
 /**
  * Determines if fileName refers to a builtin lib.d.ts file.
@@ -668,9 +667,6 @@ export class TypeTranslator {
   private convertParams(sig: ts.Signature, paramDecls: ReadonlyArray<ts.ParameterDeclaration>):
       string[] {
     const paramTypes: string[] = [];
-    // The Signature itself does not include information on optional and var arg parameters.
-    // Use its declaration to recover that information.
-    const decl = sig.declaration;
     for (let i = 0; i < sig.parameters.length; i++) {
       const param = sig.parameters[i];
 

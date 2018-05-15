@@ -11,7 +11,7 @@ import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
 import {SourceMapGeneratorToJson, SourceMapper, SourcePosition} from '../src/source_map_utils';
-import {annotate, AnnotatorHost} from '../src/tsickle';
+import {annotate} from '../src/tsickle';
 
 import {createProgramAndHost} from './test_support';
 

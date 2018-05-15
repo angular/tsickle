@@ -105,7 +105,6 @@ function prepareNodesBeforeTypeScriptTransform(context: ts.TransformationContext
     return sourceFile;
 
     function visitNode(node: ts.Node) {
-      const startNode = node;
       const parent = nodePath[nodePath.length - 1];
 
       if (node.flags & ts.NodeFlags.Synthesized) {

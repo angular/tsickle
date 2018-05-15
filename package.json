@@ -39,7 +39,6 @@
     "google-closure-compiler": "20161024.3.0",
     "gulp": "3.9.1",
     "gulp-clang-format": "1.0.25",
-    "gulp-tslint": "8.1.3",
     "gulp-typescript": "4.0.1",
     "jasmine": "3.1.0",
     "merge2": "1.2.1",
@@ -49,7 +48,7 @@
   },
   "scripts": {
     "build": "bazel build //:npm_package",
-    "test": "gulp test.check-format && gulp test.check-lint && bazel test ..."
+    "test": "gulp test.check-format && node_modules/.bin/tslint -c tslint.json -p tsconfig.json && bazel test ..."
   },
   "repository": {
     "type": "git",

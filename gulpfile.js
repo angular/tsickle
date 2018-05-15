@@ -9,7 +9,6 @@
 var clangFormat = require('clang-format');
 var formatter = require('gulp-clang-format');
 var gulp = require('gulp');
-var tslint = require('gulp-tslint');
 
 var onError = function(err) {
   process.exit(1);
@@ -26,12 +25,5 @@ gulp.task('format', function() {
 gulp.task('test.check-format', function() {
   return gulp.src(formatted)
       .pipe(formatter.checkFormat('file', clangFormat, {verbose: true}))
-      .on('warning', onError);
-});
-
-gulp.task('test.check-lint', function() {
-  return gulp.src(['src/**/*.ts', 'test/**/*.ts'])
-      .pipe(tslint({formatter: 'verbose'}))
-      .pipe(tslint.report())
       .on('warning', onError);
 });

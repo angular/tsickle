@@ -9,12 +9,9 @@
 // tslint:disable:no-unused-expression mocha .to.be.empty getters.
 
 import {expect} from 'chai';
-import * as path from 'path';
 import {RawSourceMap} from 'source-map';
-import * as ts from 'typescript';
 
 import {containsInlineSourceMap, getInlineSourceMapCount} from '../src/source_map_utils';
-import * as tsickle from '../src/tsickle';
 
 import {assertSourceMapping, compileWithTransfromer, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
 
