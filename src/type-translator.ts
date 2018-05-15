@@ -174,7 +174,7 @@ export class TypeTranslator {
    *     arguments are always scoped to the class containing them, where TypeScript's template args
    *     would be fully qualified. I.e. this flag is false for generic types.
    */
-  public symbolToString(sym: ts.Symbol, useFqn: boolean): string {
+  symbolToString(sym: ts.Symbol, useFqn: boolean): string {
     if (useFqn && this.isForExterns) {
       // For regular type emit, we can use TypeScript's naming rules, as they match Closure's name
       // scoping rules. However when emitting externs files for ambients, naming rules change. As

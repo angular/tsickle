@@ -193,7 +193,7 @@ export class GoldenFileTest {
     return path.join(path.sep, ...resolvedPathParts.slice(0, testFilesSegmentIndex));
   }
 
-  public static tsPathToJs(tsPath: string): string {
+  static tsPathToJs(tsPath: string): string {
     return tsPath.replace(/\.tsx?$/, '.js');
   }
 }

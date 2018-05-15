@@ -1123,8 +1123,9 @@ class Annotator extends ClosureRewriter {
   private emitTypeDefExports(exports: NamedSymbol[]) {
     if (this.host.untyped) return;
     for (const exp of exports) {
-      if (exp.sym.flags & ts.SymbolFlags.Alias)
+      if (exp.sym.flags & ts.SymbolFlags.Alias) {
         exp.sym = this.typeChecker.getAliasedSymbol(exp.sym);
+      }
       const isTypeAlias = ((exp.sym.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
                            (exp.sym.flags & ts.SymbolFlags.Value) === 0) ||
           (exp.sym.flags & ts.SymbolFlags.Interface) !== 0 &&
@@ -1630,7 +1631,7 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   /** visit is the main entry point.  It generates externs from a ts.Node. */
-  public visit(node: ts.Node, namespace: string[] = []) {
+  visit(node: ts.Node, namespace: string[] = []) {
     switch (node.kind) {
       case ts.SyntaxKind.SourceFile:
         const sourceFile = node as ts.SourceFile;
