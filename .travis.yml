@@ -9,6 +9,6 @@ install:
   - bazel version
   # Don't lock the bazel server, so that yarn can call bazel again
   # See explanation in README.md
-  - bazel run @yarn//:yarn --script_path=yarn_install.sh && ./yarn_install.sh
+  - bazel run @nodejs//:yarn --script_path=yarn_install.sh && ./yarn_install.sh
 script:
   - yarn test --config=ci

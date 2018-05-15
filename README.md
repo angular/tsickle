@@ -100,12 +100,12 @@ Example:
 
 ### One-time setup
 
-Run `bazel run @yarn//:yarn --script_path=yarn_install.sh && ./yarn_install.sh`
+Run `bazel run @nodejs//:yarn --script_path=yarn_install.sh && ./yarn_install.sh`
 to install the dependencies.
 
 > This avoids occupying the `bazel` server, so that `yarn` can call `bazel`
 > again.
-> Ideally we should just use `bazel-run.sh @yarn//:yarn`, see
+> Ideally we should just use `bazel-run.sh @nodejs//:yarn`, see
 > https://stackoverflow.com/questions/47082298/how-can-users-get-bazel-run-sh
 
 ### Test commands
