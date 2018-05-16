@@ -2,6 +2,7 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
  */
+// tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_namespace');
 var module = module || { id: 'test_files/namespaced/export_namespace.ts' };
 var valueNamespace;

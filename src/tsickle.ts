@@ -862,8 +862,7 @@ class Annotator extends ClosureRewriter {
         this.visitTypeAlias(node as ts.TypeAliasDeclaration);
         return true;
       case ts.SyntaxKind.EnumDeclaration:
-        this.processEnum(node as ts.EnumDeclaration);
-        return true;
+        return this.maybeProcessEnum(node as ts.EnumDeclaration);
       case ts.SyntaxKind.TemplateSpan:
         this.templateSpanStackCount++;
         this.writeNode(node);
@@ -1496,11 +1495,23 @@ class Annotator extends ClosureRewriter {
     }
   }
 
+  /** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
+  private isInNamespace(node: ts.Node) {
+    let parent = node.parent;
+    while (parent) {
+      if (parent.kind === ts.SyntaxKind.ModuleDeclaration) {
+        return true;
+      }
+      parent = parent.parent;
+    }
+    return false;
+  }
+
   /**
    * Processes an EnumDeclaration into a Closure type. Always emits a Closure type, even in untyped
    * mode, as that should be harmless (it only ever uses the number type).
    */
-  private processEnum(node: ts.EnumDeclaration) {
+  private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
     // Emit the enum declaration, which looks like:
     //   /** @enum {number} */
     //   const Foo = {BAR: 0, BAZ: 1, ...};
@@ -1508,9 +1519,16 @@ class Annotator extends ClosureRewriter {
     // This declares an enum type for Closure Compiler (and Closure JS users of this TS code).
     // Splitting the enum into declaration and export is required so that local references to the
     // type resolve ("@type {Foo}").
+
+    // TODO(martinprobst): This does not work for enums embedded in namespaces, because TS does not
+    // support splitting export and declaration ("export {Foo};") in namespaces. tsickle's emit for
+    // namespaces is unintelligble for Closure in any case, so this is left to fix for another day.
+    if (this.isInNamespace(node)) return false;
+
     this.emit('\n');
     const name = node.name.getText();
 
+    const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
     const enumType = this.getEnumType(node);
     this.emit(`/** @enum {${enumType}} */\n`);
     this.emit(`const ${name}: DontTypeCheckMe = {`);
@@ -1554,7 +1572,6 @@ class Annotator extends ClosureRewriter {
     }
     this.emit('};\n');
 
-    const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
     if (isExported) this.emit(`export {${name}};\n`);
 
     if (hasModifierFlag(node, ts.ModifierFlags.Const)) {
@@ -1562,7 +1579,7 @@ class Annotator extends ClosureRewriter {
       // We still need to generate the runtime value above to make Closure Compiler's type system
       // happy and allow refering to enums from JS code, but we should at least not emit string
       // value mappings.
-      return;
+      return true;
     }
 
     // Emit the reverse mapping of foo[foo.BAR] = 'BAR'; lines for number enum members
@@ -1582,6 +1599,7 @@ class Annotator extends ClosureRewriter {
         this.emit(`${name}[${name}[${memberName}]] = ${memberName};\n`);
       }
     }
+    return true;
   }
 }
 
