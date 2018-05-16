@@ -2,9 +2,9 @@ workspace(name="tsickle")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    url = "https://github.com/bazelbuild/rules_nodejs/archive/07c6e26c11bf2c75d3740e5bb408287434f653d8.zip",
-    strip_prefix = "rules_nodejs-07c6e26c11bf2c75d3740e5bb408287434f653d8",
-    sha256 = "7b181b44c8761e703174d6d8f2a8d6ad11d64ef2ccfb8996638a0b3bebe7b7f1",
+    url = "https://github.com/bazelbuild/rules_nodejs/archive/0.9.0.zip",
+    strip_prefix = "rules_nodejs-0.9.0",
+    sha256 = "687ffc3165402f445797062dfbe85a3bf3632dba109fc0ff8694999688d96852",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "node_repositories")
@@ -35,9 +35,9 @@ http_archive(
 
 http_archive(
     name = "build_bazel_rules_typescript",
-    url = "https://github.com/bazelbuild/rules_typescript/archive/cfc3bf8220b630436c3102c7b78f62417186f9b9.zip",
-    strip_prefix = "rules_typescript-cfc3bf8220b630436c3102c7b78f62417186f9b9",
-    sha256 = "6d7f4889fa60a516d01c6d5bb7402f9c07433dbb49c86e68d40716ba30e47297",
+    url = "https://github.com/bazelbuild/rules_typescript/archive/0.14.0.zip",
+    strip_prefix = "rules_typescript-0.14.0",
+    sha256 = "90aa6e1996a14cedfbe64445d5dcf8bbaeec8292cbb177bc9002e77543bc731f",
 )
 
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
