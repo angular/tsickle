@@ -15,9 +15,8 @@ genrule(
 ts_library(
     name = "src",
     srcs = [
-        "class_decorator_downlevel_transformer.ts",
+        "decorator_downlevel_transformer.ts",
         "cli_support.ts",
-        "decorator-annotator.ts",
         "decorators.ts",
         "fileoverview_comment_transformer.ts",
         "googmodule.ts",

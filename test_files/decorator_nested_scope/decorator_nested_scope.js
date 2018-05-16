@@ -21,16 +21,7 @@ function main() {
     ];
     /** @nocollapse */
     TestComp3.ctorParameters = () => [
-        { type: SomeService, },
+        { type: SomeService }
     ];
-    function TestComp3_tsickle_Closure_declarations() {
-        /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
-        TestComp3.decorators;
-        /**
-         * @nocollapse
-         * @type {function(): !Array<(null|{type: ?, decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>)})>}
-         */
-        TestComp3.ctorParameters;
-    }
 }
 exports.main = main;

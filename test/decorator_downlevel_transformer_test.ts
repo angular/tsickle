@@ -8,7 +8,9 @@
 
 // tslint:disable:no-unused-expression mocha .to.be.empty getters.
 
-import {expect} from 'chai';
+import {expect, use as chaiUse} from 'chai';
+// tslint:disable-next-line:no-require-imports chai-diff needs a CommonJS import.
+import chaiDiff = require('chai-diff');
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
@@ -16,6 +18,8 @@ import * as tsickle from '../src/tsickle';
 
 import {createAstPrintingTransform} from './ast_printing_transform';
 import {compilerOptions, createProgramAndHost} from './test_support';
+
+chaiUse(chaiDiff);
 
 const testCaseFileName = 'testcase.ts';
 
@@ -34,7 +38,7 @@ function sources(sourceText: string): Map<string, string> {
   return sources;
 }
 
-describe('decorator-annotator', () => {
+describe('decorator_downlevel_transformer', () => {
   function translate(sourceText: string, allowErrors = false) {
     const {host, program} = createProgramAndHost(sources(sourceText), compilerOptions);
     if (!allowErrors) {
@@ -48,6 +52,7 @@ describe('decorator-annotator', () => {
       shouldIgnoreWarningsForPath: (filePath) => false,
       fileNameToModuleId: (filePath) => filePath,
       transformDecorators: true,
+      transformTypesToClosure: false,
       googmodule: true,
       es5Mode: false,
       untyped: false,
@@ -69,7 +74,7 @@ describe('decorator-annotator', () => {
   }
 
   function expectUnchanged(sourceText: string) {
-    expectTranslated(sourceText).to.equal(sourceText);
+    expectTranslated(sourceText).not.differentFrom(sourceText);
   }
 
   function expectTranslated(sourceText: string) {
@@ -106,7 +111,7 @@ let param: any;
 @Test2(param)
 class Foo {
   field: string;
-}`).to.equal(`import { FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 /** @Annotation */ let Test2: FakeDecorator;
 let param: any;
@@ -129,7 +134,7 @@ class Foo {
 @Test
 class Foo {
   field: string;
-}`).to.equal(`/** @Annotation */ function Test(t: any) { }
+}`).not.differentFrom(`/** @Annotation */ function Test(t: any) { }
 ;
 class Foo {
     field: string;
@@ -150,7 +155,7 @@ import {FakeDecorator} from 'bar';
 @Test
 class Foo {
   field: string;
-}`).to.equal(`import { FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { FakeDecorator } from 'bar';
 /** @Annotation */ export let Test: FakeDecorator;
 class Foo {
     field: string;
@@ -177,7 +182,7 @@ let param: any;
 @Test3()
 @Test4<string>(param)
 class Foo {
-}`).to.equal(`import { FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 /** @Annotation */ let Test2: FakeDecorator;
 /** @Annotation */ let Test3: FakeDecorator;
@@ -204,7 +209,7 @@ import {FakeDecorator} from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 @Test1
 export class Foo {
-}`).to.equal(`import { FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 export class Foo {
     static decorators: {
@@ -229,7 +234,7 @@ export class Foo {
     class Bar {
     }
   }
-}`).to.equal(`import { FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 /** @Annotation */ let Test2: FakeDecorator;
 export class Foo {
@@ -272,7 +277,7 @@ import {FakeDecorator} from 'bar';
 class Foo {
   constructor() {
   }
-}`).to.equal(`import { FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 class Foo {
     constructor() {
@@ -303,7 +308,7 @@ abstract class AbstractService {}
 class Foo {
   constructor(@Inject bar: AbstractService, @Inject('enum') num: AnEnum) {
   }
-}`).to.equal(`/** @Annotation */ let Inject: Function;
+}`).not.differentFrom(`/** @Annotation */ let Inject: Function;
 enum AnEnum {
     ONE,
     TWO
@@ -322,8 +327,8 @@ class Foo {
             args?: any[];
         }[];
     } | null)[] = () => [
-        { type: AbstractService, decorators: [{ type: Inject },] },
-        { type: AnEnum, decorators: [{ type: Inject, args: ['enum',] },] },
+        { type: AbstractService, decorators: [{ type: Inject }] },
+        { type: AnEnum, decorators: [{ type: Inject, args: ['enum',] }] }
     ];
 }
 `);
@@ -337,7 +342,7 @@ import {BarService, FakeDecorator} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
   }
-}`).to.equal(`import { BarService, FakeDecorator } from 'bar';
+}`).not.differentFrom(`import { BarService, FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 class Foo {
     constructor(bar: BarService, num: number) {
@@ -356,8 +361,8 @@ class Foo {
             args?: any[];
         }[];
     } | null)[] = () => [
-        { type: BarService, },
-        null,
+        { type: BarService },
+        { type: Number }
     ];
 }
 `);
@@ -371,7 +376,7 @@ let param: any;
 class Foo {
   constructor(@Inject(param) x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
-}`).to.equal(`import * as bar from 'bar';
+}`).not.differentFrom(`import * as bar from 'bar';
 /** @Annotation */ let Inject: Function;
 let param: any;
 class Foo {
@@ -385,10 +390,10 @@ class Foo {
             args?: any[];
         }[];
     } | null)[] = () => [
-        { type: bar.BarService, decorators: [{ type: Inject, args: [param,] },] },
+        { type: bar.BarService, decorators: [{ type: Inject, args: [param,] }] },
         null,
         null,
-        { type: bar.BarService, },
+        { type: bar.BarService }
     ];
 }
 `);
@@ -400,7 +405,7 @@ class Foo {
 let APP_ID: any;
 class ViewUtils {
   constructor(@Inject(APP_ID) private _appId: string) {}
-}`).to.equal(`/** @Annotation */ let Inject: Function;
+}`).not.differentFrom(`/** @Annotation */ let Inject: Function;
 let APP_ID: any;
 class ViewUtils {
     constructor(private _appId: string) { }
@@ -412,7 +417,7 @@ class ViewUtils {
             args?: any[];
         }[];
     } | null)[] = () => [
-        { type: undefined, decorators: [{ type: Inject, args: [APP_ID,] },] },
+        { type: String, decorators: [{ type: Inject, args: [APP_ID,] }] }
     ];
 }
 `);
@@ -430,8 +435,8 @@ class ViewUtils {
         class ViewUtils {
           constructor() {}
         }
-        `).to.equal(`/** @Annotation */ var RemoveMe: Function = (undefined as any);
-var KeepMe: Function = (undefined as any);
+        `).not.differentFrom(`/** @Annotation */ var RemoveMe: Function = undefined as any;
+var KeepMe: Function = undefined as any;
 @KeepMe()
 class ViewUtils {
     constructor() { }
@@ -459,7 +464,7 @@ class ViewUtils {
 class Foo {
   constructor(@Inject typed: Promise<string>) {
   }
-}`).to.equal(`/** @Annotation */ let Inject: Function;
+}`).not.differentFrom(`/** @Annotation */ let Inject: Function;
 class Foo {
     constructor(typed: Promise<string>) {
     }
@@ -471,7 +476,7 @@ class Foo {
             args?: any[];
         }[];
     } | null)[] = () => [
-        { type: Promise, decorators: [{ type: Inject },] },
+        { type: Promise, decorators: [{ type: Inject }] }
     ];
 }
 `);
@@ -484,7 +489,7 @@ class Class {}
 interface Iface {}
 class Foo {
   constructor(@Inject aClass: Class, @Inject aIface: Iface) {}
-}`).to.equal(`/** @Annotation */ let Inject: Function = (null as any);
+}`).not.differentFrom(`/** @Annotation */ let Inject: Function = (null as any);
 class Class {
 }
 interface Iface {
@@ -499,8 +504,8 @@ class Foo {
             args?: any[];
         }[];
     } | null)[] = () => [
-        { type: Class, decorators: [{ type: Inject },] },
-        { type: undefined, decorators: [{ type: Inject },] },
+        { type: Class, decorators: [{ type: Inject }] },
+        { type: undefined, decorators: [{ type: Inject }] }
     ];
 }
 `);
@@ -521,7 +526,7 @@ class Foo {
 class Foo {
   @Test1('somename')
   bar() {}
-}`).to.equal(`/** @Annotation */ let Test1: Function;
+}`).not.differentFrom(`/** @Annotation */ let Test1: Function;
 class Foo {
     bar() { }
     static propDecorators: {
@@ -530,7 +535,7 @@ class Foo {
             args?: any[];
         }[];
     } = {
-        "bar": [{ type: Test1, args: ['somename',] },],
+        bar: [{ type: Test1, args: ['somename',] }]
     };
 }
 `);
@@ -545,7 +550,7 @@ class ClassWithDecorators {
 
   @PropDecorator("p3")
   set c(value) {}
-}`).to.equal(`/** @Annotation */ let PropDecorator: Function;
+}`).not.differentFrom(`/** @Annotation */ let PropDecorator: Function;
 class ClassWithDecorators {
     a;
     b;
@@ -556,8 +561,8 @@ class ClassWithDecorators {
             args?: any[];
         }[];
     } = {
-        "a": [{ type: PropDecorator, args: ["p1",] }, { type: PropDecorator, args: ["p2",] },],
-        "c": [{ type: PropDecorator, args: ["p3",] },],
+        a: [{ type: PropDecorator, args: ["p1",] }, { type: PropDecorator, args: ["p2",] }],
+        c: [{ type: PropDecorator, args: ["p3",] }]
     };
 }
 `);
@@ -575,7 +580,7 @@ class Foo {
           true /* allow errors */);
 
       expect(tsickle.formatDiagnostics(diagnostics))
-          .to.equal(
+          .not.differentFrom(
               'Error at testcase.ts:5:3: cannot process decorators on strangely named method');
     });
     it('avoids mangling code relying on ASI', () => {
@@ -584,7 +589,7 @@ class Foo {
 class Foo {
   missingSemi = () => {}
   @PropDecorator other: number;
-}`).to.equal(`/** @Annotation */ let PropDecorator: Function;
+}`).not.differentFrom(`/** @Annotation */ let PropDecorator: Function;
 class Foo {
     missingSemi = () => { };
     other: number;
@@ -594,7 +599,7 @@ class Foo {
             args?: any[];
         }[];
     } = {
-        "other": [{ type: PropDecorator },],
+        other: [{ type: PropDecorator }]
     };
 }
 `);

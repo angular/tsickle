@@ -14,7 +14,7 @@ ts_library(
     name = "unit_test_lib",
     srcs = [
         "ast_printing_transform.ts",
-        "decorator-annotator_test.ts",
+        "decorator_downlevel_transformer_test.ts",
         "googmodule_test.ts",
         "jsdoc_test.ts",
         "source_map_test.ts",
