@@ -14,7 +14,7 @@ tsickle_declare_module.goog_closure_Module = {};
  */
 tsickle_declare_module.goog_closure_Module.X = function() {};
 
-/* TODO: ExportAssignment in tsickle_declare_module.goog_closure_Module */
+// TODO(tsickle): ExportAssignment in tsickle_declare_module.goog_closure_Module
 /** @const */
 var tsickle_declare_module = {};
 // Derived from: declare module "goog:closure.OtherModule"
@@ -31,4 +31,4 @@ tsickle_declare_module.goog_closure_OtherModule.SymA = function() {};
  */
 tsickle_declare_module.goog_closure_OtherModule.SymB = function() {};
 
-/* TODO: ExportDeclaration in tsickle_declare_module.goog_closure_OtherModule */
+// TODO(tsickle): ExportDeclaration in tsickle_declare_module.goog_closure_OtherModule
