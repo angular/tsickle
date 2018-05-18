@@ -159,7 +159,7 @@ export function parseContents(commentText: string): {tags: Tag[], warnings?: str
   const tags: Tag[] = [];
   const warnings: string[] = [];
   for (const line of lines) {
-    let match = line.match(/^@(\S+) *(.*)/);
+    let match = line.match(/^\s*@(\S+) *(.*)/);
     if (match) {
       let [_, tagName, text] = match;
       if (tagName === 'returns') {

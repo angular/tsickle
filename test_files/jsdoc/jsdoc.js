@@ -128,9 +128,9 @@ class RedundantJSDocShouldBeStripped {
  * This comment has code that needs to be escaped to pass Closure checking.
  * \@example
  *
- *   \@Reflect
+ * \@Reflect
  *   function example() {}
- *   \@Reflect.metadata(foo, bar)
+ * \@Reflect.metadata(foo, bar)
  *   function example2() {}
  * @return {void}
  */

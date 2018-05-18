@@ -22,6 +22,7 @@ describe('jsdoc.parse', () => {
   it('gathers @tags from jsdoc', () => {
     const source = `/**
   * @param foo
+  *   @param indented from line start.
   * @param bar multiple
   *    line comment
   * @return foobar
@@ -30,6 +31,7 @@ describe('jsdoc.parse', () => {
     expect(jsdoc.parse(source)).to.deep.equal({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
+        {tagName: 'param', parameterName: 'indented', text: 'from line start.'},
         {tagName: 'param', parameterName: 'bar', text: 'multiple\n   line comment'},
         {tagName: 'return', text: 'foobar'},
         {tagName: 'nosideeffects'},
