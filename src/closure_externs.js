@@ -75,6 +75,6 @@ var PromiseConstructor;
 /** @typedef {function(new:Promise, function(function(*=), function(*=)))} */
 var PromiseConstructorLike;
 
-/** @typedef {function(new:symbol)} */
+/** @typedef {?} */
 var SymbolConstructor;
 
