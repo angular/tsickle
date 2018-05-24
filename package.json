@@ -1,6 +1,6 @@
 {
   "name": "tsickle",
-  "version": "0.28.0",
+  "version": "0.29.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "src/tsickle.js",
   "typings": "src/tsickle.d.ts",
@@ -70,6 +70,5 @@
     "url": "https://github.com/angular/tsickle/issues"
   },
   "homepage": "https://github.com/angular/tsickle",
-  "private": "See release instructions in the README.md",
   "private": true
 }
