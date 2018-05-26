@@ -40,3 +40,14 @@ const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.export.export_
 var type_and_value_1 = goog.require('test_files.export.type_and_value');
 exports.TypeAndValue = type_and_value_1.TypeAndValue;
 const tsickle_forward_declare_5 = goog.forwardDeclare("test_files.export.type_and_value");
+const tsickle_forward_declare_6 = goog.forwardDeclare("test_files.export.export_helper_3");
+goog.require("test_files.export.export_helper_3"); // force type-only module to be loaded
+/**
+ * @return {!tsickle_forward_declare_6.Foo}
+ */
+function createFoo() {
+    return { fooStr: 'fooStr' };
+}
+exports.createFoo = createFoo;
+/** @typedef {tsickle_forward_declare_6.Foo} */
+exports.Foo; // re-export typedef
