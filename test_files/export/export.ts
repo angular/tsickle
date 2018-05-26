@@ -18,3 +18,13 @@ let export2 = 3;
 import {export5} from './export_helper';
 
 export * from './type_and_value';
+
+// Using the interface Foo and the re-exporting it, should preserve
+// typedef annotation.
+import {Foo} from './export_helper_3';
+
+export function createFoo(): Foo {
+  return {fooStr: 'fooStr'};
+}
+
+export {Foo};

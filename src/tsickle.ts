@@ -1119,7 +1119,8 @@ class Annotator extends ClosureRewriter {
               (exp.sym.flags & ts.SymbolFlags.Value) === 0;
       if (!isTypeAlias) continue;
       const typeName = this.symbolsToAliasedNames.get(exp.sym) || exp.sym.name;
-      this.emit(`/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef\n`);
+      // Leading newline prevents the typedef from being swallowed.
+      this.emit(`\n/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef\n`);
     }
   }
 
