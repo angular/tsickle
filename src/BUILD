@@ -18,6 +18,7 @@ ts_library(
         "decorator_downlevel_transformer.ts",
         "cli_support.ts",
         "decorators.ts",
+        "enum_transformer.ts",
         "fileoverview_comment_transformer.ts",
         "googmodule.ts",
         "jsdoc.ts",

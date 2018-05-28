@@ -10,9 +10,11 @@ var module = module || { id: 'test_files/enum/enum.ts' };
 // Line with a missing semicolon should not break the following enum.
 const /** @type {!Array<?>} */ EnumTestMissingSemi = [];
 /** @enum {number} */
-const EnumTest1 = { XYZ: 0, PI: 3.14159, };
-EnumTest1[EnumTest1.XYZ] = "XYZ";
-EnumTest1[EnumTest1.PI] = "PI";
+const EnumTest1 = {
+    XYZ: 0, PI: 3.14159,
+};
+EnumTest1[EnumTest1.XYZ] = 'XYZ';
+EnumTest1[EnumTest1.PI] = 'PI';
 // Verify that the resulting TypeScript still allows you to index into the enum with all the various
 // ways allowed of enums.
 let /** @type {EnumTest1} */ enumTestValue = EnumTest1.XYZ;
@@ -30,10 +32,12 @@ let /** @type {?} */ enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
 let /** @type {(boolean|EnumTest1)} */ enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
-const EnumTest2 = { XYZ: 0, PI: 3.14159, };
+const EnumTest2 = {
+    XYZ: 0, PI: 3.14159,
+};
 exports.EnumTest2 = EnumTest2;
-EnumTest2[EnumTest2.XYZ] = "XYZ";
-EnumTest2[EnumTest2.PI] = "PI";
+EnumTest2[EnumTest2.XYZ] = 'XYZ';
+EnumTest2[EnumTest2.PI] = 'PI';
 let /** @type {EnumTest2} */ variableUsingExportedEnum;
 /** @enum {number} */
 const ComponentIndex = {
@@ -43,10 +47,10 @@ const ComponentIndex = {
     // Be sure to exercise the code with a 0 enum value.
     UserInfo2: 2,
 };
-ComponentIndex[ComponentIndex.Scheme] = "Scheme";
-ComponentIndex[ComponentIndex.UserInfo] = "UserInfo";
-ComponentIndex[ComponentIndex.Domain] = "Domain";
-ComponentIndex[ComponentIndex.UserInfo2] = "UserInfo2";
+ComponentIndex[ComponentIndex.Scheme] = 'Scheme';
+ComponentIndex[ComponentIndex.UserInfo] = 'UserInfo';
+ComponentIndex[ComponentIndex.Domain] = 'Domain';
+ComponentIndex[ComponentIndex.UserInfo2] = 'UserInfo2';
 /** @enum {number} */
 const ConstEnum = {
     EMITTED_ENUM_VALUE: 0,
@@ -70,8 +74,8 @@ const EnumWithNonConstValues = {
     Scheme: (x => x + 1)(3),
     UserInfoRenamed: 2,
 };
-EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = "Scheme";
-EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = "UserInfoRenamed";
+EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = 'Scheme';
+EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = 'UserInfoRenamed';
 /** @enum {string} */
 const StringEnum = {
     STR: 'abc',
@@ -79,16 +83,16 @@ const StringEnum = {
 };
 /** @enum {number} */
 const StringKeyEnum = {
-    "string key": 1,
-    "string key 2": 0,
+    'string key': 1,
+    'string key 2': 0,
 };
-StringKeyEnum[StringKeyEnum["string key"]] = "string key";
-StringKeyEnum[StringKeyEnum["string key 2"]] = "string key 2";
+StringKeyEnum[StringKeyEnum['string key']] = 'string key';
+StringKeyEnum[StringKeyEnum['string key 2']] = 'string key 2';
 /** @enum {?} */
 const MixedEnum = {
     STR: 'abc',
     NUM: 3,
-    "string key": 4,
+    'string key': 4,
 };
-MixedEnum[MixedEnum.NUM] = "NUM";
-MixedEnum[MixedEnum["string key"]] = "string key";
+MixedEnum[MixedEnum.NUM] = 'NUM';
+MixedEnum[MixedEnum['string key']] = 'string key';

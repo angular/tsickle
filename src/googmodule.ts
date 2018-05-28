@@ -9,7 +9,7 @@
 import * as path from 'path';
 
 import {ModulesManifest} from './modules_manifest';
-import {createNotEmittedStatementWithComments} from './transformer_util';
+import {createNotEmittedStatementWithComments, createSingleQuoteStringLiteral,} from './transformer_util';
 import * as ts from './typescript';
 
 export interface GoogModuleProcessorHost {
@@ -33,17 +33,6 @@ export interface GoogModuleProcessorHost {
 
   options: ts.CompilerOptions;
   host: ts.ModuleResolutionHost;
-}
-
-/**
- * Creates a string literal that uses single quotes. Purely cosmetic, but increases fidelity to the
- * existing test suite.
- */
-function createSingleQuoteStringLiteral(text: string): ts.StringLiteral {
-  const stringLiteral = ts.createLiteral(text);
-  // tslint:disable-next-line:no-any accessing TS internal API.
-  (stringLiteral as any).singleQuote = true;
-  return stringLiteral;
 }
 
 /**

@@ -14,6 +14,6 @@ const ExportedEnum = {
     OTHERVALUE: 1,
 };
 exports.ExportedEnum = ExportedEnum;
-ExportedEnum[ExportedEnum.VALUE] = "VALUE";
-ExportedEnum[ExportedEnum.OTHERVALUE] = "OTHERVALUE";
+ExportedEnum[ExportedEnum.VALUE] = 'VALUE';
+ExportedEnum[ExportedEnum.OTHERVALUE] = 'OTHERVALUE';
 exports.x = ExportedEnum.VALUE;

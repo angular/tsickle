@@ -685,3 +685,14 @@ export function isTypeNodeKind(kind: ts.SyntaxKind) {
       kind === ts.SyntaxKind.UndefinedKeyword || kind === ts.SyntaxKind.NullKeyword ||
       kind === ts.SyntaxKind.NeverKeyword || kind === ts.SyntaxKind.ExpressionWithTypeArguments;
 }
+
+/**
+ * Creates a string literal that uses single quotes. Purely cosmetic, but increases fidelity to the
+ * existing test suite.
+ */
+export function createSingleQuoteStringLiteral(text: string): ts.StringLiteral {
+  const stringLiteral = ts.createLiteral(text);
+  // tslint:disable-next-line:no-any accessing TS internal API.
+  (stringLiteral as any).singleQuote = true;
+  return stringLiteral;
+}

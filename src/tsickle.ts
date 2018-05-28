@@ -11,6 +11,7 @@ import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
 import {hasExportingDecorator} from './decorators';
+import {enumTransformer} from './enum_transformer';
 import {transformFileoverviewComment} from './fileoverview_comment_transformer';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
@@ -851,8 +852,6 @@ class Annotator extends ClosureRewriter {
         this.writeNode(node);
         this.visitTypeAlias(node as ts.TypeAliasDeclaration);
         return true;
-      case ts.SyntaxKind.EnumDeclaration:
-        return this.maybeProcessEnum(node as ts.EnumDeclaration);
       case ts.SyntaxKind.TemplateSpan:
         this.templateSpanStackCount++;
         this.writeNode(node);
@@ -1421,163 +1420,6 @@ class Annotator extends ClosureRewriter {
       this.emit(`exports.${typeName} = ${typeName}\n`);
     }
   }
-
-  /**
-   * getEnumMemberType computes the type of an enum member by inspecting
-   * its initializer expression.
-   */
-  private getEnumMemberType(member: ts.EnumMember): 'number'|'string' {
-    // Enum members without initialization have type 'number'
-    if (!member.initializer) {
-      return 'number';
-    }
-    const type = this.typeChecker.getTypeAtLocation(member.initializer);
-    // Note: checking against 'NumberLike' instead of just 'Number' means this code
-    // handles both
-    //   MEMBER = 3,  // TypeFlags.NumberLiteral
-    // and
-    //   MEMBER = someFunction(),  // TypeFlags.Number
-    if (type.flags & ts.TypeFlags.NumberLike) {
-      return 'number';
-    }
-    // If the value is not a number, it must be a string.
-    // TypeScript does not allow enum members to have any other type.
-    return 'string';
-  }
-
-  /**
-   * getEnumType computes the Closure type of an enum, by iterating through the members
-   * and gathering their types.
-   */
-  private getEnumType(enumDecl: ts.EnumDeclaration): 'number'|'string'|'?' {
-    let hasNumber = false;
-    let hasString = false;
-    for (const member of enumDecl.members) {
-      const type = this.getEnumMemberType(member);
-      if (type === 'string') {
-        hasString = true;
-      } else if (type === 'number') {
-        hasNumber = true;
-      }
-    }
-    if (hasNumber && hasString) {
-      return '?';  // Closure's new type inference doesn't support enums of unions.
-    } else if (hasNumber) {
-      return 'number';
-    } else if (hasString) {
-      return 'string';
-    } else {
-      // Perhaps an empty enum?
-      return '?';
-    }
-  }
-
-  /** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
-  private isInNamespace(node: ts.Node) {
-    let parent = node.parent;
-    while (parent) {
-      if (parent.kind === ts.SyntaxKind.ModuleDeclaration) {
-        return true;
-      }
-      parent = parent.parent;
-    }
-    return false;
-  }
-
-  /**
-   * Processes an EnumDeclaration into a Closure type. Always emits a Closure type, even in untyped
-   * mode, as that should be harmless (it only ever uses the number type).
-   */
-  private maybeProcessEnum(node: ts.EnumDeclaration): boolean {
-    // Emit the enum declaration, which looks like:
-    //   /** @enum {number} */
-    //   const Foo = {BAR: 0, BAZ: 1, ...};
-    //   export {Foo};  // even if originally exported on one line.
-    // This declares an enum type for Closure Compiler (and Closure JS users of this TS code).
-    // Splitting the enum into declaration and export is required so that local references to the
-    // type resolve ("@type {Foo}").
-
-    // TODO(martinprobst): This does not work for enums embedded in namespaces, because TS does not
-    // support splitting export and declaration ("export {Foo};") in namespaces. tsickle's emit for
-    // namespaces is unintelligble for Closure in any case, so this is left to fix for another day.
-    if (this.isInNamespace(node)) return false;
-
-    this.emit('\n');
-    const name = node.name.getText();
-
-    const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
-    const enumType = this.getEnumType(node);
-    this.emit(`/** @enum {${enumType}} */\n`);
-    this.emit(`const ${name}: DontTypeCheckMe = {`);
-    // Emit enum values ('BAR: 0,').
-    let enumIndex = 0;
-    for (const member of node.members) {
-      const memberName = member.name.getText();
-      // Emit any comments and leading whitespace on the enum value definition.
-      this.writeLeadingTrivia(member);
-      this.emit(`${memberName}: `);
-
-      if (member.initializer) {
-        const enumConstValue = this.typeChecker.getConstantValue(member);
-        if (typeof enumConstValue === 'number') {
-          enumIndex = enumConstValue + 1;
-          this.emit(enumConstValue.toString());
-        } else {
-          // Non-numeric enum value (string or an expression).
-          // Emit this initializer expression as-is.
-          // Note: if the member's initializer expression refers to another
-          // value within the enum (e.g. something like
-          //   enum Foo {
-          //     Field1,
-          //     Field2 = Field1 + something(),
-          //   }
-          // Then when we emit the initializer we produce invalid code because
-          // on the Closure side the reference to Field1 has to be namespaced,
-          // e.g. written "Foo.Field1 + something()".
-          // Hopefully this doesn't come up often -- if the enum instead has
-          // something like
-          //     Field2 = Field1 + 3,
-          // then it's still a constant expression and we inline the constant
-          // value in the above branch of this "if" statement.
-          this.visit(member.initializer);
-        }
-      } else {
-        this.emit(enumIndex.toString());
-        enumIndex++;
-      }
-      this.emit(',');
-    }
-    this.emit('};\n');
-
-    if (isExported) this.emit(`export {${name}};\n`);
-
-    if (hasModifierFlag(node, ts.ModifierFlags.Const)) {
-      // By TypeScript semantics, const enums disappear after TS compilation.
-      // We still need to generate the runtime value above to make Closure Compiler's type system
-      // happy and allow refering to enums from JS code, but we should at least not emit string
-      // value mappings.
-      return true;
-    }
-
-    // Emit the reverse mapping of foo[foo.BAR] = 'BAR'; lines for number enum members
-    for (const member of node.members) {
-      const memberName = member.name.getText();
-      const memberType = this.getEnumMemberType(member);
-      if (memberType !== 'number') {
-        continue;
-      }
-      // TypeScript enum members can have Identifier names or String names.
-      // We need to emit slightly different code to support these two syntaxes:
-      if (member.name.kind === ts.SyntaxKind.Identifier) {
-        // Foo[Foo.ABC] = "ABC";
-        this.emit(`${name}[${name}.${memberName}] = "${memberName}";\n`);
-      } else {
-        // Foo[Foo["A B C"]] = "A B C";
-        this.emit(`${name}[${name}[${memberName}]] = ${memberName};\n`);
-      }
-    }
-    return true;
-  }
 }
 
 /** ExternsWriter generates Closure externs from TypeScript source. */
@@ -2025,6 +1867,7 @@ export function emitWithTsickle(
       tsickleDiagnostics.push(...diagnostics);
       return output;
     }));
+    tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
     // Only add @suppress {checkTypes} comments when also adding type annotations.
     tsickleSourceTransformers.push(transformFileoverviewComment);
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
