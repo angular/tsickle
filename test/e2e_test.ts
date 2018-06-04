@@ -7,7 +7,7 @@
  */
 
 import * as fs from 'fs';
-import * as closure from 'google-closure-compiler';
+import * as closure from './closure';
 
 import {goldenTests} from './test_support';
 
@@ -29,7 +29,7 @@ describe('golden file tests', () => {
     const total = goldenJs.length;
     if (!total) throw new Error('No JS files in ' + JSON.stringify(goldenJs));
 
-    const CLOSURE_COMPILER_OPTS: closure.CompileOptions = {
+    const CLOSURE_FLAGS: closure.Flags = {
       'checks_only': true,
       'warning_level': 'VERBOSE',
       'js': goldenJs,
@@ -61,7 +61,8 @@ describe('golden file tests', () => {
         'invalidCasts',
         'misplacedTypeAnnotation',
         'missingGetCssName',
-        // 'missingOverride',  // disabled: currently not implemented by tsickle.
+        // 'missingOverride',  // disabled: currently not implemented by
+        // tsickle.
         'missingPolyfill',
         'missingProperties',
         'missingProvide',
@@ -69,7 +70,8 @@ describe('golden file tests', () => {
         'missingReturn',
         'msgDescriptions',
         'nonStandardJsDocs',
-        // 'reportUnknownTypes',  // disabled: too many positives, not really a workable option.
+        // 'reportUnknownTypes',  // disabled: too many positives, not really a
+        // workable option.
         'suspiciousCode',
         'strictModuleDepCheck',
         'typeInvalidation',
@@ -85,16 +87,26 @@ describe('golden file tests', () => {
       ]
     };
 
-    const compiler = new closure.compiler(CLOSURE_COMPILER_OPTS);
-    compiler.run((exitCode, stdout, stderr) => {
-      const durationMs = Date.now() - startTime;
-      console.error('Closure compilation of', total, 'files done after', durationMs, 'ms');
-      if (exitCode !== 0) {
-        // expect() with a message abbreviates the text, so just emit everything here.
-        console.error(stderr);
-      }
-      expect(exitCode).toBe(0, 'Closure Compiler exit code');
-      done();
-    });
+    // Note: cannot use an async function here because tsetse crashes
+    // if you have any async expression in the function body whose result
+    // is unused(!).
+
+    closure.compile({}, CLOSURE_FLAGS)
+        .then(({exitCode, stdout, stderr}) => {
+          const durationMs = Date.now() - startTime;
+          console.error('Closure compilation of', total, 'files done after', durationMs, 'ms');
+          if (exitCode !== 0) {
+            // expect() with a message abbreviates the text, so just emit
+            // everything here.
+            console.error(stderr);
+          }
+          expect(exitCode).toBe(0, 'Closure Compiler exit code');
+        })
+        .catch(err => {
+          expect(err).toBe(null);
+        })
+        .then(() => {
+          done();
+        });
   }, 60000 /* ms timeout */);
 });
