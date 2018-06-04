@@ -39,6 +39,7 @@ jasmine_node_test(
 ts_library(
     name = "e2e_test_lib",
     srcs = [
+        "closure.ts",
         "e2e_clutz_dts_test.ts",
         "e2e_main_test.ts",
         "e2e_node_kind_source_map_test.ts",
