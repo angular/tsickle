@@ -33,11 +33,9 @@ http_archive(
     sha256 = "cecc12f07e95740750a40d38e8b14b76fefa1551bef9332cb432d564d693723c",
 )
 
-http_archive(
+local_repository(
     name = "build_bazel_rules_typescript",
-    url = "https://github.com/bazelbuild/rules_typescript/archive/0.15.0.zip",
-    strip_prefix = "rules_typescript-0.15.0",
-    sha256 = "1aa75917330b820cb239b3c10a936a10f0a46fe215063d4492dd76dc6e1616f4",
+    path = "node_modules/@bazel/typescript",
 )
 
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
