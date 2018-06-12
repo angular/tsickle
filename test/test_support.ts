@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {assert, expect} from 'chai';
+import * as assert from 'assert';
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
@@ -244,13 +244,13 @@ export function assertSourceMapping(
   const {line, column} = getLineAndColumn(compiledJs, sourceSnippet);
   const originalPosition = sourceMap.originalPositionFor({line, column});
   if (expectedPosition.line) {
-    expect(originalPosition.line, 'original line number').to.equal(expectedPosition.line);
+    expect(originalPosition.line).toBe(expectedPosition.line, 'original line number');
   }
   if (expectedPosition.column) {
-    expect(originalPosition.column, 'original column').to.equal(expectedPosition.column);
+    expect(originalPosition.column).toBe(expectedPosition.column, 'original column');
   }
   if (expectedPosition.source) {
-    expect(originalPosition.source, 'original source file').to.equal(expectedPosition.source);
+    expect(originalPosition.source).toBe(expectedPosition.source, 'original source file');
   }
 }
 
@@ -290,6 +290,30 @@ export function getSourceMapWithName(
 }
 
 /**
+ * Add
+ *   beforeEach(() => { testSupport.addDiffMatchers(); });
+ * to your test to get colored diff output on expectation failures.
+ */
+export function addDiffMatchers() {
+  // tslint:disable:no-require-imports
+  jasmine.addMatchers(require('jasmine-diff')(jasmine, {
+    colors: true,
+  }));
+}
+
+/**
+ * expectDiagnosticsEmpty is just
+ *   expect(diags.length).toBe(0)
+ * but prints some context if it fails.
+ */
+export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
+  if (diags.length !== 0) {
+    console.error(tsickle.formatDiagnostics(diags));
+    expect(diags.length).toBe(0);
+  }
+}
+
+/**
  * Compiles with the transformer 'emitWithTsickle()', performing both decorator
  * downleveling and closurization.
  */
@@ -298,8 +322,7 @@ export function compileWithTransfromer(
   const fileNames = Array.from(sources.keys());
   const tsHost = createSourceCachingHost(sources, compilerOptions);
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
-  expect(ts.getPreEmitDiagnostics(program))
-      .lengthOf(0, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program)));
+  expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
 
   const rootModulePath = rootPath ? rootPath : getCommonParentDirectory(fileNames);
 
@@ -324,7 +347,6 @@ export function compileWithTransfromer(
         files.set(path, contents);
       });
 
-  // tslint:disable-next-line:no-unused-expression
-  expect(diagnostics, tsickle.formatDiagnostics(diagnostics)).to.be.empty;
+  expectDiagnosticsEmpty(diagnostics);
   return {files, externs};
 }

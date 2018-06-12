@@ -6,16 +6,16 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-// tslint:disable:no-unused-expression mocha .to.be.empty getters.
-
-import {expect} from 'chai';
 import {RawSourceMap} from 'source-map';
 
 import {containsInlineSourceMap, getInlineSourceMapCount} from '../src/source_map_utils';
 
-import {assertSourceMapping, compileWithTransfromer, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
+import {addDiffMatchers, assertSourceMapping, compileWithTransfromer, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
 
 describe('source maps with transformer', () => {
+  beforeEach(() => {
+    addDiffMatchers();
+  });
   it('composes source maps with tsc', () => {
     const sources = new Map<string, string>();
     sources.set('input.ts', `
@@ -132,7 +132,7 @@ describe('source maps with transformer', () => {
     const dts = files.get('input.d.ts')!;
 
     assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input.ts'});
-    expect(dts).to.contain('declare let x: string;');
+    expect(dts).toContain('declare let x: string;');
   });
 
   function createInputWithSourceMap(overrides: Partial<RawSourceMap> = {}): Map<string, string> {
@@ -160,7 +160,7 @@ describe('source maps with transformer', () => {
     const compiledJs = files.get('intermediate.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
-    expect(getInlineSourceMapCount(compiledJs)).to.equal(1);
+    expect(getInlineSourceMapCount(compiledJs)).toBe(1);
     assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
   });
 
@@ -170,7 +170,7 @@ describe('source maps with transformer', () => {
     const compiledJs = files.get('intermediate.js')!;
     const sourceMap = getSourceMapWithName('intermediate.js.map', files);
 
-    expect(getInlineSourceMapCount(compiledJs)).to.equal(0);
+    expect(getInlineSourceMapCount(compiledJs)).toBe(0);
     assertSourceMapping(compiledJs, sourceMap, 'x = 3', {line: 1, source: 'original.ts'});
   });
 
@@ -198,9 +198,9 @@ describe('source maps with transformer', () => {
     const compiledJs = files.get('intermediate.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
-    expect(sourceMap.sources[0]).to.eq('intermediate.ts');
+    expect(sourceMap.sources[0]).toBe('intermediate.ts');
     expect(containsInlineSourceMap(sourceMap.sourcesContent![0]))
-        .to.eq(false, 'contains inline sourcemap');
+        .toBe(false, 'contains inline sourcemap');
   });
 
   it(`doesn't blow up putting an inline source map in an empty file`, () => {
@@ -213,8 +213,8 @@ describe('source maps with transformer', () => {
     const compiledJs = files.get('input.js')!;
     const sourceMap = extractInlineSourceMap(compiledJs);
 
-    expect(sourceMap).to.exist;
-    expect(compiledJs).to.contain(`var module = module || { id: 'input.ts' };`);
+    expect(sourceMap).toBeTruthy();
+    expect(compiledJs).toContain(`var module = module || { id: 'input.ts' };`);
   });
 
   it(`handles mixed source mapped and non source mapped input`, () => {

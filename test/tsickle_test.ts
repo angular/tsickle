@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -80,7 +79,7 @@ describe('emitWithTsickle', () => {
         },
         {beforeTs: [transformValue]});
 
-    expect(jsSources['./a.js']).to.contain('exports.x = 2;');
+    expect(jsSources['./a.js']).toContain('exports.x = 2;');
   });
 
   it('should export const enums when preserveConstEnums is true', () => {
@@ -93,7 +92,7 @@ describe('emitWithTsickle', () => {
         },
         {es5Mode: false, googmodule: false});
 
-    expect(jsSources['./b.js']).to.contain(`export { Foo } from './a';`);
+    expect(jsSources['./b.js']).toContain(`export { Foo } from './a';`);
   });
 
   describe('regressions', () => {
@@ -107,7 +106,7 @@ describe('emitWithTsickle', () => {
              },
              {es5Mode: false, googmodule: false});
 
-         expect(jsSources['./b.d.ts']).to.eq(`export * from './a';\n`);
+         expect(jsSources['./b.d.ts']).toEqual(`export * from './a';\n`);
        });
   });
 });

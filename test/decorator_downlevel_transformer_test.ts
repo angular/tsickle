@@ -6,20 +6,13 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-// tslint:disable:no-unused-expression mocha .to.be.empty getters.
-
-import {expect, use as chaiUse} from 'chai';
-// tslint:disable-next-line:no-require-imports chai-diff needs a CommonJS import.
-import chaiDiff = require('chai-diff');
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
 
 import {createAstPrintingTransform} from './ast_printing_transform';
-import {compilerOptions, createProgramAndHost} from './test_support';
-
-chaiUse(chaiDiff);
+import * as testSupport from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 
@@ -39,11 +32,15 @@ function sources(sourceText: string): Map<string, string> {
 }
 
 describe('decorator_downlevel_transformer', () => {
+  beforeEach(() => {
+    testSupport.addDiffMatchers();
+  });
   function translate(sourceText: string, allowErrors = false) {
-    const {host, program} = createProgramAndHost(sources(sourceText), compilerOptions);
+    const {host, program} =
+        testSupport.createProgramAndHost(sources(sourceText), testSupport.compilerOptions);
     if (!allowErrors) {
       const diagnostics = ts.getPreEmitDiagnostics(program);
-      expect(diagnostics, tsickle.formatDiagnostics(ts.getPreEmitDiagnostics(program))).to.be.empty;
+      testSupport.expectDiagnosticsEmpty(diagnostics);
     }
 
     const transformerHost: tsickle.TsickleHost = {
@@ -56,25 +53,25 @@ describe('decorator_downlevel_transformer', () => {
       googmodule: true,
       es5Mode: false,
       untyped: false,
-      options: compilerOptions,
+      options: testSupport.compilerOptions,
       host,
     };
 
     const files = new Map<string, string>();
     const {diagnostics} = tsickle.emitWithTsickle(
-        program, transformerHost, host, compilerOptions, undefined, (path, contents) => {},
-        undefined, undefined, {beforeTs: [createAstPrintingTransform(files)]});
+        program, transformerHost, host, testSupport.compilerOptions, undefined,
+        (path, contents) => {}, undefined, undefined,
+        {beforeTs: [createAstPrintingTransform(files)]});
 
     if (!allowErrors) {
-      // tslint:disable-next-line:no-unused-expression
-      expect(diagnostics, tsickle.formatDiagnostics(diagnostics)).to.be.empty;
+      testSupport.expectDiagnosticsEmpty(diagnostics);
     }
 
     return {output: files.get(testCaseFileName)!, diagnostics};
   }
 
   function expectUnchanged(sourceText: string) {
-    expectTranslated(sourceText).not.differentFrom(sourceText);
+    expectTranslated(sourceText).toEqual(sourceText);
   }
 
   function expectTranslated(sourceText: string) {
@@ -111,7 +108,7 @@ let param: any;
 @Test2(param)
 class Foo {
   field: string;
-}`).not.differentFrom(`import { FakeDecorator } from 'bar';
+}`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 /** @Annotation */ let Test2: FakeDecorator;
 let param: any;
@@ -134,7 +131,7 @@ class Foo {
 @Test
 class Foo {
   field: string;
-}`).not.differentFrom(`/** @Annotation */ function Test(t: any) { }
+}`).toBe(`/** @Annotation */ function Test(t: any) { }
 ;
 class Foo {
     field: string;
@@ -155,7 +152,7 @@ import {FakeDecorator} from 'bar';
 @Test
 class Foo {
   field: string;
-}`).not.differentFrom(`import { FakeDecorator } from 'bar';
+}`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ export let Test: FakeDecorator;
 class Foo {
     field: string;
@@ -182,7 +179,7 @@ let param: any;
 @Test3()
 @Test4<string>(param)
 class Foo {
-}`).not.differentFrom(`import { FakeDecorator } from 'bar';
+}`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 /** @Annotation */ let Test2: FakeDecorator;
 /** @Annotation */ let Test3: FakeDecorator;
@@ -209,7 +206,7 @@ import {FakeDecorator} from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 @Test1
 export class Foo {
-}`).not.differentFrom(`import { FakeDecorator } from 'bar';
+}`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 export class Foo {
     static decorators: {
@@ -234,7 +231,7 @@ export class Foo {
     class Bar {
     }
   }
-}`).not.differentFrom(`import { FakeDecorator } from 'bar';
+}`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 /** @Annotation */ let Test2: FakeDecorator;
 export class Foo {
@@ -277,7 +274,7 @@ import {FakeDecorator} from 'bar';
 class Foo {
   constructor() {
   }
-}`).not.differentFrom(`import { FakeDecorator } from 'bar';
+}`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 class Foo {
     constructor() {
@@ -308,7 +305,7 @@ abstract class AbstractService {}
 class Foo {
   constructor(@Inject bar: AbstractService, @Inject('enum') num: AnEnum) {
   }
-}`).not.differentFrom(`/** @Annotation */ let Inject: Function;
+}`).toBe(`/** @Annotation */ let Inject: Function;
 enum AnEnum {
     ONE,
     TWO
@@ -342,7 +339,7 @@ import {BarService, FakeDecorator} from 'bar';
 class Foo {
   constructor(bar: BarService, num: number) {
   }
-}`).not.differentFrom(`import { BarService, FakeDecorator } from 'bar';
+}`).toBe(`import { BarService, FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 class Foo {
     constructor(bar: BarService, num: number) {
@@ -376,7 +373,7 @@ let param: any;
 class Foo {
   constructor(@Inject(param) x: bar.BarService, {a, b}, defArg = 3, optional?: bar.BarService) {
   }
-}`).not.differentFrom(`import * as bar from 'bar';
+}`).toBe(`import * as bar from 'bar';
 /** @Annotation */ let Inject: Function;
 let param: any;
 class Foo {
@@ -405,7 +402,7 @@ class Foo {
 let APP_ID: any;
 class ViewUtils {
   constructor(@Inject(APP_ID) private _appId: string) {}
-}`).not.differentFrom(`/** @Annotation */ let Inject: Function;
+}`).toBe(`/** @Annotation */ let Inject: Function;
 let APP_ID: any;
 class ViewUtils {
     constructor(private _appId: string) { }
@@ -435,7 +432,7 @@ class ViewUtils {
         class ViewUtils {
           constructor() {}
         }
-        `).not.differentFrom(`/** @Annotation */ var RemoveMe: Function = undefined as any;
+        `).toBe(`/** @Annotation */ var RemoveMe: Function = undefined as any;
 var KeepMe: Function = undefined as any;
 @KeepMe()
 class ViewUtils {
@@ -464,7 +461,7 @@ class ViewUtils {
 class Foo {
   constructor(@Inject typed: Promise<string>) {
   }
-}`).not.differentFrom(`/** @Annotation */ let Inject: Function;
+}`).toBe(`/** @Annotation */ let Inject: Function;
 class Foo {
     constructor(typed: Promise<string>) {
     }
@@ -489,7 +486,7 @@ class Class {}
 interface Iface {}
 class Foo {
   constructor(@Inject aClass: Class, @Inject aIface: Iface) {}
-}`).not.differentFrom(`/** @Annotation */ let Inject: Function = (null as any);
+}`).toBe(`/** @Annotation */ let Inject: Function = (null as any);
 class Class {
 }
 interface Iface {
@@ -526,7 +523,7 @@ class Foo {
 class Foo {
   @Test1('somename')
   bar() {}
-}`).not.differentFrom(`/** @Annotation */ let Test1: Function;
+}`).toBe(`/** @Annotation */ let Test1: Function;
 class Foo {
     bar() { }
     static propDecorators: {
@@ -550,7 +547,7 @@ class ClassWithDecorators {
 
   @PropDecorator("p3")
   set c(value) {}
-}`).not.differentFrom(`/** @Annotation */ let PropDecorator: Function;
+}`).toBe(`/** @Annotation */ let PropDecorator: Function;
 class ClassWithDecorators {
     a;
     b;
@@ -580,8 +577,7 @@ class Foo {
           true /* allow errors */);
 
       expect(tsickle.formatDiagnostics(diagnostics))
-          .not.differentFrom(
-              'Error at testcase.ts:5:3: cannot process decorators on strangely named method');
+          .toBe('Error at testcase.ts:5:3: cannot process decorators on strangely named method');
     });
     it('avoids mangling code relying on ASI', () => {
       expectTranslated(`
@@ -589,7 +585,7 @@ class Foo {
 class Foo {
   missingSemi = () => {}
   @PropDecorator other: number;
-}`).not.differentFrom(`/** @Annotation */ let PropDecorator: Function;
+}`).toBe(`/** @Annotation */ let PropDecorator: Function;
 class Foo {
     missingSemi = () => { };
     other: number;

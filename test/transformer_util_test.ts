@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
 import * as ts from 'typescript';
 
 import {createCustomTransformers, visitNodeWithSynthesizedComments} from '../src/transformer_util';
@@ -69,7 +68,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `/*<${ts.SyntaxKind.NotEmittedStatement}>fc*/`,
         `/*<${ts.SyntaxKind.VariableStatement}>sc*/`,
         `const x = 1;`,
@@ -85,7 +84,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `const x = 1; /*<${ts.SyntaxKind.VariableStatement}>sc*/`,
         `/*<${ts.SyntaxKind.NotEmittedStatement}>fc*/ `,
         ``,
@@ -104,7 +103,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `{`,
         `    /*<${ts.SyntaxKind.NotEmittedStatement}>bc*/`,
         `    /*<${ts.SyntaxKind.VariableStatement}>sc*/`,
@@ -126,7 +125,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `{`,
         `    /*<${ts.SyntaxKind.VariableStatement}>a*/`,
         `    const a = 1;`,
@@ -148,7 +147,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `{`,
         `    const x = 1; /*<${ts.SyntaxKind.VariableStatement}>sc*/`,
         `    /*<${ts.SyntaxKind.NotEmittedStatement}>bc*/`,
@@ -169,7 +168,7 @@ describe('transformer util', () => {
       const jsSources = emitWithTransform(tsSources, transformComments);
       // Note: tripple line comments contain typescript specific information
       // and are removed.
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `/*<${ts.SyntaxKind.VariableStatement}>mlc*/`,
         `//<${ts.SyntaxKind.VariableStatement}>slc`,
         `const x = 1;`,
@@ -186,7 +185,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `/*<${ts.SyntaxKind.VariableStatement}>sc1*/`,
         `/*<${ts.SyntaxKind.VariableStatement}>sc2*/`,
         `const x = 1;`,
@@ -201,7 +200,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `const x = 1; /*<${ts.SyntaxKind.VariableStatement}>sc*/`,
         ``,
       ].join('\n'));
@@ -215,7 +214,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `/*<${ts.SyntaxKind.VariableStatement}>lc1*/ const x = 1; /*<${
             ts.SyntaxKind.VariableStatement}>tc1*/`,
         `/*<${ts.SyntaxKind.VariableStatement}>lc2*/ const y = 1; /*<${
@@ -228,7 +227,7 @@ describe('transformer util', () => {
       const tsSources = {'a.ts': `/*c*/ const /*x*/ x = 1, /*y*/ y = 1;`};
       const jsSources = emitWithTransform(tsSources, transformComments);
       expect(jsSources['./a.js'])
-          .to.eq(
+          .toEqual(
               `/*<${ts.SyntaxKind.VariableStatement}>c*/ const ` +
               `/*<${ts.SyntaxKind.VariableDeclaration}>x*/ x = 1, ` +
               `/*<${ts.SyntaxKind.VariableDeclaration}>y*/ y = 1;\n`);
@@ -237,7 +236,7 @@ describe('transformer util', () => {
     it('should synthesize comments on exported variables', () => {
       const tsSources = {'a.ts': `/*c*/export const x = 1;`};
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         MODULE_HEADER,
         `/*<${ts.SyntaxKind.VariableStatement}>c*/ exports.x = 1;`,
         ``,
@@ -247,7 +246,7 @@ describe('transformer util', () => {
     it('should synthesize comments on reexport stmts', () => {
       const tsSources = {'a.ts': 'export const x = 1', 'b.ts': `/*c*/export {x} from './a';`};
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./b.js']).to.eq([
+      expect(jsSources['./b.js']).toEqual([
         MODULE_HEADER,
         `/*<${ts.SyntaxKind.ExportDeclaration}>c*/ var a_1 = require("./a");`,
         `exports.x = a_1.x;`,
@@ -261,7 +260,7 @@ describe('transformer util', () => {
         'b.ts': `/*c*/import {x} from './a';console.log(x);`
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./b.js']).to.eq([
+      expect(jsSources['./b.js']).toEqual([
         MODULE_HEADER,
         `/*<${ts.SyntaxKind.ImportDeclaration}>c*/ const a_1 = require("./a");`,
         `console.log(a_1.x);`,
@@ -280,7 +279,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./c.js']).to.eq([
+      expect(jsSources['./c.js']).toEqual([
         MODULE_HEADER,
         `/*<${ts.SyntaxKind.ImportDeclaration}>x*/ const b_1 = require("./b");`,
         `console.log(b_1.x);`,
@@ -298,7 +297,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./c.js']).to.eq([
+      expect(jsSources['./c.js']).toEqual([
         MODULE_HEADER,
         `/*<${ts.SyntaxKind.ExportDeclaration}>x*/ var b_1 = require("./b");`,
         `exports.x = b_1.x;`,
@@ -316,7 +315,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `class C {`,
         `    constructor() {`,
         `        /*<${ts.SyntaxKind.PropertyDeclaration}>c2*/ this.p2 = true;`,
@@ -337,7 +336,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, transformComments);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `/*<${ts.SyntaxKind.ClassDeclaration}>c*/`,
         `class C {`,
         `    constructor() {`,
@@ -377,7 +376,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, synthesizeTransform);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `let decorator;`,
         `class X {`,
         `}`,
@@ -398,7 +397,7 @@ describe('transformer util', () => {
         ].join('\n')
       };
       const jsSources = emitWithTransform(tsSources, synthesizeTransform);
-      expect(jsSources['./a.js']).to.eq([
+      expect(jsSources['./a.js']).toEqual([
         `var Reflect;`,
         `(function (Reflect) {`,
         `    const x = 1;`,
@@ -427,7 +426,7 @@ describe('transformer util', () => {
 
       const tsSources = {'a.ts': `export const x = 1;`, 'b.ts': `export * from './a';`};
       const jsSources = emitWithTransform(tsSources, expandExportStar);
-      expect(jsSources['./b.js']).to.eq([
+      expect(jsSources['./b.js']).toEqual([
         MODULE_HEADER,
         `var a_1 = require("./a");`,
         `exports.x = a_1.x;`,

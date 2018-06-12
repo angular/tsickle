@@ -6,20 +6,15 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect, use as chaiUse} from 'chai';
 import * as ts from 'typescript';
-// tslint:disable-next-line:no-require-imports chai-diff needs a CommonJS import.
-import chaiDiff = require('chai-diff');
 
 import * as cliSupport from '../src/cli_support';
 import * as googmodule from '../src/googmodule';
-import * as transformerUtil from '../src/transformer_util';
 import {ModulesManifest} from '../src/modules_manifest';
+import * as transformerUtil from '../src/transformer_util';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
-
-chaiUse(chaiDiff);
 
 function processES5(
     fileName: string, content: string,
@@ -42,7 +37,7 @@ function processES5(
   const program = ts.createProgram([fileName], options, tsHost);
   // NB: this intentionally only checks for syntactical issues, but allows semantic issues, such
   // as missing imports to make the tests below easier to write.
-  expect(tsickle.formatDiagnostics(program.getSyntacticDiagnostics())).to.equal('');
+  expect(tsickle.formatDiagnostics(program.getSyntacticDiagnostics())).toBe('');
   const typeChecker = program.getTypeChecker();
   const diagnostics: ts.Diagnostic[] = [];
   const manifest = new ModulesManifest();
@@ -62,12 +57,15 @@ function processES5(
     output = content;
   }, undefined, false, transformers);
   diagnostics.push(...res.diagnostics);
-  expect(diagnostics).to.deep.equal([]);
+  expect(diagnostics).toEqual([]);
   if (!output) throw new Error('no output');
   return {output, manifest};
 }
 
 describe('convertCommonJsToGoogModule', () => {
+  beforeEach(() => {
+    testSupport.addDiffMatchers();
+  });
   let synthesizeComments = false;
 
   function expectCommonJs(fileName: string, content: string, isES5 = true, importHelpers = true) {
@@ -91,7 +89,7 @@ describe('convertCommonJsToGoogModule', () => {
   function addTests() {
     it('adds a goog.module call', () => {
       // NB: no line break added below.
-      expectCommonJs('a.ts', `console.log('hello');`).not.differentFrom(`goog.module('a');
+      expectCommonJs('a.ts', `console.log('hello');`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 console.log('hello');
 `);
@@ -99,7 +97,7 @@ console.log('hello');
 
     it('adds a goog.module call for ES6 mode', () => {
       // NB: no line break added below.
-      expectCommonJs('a.ts', `console.log('hello');`, false).not.differentFrom(`goog.module('a');
+      expectCommonJs('a.ts', `console.log('hello');`, false).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 module = module;
 exports = {};
@@ -108,7 +106,7 @@ console.log('hello');
     });
 
     it('adds a goog.module call to empty files', () => {
-      expectCommonJs('a.ts', ``).not.differentFrom(`goog.module('a');
+      expectCommonJs('a.ts', ``).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 `);
     });
@@ -127,22 +125,21 @@ var module = module || { id: 'a.ts' };
 `;
       }
 
-      expectCommonJs('a.ts', `// empty`).not.differentFrom(expected);
+      expectCommonJs('a.ts', `// empty`).toBe(expected);
     });
 
     it('strips use strict directives', () => {
       // NB: no line break added below.
       expectCommonJs('a.ts', `"use strict";
 console.log('hello');`)
-          .not.differentFrom(`goog.module('a');
+          .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 console.log('hello');
 `);
     });
 
     it('converts imports to goog.require calls', () => {
-      expectCommonJs('a.ts', `import {x} from 'req/mod'; console.log(x);`)
-          .not.differentFrom(`goog.module('a');
+      expectCommonJs('a.ts', `import {x} from 'req/mod'; console.log(x);`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var mod_1 = goog.require('req.mod');
 console.log(mod_1.x);
@@ -150,7 +147,7 @@ console.log(mod_1.x);
     });
 
     it('converts side-effect import to goog.require calls', () => {
-      expectCommonJs('a.ts', `import 'req/mod';`).not.differentFrom(`goog.module('a');
+      expectCommonJs('a.ts', `import 'req/mod';`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var tsickle_module_1_ = goog.require('req.mod');
 `);
@@ -160,7 +157,7 @@ var tsickle_module_1_ = goog.require('req.mod');
       expectCommonJs('a.ts', `
 // Comment
 import 'req/mod';`)
-          .not.differentFrom(`goog.module('a');
+          .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 // Comment
 var tsickle_module_1_ = goog.require('req.mod');
@@ -174,7 +171,7 @@ import {dep} from './dep';
 import {sharedDep} from './shared_dep';
 
 console.log('in mod_a', dep, sharedDep);
-`).not.differentFrom(`/** @modName {mod_a} */
+`).toBe(`/** @modName {mod_a} */
 goog.module('a');
 var module = module || { id: 'a.ts' };
 var dep_1 = goog.require('dep');
@@ -189,7 +186,7 @@ import {dep} from './dep';
 import {sharedDep} from './shared_dep';
 
 console.log('in mod_a', dep, sharedDep);
-`).not.differentFrom(`goog.module('a');
+`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 /** @modName {mod_a} */
 var dep_1 = goog.require('dep');
@@ -207,7 +204,7 @@ import {TypeFromDep} from './dep';
 const x: TypeFromDep = 1;
 
 console.log('in mod_a', x);
-`).not.differentFrom(`/** @fileoverview Hello Comment. */
+`).toBe(`/** @fileoverview Hello Comment. */
 goog.module('a');
 var module = module || { id: 'a.ts' };
 // Only uses the import as a type.
@@ -220,8 +217,7 @@ console.log('in mod_a', x);
         'ES5 export *', () => {
           const dontImportHelpers = false;
           it('converts export * statements', () => {
-            expectCommonJs('a.ts', `export * from 'req/mod';`, true)
-                .not.differentFrom(`goog.module('a');
+            expectCommonJs('a.ts', `export * from 'req/mod';`, true).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var tslib_1 = goog.require('tslib');
 var tsickle_module_1_ = goog.require('req.mod');
@@ -230,7 +226,7 @@ tslib_1.__exportStar(tsickle_module_1_, exports);
           });
           it('converts export * statements without helpers', () => {
             expectCommonJs('a.ts', `export * from 'req/mod';`, true, dontImportHelpers)
-                .not.differentFrom(`function __export(m) {
+                .toBe(`function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 goog.module('a');
@@ -243,7 +239,7 @@ __export(tsickle_module_1_);
             expectCommonJs('a.ts', `export * from 'req/mod';
 import {x} from 'req/mod';
 console.log(x);
-`).not.differentFrom(`goog.module('a');
+`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var tslib_1 = goog.require('tslib');
 var tsickle_module_1_ = goog.require('req.mod');
@@ -256,7 +252,7 @@ console.log(mod_1.x);
              () => {
                expectCommonJs('a.ts', `import {x} from 'req/mod';
 export * from 'req/mod';
-console.log(x);`).not.differentFrom(`goog.module('a');
+console.log(x);`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var tslib_1 = goog.require('tslib');
 var mod_1 = goog.require('req.mod');
@@ -272,7 +268,7 @@ console.log(mod_1.x);
       // See below for more fine-grained unit tests.
       expectCommonJs('a/b.ts', `import {x} from './req/mod';
 console.log(x);`)
-          .not.differentFrom(`goog.module('a.b');
+          .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var mod_1 = goog.require('a.req.mod');
 console.log(mod_1.x);
@@ -283,7 +279,7 @@ console.log(mod_1.x);
       expectCommonJs('a/b.ts', `
 import Foo from 'goog:foo_bar.baz';
 console.log(Foo);`)
-          .not.differentFrom(`goog.module('a.b');
+          .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var goog_foo_bar_baz_1 = goog.require('foo_bar.baz');
 console.log(goog_foo_bar_baz_1);
@@ -294,7 +290,7 @@ console.log(goog_foo_bar_baz_1);
       expectCommonJs('a/b.ts', `
 import Foo from 'goog:use.Foo';
 console.log(Foo);`)
-          .not.differentFrom(`goog.module('a.b');
+          .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var goog_use_Foo_1 = goog.require('use.Foo');
 console.log(goog_use_Foo_1);
@@ -305,7 +301,7 @@ console.log(goog_use_Foo_1);
       expectCommonJs('a/b.ts', `
 import {default as Foo} from 'goog:use.Foo';
 console.log(Foo);`)
-          .not.differentFrom(`goog.module('a.b');
+          .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var goog_use_Foo_1 = goog.require('use.Foo');
 console.log(goog_use_Foo_1);
@@ -315,7 +311,7 @@ console.log(goog_use_Foo_1);
     it('resolves exported default goog: module imports', () => {
       expectCommonJs('a/b.ts', `
 export {default as Foo} from 'goog:use.Foo';
-`).not.differentFrom(`goog.module('a.b');
+`).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var goog_use_Foo_1 = goog.require('use.Foo');
 exports.Foo = goog_use_Foo_1;
@@ -326,7 +322,7 @@ exports.Foo = goog_use_Foo_1;
       expectCommonJs('a/b.ts', `
 import * as Foo from 'goog:use.Foo';
 console.log(Foo.default);
-`).not.differentFrom(`goog.module('a.b');
+`).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var Foo = goog.require('use.Foo');
 console.log(Foo);
@@ -338,7 +334,7 @@ console.log(Foo);
       expectCommonJs('a/b.ts', `
 console.log(this.default);
 console.log(foo.bar.default);`)
-          .not.differentFrom(`goog.module('a.b');
+          .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 console.log(this.default);
 console.log(foo.bar.default);
@@ -351,7 +347,7 @@ console.log(foo.bar.default);
  */
 "use strict";
 var foo = bar;
-`).not.differentFrom(`/**
+`).toBe(`/**
  * docstring here
  */
 goog.module('a.b');
@@ -364,7 +360,7 @@ var foo = bar;
       expectCommonJs('a/b.ts', `import Foo from 'goog:foo';
 import Foo2 from 'goog:foo';
 Foo, Foo2;
-`).not.differentFrom(`goog.module('a.b');
+`).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var goog_foo_1 = goog.require('foo');
 var goog_foo_2 = goog_foo_1;
@@ -383,7 +379,7 @@ console.log(sym, es6RelativeRequire, es6NonRelativeRequire);
 `);
 
     // Sanity check the output.
-    expect(output).not.differentFrom(`goog.module('a.b');
+    expect(output).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var tsickle_module_1_ = goog.require('foo.bare_require');
 var goog_foo_bar_1 = goog.require('foo.bar');
@@ -392,7 +388,7 @@ var relative_2 = goog.require('non.relative');
 console.log(goog_foo_bar_1, relative_1.es6RelativeRequire, relative_2.es6NonRelativeRequire);
 `);
 
-    expect(manifest.getReferencedModules('a/b.ts')).to.deep.equal([
+    expect(manifest.getReferencedModules('a/b.ts')).toEqual([
       'foo.bare_require',
       'foo.bar',
       'a.relative',
@@ -402,7 +398,7 @@ console.log(goog_foo_bar_1, relative_1.es6RelativeRequire, relative_2.es6NonRela
 
   it(`skips the exports assignment if there's another one`, () => {
     expectCommonJs('a.ts', `export {}; console.log('hello'); exports = 1;`, false)
-        .not.differentFrom(`goog.module('a');
+        .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 module = module;
 console.log('hello');
@@ -417,25 +413,24 @@ describe('processing transpiled JS output', () => {
   }
 
   it('does not insert goog.module() or module = ... in JS transpilation outputs', () => {
-    expectJsTranspilation(`alert(1);`).not.differentFrom(`alert(1);
+    expectJsTranspilation(`alert(1);`).toBe(`alert(1);
 `);
   });
 
   it('changes require("tslib") to goog.require("tslib")', () => {
-    expectJsTranspilation(`require('tslib');`).not.differentFrom(`goog.require('tslib');
+    expectJsTranspilation(`require('tslib');`).toBe(`goog.require('tslib');
 `);
   });
 
   it('does not turn require() into goog.require()', () => {
-    expectJsTranspilation(`require('foo'); var x = require('bar');`)
-        .not.differentFrom(`require('foo');
+    expectJsTranspilation(`require('foo'); var x = require('bar');`).toBe(`require('foo');
 var x = require('bar');
 `);
   });
 
   it('leaves goog.require() alone', () => {
     expectJsTranspilation(`goog.require('foo'); var x = goog.require('bar');`)
-        .not.differentFrom(`goog.require('foo');
+        .toBe(`goog.require('foo');
 var x = goog.require('bar');
 `);
   });
