@@ -6,9 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect, use as chaiUse} from 'chai';
-// tslint:disable-next-line:no-require-imports chai-diff needs a CommonJS import.
-import chaiDiff = require('chai-diff');
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
@@ -17,8 +14,6 @@ import * as tsickle from '../src/tsickle';
 import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
-
-chaiUse(chaiDiff);
 
 // Set TEST_FILTER=foo to only run tests from the foo package.
 // Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
@@ -82,7 +77,7 @@ function compareAgainstGolden(
       }
     }
   } else {
-    expect(output).not.differentFrom(golden!, {});
+    expect(output).toEqual(golden!);
   }
 }
 
@@ -90,6 +85,10 @@ function compareAgainstGolden(
 const testFn = TEST_FILTER ? fdescribe : describe;
 
 testFn('golden tests with transformer', () => {
+  beforeEach(() => {
+    testSupport.addDiffMatchers();
+  });
+
   testSupport.goldenTests().forEach((test) => {
     if (TEST_FILTER && !TEST_FILTER.testName.test(test.name)) {
       // do not xit(test.name) as that spams a lot of useless console msgs.
@@ -100,8 +99,7 @@ testFn('golden tests with transformer', () => {
       emitDeclarations = false;
     }
     it(test.name, () => {
-      // tslint:disable-next-line:no-unused-expression mocha .to.be.empty getters.
-      expect(test.tsFiles).not.to.be.empty;
+      expect(test.tsFiles.length).toBeGreaterThan(0);
       // Read all the inputs into a map, and create a ts.Program from them.
       const tsSources = new Map<string, string>();
       for (const tsFile of test.tsFiles) {
@@ -197,7 +195,7 @@ testFn('golden tests with transformer', () => {
       if (!test.isDeclarationTest) {
         const sortedPaths = test.jsPaths.sort();
         const actualPaths = Object.keys(tscOutput).map(p => p.replace(/^\.\//, '')).sort();
-        expect(sortedPaths).to.eql(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
+        expect(sortedPaths).toEqual(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
       }
       let allExterns: string|null = null;
       if (!test.name.endsWith('.no_externs')) {
@@ -227,8 +225,7 @@ testFn('golden tests with transformer', () => {
             dtsDiags.push(...diags);
             continue;
           }
-          expect(tsickle.formatDiagnostics(diags))
-              .to.equal('', `unhandled diagnostics for ${path}`);
+          expect(tsickle.formatDiagnostics(diags)).toBe('', `unhandled diagnostics for ${path}`);
         }
       }
       if (dtsDiags.length) {

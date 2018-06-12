@@ -6,18 +6,16 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
-
 import * as jsdoc from '../src/jsdoc';
 
 describe('jsdoc.parse', () => {
   it('does not get non-jsdoc values', () => {
     const source = '/* ordinary comment */';
-    expect(jsdoc.parse(source)).to.equal(null);
+    expect(jsdoc.parse(source)).toEqual(null);
   });
   it('grabs plain text from jsdoc', () => {
     const source = '/** jsdoc comment */';
-    expect(jsdoc.parse(source)).to.deep.equal({tags: [{tagName: '', text: 'jsdoc comment'}]});
+    expect(jsdoc.parse(source)).toEqual({tags: [{tagName: '', text: 'jsdoc comment'}]});
   });
   it('gathers @tags from jsdoc', () => {
     const source = `/**
@@ -28,7 +26,7 @@ describe('jsdoc.parse', () => {
   * @return foobar
   * @nosideeffects
   */`;
-    expect(jsdoc.parse(source)).to.deep.equal({
+    expect(jsdoc.parse(source)).toEqual({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
         {tagName: 'param', parameterName: 'indented', text: 'from line start.'},
@@ -42,7 +40,7 @@ describe('jsdoc.parse', () => {
     const source = `/**
   * @param {string} foo
 */`;
-    expect(jsdoc.parse(source)).to.deep.equal({
+    expect(jsdoc.parse(source)).toEqual({
       tags: [],
       warnings: [
         'the type annotation on @param is redundant with its TypeScript type, remove the {...} part'
@@ -51,18 +49,18 @@ describe('jsdoc.parse', () => {
   });
   it('warns on @type annotations', () => {
     const source = `/** @type {string} foo */`;
-    expect(jsdoc.parse(source)).to.deep.equal({
+    expect(jsdoc.parse(source)).toEqual({
       tags: [],
       warnings: ['@type annotations are redundant with TypeScript equivalents']
     });
   });
   it('allows @suppress annotations', () => {
     const source = `/** @suppress {checkTypes} I hate types */`;
-    expect(jsdoc.parse(source)).to.deep.equal({
+    expect(jsdoc.parse(source)).toEqual({
       tags: [{tagName: 'suppress', type: 'checkTypes', text: ' I hate types'}]
     });
     const malformed = `/** @suppress malformed */`;
-    expect(jsdoc.parse(malformed)).to.deep.equal({
+    expect(jsdoc.parse(malformed)).toEqual({
       tags: [{tagName: 'suppress', text: 'malformed'}],
       warnings: ['malformed @suppress tag: "malformed"'],
     });
@@ -74,7 +72,7 @@ describe('jsdoc.toString', () => {
     expect(jsdoc.toString([
       {tagName: 'deprecated'}, {tagName: 'param', parameterName: 'hello', text: 'world'},
       {tagName: 'deprecated'}
-    ])).to.equal(`/**
+    ])).toBe(`/**
  * @deprecated
  * @param hello world
  */

@@ -6,14 +6,15 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
-
 import {toClosureJS} from '../src/main';
 import * as tsickle from '../src/tsickle';
 
-import {compilerOptions} from './test_support';
+import * as testSupport from './test_support';
 
 describe('toClosureJS', () => {
+  beforeEach(() => {
+    testSupport.addDiffMatchers();
+  });
   it('creates externs, adds type comments and rewrites imports', () => {
     const filePaths = [
       'test_files/underscore/export_underscore.ts',
@@ -21,27 +22,28 @@ describe('toClosureJS', () => {
     ];
     const files = new Map<string, string>();
     const result = toClosureJS(
-        compilerOptions, filePaths, {isTyped: true}, (filePath: string, contents: string) => {
+        testSupport.compilerOptions, filePaths, {isTyped: true},
+        (filePath: string, contents: string) => {
           files.set(filePath, contents);
         });
 
     if (result.diagnostics.length || true) {
       // result.diagnostics.forEach(v => console.log(JSON.stringify(v)));
-      expect(tsickle.formatDiagnostics(result.diagnostics)).to.equal('');
+      expect(tsickle.formatDiagnostics(result.diagnostics)).toBe('');
     }
 
-    expect(tsickle.getGeneratedExterns(result.externs)).to.contain(`/** @const */
+    expect(tsickle.getGeneratedExterns(result.externs)).toContain(`/** @const */
 var __NS = {};
  /** @type {number} */
 __NS.__ns1;
 `);
 
     const underscoreDotJs = files.get('./test_files/underscore/underscore.js');
-    expect(underscoreDotJs).to.contain(`goog.module('test_files.underscore.underscore')`);
-    expect(underscoreDotJs).to.contain(`/** @type {string} */`);
+    expect(underscoreDotJs).toContain(`goog.module('test_files.underscore.underscore')`);
+    expect(underscoreDotJs).toContain(`/** @type {string} */`);
 
     const exportUnderscoreDotJs = files.get('./test_files/underscore/export_underscore.js');
     expect(exportUnderscoreDotJs)
-        .to.contain(`goog.module('test_files.underscore.export_underscore')`);
+        .toContain(`goog.module('test_files.underscore.export_underscore')`);
   });
 });

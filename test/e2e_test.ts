@@ -7,11 +7,15 @@
  */
 
 import * as fs from 'fs';
-import * as closure from './closure';
 
+import * as closure from './closure';
+import * as testSupport from './test_support';
 import {goldenTests} from './test_support';
 
 describe('golden file tests', () => {
+  beforeEach(() => {
+    testSupport.addDiffMatchers();
+  });
   it('compile with Closure', (done) => {
     // Declaration tests do not produce .js files.
     const tests = goldenTests().filter(t => !t.isDeclarationTest);

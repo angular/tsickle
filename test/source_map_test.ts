@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {expect} from 'chai';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
 import * as ts from 'typescript';
 
@@ -68,8 +67,8 @@ describe('source maps', () => {
     const firstClassLine = lines.findIndex(l => l.indexOf('class X') !== -1) + 1;
     const secondClassLine = lines.findIndex(l => l.indexOf('class Y') !== -1) + 1;
     expect(consumer.originalPositionFor({line: firstClassLine, column: 20}).line)
-        .to.equal(2, 'first class definition');
+        .toBe(2, 'first class definition');
     expect(consumer.originalPositionFor({line: secondClassLine, column: 20}).line)
-        .to.equal(3, 'second class definition');
+        .toBe(3, 'second class definition');
   });
 });

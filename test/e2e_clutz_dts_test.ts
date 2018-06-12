@@ -6,20 +6,20 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-// tslint:disable:no-unused-expression mocha .to.be.empty getters.
-
-import {expect} from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as tsickle from '../src/tsickle';
 
-import {createProgram, goldenTests} from './test_support';
+import * as testSupport from './test_support';
 
 describe('clutz dts', () => {
+  beforeEach(() => {
+    testSupport.addDiffMatchers();
+  });
   it('produces a valid .d.ts', () => {
-    const tests = goldenTests().filter(t => t.isDeclarationTest);
+    const tests = testSupport.goldenTests().filter(t => t.isDeclarationTest);
 
     const dtsSources = new Map<string, string>();
 
@@ -33,9 +33,9 @@ describe('clutz dts', () => {
       }
     }
 
-    const program = createProgram(dtsSources);
+    const program = testSupport.createProgram(dtsSources);
     const diagnostics = ts.getPreEmitDiagnostics(program);
 
-    expect(diagnostics, tsickle.formatDiagnostics(diagnostics)).to.be.empty;
+    testSupport.expectDiagnosticsEmpty(diagnostics);
   });
 });

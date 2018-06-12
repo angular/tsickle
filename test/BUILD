@@ -22,7 +22,6 @@ ts_library(
         "transformer_util_test.ts",
         "tsickle_test.ts",
         "type-translator_test.ts",
-        "chai-diff.d.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [
@@ -61,10 +60,7 @@ jasmine_node_test(
 
 ts_library(
     name = "golden_test_lib",
-    srcs = [
-        "golden_tsickle_test.ts",
-        "chai-diff.d.ts",
-    ],
+    srcs = ["golden_tsickle_test.ts"],
     tsconfig = "//:tsconfig.json",
     deps = [
         ":test_support",
