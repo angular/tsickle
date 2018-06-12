@@ -29,7 +29,7 @@ describe('toClosureJS', () => {
 
     if (result.diagnostics.length || true) {
       // result.diagnostics.forEach(v => console.log(JSON.stringify(v)));
-      expect(tsickle.formatDiagnostics(result.diagnostics)).toBe('');
+      expect(testSupport.formatDiagnostics(result.diagnostics)).toBe('');
     }
 
     expect(tsickle.getGeneratedExterns(result.externs)).toContain(`/** @const */

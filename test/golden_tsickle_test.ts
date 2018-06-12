@@ -123,7 +123,7 @@ testFn('golden tests with transformer', () => {
       {
         const diagnostics = ts.getPreEmitDiagnostics(program);
         if (diagnostics.length) {
-          throw new Error(tsickle.formatDiagnostics(diagnostics));
+          throw new Error(testSupport.formatDiagnostics(diagnostics));
         }
       }
       if (test.isEs5Target) {
@@ -213,7 +213,11 @@ testFn('golden tests with transformer', () => {
         diagnosticsByFile.delete(tsPath);
         let out = tscOutput[outputPath];
         if (diags) {
-          out = tsickle.formatDiagnostics(diags).split('\n').map(line => `// ${line}\n`).join('') +
+          out = testSupport.formatDiagnostics(diags)
+                    .trim()
+                    .split('\n')
+                    .map(line => `// ${line}\n`)
+                    .join('') +
               out;
         }
         compareAgainstGolden(out, outputPath, test);
@@ -225,12 +229,14 @@ testFn('golden tests with transformer', () => {
             dtsDiags.push(...diags);
             continue;
           }
-          expect(tsickle.formatDiagnostics(diags)).toBe('', `unhandled diagnostics for ${path}`);
+          expect(testSupport.formatDiagnostics(diags))
+              .toBe('', `unhandled diagnostics for ${path}`);
         }
       }
       if (dtsDiags.length) {
         compareAgainstGolden(
-            tsickle.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'), test);
+            testSupport.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'),
+            test);
       }
     });
   });

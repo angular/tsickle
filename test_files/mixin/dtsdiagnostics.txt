@@ -1,2 +1,2 @@
-Warning at test_files/mixin/mixin.d.ts:1:1: unhandled type flags: Intersection
-Warning at test_files/mixin/mixin.d.ts:12:1: could not resolve supertype: MyMixin(HTMLElement)
+test_files/mixin/mixin.d.ts(1,1): warning TS0: unhandled type flags: Intersection
+test_files/mixin/mixin.d.ts(12,1): warning TS0: could not resolve supertype: MyMixin(HTMLElement)

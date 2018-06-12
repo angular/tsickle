@@ -576,8 +576,9 @@ class Foo {
 }`,
           true /* allow errors */);
 
-      expect(tsickle.formatDiagnostics(diagnostics))
-          .toBe('Error at testcase.ts:5:3: cannot process decorators on strangely named method');
+      expect(testSupport.formatDiagnostics(diagnostics))
+          .toBe(
+              'testcase.ts(5,3): error TS0: cannot process decorators on strangely named method\n');
     });
     it('avoids mangling code relying on ASI', () => {
       expectTranslated(`

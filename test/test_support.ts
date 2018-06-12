@@ -301,6 +301,20 @@ export function addDiffMatchers() {
   }));
 }
 
+export function formatDiagnostics(diags: ReadonlyArray<ts.Diagnostic>): string {
+  const host: ts.FormatDiagnosticsHost = {
+    // TODO(evanm): do not depend on current directory here.
+    getCurrentDirectory: ts.sys.getCurrentDirectory,
+    getCanonicalFileName(filename: string) {
+      return filename;
+    },
+    getNewLine() {
+      return ts.sys.newLine;
+    },
+  };
+  return ts.formatDiagnostics(diags, host);
+}
+
 /**
  * expectDiagnosticsEmpty is just
  *   expect(diags.length).toBe(0)
@@ -308,7 +322,7 @@ export function addDiffMatchers() {
  */
 export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
   if (diags.length !== 0) {
-    console.error(tsickle.formatDiagnostics(diags));
+    console.error(formatDiagnostics(diags));
     expect(diags.length).toBe(0);
   }
 }

@@ -1,4 +1,4 @@
-// Warning at test_files/class/class.ts:129:1: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(129,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
