@@ -153,7 +153,7 @@ export function toClosureJS(
     typeBlackListPaths: new Set(),
     disableAutoQuoting: settings.disableAutoQuoting,
     untyped: false,
-    logWarning: (warning) => console.error(tsickle.formatDiagnostics([warning])),
+    logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
     host: compilerHost,
   };
@@ -175,7 +175,7 @@ function main(args: string[]): number {
   const {settings, tscArgs} = loadSettingsFromArgs(args);
   const config = loadTscConfig(tscArgs);
   if (config.errors.length) {
-    console.error(tsickle.formatDiagnostics(config.errors));
+    console.error(ts.formatDiagnostics(config.errors, ts.createCompilerHost(config.options)));
     return 1;
   }
 
@@ -195,7 +195,7 @@ function main(args: string[]): number {
         fs.writeFileSync(filePath, contents, {encoding: 'utf-8'});
       });
   if (result.diagnostics.length) {
-    console.error(tsickle.formatDiagnostics(result.diagnostics));
+    console.error(ts.formatDiagnostics(result.diagnostics, ts.createCompilerHost(config.options)));
     return 1;
   }
 

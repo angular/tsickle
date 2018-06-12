@@ -24,7 +24,7 @@ describe('transformer util', () => {
 
     const diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.length) {
-      throw new Error(tsickle.formatDiagnostics(diagnostics));
+      throw new Error(testSupport.formatDiagnostics(diagnostics));
     }
     const transformers = createCustomTransformers({before: [transform]});
     const jsSources: {[fileName: string]: string} = {};

@@ -25,7 +25,7 @@ describe('emitWithTsickle', () => {
         testSupport.createProgramAndHost(tsSourcesMap, tsCompilerOptions);
     const diagnostics = program.getSemanticDiagnostics();
     if (diagnostics.length) {
-      throw new Error(tsickle.formatDiagnostics(diagnostics));
+      throw new Error(testSupport.formatDiagnostics(diagnostics));
     }
     const tsickleHost: tsickle.TsickleHost = {
       es5Mode: true,

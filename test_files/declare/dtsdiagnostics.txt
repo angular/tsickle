@@ -1,1 +1,1 @@
-Warning at test_files/declare/declare.d.ts:106:1: anonymous type has no symbol
+test_files/declare/declare.d.ts(106,1): warning TS0: anonymous type has no symbol

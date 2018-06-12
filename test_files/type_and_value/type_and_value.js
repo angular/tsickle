@@ -1,6 +1,6 @@
-// Warning at test_files/type_and_value/type_and_value.ts:10:5: unhandled anonymous type with constructor signature but no declaration
-// Warning at test_files/type_and_value/type_and_value.ts:16:5: type/symbol conflict for TypeAndValue, using {?} for now
-// Warning at test_files/type_and_value/type_and_value.ts:19:5: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(10,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
+// test_files/type_and_value/type_and_value.ts(16,5): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(19,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc

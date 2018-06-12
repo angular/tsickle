@@ -84,21 +84,10 @@ export let closureExternsBlacklist: string[] = [
   'WorkerGlobalScope',
 ];
 
-export function formatDiagnostics(diags: ReadonlyArray<ts.Diagnostic>): string {
-  return diags
-      .map((d) => {
-        let res = ts.DiagnosticCategory[d.category];
-        if (d.file) {
-          res += ' at ' + formatLocation(d.file, d.start) + ':';
-        }
-        res += ' ' + ts.flattenDiagnosticMessageText(d.messageText, '\n');
-        return res;
-      })
-      .join('\n');
-}
-
 /** Returns a fileName:line:column string for the given position in the file. */
-export function formatLocation(sf: ts.SourceFile, start: number|undefined) {
+function formatLocation(sf: ts.SourceFile, start: number|undefined) {
+  // TODO(evanm): remove this, because to be correct it needs a
+  // ts.FormatDiagnosticsHost to resolve paths against.
   let res = sf.fileName;
   if (start !== undefined) {
     const {line, character} = sf.getLineAndCharacterOfPosition(start);

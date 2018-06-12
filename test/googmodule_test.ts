@@ -37,7 +37,7 @@ function processES5(
   const program = ts.createProgram([fileName], options, tsHost);
   // NB: this intentionally only checks for syntactical issues, but allows semantic issues, such
   // as missing imports to make the tests below easier to write.
-  expect(tsickle.formatDiagnostics(program.getSyntacticDiagnostics())).toBe('');
+  expect(testSupport.formatDiagnostics(program.getSyntacticDiagnostics())).toBe('');
   const typeChecker = program.getTypeChecker();
   const diagnostics: ts.Diagnostic[] = [];
   const manifest = new ModulesManifest();

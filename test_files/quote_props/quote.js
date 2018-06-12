@@ -1,7 +1,7 @@
-// Warning at test_files/quote_props/quote.ts:9:13: Quoted has a string index type but is accessed using dotted access. Quoting the access.
-// Warning at test_files/quote_props/quote.ts:10:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
-// Warning at test_files/quote_props/quote.ts:13:1: Quoted has a string index type but is accessed using dotted access. Quoting the access.
-// Warning at test_files/quote_props/quote.ts:29:1: Declared property foo accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
+// test_files/quote_props/quote.ts(9,13): warning TS0: Quoted has a string index type but is accessed using dotted access. Quoting the access.
+// test_files/quote_props/quote.ts(10,1): warning TS0: Quoted has a string index type but is accessed using dotted access. Quoting the access.
+// test_files/quote_props/quote.ts(13,1): warning TS0: Quoted has a string index type but is accessed using dotted access. Quoting the access.
+// test_files/quote_props/quote.ts(29,1): warning TS0: Declared property foo accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes} checked by tsc
