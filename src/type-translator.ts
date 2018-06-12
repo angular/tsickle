@@ -553,7 +553,8 @@ export class TypeTranslator {
         this.warn('unhandled anonymous type with constructor signature but no declaration');
         return '?';
       }
-      const params = this.convertParams(ctors[0], ctors[0].declaration.parameters);
+      const params = this.convertParams(
+          ctors[0], (ctors[0].declaration as ts.SignatureDeclaration).parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
       // In the specific case of the "new" in a function, it appears that
@@ -629,11 +630,13 @@ export class TypeTranslator {
   private signatureToClosure(sig: ts.Signature): string {
     // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
 
-    this.blacklistTypeParameters(this.symbolsToAliasedNames, sig.declaration.typeParameters);
+    this.blacklistTypeParameters(
+        this.symbolsToAliasedNames, (sig.declaration as ts.SignatureDeclaration).typeParameters);
 
     let typeStr = `function(`;
 
-    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> = sig.declaration.parameters;
+    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> =
+        (sig.declaration as ts.SignatureDeclaration).parameters;
     const maybeThisParam = paramDecls[0];
     // Oddly, the this type shows up in paramDecls, but not in the type's parameters.
     // Handle it here and then pass paramDecls down without its first element.
