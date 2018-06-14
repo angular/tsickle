@@ -21,7 +21,8 @@ describe('golden file tests', () => {
     const tests = goldenTests().filter(t => !t.isDeclarationTest);
     const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
     goldenJs.push('src/closure_externs.js');
-    goldenJs.push('test_files/helpers.js');
+    goldenJs.push('third_party/tslib/externs.js');
+    goldenJs.push('third_party/tslib/tslib.js');
     goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
     goldenJs.push('test_files/clutz.no_externs/some_other.js');
     goldenJs.push('test_files/import_from_goog/closure_Module.js');

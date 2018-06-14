@@ -4,6 +4,7 @@
  */
 goog.module('test_files.exporting_decorator.exporting');
 var module = module || { id: 'test_files/exporting_decorator/exporting.ts' };
+var tslib_1 = goog.require('tslib');
 /**
  * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}
@@ -60,45 +61,45 @@ class MyClass {
         console.log(`I don't really care about ${x}.`);
     }
 }
-__decorate([
+tslib_1.__decorate([
     exportingDecorator(),
-    __metadata("design:type", Boolean)
+    tslib_1.__metadata("design:type", Boolean)
 ], MyClass.prototype, "exportMe", void 0);
-__decorate([
+tslib_1.__decorate([
     nonExportingDecorator(),
-    __metadata("design:type", Number)
+    tslib_1.__metadata("design:type", Number)
 ], MyClass.prototype, "doNotExportMe", void 0);
-__decorate([
+tslib_1.__decorate([
     exportingDecorator(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", void 0)
 ], MyClass.prototype, "exportThisOneToo", null);
-__decorate([
+tslib_1.__decorate([
     nonExportingDecorator(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", void 0)
 ], MyClass.prototype, "doNotExportThisOneEither", null);
-__decorate([
+tslib_1.__decorate([
     exportingDecorator(),
-    __metadata("design:type", Object),
-    __metadata("design:paramtypes", [])
+    tslib_1.__metadata("design:type", Object),
+    tslib_1.__metadata("design:paramtypes", [])
 ], MyClass.prototype, "exportThisGetter", null);
-__decorate([
+tslib_1.__decorate([
     exportingDecorator(),
-    __metadata("design:type", Number),
-    __metadata("design:paramtypes", [Number])
+    tslib_1.__metadata("design:type", Number),
+    tslib_1.__metadata("design:paramtypes", [Number])
 ], MyClass.prototype, "exportThisSetter", null);
-__decorate([
+tslib_1.__decorate([
     nonExportingDecorator(),
-    __metadata("design:type", Object),
-    __metadata("design:paramtypes", [])
+    tslib_1.__metadata("design:type", Object),
+    tslib_1.__metadata("design:paramtypes", [])
 ], MyClass.prototype, "doNotExportThisGetter", null);
-__decorate([
+tslib_1.__decorate([
     nonExportingDecorator(),
-    __metadata("design:type", Number),
-    __metadata("design:paramtypes", [Number])
+    tslib_1.__metadata("design:type", Number),
+    tslib_1.__metadata("design:paramtypes", [Number])
 ], MyClass.prototype, "doNotExportThisSetter", null);
 function MyClass_tsickle_Closure_declarations() {
     /**

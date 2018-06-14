@@ -30,13 +30,14 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   strictNullChecks: true,
   noImplicitUseStrict: true,
   allowJs: false,
+  importHelpers: true,
+  noEmitHelpers: true,
 };
 
 /** The TypeScript compiler options used by the test suite. */
 export const compilerOptions: ts.CompilerOptions = {
   ...baseCompilerOptions,
   emitDecoratorMetadata: true,
-  noEmitHelpers: true,
   jsx: ts.JsxEmit.React,
   // Flags below are needed to make sure source paths are correctly set on write calls.
   rootDir: path.resolve(process.cwd()),

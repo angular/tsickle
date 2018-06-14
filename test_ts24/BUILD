@@ -10,6 +10,7 @@ jasmine_node_test(
         "check_ts_version.js",
         "//test:unit_test_lib",
     ],
+    data = ["//:test_files"],
     node_modules = ":node_modules",
 )
 

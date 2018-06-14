@@ -11,6 +11,7 @@ jasmine_node_test(
         "//test:unit_test_lib",
     ],
     node_modules = ":node_modules",
+    data = ["//:test_files"],
 )
 
 jasmine_node_test(

@@ -1,3 +1,5 @@
+export {}
+
 /** @ExportDecoratedItems */
 function exportingDecorator() {
   return function(target: any, name: string|symbol) {}
