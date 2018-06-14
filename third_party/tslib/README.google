@@ -1,0 +1,8 @@
+URL: https://github.com/Microsoft/tslib
+License: Apache 2.0
+Description:
+tslib.js contains a version of the 'tslib' library, modified to work with
+the Closure compiler.
+
+When building using tsickle, we pass --importHelpers to the TypeScript compiler
+so it uses this module instead.

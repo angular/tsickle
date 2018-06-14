@@ -1,0 +1,3 @@
+/** @externs */
+
+Symbol.asyncIterator;
