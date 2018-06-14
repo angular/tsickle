@@ -134,18 +134,51 @@ const TS_EXTENSIONS = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
  * Workaround for https://github.com/Microsoft/TypeScript/issues/12597
  */
 export function resolveIndexShorthand(
-    host: {options: ts.CompilerOptions, host: ts.ModuleResolutionHost}, fileName: string,
-    imported: string): string {
-  const resolved = ts.resolveModuleName(imported, fileName, host.options, host.host);
+    {options, host}: {options: ts.CompilerOptions, host: ts.ModuleResolutionHost},
+    pathOfImportingFile: string, imported: string): string {
+  // The strategy taken here is to use ts.resolveModuleName() to resolve the import to
+  // a specific path, and then if that path is different than the path that was
+  // asked for, we assume it was an index import and construct a new import statement.
+  //
+  // We need to be careful about paths -- `pathOfImportingFile` is the absolute path to the
+  // source file, while `imported` may be a path relative to that.
+
+  const resolved = ts.resolveModuleName(imported, pathOfImportingFile, options, host);
   if (!resolved || !resolved.resolvedModule) return imported;
   const requestedModule = imported.replace(TS_EXTENSIONS, '');
   const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(TS_EXTENSIONS, '');
-  if (resolvedModule.indexOf('node_modules') === -1 &&
-      requestedModule.substr(requestedModule.lastIndexOf('/')) !==
-          resolvedModule.substr(resolvedModule.lastIndexOf('/'))) {
-    imported = './' + path.relative(path.dirname(fileName), resolvedModule).replace(path.sep, '/');
+
+  // Check if the resolution went into node_modules.
+  // Note that the ResolvedModule returned by resolveModuleName() has an
+  // attribute isExternalLibraryImport that is documented with
+  // "True if resolvedFileName comes from node_modules", but actually it is just
+  // true if the absolute path includes node_modules, and is always true when
+  // tsickle itself is under a directory named node_modules.
+  const relativeResolved = path.relative(options.rootDir || '', resolvedModule);
+  if (relativeResolved.indexOf('node_modules') !== -1) {
+    // Imports into node_modules resolve through package.json and must be
+    // specially handled by the loader anyway.  Return the input.
+    return imported;
   }
-  return imported;
+
+  // Check if the resolution chose a different file than what was asked for.
+  // Compare filenames, but don't use path.basename() because we want a file
+  // name of '' if the requested path ends in a slash.
+  const requestedFileName = requestedModule.substr(requestedModule.lastIndexOf('/'));
+  const resolvedFileName = resolvedModule.substr(resolvedModule.lastIndexOf('/'));
+
+  if (requestedFileName === resolvedFileName) {
+    // It ended up at the same file as it started with, so we don't need
+    // a rewrite anyway.
+    return imported;
+  }
+
+  // If we get here, it seems that the import resolved to somewhere else.
+  // Construct a new import path.  Note that it must be relative to the original
+  // filename, and also that path.relative() randomly uses the cwd if any of
+  // its arguments aren't themselves absolute.
+  return './' +
+      path.relative(path.dirname(pathOfImportingFile), resolvedModule).replace(path.sep, '/');
 }
 
 /**
