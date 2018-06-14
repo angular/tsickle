@@ -525,8 +525,26 @@ abstract class ClosureRewriter extends Rewriter {
     }
   }
 
-  /** Emits a type annotation in JSDoc, or {?} if the type is unavailable. */
-  emitJSDocType(node: ts.Node, additionalDocTag?: string, type?: ts.Type) {
+  /**
+   * Emits a type annotation in JSDoc, or {?} if the type is unavailable.
+   * @param skipBlacklisted if true, do not emit a type at all for blacklisted types.
+   */
+  emitJSDocType(node: ts.Node, additionalDocTag?: string, type?: ts.Type, skipBlacklisted = false) {
+    if (skipBlacklisted) {
+      // Check if the type is blacklisted, and do not emit any @type at all if so.
+      type = type || this.typeChecker.getTypeAtLocation(node);
+      let sym = type.symbol;
+      if (sym) {
+        if (sym.flags & ts.SymbolFlags.Alias) {
+          sym = this.typeChecker.getAliasedSymbol(sym);
+        }
+        const typeTranslator = this.newTypeTranslator(node);
+        if (typeTranslator.isBlackListed(sym)) {
+          if (additionalDocTag) this.emit(` /** ${additionalDocTag} */`);
+          return;
+        }
+      }
+    }
     this.emit(' /**');
     if (additionalDocTag) {
       this.emit(' ' + additionalDocTag);
@@ -1222,7 +1240,11 @@ class Annotator extends ClosureRewriter {
         // Don't emit type annotation when the variable statement is a @polymerBehavior, as
         // otherwise the polymer closure checker will fail. See b/64389806.
         if (this.polymerBehaviorStackCount === 0) {
-          this.emitJSDocType(decl, additionalTags);
+          // Skip emitting a JSDoc type for blacklisted types if and only if this variable is
+          // initialized (and thus probably type inferred).
+          const hasInitializer = !!decl.initializer;
+          this.emitJSDocType(
+              decl, additionalTags, /*type=*/undefined, /*skipBlacklisted=*/hasInitializer);
         } else {
           this.emit(`/**${additionalTags}*/`);
         }
