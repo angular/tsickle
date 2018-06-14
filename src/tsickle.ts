@@ -693,7 +693,7 @@ class Annotator extends ClosureRewriter {
         if (node.kind === ts.SyntaxKind.ModuleDeclaration) continue;
         // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
         // exists in externs). Export them as a typedef, which forwards to the type in externs.
-        this.emit(`\n/** @typedef {${declName}} */\nexports.${declName};\n`);
+        this.emit(`\n/** @typedef {!${declName}} */\nexports.${declName};\n`);
       } else {
         this.emit(`\nexports.${declName} = ${declName};\n`);
       }
@@ -1109,7 +1109,7 @@ class Annotator extends ClosureRewriter {
       if (!isTypeAlias) continue;
       const typeName = this.symbolsToAliasedNames.get(exp.sym) || exp.sym.name;
       // Leading newline prevents the typedef from being swallowed.
-      this.emit(`\n/** @typedef {${typeName}} */\nexports.${exp.name}; // re-export typedef\n`);
+      this.emit(`\n/** @typedef {!${typeName}} */\nexports.${exp.name}; // re-export typedef\n`);
     }
   }
 

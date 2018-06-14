@@ -9,13 +9,13 @@ var module = module || { id: 'test_files/export/export_helper.ts' };
 var export_helper_2_1 = goog.require('test_files.export.export_helper_2');
 exports.export4 = export_helper_2_1.export4;
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper_2");
-/** @typedef {tsickle_forward_declare_1.TypeDef} */
+/** @typedef {!tsickle_forward_declare_1.TypeDef} */
 exports.TypeDef; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.Interface} */
+/** @typedef {!tsickle_forward_declare_1.Interface} */
 exports.Interface; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.DeclaredType} */
+/** @typedef {!tsickle_forward_declare_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.DeclaredInterface} */
+/** @typedef {!tsickle_forward_declare_1.DeclaredInterface} */
 exports.DeclaredInterface; // re-export typedef
 exports.export1 = 3;
 exports.export2 = 3;
@@ -30,5 +30,5 @@ function Bar_tsickle_Closure_declarations() {
 }
 exports.export5 = 3;
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");
-/** @typedef {tsickle_forward_declare_2.TypeDef} */
+/** @typedef {!tsickle_forward_declare_2.TypeDef} */
 exports.RenamedTypeDef; // re-export typedef

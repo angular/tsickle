@@ -26,7 +26,7 @@ const ConstEnum = {
     AValue: 1,
 };
 exports.ConstEnum = ConstEnum;
-/** @typedef {DeclaredType} */
+/** @typedef {!DeclaredType} */
 exports.DeclaredType;
-/** @typedef {DeclaredInterface} */
+/** @typedef {!DeclaredInterface} */
 exports.DeclaredInterface;

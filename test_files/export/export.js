@@ -9,17 +9,17 @@ exports.export2 = export_helper_1.export2;
 exports.export5 = export_helper_1.export5;
 exports.export4 = export_helper_1.export4;
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper");
-/** @typedef {tsickle_forward_declare_1.Bar} */
+/** @typedef {!tsickle_forward_declare_1.Bar} */
 exports.Bar; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.TypeDef} */
+/** @typedef {!tsickle_forward_declare_1.TypeDef} */
 exports.RenamedTypeDef; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.TypeDef} */
+/** @typedef {!tsickle_forward_declare_1.TypeDef} */
 exports.TypeDef; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.Interface} */
+/** @typedef {!tsickle_forward_declare_1.Interface} */
 exports.Interface; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.DeclaredType} */
+/** @typedef {!tsickle_forward_declare_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
-/** @typedef {tsickle_forward_declare_1.DeclaredInterface} */
+/** @typedef {!tsickle_forward_declare_1.DeclaredInterface} */
 exports.DeclaredInterface; // re-export typedef
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");
 // These conflict with an export discovered via the above exports,
@@ -28,7 +28,7 @@ exports.export1 = 'wins';
 var export_helper_2 = export_helper_1;
 exports.export3 = export_helper_2.export4;
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.export.export_helper");
-/** @typedef {tsickle_forward_declare_3.Interface} */
+/** @typedef {!tsickle_forward_declare_3.Interface} */
 exports.RenamedInterface; // re-export typedef
 // This local should be fine to export.
 exports.exportLocal = 3;
@@ -49,5 +49,5 @@ function createFoo() {
     return { fooStr: 'fooStr' };
 }
 exports.createFoo = createFoo;
-/** @typedef {tsickle_forward_declare_6.Foo} */
+/** @typedef {!tsickle_forward_declare_6.Foo} */
 exports.Foo; // re-export typedef
