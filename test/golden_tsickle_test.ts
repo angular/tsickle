@@ -154,7 +154,7 @@ testFn('golden tests with transformer', () => {
         options: tsCompilerOptions,
         host: tsHost,
       };
-      const tscOutput: {[fileName: string]: string} = {};
+      const tscOutput = new Map<string, string>();
       let targetSource: ts.SourceFile|undefined = undefined;
       if (TEST_FILTER && TEST_FILTER.fileName) {
         for (const [path] of tsSources.entries()) {
@@ -183,7 +183,7 @@ testFn('golden tests with transformer', () => {
             // Normally we don't check .d.ts files, we are only interested to test that
             // we don't throw when we generate them, but if we're in a .declaration test,
             // we only care about the .d.ts files
-            tscOutput[fileName] = data;
+            tscOutput.set(fileName, data);
           });
       for (const d of diagnostics) allDiagnostics.add(d);
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
@@ -194,7 +194,7 @@ testFn('golden tests with transformer', () => {
       }
       if (!test.isDeclarationTest) {
         const sortedPaths = test.jsPaths.sort();
-        const actualPaths = Object.keys(tscOutput).map(p => p.replace(/^\.\//, '')).sort();
+        const actualPaths = Array.from(tscOutput.keys()).map(p => p.replace(/^\.\//, '')).sort();
         expect(sortedPaths).toEqual(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
       }
       let allExterns: string|null = null;
@@ -207,11 +207,11 @@ testFn('golden tests with transformer', () => {
         }
       }
       compareAgainstGolden(allExterns, test.externsPath, test);
-      Object.keys(tscOutput).forEach(outputPath => {
+      for (const [outputPath, output] of tscOutput) {
         const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
         diagnosticsByFile.delete(tsPath);
-        let out = tscOutput[outputPath];
+        let out = output;
         if (diags) {
           out = testSupport.formatDiagnostics(diags)
                     .trim()
@@ -221,7 +221,7 @@ testFn('golden tests with transformer', () => {
               out;
         }
         compareAgainstGolden(out, outputPath, test);
-      });
+      }
       const dtsDiags: ts.Diagnostic[] = [];
       if (diagnosticsByFile.size) {
         for (const [path, diags] of diagnosticsByFile.entries()) {
