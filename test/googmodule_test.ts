@@ -16,14 +16,12 @@ import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
 
-function processES5(
-    fileName: string, content: string,
-    {isES5 = true,
-     importHelpers = true,
-     isJsTranspilation = false,
-     synthesizeComments = false} = {}) {
-  const options =
-      Object.assign({}, testSupport.compilerOptions, {importHelpers, allowJs: isJsTranspilation});
+function processES5(fileName: string, content: string, {
+  isES5 = true,
+  isJsTranspilation = false,
+  synthesizeComments = false,
+} = {}) {
+  const options = Object.assign({}, testSupport.compilerOptions, {allowJs: isJsTranspilation});
   options.outDir = 'fakeOutDir';
   const tsHost = testSupport.createSourceCachingHost(new Map([[fileName, content]]));
   const host: googmodule.GoogModuleProcessorHost = {
@@ -68,8 +66,8 @@ describe('convertCommonJsToGoogModule', () => {
   });
   let synthesizeComments = false;
 
-  function expectCommonJs(fileName: string, content: string, isES5 = true, importHelpers = true) {
-    return expect(processES5(fileName, content, {isES5, importHelpers, synthesizeComments}).output);
+  function expectCommonJs(fileName: string, content: string, isES5 = true) {
+    return expect(processES5(fileName, content, {isES5, synthesizeComments}).output);
   }
 
   describe('with synthesized comments', () => {
@@ -215,24 +213,12 @@ console.log('in mod_a', x);
 
     describe(
         'ES5 export *', () => {
-          const dontImportHelpers = false;
           it('converts export * statements', () => {
             expectCommonJs('a.ts', `export * from 'req/mod';`, true).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var tslib_1 = goog.require('tslib');
 var tsickle_module_1_ = goog.require('req.mod');
 tslib_1.__exportStar(tsickle_module_1_, exports);
-`);
-          });
-          it('converts export * statements without helpers', () => {
-            expectCommonJs('a.ts', `export * from 'req/mod';`, true, dontImportHelpers)
-                .toBe(`function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-goog.module('a');
-var module = module || { id: 'a.ts' };
-var tsickle_module_1_ = goog.require('req.mod');
-__export(tsickle_module_1_);
 `);
           });
           it('uses correct module name with subsequent exports', () => {
