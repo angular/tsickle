@@ -2,15 +2,11 @@ export declare class Foo {
 }
 declare global {
 	namespace ಠ_ಠ.clutz {
-		type module$contents$test_files$class$declaration$class_Foo = Foo;
-		type module$contents$test_files$class$declaration$class_Foo_Instance = Foo;
-		const module$contents$test_files$class$declaration$class_Foo: typeof Foo;
-		const module$contents$test_files$class$declaration$class_Foo_Instance: typeof Foo;
+		export {Foo as module$contents$test_files$class$declaration$class_Foo}
+		export {Foo as module$contents$test_files$class$declaration$class_Foo_Instance}
 	}
 	namespace ಠ_ಠ.clutz.module$exports$test_files$class$declaration$class {
-		type Foo = module$contents$test_files$class$declaration$class_Foo;
-		type Foo_Instance = module$contents$test_files$class$declaration$class_Foo;
-		const Foo: typeof module$contents$test_files$class$declaration$class_Foo;
-		const Foo_Instance: typeof module$contents$test_files$class$declaration$class_Foo;
+		export {module$contents$test_files$class$declaration$class_Foo as Foo}
+		export {module$contents$test_files$class$declaration$class_Foo as Foo_Instance}
 	}
 }

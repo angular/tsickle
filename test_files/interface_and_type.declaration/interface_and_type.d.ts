@@ -3,11 +3,11 @@ export interface Foo {
 export declare type Bar = {};
 declare global {
 	namespace ಠ_ಠ.clutz {
-		type module$contents$test_files$interface_and_type$declaration$interface_and_type_Foo = Foo;
-		type module$contents$test_files$interface_and_type$declaration$interface_and_type_Bar = Bar;
+		export {Foo as module$contents$test_files$interface_and_type$declaration$interface_and_type_Foo}
+		export {Bar as module$contents$test_files$interface_and_type$declaration$interface_and_type_Bar}
 	}
 	namespace ಠ_ಠ.clutz.module$exports$test_files$interface_and_type$declaration$interface_and_type {
-		type Foo = module$contents$test_files$interface_and_type$declaration$interface_and_type_Foo;
-		type Bar = module$contents$test_files$interface_and_type$declaration$interface_and_type_Bar;
+		export {module$contents$test_files$interface_and_type$declaration$interface_and_type_Foo as Foo}
+		export {module$contents$test_files$interface_and_type$declaration$interface_and_type_Bar as Bar}
 	}
 }

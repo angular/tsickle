@@ -1967,7 +1967,15 @@ export function emitWithTsickle(
           content = combineSourceMaps(program, fileName, content);
         }
         if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
-          content = addClutzAliases(fileName, content, sourceFiles, typeChecker, host);
+          // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
+          // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
+          // way anyway.
+          if (!sourceFiles || sourceFiles.length > 1) {
+            throw new Error(`expected exactly one source file for .d.ts emit, got ${
+                sourceFiles.map(sf => sf.fileName)}`);
+          }
+          const originalSource = sourceFiles[0];
+          content = addClutzAliases(fileName, content, originalSource, typeChecker, host);
         }
         writeFileDelegate(fileName, content, writeByteOrderMark, onError, sourceFiles);
       };
@@ -2013,26 +2021,6 @@ export function emitWithTsickle(
   };
 }
 
-function areAnyDeclarationsFromSourceFile(
-    declarations: ts.Declaration[], sourceFile: ts.SourceFile) {
-  for (const decl of declarations) {
-    if (decl.getSourceFile() === sourceFile) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function addToMultiMap<T, U>(map: Map<T, U[]>, key: T, value: U) {
-  const array = map.get(key);
-  if (array) {
-    array.push(value);
-  } else {
-    map.set(key, [value]);
-  }
-}
-
 /**
  * A tsickle produced declaration file might be consumed be referenced by Clutz
  * produced .d.ts files, which use symbol names based on Closure's internal
@@ -2040,160 +2028,66 @@ function addToMultiMap<T, U>(map: Map<T, U[]>, key: T, value: U) {
  * in the Clutz naming convention.
  */
 function addClutzAliases(
-    fileName: string, dtsFileContent: string, sourceFiles: ReadonlyArray<ts.SourceFile>,
+    fileName: string, dtsFileContent: string, sourceFile: ts.SourceFile,
     typeChecker: ts.TypeChecker, host: TsickleHost): string {
-  const reexportsByNamespace = new Map<string, string[]>();
-  for (const sf of sourceFiles) {
-    const moduleSymbol = typeChecker.getSymbolAtLocation(sf);
-    const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
+  const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile);
+  const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
+  if (!moduleExports) return dtsFileContent;
 
-    if (!moduleExports) {
-      return dtsFileContent;
-    }
+  // .d.ts files can be transformed, too, so we need to compare the original node below.
+  const origSourceFile = ts.getOriginalNode(sourceFile);
+  // The module exports might be re-exports, and in the case of "export *" might not even be
+  // available in the module scope, which makes them difficult to export. Avoid the problem by
+  // filtering out symbols who do not have a declaration in the local module.
+  const localExports = moduleExports.filter(e => {
+    // If there are no declarations, be conservative and emit the aliases.
+    if (!e.declarations) return true;
+    // Skip default exports, they are not currently supported.
+    // default is a keyword in typescript, so the name of the export being default means that it's a
+    // default export.
+    if (e.name === 'default') return false;
+    // Otherwise check that some declaration is from the local module.
+    return e.declarations.some(d => d.getSourceFile() === origSourceFile);
+  });
+  if (!localExports.length) return dtsFileContent;
 
-    // pathToModuleName expects the file name to end in .js
-    const jsFileName = fileName.replace('.d.ts', '.js');
-    const moduleName = host.pathToModuleName('', jsFileName);
-    const clutzModuleName = moduleName.replace(/\./g, '$');
+  const moduleName = host.pathToModuleName('', sourceFile.fileName);
+  const clutzModuleName = moduleName.replace(/\./g, '$');
 
-    // moduleExports is a ts.Map<ts.Symbol> which is an es6 Map, but has a
-    // different type for no reason
-    for (const symbol of moduleExports) {
-      // We only want to add clutz aliases in the file the symbol was originally
-      // exported from, not in any files where the symbol was reexported, since
-      // the alias will refer to a symbol that might not be present in the reexporting
-      // file.  If there are no declarations, be conservative and emit the aliases.
-      const declarations = symbol.getDeclarations();
-      if (declarations && !areAnyDeclarationsFromSourceFile(declarations, sf)) {
-        continue;
-      }
+  // Clutz might refer to the name in two different forms (stemming from goog.provide and
+  // goog.module respectively).
+  // 1) global in clutz:   ಠ_ಠ.clutz.module$contents$path$to$module_Symbol...
+  // 2) local in a module: ಠ_ಠ.clutz.module$exports$path$to$module.Symbol ..
+  // See examples at:
+  // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
 
-      // default is a keyword in typescript, so the name of the export being default
-      // means that it's a default export
-      if (symbol.name === 'default') {
-        dtsFileContent +=
-            `// skipped emitting clutz aliases for a default export, which aren't currently supported`;
-        continue;
-      }
-
-      // Want to alias the symbol to match what clutz would produce, so clutz .d.ts's
-      // can reference symbols from typescript .d.ts's. See examples at:
-      // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
-      // The first symbol name is that currently produced by clutz, and the second
-      // is what incremental clutz will produce.
-      const reexports = [];
-      reexports.push({
-        namespace: 'ಠ_ಠ.clutz',
-        clutzSymbolName: `module$contents$${clutzModuleName}_${symbol.name}`,
-        aliasedSymbolName: symbol.name
-      });
-      reexports.push({
-        namespace: 'ಠ_ಠ.clutz.module$exports$' + clutzModuleName,
-        clutzSymbolName: symbol.name,
-        aliasedSymbolName: `module$contents$${clutzModuleName}_${symbol.name}`
-      });
-      const {params, paramsWithContraint} = getGenericTypeParameters(symbol);
-
-      if (symbol.flags & ts.SymbolFlags.Class) {
-        // classes need special care to match clutz, which seperates class types into a
-        // type for the static properties and a type for the instance properties
-        reexports.push({
-          namespace: 'ಠ_ಠ.clutz',
-          clutzSymbolName: `module$contents$${clutzModuleName}_${symbol.name}_Instance`,
-          aliasedSymbolName: symbol.name
-        });
-        reexports.push({
-          namespace: 'ಠ_ಠ.clutz.module$exports$' + clutzModuleName,
-          clutzSymbolName: symbol.name + '_Instance',
-          aliasedSymbolName: `module$contents$${clutzModuleName}_${symbol.name}`
-        });
-      }
-
-      if (symbol.flags & ts.SymbolFlags.Type || symbol.flags & ts.SymbolFlags.Class) {
-        for (const {namespace, clutzSymbolName, aliasedSymbolName} of reexports) {
-          addToMultiMap(
-              reexportsByNamespace, namespace,
-              `type ${clutzSymbolName}${paramsWithContraint} = ${aliasedSymbolName}${params};`);
-        }
-      }
-      if (symbol.flags & ts.SymbolFlags.Value || symbol.flags & ts.SymbolFlags.Class) {
-        for (const {namespace, clutzSymbolName, aliasedSymbolName} of reexports) {
-          addToMultiMap(
-              reexportsByNamespace, namespace,
-              `const ${clutzSymbolName}: typeof ${aliasedSymbolName};`);
-        }
-      }
+  // Case (1) from above.
+  let globalSymbols = '';
+  // Case (2) from above.
+  let nestedSymbols = '';
+  for (const symbol of localExports) {
+    globalSymbols +=
+        `\t\texport {${symbol.name} as module$contents$${clutzModuleName}_${symbol.name}}\n`;
+    nestedSymbols +=
+        `\t\texport {module$contents$${clutzModuleName}_${symbol.name} as ${symbol.name}}\n`;
+    if (symbol.flags & ts.SymbolFlags.Class) {
+      globalSymbols += `\t\texport {${symbol.name} as module$contents$${clutzModuleName}_${
+          symbol.name}_Instance}\n`;
+      nestedSymbols += `\t\texport {module$contents$${clutzModuleName}_${symbol.name} as ${
+          symbol.name}_Instance}\n`;
     }
   }
 
-  if (reexportsByNamespace.size) {
-    dtsFileContent += 'declare global {\n';
-    for (const [namespace, rexps] of reexportsByNamespace) {
-      dtsFileContent += `\tnamespace ${namespace} {\n`;
-      for (const rexp of rexps) {
-        dtsFileContent += `\t\t${rexp}\n`;
-      }
-      dtsFileContent += '\t}\n';
-    }
-    dtsFileContent += '}\n';
-  }
+  dtsFileContent += 'declare global {\n';
+  dtsFileContent += `\tnamespace ಠ_ಠ.clutz {\n`;
+  dtsFileContent += globalSymbols;
+  dtsFileContent += `\t}\n`;
+  dtsFileContent += `\tnamespace ಠ_ಠ.clutz.module$exports$${clutzModuleName} {\n`;
+  dtsFileContent += nestedSymbols;
+  dtsFileContent += `\t}\n`;
+  dtsFileContent += '}\n';
 
   return dtsFileContent;
-}
-
-/**
- * Returns 2 strings specifying the generic type arguments for the symbol.  The constrained params
- * include any `T extends foo` arguments, the regular params are just a list of the type symbols,
- * since we need the constraints on the LHS of the alias declaration, but can't have them on the
- * RHS.
- */
-function getGenericTypeParameters(symbol: ts.Symbol):
-    {params: string, paramsWithContraint: string} {
-  if (!symbol.declarations) {
-    return {params: '', paramsWithContraint: ''};
-  }
-
-  // All declarations have to have matching generic types, so we're safe just looking at
-  // the first one.
-  if (!symbol.declarations[0]) {
-    return {params: '', paramsWithContraint: ''};
-  }
-
-  const declaration = symbol.declarations[0];
-
-  if ([
-        ts.SyntaxKind.FunctionDeclaration, ts.SyntaxKind.ConstructorKeyword,
-        ts.SyntaxKind.ClassDeclaration, ts.SyntaxKind.InterfaceDeclaration,
-        ts.SyntaxKind.TypeAliasDeclaration
-      ].indexOf(declaration.kind) === -1) {
-    return {params: '', paramsWithContraint: ''};
-  }
-
-  const declarationWithTypeParameters: ts.DeclarationWithTypeParameters =
-      declaration as ts.DeclarationWithTypeParameters;
-
-  if (!declarationWithTypeParameters.typeParameters) {
-    return {params: '', paramsWithContraint: ''};
-  }
-
-  const paramList: string[] = [];
-  const constrainedParamList: string[] = [];
-  for (const param of declarationWithTypeParameters.typeParameters) {
-    let constrainedParam = param.name.getText();
-    if (param.constraint) {
-      constrainedParam += ` extends ${param.constraint.getText()}`;
-    }
-    if (param.default) {
-      constrainedParam += ` = ${param.default.getText()}`;
-    }
-    constrainedParamList.push(constrainedParam);
-    paramList.push(param.name.getText());
-  }
-
-  const params = `<${paramList.join(',')}>`;
-  const paramsWithContraint = `<${constrainedParamList.join(',')}>`;
-
-  return {params, paramsWithContraint};
 }
 
 function skipTransformForSourceFileIfNeeded(
