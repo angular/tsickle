@@ -56,19 +56,6 @@ export const sourceMapCompilerOptions: ts.CompilerOptions = {
 };
 
 /**
- * Compose with sourceMapCompiler options if you want to specify an outFile.
- *
- * Controls the name of the file produced by the compiler.  If there's more
- * than one input file, they'll all be concatenated together in the outFile
- */
-export function generateOutfileCompilerOptions(outFile: string): ts.CompilerOptions {
-  return {
-    outFile,
-    module: ts.ModuleKind.None,
-  };
-}
-
-/**
  * Compose with sourceMapCompilerOptions if you want inline source maps,
  * instead of different files.
  */

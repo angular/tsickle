@@ -10,7 +10,7 @@ import {RawSourceMap} from 'source-map';
 
 import {containsInlineSourceMap, getInlineSourceMapCount} from '../src/source_map_utils';
 
-import {addDiffMatchers, assertSourceMapping, compileWithTransfromer, extractInlineSourceMap, findFileContentsByName, generateOutfileCompilerOptions, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
+import {addDiffMatchers, assertSourceMapping, compileWithTransfromer, extractInlineSourceMap, findFileContentsByName, getSourceMapWithName, inlineSourceMapCompilerOptions, sourceMapCompilerOptions} from './test_support';
 
 describe('source maps with transformer', () => {
   beforeEach(() => {
@@ -31,54 +31,6 @@ describe('source maps with transformer', () => {
 
     assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input.ts'});
     assertSourceMapping(compiledJs, sourceMap, 'another string', {line: 4, source: 'input.ts'});
-  });
-
-  it('composes sources maps with multiple input files', () => {
-    const sources = new Map<string, string>();
-    sources.set('input1.ts', `
-        class X { field: number; }
-        let x : string = 'a string';
-        let y : string = 'another string';
-        let z : string = x + y;`);
-
-    sources.set('input2.ts', `
-        class A { field: number; }
-        let a : string = 'third string';
-        let b : string = 'fourth rate';
-        let c : string = a + b;`);
-
-    // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} = compileWithTransfromer(
-        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')});
-    const compiledJs = files.get('output.js')!;
-    const sourceMap = getSourceMapWithName('output.js.map', files);
-
-    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: 'input1.ts'});
-    assertSourceMapping(compiledJs, sourceMap, 'fourth rate', {line: 4, source: 'input2.ts'});
-  });
-
-  it('handles files in different directories', () => {
-    const sources = new Map<string, string>();
-    sources.set('a/b/input1.ts', `
-        class X { field: number; }
-        let x : string = 'a string';
-        let y : string = 'another string';
-        let z : string = x + y;`);
-
-    sources.set('a/c/input2.ts', `
-        class A { field: number; }
-        let a : string = 'third string';
-        let b : string = 'fourth rate';
-        let c : string = a + b;`);
-
-    // Run tsickle+TSC to convert inputs to Closure JS files.
-    const {files} = compileWithTransfromer(
-        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('a/d/output.js')});
-    const compiledJs = findFileContentsByName('a/d/output.js', files);
-    const sourceMap = getSourceMapWithName('a/d/output.js.map', files);
-
-    assertSourceMapping(compiledJs, sourceMap, 'a string', {line: 3, source: '../b/input1.ts'});
-    assertSourceMapping(compiledJs, sourceMap, 'fourth rate', {line: 4, source: '../c/input2.ts'});
   });
 
   it('handles decorators correctly', () => {
@@ -177,12 +129,9 @@ describe('source maps with transformer', () => {
   it('handles input source maps with an outDir different than the rootDir', () => {
     const sources = createInputWithSourceMap({file: 'foo/bar/intermediate.ts'});
 
-    const {files} = compileWithTransfromer(sources, {
-      ...sourceMapCompilerOptions,
-      ...generateOutfileCompilerOptions('/out/output.js'),
-      ...inlineSourceMapCompilerOptions
-    });
-    const compiledJs = findFileContentsByName('/out/output.js', files);
+    const {files} = compileWithTransfromer(
+        sources, {...sourceMapCompilerOptions, ...inlineSourceMapCompilerOptions});
+    const compiledJs = findFileContentsByName('foo/bar/intermediate.js', files);
     const sourceMap = extractInlineSourceMap(compiledJs);
 
     assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
@@ -224,12 +173,13 @@ describe('source maps with transformer', () => {
       let y : string = 'another string';
       let z : string = x + y;`);
 
-    const {files} = compileWithTransfromer(
-        sources, {...sourceMapCompilerOptions, ...generateOutfileCompilerOptions('output.js')});
-    const compiledJs = files.get('output.js')!;
-    const sourceMap = getSourceMapWithName('output.js.map', files);
+    const {files} = compileWithTransfromer(sources, {...sourceMapCompilerOptions});
 
-    assertSourceMapping(compiledJs, sourceMap, 'x = 3', {source: 'original.ts'});
-    assertSourceMapping(compiledJs, sourceMap, 'another string', {line: 3, source: 'input2.ts'});
+    const intermediateJs = files.get('intermediate.js')!;
+    const intermediateJsMap = getSourceMapWithName('intermediate.js.map', files);
+    assertSourceMapping(intermediateJs, intermediateJsMap, 'x = 3', {source: 'original.ts'});
+    const input2Js = files.get('input2.js')!;
+    const input2JsMap = getSourceMapWithName('input2.js.map', files);
+    assertSourceMapping(input2Js, input2JsMap, 'another string', {line: 3, source: 'input2.ts'});
   });
 });
