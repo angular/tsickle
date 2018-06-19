@@ -31,6 +31,12 @@ const TEST_FILTER = (() => {
 //     UPDATE_GOLDENS=y bazel run test:golden_test
 const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
 
+const expectedTsVersion = (global as any).TSICKLE_EXPECTED_TS_VERSION;
+if (!ts.version.startsWith(expectedTsVersion)) {
+  throw new Error(
+      `TSICKLE_EXPECTED_TS_VERSION mismatch, got ${ts.version}, expected ${expectedTsVersion}`);
+}
+
 /**
  * compareAgainstGoldens compares a test output against the content in a golden
  * path, updating the content of the golden when UPDATE_GOLDENS is true.

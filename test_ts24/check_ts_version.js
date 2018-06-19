@@ -9,3 +9,5 @@
 if (!require('typescript').version.startsWith('2.4')) {
   throw new Error('Expected TypeScript 2.4');
 }
+
+global.TSICKLE_EXPECTED_TS_VERSION = '2.4';
