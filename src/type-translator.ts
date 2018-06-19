@@ -7,7 +7,7 @@
  */
 
 import * as path from 'path';
-import * as ts from 'typescript';
+import * as ts from './typescript';
 
 /**
  * Determines if fileName refers to a builtin lib.d.ts file.
@@ -553,7 +553,7 @@ export class TypeTranslator {
         this.warn('unhandled anonymous type with constructor signature but no declaration');
         return '?';
       }
-      if (decl.kind === ts.SyntaxKind.JSDocSignature) {
+      if (decl.kind === ts.SyntaxKindJSDocSignature) {
         this.warn('unhandled JSDoc based constructor signature');
         return '?';
       }
@@ -636,7 +636,7 @@ export class TypeTranslator {
       this.warn('signature without declaration');
       return 'Function';
     }
-    if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
+    if (sig.declaration.kind === ts.SyntaxKindJSDocSignature) {
       this.warn('signature with JSDoc declaration');
       return 'Function';
     }
