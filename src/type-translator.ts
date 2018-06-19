@@ -548,12 +548,16 @@ export class TypeTranslator {
     if (ctors.length) {
       // TODO(martinprobst): this does not support additional properties defined on constructors
       // (not expressible in Closure), nor multiple constructors (same).
-
-      if (!ctors[0].declaration) {
+      const decl = ctors[0].declaration;
+      if (!decl) {
         this.warn('unhandled anonymous type with constructor signature but no declaration');
         return '?';
       }
-      const params = this.convertParams(ctors[0], ctors[0].declaration.parameters);
+      if (decl.kind === ts.SyntaxKind.JSDocSignature) {
+        this.warn('unhandled JSDoc based constructor signature');
+        return '?';
+      }
+      const params = this.convertParams(ctors[0], decl.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
       // In the specific case of the "new" in a function, it appears that
@@ -628,12 +632,18 @@ export class TypeTranslator {
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
     // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
-
+    if (!sig.declaration) {
+      this.warn('signature without declaration');
+      return 'Function';
+    }
+    if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
+      this.warn('signature with JSDoc declaration');
+      return 'Function';
+    }
     this.blacklistTypeParameters(this.symbolsToAliasedNames, sig.declaration.typeParameters);
 
     let typeStr = `function(`;
-
-    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> = sig.declaration.parameters;
+    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> = sig.declaration.parameters || [];
     const maybeThisParam = paramDecls[0];
     // Oddly, the this type shows up in paramDecls, but not in the type's parameters.
     // Handle it here and then pass paramDecls down without its first element.

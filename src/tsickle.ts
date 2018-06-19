@@ -283,7 +283,10 @@ abstract class ClosureRewriter extends Rewriter {
       }
       // Merge the parameters into a single list of merged names and list of types
       const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
-      if (!sig) throw new Error(`invalid signature ${fnDecl.name}`);
+      if (!sig || !sig.declaration) throw new Error(`invalid signature ${fnDecl.name}`);
+      if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
+        throw new Error(`JSDoc signature ${fnDecl.name}`);
+      }
       for (let i = 0; i < sig.declaration.parameters.length; i++) {
         const paramNode = sig.declaration.parameters[i];
 
