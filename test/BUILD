@@ -68,7 +68,7 @@ ts_library(
     name = "closure_e2e_test_lib",
     srcs = [
         "closure.ts",
-        "e2e_test.ts",
+        "e2e_closure_test.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [
@@ -79,7 +79,7 @@ ts_library(
 
 jasmine_node_test(
     name = "closure_e2e_test",
-    srcs = [":e2e_test_lib"],
+    srcs = [":closure_e2e_test_lib"],
     data = ["//:test_files"],
 )
 
