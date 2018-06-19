@@ -271,6 +271,11 @@ export function commonJsToGoogmoduleTransformer(
     };
 
     return (sf: ts.SourceFile): ts.SourceFile => {
+      // In TS2.9, transformers can receive Bundle objects, which this code cannot handle (given
+      // that a bundle by definition cannot be a goog.module()). The cast through any is necessary
+      // to remain compatible with earlier TS versions.
+      // tslint:disable-next-line:no-any
+      if ((sf as any).kind !== ts.SyntaxKind.SourceFile) return sf;
       let moduleVarCounter = 1;
       /**
        * Creates a new unique variable to assign side effect imports into. This allows us to re-use
