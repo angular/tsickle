@@ -305,6 +305,7 @@ export function addDiffMatchers() {
   // tslint:disable:no-require-imports
   jasmine.addMatchers(require('jasmine-diff')(jasmine, {
     colors: true,
+    inline: true,
   }));
 }
 

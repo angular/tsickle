@@ -757,6 +757,7 @@ class Annotator extends ClosureRewriter {
       case ts.SyntaxKind.ExportDeclaration:
         const exportDecl = node as ts.ExportDeclaration;
         let exportedSymbols: NamedSymbol[] = [];
+        let emittedExport = false;
         if (!exportDecl.exportClause && exportDecl.moduleSpecifier) {
           // It's an "export * from ..." statement.
           // Rewrite it to re-export each exported symbol directly.
@@ -767,6 +768,7 @@ class Annotator extends ClosureRewriter {
           // Only emit the export if any non-type symbols are exported; otherwise it is not needed,
           // as type only exports are elided by TS anyway.
           if (exportSymbolsToEmit.length) {
+            emittedExport = true;
             this.emit('export');
             this.emit(` {${exportSymbolsToEmit.map(e => unescapeName(e.name)).join(',')}}`);
             this.emit(' from ');
@@ -777,12 +779,15 @@ class Annotator extends ClosureRewriter {
         } else {
           // Write the export declaration here so that forward declares come after it, and
           // fileoverview comments do not get moved behind statements.
+          emittedExport = true;
           this.writeNode(exportDecl);
           if (exportDecl.exportClause) {
             exportedSymbols = this.getNamedSymbols(exportDecl.exportClause.elements);
           }
         }
-        if (exportDecl.moduleSpecifier) {
+        if (emittedExport && exportDecl.moduleSpecifier) {
+          // Only emit the forward declare if we did emit an export - otherwise we might forward
+          // declare a module that's never imported, leading to Closure level missing provides.
           this.forwardDeclare(exportDecl.moduleSpecifier);
         }
         if (exportedSymbols.length) {
