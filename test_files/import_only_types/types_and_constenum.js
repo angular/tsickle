@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 // const enum values are inlined, so even though const enums are values,
 // TypeScript might not generate any imports for them, which means modules

@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.enum.untyped.enum.untyped');
 var module = module || { id: 'test_files/enum.untyped/enum.untyped.ts' };

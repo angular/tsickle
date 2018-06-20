@@ -29,6 +29,43 @@ export function isClosureFileoverviewComment(text: string) {
 }
 
 /**
+ * Given a parsed @fileoverview comment, ensures it has all the attributes we need.
+ * This function can be called to modify an existing comment or to make a new one.
+ *
+ * @param tags Comment as parsed list of tags; modified in-place.
+ */
+function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
+  // Ensure we start with a @fileoverview.
+  if (!tags.find(t => t.tagName === 'fileoverview')) {
+    tags.splice(0, 0, {tagName: 'fileoverview', text: 'added by tsickle'});
+  }
+
+  // Find or create a @suppress tag.
+  // Closure compiler barfs if there's a duplicated @suppress tag in a file, so the tag must
+  // only appear once and be merged.
+  let suppressTag = tags.find(t => t.tagName === 'suppress');
+  let suppressions: Set<string>;
+  if (suppressTag) {
+    suppressions = new Set((suppressTag.type || '').split(',').map(s => s.trim()));
+  } else {
+    suppressTag = {tagName: 'suppress', text: 'checked by tsc'};
+    tags.push(suppressTag);
+    suppressions = new Set();
+  }
+
+  // Ensure our suppressions are included in the @suppress tag:
+  // 1) Suppress checkTypes.  We believe the code has already been type-checked by TypeScript,
+  // and we cannot model all the TypeScript type decisions in Closure syntax.
+  suppressions.add('checkTypes');
+  // 2) Suppress extraRequire.  We remove extra requires at the TypeScript level, so any require
+  // that gets to the JS level is a load-bearing require.
+  suppressions.add('extraRequire');
+  suppressTag.type = Array.from(suppressions.values()).sort().join(',');
+
+  return tags;
+}
+
+/**
  * A transformer that ensures the emitted JS file has an \@fileoverview comment that contains an
  * \@suppress {checkTypes} annotation by either adding or updating an existing comment.
  */
@@ -41,62 +78,36 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
       comments = ts.getSyntheticTrailingComments(sf.statements[0]) || [];
     }
 
-    let fileoverviewIdx = -1;
-    let parsed: {tags: jsdoc.Tag[]}|null = null;
-    for (let i = comments.length - 1; i >= 0; i--) {
-      const current = jsdoc.parseContents(comments[i].text);
-      if (current !== null && current.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
-        fileoverviewIdx = i;
-        parsed = current;
-        break;
-      }
-    }
-    // Add a @suppress {checkTypes} tag to each source file's JSDoc comment,
-    // being careful to retain existing comments and their @suppress'ions.
     // Closure Compiler considers the *last* comment with @fileoverview (or @externs or @nocompile)
     // that has not been attached to some other tree node to be the file overview comment, and
     // only applies @suppress tags from it.
     // AJD considers *any* comment mentioning @fileoverview.
-    if (!parsed) {
-      // No existing comment to merge with, just emit a new one.
-      return addNewFileoverviewComment(sf);
+    let fileoverviewIdx = -1;
+    let tags: jsdoc.Tag[] = [];
+    for (let i = comments.length - 1; i >= 0; i--) {
+      const parse = jsdoc.parseContents(comments[i].text);
+      if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+        fileoverviewIdx = i;
+        tags = parse.tags;
+        break;
+      }
     }
 
-    // Add @suppress {checkTypes}, or add to the list in an existing @suppress tag.
-    // Closure compiler barfs if there's a duplicated @suppress tag in a file, so the tag must
-    // only appear once and be merged.
-    const {tags} = parsed;
-    const suppressTag = tags.find(t => t.tagName === 'suppress');
-    if (suppressTag) {
-      const suppressions = suppressTag.type || '';
-      const suppressionsList = suppressions.split(',').map(s => s.trim());
-      if (suppressionsList.indexOf('checkTypes') === -1) {
-        suppressionsList.push('checkTypes');
-      }
-      suppressTag.type = suppressionsList.join(',');
-    } else {
-      tags.push({
-        tagName: 'suppress',
-        type: 'checkTypes,extraRequire',
-        text: 'checked by tsc',
-      });
-    }
-    // Closure compiler fails if a tag at the start of the file has @suppress but no @fileoverview.
-    if (!tags.find(t => t.tagName === 'fileoverview')) {
-      tags.push({tagName: 'fileoverview'});
-    }
+    augmentFileoverviewComments(tags);
     const commentText = jsdoc.toStringWithoutStartEnd(tags);
+
+    if (fileoverviewIdx < 0) {
+      // No existing comment to merge with, just emit a new one.
+      return addNewFileoverviewComment(sf, commentText);
+    }
+
     comments[fileoverviewIdx].text = commentText;
     // sf does not need to be updated, synthesized comments are mutable.
     return sf;
   };
 }
 
-function addNewFileoverviewComment(sf: ts.SourceFile): ts.SourceFile {
-  const commentText = jsdoc.toStringWithoutStartEnd([
-    {tagName: 'fileoverview', text: 'added by tsickle'},
-    {tagName: 'suppress', type: 'checkTypes', text: 'checked by tsc'},
-  ]);
+function addNewFileoverviewComment(sf: ts.SourceFile, commentText: string): ts.SourceFile {
   let syntheticFirstStatement = createNotEmittedStatement(sf);
   syntheticFirstStatement = ts.addSyntheticTrailingComment(
       syntheticFirstStatement, ts.SyntaxKind.MultiLineCommentTrivia, commentText, true);

@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.decorator_nested_scope.decorator_nested_scope');
 var module = module || { id: 'test_files/decorator_nested_scope/decorator_nested_scope.ts' };

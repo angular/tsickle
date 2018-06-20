@@ -4,7 +4,7 @@
 // test_files/quote_props/quote.ts(29,1): warning TS0: Declared property foo accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.quote_props.quote');
 var module = module || { id: 'test_files/quote_props/quote.ts' };

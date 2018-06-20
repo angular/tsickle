@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.jsdoc_types.untyped.module1');
 var module = module || { id: 'test_files/jsdoc_types.untyped/module1.ts' };
