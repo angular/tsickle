@@ -1,7 +1,7 @@
 // test_files/fields/fields.ts(22,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.fields.fields');
 var module = module || { id: 'test_files/fields/fields.ts' };

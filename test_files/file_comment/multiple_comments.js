@@ -12,7 +12,7 @@
 /**
  *
  * @fileoverview The last fileoverview actually takes effect.
- * @suppress {globalThis,checkTypes}
+ * @suppress {checkTypes,extraRequire,globalThis}
  *
  */
 /** Here's another trailing comment */

@@ -1,7 +1,7 @@
 /**
  *
  * @fileoverview
- * @suppress {undefinedVars,checkTypes}  because we don't like them errors
+ * @suppress {checkTypes,extraRequire,undefinedVars}  because we don't like them errors
  *
  */
 goog.module('test_files.file_comment.comment_with_text');

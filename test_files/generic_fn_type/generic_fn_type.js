@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes} checked by tsc
+ * @suppress {checkTypes,extraRequire} checked by tsc
  */
 goog.module('test_files.generic_fn_type.generic_fn_type');
 var module = module || { id: 'test_files/generic_fn_type/generic_fn_type.ts' };
