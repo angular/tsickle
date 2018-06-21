@@ -18,6 +18,9 @@ import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map
 import * as tsickle from '../src/tsickle';
 import {getCommonParentDirectory} from '../src/util';
 
+/** Path to tslib.d.ts; used inside Google for this test suite. */
+const tslibPath: string|null = null;
+
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2015,
@@ -32,6 +35,13 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   allowJs: false,
   importHelpers: true,
   noEmitHelpers: true,
+  baseUrl: '.',
+  paths: tslibPath ? {
+    // The compiler builtin 'tslib' library is looked up by name,
+    // so this entry controls which code is used for tslib.
+    'tslib': [tslibPath]
+  } :
+                     undefined,
 };
 
 /** The TypeScript compiler options used by the test suite. */
@@ -94,6 +104,10 @@ export function createSourceCachingHost(
     // would break the equality check.
     fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
+    if (tslibPath && fileName === tslibPath) {
+      return ts.createSourceFile(
+          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest, true);
+    }
     if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
     const contents = sources.get(fileName);
     if (contents !== undefined) {
@@ -108,6 +122,7 @@ export function createSourceCachingHost(
     if (sources.has(fileName)) {
       return true;
     }
+    if (tslibPath && fileName === tslibPath) return true;
     // Typescript occasionally needs to look on disk for files we don't pass into
     // the program as a source (eg to resolve a module that's in node_modules),
     // but only .ts files explicitly passed in should be findable
