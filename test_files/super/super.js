@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.super.super');
 var module = module || { id: 'test_files/super/super.ts' };
@@ -15,7 +15,7 @@ class SuperTestBaseOneArg {
         this.x = x;
     }
 }
-function SuperTestBaseOneArg_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     SuperTestBaseOneArg.prototype.x;
 }
@@ -28,7 +28,7 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
         this.y = y;
     }
 }
-function SuperTestDerivedParamProps_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     SuperTestDerivedParamProps.prototype.y;
 }
@@ -38,7 +38,7 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
         this.y = 'foo';
     }
 }
-function SuperTestDerivedInitializedProps_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     SuperTestDerivedInitializedProps.prototype.y;
 }
@@ -55,23 +55,21 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
  * @record
  */
 function SuperTestInterface() { }
-function SuperTestInterface_tsickle_Closure_declarations() {
-    /** @type {number} */
-    SuperTestInterface.prototype.foo;
-}
+/** @type {number} */
+SuperTestInterface.prototype.foo;
 /**
  * @implements {SuperTestInterface}
  */
 class SuperTestDerivedInterface {
 }
-function SuperTestDerivedInterface_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     SuperTestDerivedInterface.prototype.foo;
 }
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
-function SuperTestStaticProp_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     SuperTestStaticProp.foo;
 }

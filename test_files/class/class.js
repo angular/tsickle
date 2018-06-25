@@ -1,7 +1,7 @@
 // test_files/class/class.ts(129,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 // This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:
@@ -17,10 +17,8 @@ var module = module || { id: 'test_files/class/class.ts' };
  * @record
  */
 function Interface() { }
-function Interface_tsickle_Closure_declarations() {
-    /** @type {function(): void} */
-    Interface.prototype.interfaceFunc;
-}
+/** @type {function(): void} */
+Interface.prototype.interfaceFunc;
 class Class {
     /**
      * @return {void}
@@ -36,7 +34,7 @@ class AbstractClass {
      */
     nonAbstractFunc() { }
 }
-function AbstractClass_tsickle_Closure_declarations() {
+if (false) {
     /**
      * @abstract
      * @return {void}
@@ -48,10 +46,8 @@ function AbstractClass_tsickle_Closure_declarations() {
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() { }
-function InterfaceExtendsInterface_tsickle_Closure_declarations() {
-    /** @type {function(): void} */
-    InterfaceExtendsInterface.prototype.interfaceFunc2;
-}
+/** @type {function(): void} */
+InterfaceExtendsInterface.prototype.interfaceFunc2;
 /** @type {!InterfaceExtendsInterface} */
 let interfaceExtendsInterface = {
     /**
@@ -67,10 +63,8 @@ let interfaceExtendsInterface = {
  * @record
  */
 function InterfaceExtendsClass() { }
-function InterfaceExtendsClass_tsickle_Closure_declarations() {
-    /** @type {function(): void} */
-    InterfaceExtendsClass.prototype.interfaceFunc3;
-}
+/** @type {function(): void} */
+InterfaceExtendsClass.prototype.interfaceFunc3;
 /**
  * @implements {Interface}
  */
@@ -198,7 +192,7 @@ abstractClassVar = new ClassExtendsAbstractClass();
 function Zone() { }
 class ZoneImplementsInterface {
 }
-function ZoneImplementsInterface_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
@@ -206,7 +200,7 @@ function ZoneImplementsInterface_tsickle_Closure_declarations() {
 var ZoneAlias;
 class ZoneImplementsAlias {
 }
-function ZoneImplementsAlias_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     ZoneImplementsAlias.prototype.zone;
 }

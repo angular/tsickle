@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.abstract.abstract');
 var module = module || { id: 'test_files/abstract/abstract.ts' };
@@ -19,7 +19,7 @@ class Base {
         this.hasReturnType();
     }
 }
-function Base_tsickle_Closure_declarations() {
+if (false) {
     /**
      * @abstract
      * @return {void}

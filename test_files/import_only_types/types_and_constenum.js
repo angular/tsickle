@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 // const enum values are inlined, so even though const enums are values,
 // TypeScript might not generate any imports for them, which means modules
@@ -18,5 +18,3 @@ exports.ConstEnum = ConstEnum;
  */
 function SomeInterface() { }
 exports.SomeInterface = SomeInterface;
-function SomeInterface_tsickle_Closure_declarations() {
-}

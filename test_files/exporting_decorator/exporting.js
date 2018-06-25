@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.exporting_decorator.exporting');
 var module = module || { id: 'test_files/exporting_decorator/exporting.ts' };
@@ -101,7 +101,7 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", Number),
     tslib_1.__metadata("design:paramtypes", [Number])
 ], MyClass.prototype, "doNotExportThisSetter", null);
-function MyClass_tsickle_Closure_declarations() {
+if (false) {
     /**
      * @type {boolean}
      * @export

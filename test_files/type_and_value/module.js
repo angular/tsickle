@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.type_and_value.module');
 var module = module || { id: 'test_files/type_and_value/module.ts' };
@@ -11,7 +11,7 @@ exports.TemplatizedTypeAndValue = 1;
 class Class {
 }
 exports.Class = Class;
-function Class_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     Class.prototype.z;
 }

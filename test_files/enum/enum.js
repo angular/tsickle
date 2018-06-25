@@ -3,7 +3,7 @@
 // test_files/enum/enum.ts(15,22): warning TS0: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
@@ -69,12 +69,10 @@ let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
  */
 function InterfaceUsingConstEnum() { }
 exports.InterfaceUsingConstEnum = InterfaceUsingConstEnum;
-function InterfaceUsingConstEnum_tsickle_Closure_declarations() {
-    /** @type {ConstEnum} */
-    InterfaceUsingConstEnum.prototype.field;
-    /** @type {ConstEnum} */
-    InterfaceUsingConstEnum.prototype.field2;
-}
+/** @type {ConstEnum} */
+InterfaceUsingConstEnum.prototype.field;
+/** @type {ConstEnum} */
+InterfaceUsingConstEnum.prototype.field2;
 /** @enum {number} */
 const EnumWithNonConstValues = {
     Scheme: (x => x + 1)(3),

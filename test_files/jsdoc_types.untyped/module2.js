@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc_types.untyped.module2');
 var module = module || { id: 'test_files/jsdoc_types.untyped/module2.ts' };
@@ -15,10 +15,8 @@ exports.ClassTwo = ClassTwo;
  */
 function Interface() { }
 exports.Interface = Interface;
-function Interface_tsickle_Closure_declarations() {
-    /** @type {?} */
-    Interface.prototype.x;
-}
+/** @type {?} */
+Interface.prototype.x;
 /**
  * @template T
  */

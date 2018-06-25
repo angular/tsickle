@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.export.export_helper_2');
 var module = module || { id: 'test_files/export/export_helper_2.ts' };
@@ -18,10 +18,8 @@ exports.TypeDef = TypeDef;
  */
 function Interface() { }
 exports.Interface = Interface;
-function Interface_tsickle_Closure_declarations() {
-    /** @type {string} */
-    Interface.prototype.x;
-}
+/** @type {string} */
+Interface.prototype.x;
 /** @enum {number} */
 const ConstEnum = {
     AValue: 1,
