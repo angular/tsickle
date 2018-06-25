@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_namespace');
@@ -18,6 +18,4 @@ var typeNamespace;
      */
     function Interface() { }
     typeNamespace.Interface = Interface;
-    function Interface_tsickle_Closure_declarations() {
-    }
 })(typeNamespace = typeNamespace || (typeNamespace = {}));

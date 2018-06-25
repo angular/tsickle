@@ -1,12 +1,12 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.nullable.nullable');
 var module = module || { id: 'test_files/nullable/nullable.ts' };
 class Primitives {
 }
-function Primitives_tsickle_Closure_declarations() {
+if (false) {
     /** @type {(null|string)} */
     Primitives.prototype.nullable;
     /** @type {(undefined|number)} */
@@ -20,7 +20,7 @@ class NonPrimitive {
 }
 class NonPrimitives {
 }
-function NonPrimitives_tsickle_Closure_declarations() {
+if (false) {
     /** @type {!NonPrimitive} */
     NonPrimitives.prototype.nonNull;
     /** @type {(null|!NonPrimitive)} */

@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.export.export_helper');
 var module = module || { id: 'test_files/export/export_helper.ts' };
@@ -26,10 +26,8 @@ exports.export2 = 3;
  */
 function Bar() { }
 exports.Bar = Bar;
-function Bar_tsickle_Closure_declarations() {
-    /** @type {number} */
-    Bar.prototype.barField;
-}
+/** @type {number} */
+Bar.prototype.barField;
 /** @type {number} */
 exports.export5 = 3;
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");

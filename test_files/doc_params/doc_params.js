@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.doc_params.doc_params');
 var module = module || { id: 'test_files/doc_params/doc_params.ts' };
@@ -13,7 +13,7 @@ class Foo {
         this.a = a;
     }
 }
-function Foo_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     Foo.prototype.a;
 }

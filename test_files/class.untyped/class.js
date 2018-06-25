@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.class.untyped.class');
 var module = module || { id: 'test_files/class.untyped/class.ts' };
@@ -8,10 +8,8 @@ var module = module || { id: 'test_files/class.untyped/class.ts' };
  * @record
  */
 function Interface() { }
-function Interface_tsickle_Closure_declarations() {
-    /** @type {?} */
-    Interface.prototype.interfaceFunc;
-}
+/** @type {?} */
+Interface.prototype.interfaceFunc;
 class Super {
     /**
      * @return {?}
@@ -62,7 +60,7 @@ superVar = new ImplementsTypeAlias();
 function Zone() { }
 class ZoneImplementsInterface {
 }
-function ZoneImplementsInterface_tsickle_Closure_declarations() {
+if (false) {
     /** @type {?} */
     ZoneImplementsInterface.prototype.zone;
 }
@@ -70,7 +68,7 @@ function ZoneImplementsInterface_tsickle_Closure_declarations() {
 var ZoneAlias;
 class ZoneImplementsAlias {
 }
-function ZoneImplementsAlias_tsickle_Closure_declarations() {
+if (false) {
     /** @type {?} */
     ZoneImplementsAlias.prototype.zone;
 }

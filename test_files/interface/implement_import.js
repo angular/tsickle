@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.interface.implement_import');
 var module = module || { id: 'test_files/interface/implement_import.ts' };
@@ -19,7 +19,7 @@ class MyPoint {
         this.y = y;
     }
 }
-function MyPoint_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     MyPoint.prototype.x;
     /** @type {number} */
@@ -36,7 +36,7 @@ class ImplementsUser {
         this.shoeSize = shoeSize;
     }
 }
-function ImplementsUser_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     ImplementsUser.prototype.shoeSize;
 }

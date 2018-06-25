@@ -1288,7 +1288,7 @@ class Annotator extends ClosureRewriter {
     if (docTags.length > 0) this.emit(jsdoc.toString(docTags));
     // this.writeNode(classDecl, true /*skipComments*/);
     this.writeNodeFrom(classDecl, classDecl.getStart(), classDecl.getEnd());
-    this.emitTypeAnnotationsHelper(classDecl);
+    this.emitMemberTypes(classDecl);
     return true;
   }
 
@@ -1312,23 +1312,20 @@ class Annotator extends ClosureRewriter {
     const name = getIdentifierText(iface.name);
     this.emit(`function ${name}() {}\n`);
 
-    this.emit(`\n\nfunction ${name}_tsickle_Closure_declarations() {\n`);
     const memberNamespace = [name, 'prototype'];
     for (const elem of iface.members) {
       const isOptional = elem.questionToken != null;
       this.visitProperty(memberNamespace, elem, isOptional);
     }
-    this.emit(`}\n`);
   }
 
   /**
-   * emitTypeAnnotationsHelper produces a _tsickle_typeAnnotationsHelper() where
-   * none existed in the original source. It's necessary in the case where
-   * TypeScript syntax specifies there are additional properties on the class,
-   * because to declare these in Closure you must declare these in a method
-   * somewhere.
+   * emitMemberTypes emits the type annotations for members of a class.
+   * It's necessary in the case where TypeScript syntax specifies
+   * there are additional properties on the class, because to declare
+   * these in Closure you must declare these separately from the class.
    */
-  private emitTypeAnnotationsHelper(classDecl: ts.ClassDeclaration) {
+  private emitMemberTypes(classDecl: ts.ClassDeclaration) {
     // Gather parameter properties from the constructor, if it exists.
     const ctors: ts.ConstructorDeclaration[] = [];
     let paramProps: ts.ParameterDeclaration[] = [];
@@ -1372,7 +1369,7 @@ class Annotator extends ClosureRewriter {
     const className = getIdentifierText(classDecl.name);
 
     // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
-    this.emit(`\n\nfunction ${className}_tsickle_Closure_declarations() {\n`);
+    this.emit(`\n\nif (false) {`);
     staticProps.forEach(p => this.visitProperty([className], p));
     const memberNamespace = [className, 'prototype'];
     nonStaticProps.forEach((p) => this.visitProperty(memberNamespace, p));

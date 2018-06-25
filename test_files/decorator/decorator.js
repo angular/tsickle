@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
@@ -119,7 +119,7 @@ tslib_1.__decorate([
     decorator,
     tslib_1.__metadata("design:type", external_1.AClass)
 ], DecoratorTest.prototype, "z", void 0);
-function DecoratorTest_tsickle_Closure_declarations() {
+if (false) {
     /**
      * Some comment
      * @type {number}
@@ -135,7 +135,7 @@ let DecoratedClass = class DecoratedClass {
 DecoratedClass = tslib_1.__decorate([
     classDecorator
 ], DecoratedClass);
-function DecoratedClass_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     DecoratedClass.prototype.z;
 }

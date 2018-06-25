@@ -2,7 +2,7 @@
  *
  * @fileoverview This text here matches the     text below in length.
  *
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.functions.two_jsdoc_blocks');
 var module = module || { id: 'test_files/functions/two_jsdoc_blocks.ts' };

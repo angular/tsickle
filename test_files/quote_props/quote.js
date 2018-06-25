@@ -4,7 +4,7 @@
 // test_files/quote_props/quote.ts(29,1): warning TS0: Declared property foo accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.quote_props.quote');
 var module = module || { id: 'test_files/quote_props/quote.ts' };
@@ -12,11 +12,6 @@ var module = module || { id: 'test_files/quote_props/quote.ts' };
  * @record
  */
 function Quoted() { }
-function Quoted_tsickle_Closure_declarations() {
-    /* TODO: handle strange member:
-    [k: string]: number;
-    */
-}
 /** @type {!Quoted} */
 let quoted = {};
 console.log(quoted["hello"]);
@@ -29,15 +24,13 @@ quoted["hello"] = 1;
  * @extends {Quoted}
  */
 function QuotedMixed() { }
-function QuotedMixed_tsickle_Closure_declarations() {
-    /** @type {number} */
-    QuotedMixed.prototype.foo;
-    /* TODO: handle strange member:
-    'invalid-identifier': number;
-    */
-    /** @type {number} */
-    QuotedMixed.prototype.quotedIdent;
-}
+/** @type {number} */
+QuotedMixed.prototype.foo;
+/* TODO: handle strange member:
+'invalid-identifier': number;
+*/
+/** @type {number} */
+QuotedMixed.prototype.quotedIdent;
 /** @type {!QuotedMixed} */
 let quotedMixed = { foo: 1, 'invalid-identifier': 2, 'quotedIdent': 3 };
 console.log(quotedMixed.foo);

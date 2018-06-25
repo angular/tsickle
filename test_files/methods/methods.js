@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.methods.methods');
 var module = module || { id: 'test_files/methods/methods.ts' };
@@ -24,7 +24,7 @@ class HasMethods {
      */
     set f(n) { this._f = n - 1; }
 }
-function HasMethods_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     HasMethods.prototype._f;
 }

@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.type_propaccess.no_externs.type_propaccess');
 var module = module || { id: 'test_files/type_propaccess.no_externs/type_propaccess.ts' };

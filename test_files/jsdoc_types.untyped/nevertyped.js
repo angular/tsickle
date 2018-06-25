@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 /* This filename is specially marked in the tsickle test
  * suite runner so that its types are always {?}.*/
@@ -11,7 +11,5 @@ var module = module || { id: 'test_files/jsdoc_types.untyped/nevertyped.ts' };
  */
 function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
-function NeverTyped_tsickle_Closure_declarations() {
-    /** @type {?} */
-    NeverTyped.prototype.foo;
-}
+/** @type {?} */
+NeverTyped.prototype.foo;

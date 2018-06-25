@@ -60,6 +60,9 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
   // 2) Suppress extraRequire.  We remove extra requires at the TypeScript level, so any require
   // that gets to the JS level is a load-bearing require.
   suppressions.add('extraRequire');
+  // 3) Suppress uselessCode.  We emit an "if (false)" around type declarations,
+  // which is flagged as unused code unless we suppress it.
+  suppressions.add('uselessCode');
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 
   return tags;

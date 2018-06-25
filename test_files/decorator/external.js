@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.decorator.external');
 var module = module || { id: 'test_files/decorator/external.ts' };
@@ -21,5 +21,3 @@ exports.AClassWithGenerics = AClassWithGenerics;
  */
 function AType() { }
 exports.AType = AType;
-function AType_tsickle_Closure_declarations() {
-}

@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.structural.untyped.structural.untyped');
 var module = module || { id: 'test_files/structural.untyped/structural.untyped.ts' };
@@ -10,7 +10,7 @@ class StructuralTest {
      */
     method() { return this.field1; }
 }
-function StructuralTest_tsickle_Closure_declarations() {
+if (false) {
     /** @type {?} */
     StructuralTest.prototype.field1;
 }

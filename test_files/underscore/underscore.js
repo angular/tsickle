@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 // Verify that double-underscored names in various places don't get corrupted.
 // See getIdentifierText() in tsickle.ts.
@@ -21,7 +21,7 @@ class __Class {
         return this.__member;
     }
 }
-function __Class_tsickle_Closure_declarations() {
+if (false) {
     /** @type {string} */
     __Class.prototype.__member;
 }
@@ -29,5 +29,3 @@ function __Class_tsickle_Closure_declarations() {
  * @record
  */
 function __Interface() { }
-function __Interface_tsickle_Closure_declarations() {
-}

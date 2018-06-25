@@ -19,7 +19,7 @@
 // test_files/jsdoc/jsdoc.ts(84,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc.jsdoc');
 var module = module || { id: 'test_files/jsdoc/jsdoc.ts' };
@@ -62,7 +62,7 @@ class JSDocTest {
  * \@internal
  */
 JSDocTest.X = [];
-function JSDocTest_tsickle_Closure_declarations() {
+if (false) {
     /**
      * \@internal
      * @type {!Array<string>}

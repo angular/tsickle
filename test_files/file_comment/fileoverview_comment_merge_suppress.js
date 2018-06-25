@@ -1,7 +1,7 @@
 /**
  *
  * @fileoverview Tests merging JSDoc tags in fileoverview comments.
- * @suppress {checkTypes,extraRequire}
+ * @suppress {checkTypes,extraRequire,uselessCode}
  *
  */
 goog.module('test_files.file_comment.fileoverview_comment_merge_suppress');

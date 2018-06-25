@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.ctors.ctors');
 var module = module || { id: 'test_files/ctors/ctors.ts' };
@@ -14,7 +14,7 @@ class X {
         this.a = a;
     }
 }
-function X_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     X.prototype.a;
 }

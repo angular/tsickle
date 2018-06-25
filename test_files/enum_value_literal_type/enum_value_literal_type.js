@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 // Note: if you only have one value in the enum, then the type of "x" below
 // is just ExportedEnum, regardless of the annotation.  This might be a bug

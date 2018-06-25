@@ -1,7 +1,7 @@
 // test_files/type/type.ts(14,5): warning TS0: unhandled anonymous type
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.type.type');
 var module = module || { id: 'test_files/type/type.ts' };

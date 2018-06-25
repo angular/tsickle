@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire} checked by tsc
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 /**
  * This test tests importing a type across module boundaries,
@@ -51,7 +51,7 @@ let useNeverTypedTemplated;
  */
 class ImplementsNeverTyped {
 }
-function ImplementsNeverTyped_tsickle_Closure_declarations() {
+if (false) {
     /** @type {number} */
     ImplementsNeverTyped.prototype.foo;
 }
@@ -60,7 +60,7 @@ function ImplementsNeverTyped_tsickle_Closure_declarations() {
  */
 class ImplementsNeverTypedTemplated {
 }
-function ImplementsNeverTypedTemplated_tsickle_Closure_declarations() {
+if (false) {
     /** @type {T} */
     ImplementsNeverTypedTemplated.prototype.foo;
 }
