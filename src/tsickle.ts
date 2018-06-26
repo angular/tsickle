@@ -2020,6 +2020,13 @@ export function emitWithTsickle(
   };
 }
 
+/** Compares two strings and returns a number suitable for use in sort(). */
+function stringCompare(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
 /**
  * A tsickle produced declaration file might be consumed be referenced by Clutz
  * produced .d.ts files, which use symbol names based on Closure's internal
@@ -2049,6 +2056,10 @@ function addClutzAliases(
     return e.declarations.some(d => d.getSourceFile() === origSourceFile);
   });
   if (!localExports.length) return dtsFileContent;
+
+  // TypeScript 2.8 and TypeScript 2.9 differ on the order in which the
+  // module symbols come out, so sort here to make the tests stable.
+  localExports.sort((a, b) => stringCompare(a.name, b.name));
 
   const moduleName = host.pathToModuleName('', sourceFile.fileName);
   const clutzModuleName = moduleName.replace(/\./g, '$');
