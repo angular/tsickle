@@ -1464,9 +1464,9 @@ class Annotator extends ClosureRewriter {
     // exports).
     // tsickle must also still emit the `var` line above so that the type can be used within the
     // local module scope (Closure does not allow refering to "exports.Foo" within a module).
-    // With that, emit an additional "exports.foo = foo;" line assigning the unset variable into it.
+    // With that, emit an additional "export {foo};" to export the type.
     if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
-      this.emit(`exports.${typeName} = ${typeName}\n`);
+      this.emit(`export {${typeName}};\n`);
     }
   }
 }
