@@ -449,9 +449,11 @@ abstract class ClosureRewriter extends Rewriter {
   maybeAddHeritageClauses(
       docTags: jsdoc.Tag[], decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration) {
     if (!decl.heritageClauses) return;
+    const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
+    const classHasSuperClass =
+        isClass && decl.heritageClauses.some(hc => hc.token === ts.SyntaxKind.ExtendsKeyword);
     for (const heritage of decl.heritageClauses!) {
       if (!heritage.types) continue;
-      const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
       if (isClass && heritage.token !== ts.SyntaxKind.ImplementsKeyword && !isAmbient(decl)) {
         // If a class has "extends Foo", that is preserved in the ES6 output
         // and we don't need to do anything.  But if it has "implements Foo",
@@ -464,9 +466,6 @@ abstract class ClosureRewriter extends Rewriter {
       for (const impl of heritage.types) {
         let tagName = decl.kind === ts.SyntaxKind.InterfaceDeclaration ? 'extends' : 'implements';
 
-        // We can only @implements an interface, not a class.
-        // But it's fine to translate TS "implements Class" into Closure
-        // "@extends {Class}" because this is just a type hint.
         const typeChecker = this.typeChecker;
         const sym = this.typeChecker.getSymbolAtLocation(impl.expression);
         if (!sym) {
@@ -507,12 +506,21 @@ abstract class ClosureRewriter extends Rewriter {
         if (typeTranslator.isBlackListed(alias)) {
           continue;
         }
+        // We can only @implements an interface, not a class.
+        // But it's fine to translate TS "implements Class" into Closure
+        // "@extends {Class}" because this is just a type hint.
         if (alias.flags & ts.SymbolFlags.Class) {
           if (!isClass) {
             // Only classes can extend classes in TS. Ignoring the heritage clause should be safe,
             // as interfaces are @record anyway, so should prevent property disambiguation.
 
             // Problem: validate that methods are there?
+            continue;
+          }
+          if (classHasSuperClass && heritage.token !== ts.SyntaxKind.ExtendsKeyword) {
+            // Do not emit an @extends for a class that already has a proper ES6 extends class. This
+            // risks incorrect optimization, as @extends takes precedence, and Closure won't be
+            // aware of the actual type hierarchy of the class.
             continue;
           }
           tagName = 'extends';
