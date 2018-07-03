@@ -7,5 +7,5 @@ var module = module || { id: 'test_files/import_prefixed/exporter.ts' };
 /** @type {number} */
 exports.valueExport = 1;
 /** @typedef {(string|number)} */
-var TypeExport;
-exports.TypeExport = TypeExport;
+var TypeExport_tsickle_typedef_1;
+exports.TypeExport = TypeExport_tsickle_typedef_1;

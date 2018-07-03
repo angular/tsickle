@@ -101,6 +101,7 @@ function isAmbient(node: ts.Node): boolean {
   let current: ts.Node|undefined = node;
   while (current) {
     if (hasModifierFlag(current, ts.ModifierFlags.Ambient)) return true;
+    if (ts.isSourceFile(current) && isDtsFileName(current.fileName)) return true;
     current = current.parent;
   }
   return false;
@@ -736,7 +737,7 @@ class Annotator extends ClosureRewriter {
    *     emit it as is and visit its children.
    */
   maybeProcess(node: ts.Node): boolean {
-    if (hasModifierFlag(node, ts.ModifierFlags.Ambient) || isDtsFileName(this.file.fileName)) {
+    if (isAmbient(node)) {
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
       this.writeRange(node, node.getFullStart(), node.getEnd());
@@ -1452,29 +1453,46 @@ class Annotator extends ClosureRewriter {
     this.emit(`${namespace.join('.')};\n`);
   }
 
+  private typedefCounter = 1;
+
   private visitTypeAlias(node: ts.TypeAliasDeclaration) {
     // If the type is also defined as a value, skip emitting it. Closure collapses type & value
     // namespaces, the two emits would conflict if tsickle emitted both.
     const sym = this.mustGetSymbolAtLocation(node.name);
     if (sym.flags & ts.SymbolFlags.Value) return;
 
-    // Write a Closure typedef, which involves an unused "var" declaration.
+    // Write a Closure typedef, which involves creating a new, unused "var" declaration.
+    // Creating a new variable can cause problems if there is already a value in scope with the
+    // given name - e.g. if there's already a `var foo;` in the file, creating another `var foo;`
+    // with a different type will cause conflicts (even though by JS semantics multiple var
+    // declarations in scope are fine, and TS allows types and values with the same name).
+    // Worse, adding an exported variable (as we do below), can cause multiple exports assignments
+    // to the same symbol, which is a hard, non-suppressible error in Closure. See
+    // `test_files/import_export_typedef_conflict`. Note that it's an error to export the same
+    // symbol twice in TS as well, but emitting an "export" below confuses TS as to which instance
+    // should be exported.
+    // To avoid these problems, create a mangled name that's unlikely to cause a conflict, and use
+    // that to refer to the name locally, and export it with the original name.
+
+    const typeName = node.name.getText();
+    const mangledTypeName = `${node.name.getText()}_tsickle_typedef_${this.typedefCounter++}`;
+    this.symbolsToAliasedNames.set(sym, mangledTypeName);
+
+    // Blacklist any type parameters, Closure does not support type aliases with type parameters.
     this.newTypeTranslator(node).blacklistTypeParameters(
         this.symbolsToAliasedNames, node.typeParameters);
-
     const typeStr =
         this.host.untyped ? '?' : this.typeToClosure(node, undefined, true /* resolveAlias */);
-    const typeName = node.name.getText();
     this.emit(`\n/** @typedef {${typeStr}} */\n`);
-    this.emit(`var ${typeName};\n`);
+    this.emit(`var ${mangledTypeName};\n`);
     // In the case of an export, we cannot emit a `export var foo;` because TypeScript drops exports
     // that are never assigned values (and Closure requires us to not assign values to typedef
     // exports).
     // tsickle must also still emit the `var` line above so that the type can be used within the
     // local module scope (Closure does not allow refering to "exports.Foo" within a module).
-    // With that, emit an additional "export {foo};" to export the type.
+    // With that, emit an additional "export {foo_mangled as foo};" to export the type.
     if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
-      this.emit(`export {${typeName}};\n`);
+      this.emit(`export {${mangledTypeName} as ${typeName}};\n`);
     }
   }
 }

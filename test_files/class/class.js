@@ -157,9 +157,9 @@ class AbstractClassExtendsClass extends Class {
 class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /** @typedef {!Interface} */
-var TypeAlias;
+var TypeAlias_tsickle_typedef_1;
 /**
- * @implements {TypeAlias}
+ * @implements {TypeAlias_tsickle_typedef_1}
  * @extends {Class}
  */
 class ImplementsTypeAlias {
@@ -197,7 +197,7 @@ if (false) {
     ZoneImplementsInterface.prototype.zone;
 }
 /** @typedef {?} */
-var ZoneAlias;
+var ZoneAlias_tsickle_typedef_2;
 class ZoneImplementsAlias {
 }
 if (false) {
