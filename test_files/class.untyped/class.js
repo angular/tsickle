@@ -33,7 +33,7 @@ class Extends extends Super {
     interfaceFunc() { }
 }
 /** @typedef {?} */
-var TypeAlias;
+var TypeAlias_tsickle_typedef_1;
 class ImplementsTypeAlias {
     /**
      * @return {?}
@@ -65,7 +65,7 @@ if (false) {
     ZoneImplementsInterface.prototype.zone;
 }
 /** @typedef {?} */
-var ZoneAlias;
+var ZoneAlias_tsickle_typedef_2;
 class ZoneImplementsAlias {
 }
 if (false) {

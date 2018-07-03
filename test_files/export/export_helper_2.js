@@ -11,8 +11,8 @@ exports.export3 = 3;
 /** @type {number} */
 exports.export4 = 3;
 /** @typedef {(string|number)} */
-var TypeDef;
-exports.TypeDef = TypeDef;
+var TypeDef_tsickle_typedef_1;
+exports.TypeDef = TypeDef_tsickle_typedef_1;
 /**
  * @record
  */

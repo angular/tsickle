@@ -13,4 +13,4 @@ class Z {
 }
 exports.Z = Z;
 /** @typedef {(!tsickle_forward_declare_1.X|!Z)} */
-var DefaultExport;
+var DefaultExport_tsickle_typedef_1;

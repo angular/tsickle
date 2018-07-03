@@ -5,11 +5,11 @@
 goog.module('test_files.typedef.untyped.typedef');
 var module = module || { id: 'test_files/typedef.untyped/typedef.ts' };
 /** @typedef {?} */
-var MyType;
+var MyType_tsickle_typedef_1;
 /** @type {?} */
 var y = 3;
 /** @typedef {?} */
-var Recursive;
+var Recursive_tsickle_typedef_2;
 /** @typedef {?} */
-var ExportedType;
-exports.ExportedType = ExportedType;
+var ExportedType_tsickle_typedef_3;
+exports.ExportedType = ExportedType_tsickle_typedef_3;

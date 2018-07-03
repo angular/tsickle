@@ -45,7 +45,7 @@ function classAnnotation(t) {
     return t;
 }
 /** @typedef {!Map<string, number>} */
-var LocalTypeAlias;
+var LocalTypeAlias_tsickle_typedef_1;
 class DecoratorTest {
     /**
      * @param {!Array<?>} a

@@ -10,5 +10,5 @@ class Y {
 }
 exports.Y = Y;
 /** @typedef {(!tsickle_forward_declare_1.X|!Y)} */
-var XY;
-exports.XY = XY;
+var XY_tsickle_typedef_1;
+exports.XY = XY_tsickle_typedef_1;
