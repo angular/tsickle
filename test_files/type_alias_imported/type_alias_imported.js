@@ -10,7 +10,7 @@ var export_constant_1 = goog.require('test_files.type_alias_imported.export_cons
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.type_alias_imported.export_constant");
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.type_alias_imported.type_alias_exporter");
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.type_alias_imported.type_alias_default_exporter");
-/** @type {tsickle_forward_declare_2.XY} */
+/** @type {(!tsickle_forward_declare_4.X|!tsickle_forward_declare_2.Y)} */
 let usingTypeAlias;
 /** @type {(boolean|!tsickle_forward_declare_4.X|!tsickle_forward_declare_2.Y)} */
 let usingTypeAliasInUnion;

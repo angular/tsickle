@@ -12,5 +12,3 @@ goog.require("test_files.type_alias_imported.type_alias_declare"); // force type
 class Z {
 }
 exports.Z = Z;
-/** @typedef {(!tsickle_forward_declare_1.X|!Z)} */
-var DefaultExport;

@@ -272,7 +272,7 @@ export class TypeTranslator {
     return name;
   }
 
-  translate(type: ts.Type, resolveAlias = false): string {
+  translate(type: ts.Type): string {
     // NOTE: Though type.flags has the name "flags", it usually can only be one
     // of the enum options at a time (except for unions of literal types, e.g. unions of boolean
     // values, string values, enum values). This switch handles all the cases in the ts.TypeFlags
@@ -290,12 +290,6 @@ export class TypeTranslator {
     // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol
     // below), but Closure Compiler does not allow recursive type definitions.
     if (this.seenAnonymousTypes.has(type)) return '?';
-
-    // If type is an alias, e.g. from type X = A|B, then always emit the alias, not the underlying
-    // union type, as the alias is the user visible, imported symbol.
-    if (!resolveAlias && type.aliasSymbol) {
-      return this.symbolToString(type.aliasSymbol, /* useFqn */ true);
-    }
 
     let isAmbient = false;
     let isInNamespace = false;
