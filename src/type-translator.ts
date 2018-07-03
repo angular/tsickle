@@ -557,6 +557,10 @@ export class TypeTranslator {
         this.warn('unhandled JSDoc based constructor signature');
         return '?';
       }
+
+      // new <T>(tee: T) is not supported by Closure, blacklist as ?.
+      this.blacklistTypeParameters(this.symbolsToAliasedNames, decl.typeParameters);
+
       const params = this.convertParams(ctors[0], decl.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
