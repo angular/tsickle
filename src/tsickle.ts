@@ -661,7 +661,8 @@ class Annotator extends ClosureRewriter {
     // Already imported?
     if (this.forwardDeclaredModules.has(moduleSymbol)) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    const text = this.getForwardDeclareText(sf.fileName, moduleSymbol);
+    const text =
+        this.getForwardDeclareText(sf.fileName, moduleSymbol, /* isExplicitlyImported */ false);
     this.extraDeclares += text;
   }
 
@@ -1166,15 +1167,20 @@ class Annotator extends ClosureRewriter {
         {options: this.tsOpts, host: this.tsHost}, this.file.fileName,
         (specifier as ts.StringLiteral).text);
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
-    this.emit(this.getForwardDeclareText(importPath, moduleSymbol, isDefaultImport));
+    this.emit(this.getForwardDeclareText(
+        importPath, moduleSymbol, /* isExplicitlyImported */ true, isDefaultImport));
   }
 
   /**
    * Returns the `const x = goog.forwardDeclare...` text for an import of the given `importPath`.
    * This also registers aliases for symbols from the module that map to this forward declare.
+   * @param isExplicitlyImported whether the given importPath is for a module that was explicitly
+   *     imported into the current context. tsickly only emits force loads for explicitly imported
+   *     modules, so that it doesn't break strict deps checking for the JS code.
    */
   private getForwardDeclareText(
-      importPath: string, moduleSymbol: ts.Symbol|undefined, isDefaultImport = false): string {
+      importPath: string, moduleSymbol: ts.Symbol|undefined, isExplicitlyImported: boolean,
+      isDefaultImport = false): string {
     if (this.host.untyped) return '';
     const nsImport = googmodule.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
@@ -1208,14 +1214,14 @@ class Annotator extends ClosureRewriter {
       // they do not count as values. If preserveConstEnums=true, this shouldn't hurt.
       return isValue && !isConstEnum;
     });
-    if (!hasValues) {
+    if (!hasValues && isExplicitlyImported) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
       // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
       // complaining about values not matching 'NoResolvedType', or modules not having a certain
       // member.
-      // To fix, explicitly goog.require() modules that only export types. This should usually not
-      // cause breakages due to load order (as no symbols are accessible from the module - though
-      // contrived code could observe changes in side effects).
+      // To fix, emit hard goog.require() for explicitly imported modules that only export types.
+      // This should usually not cause breakages due to load order (as no symbols are accessible
+      // from the module - though contrived code could observe changes in side effects).
       // This is a heuristic - if the module exports some values, but those are never imported,
       // the file will still end up not being imported. Hopefully modules that export values are
       // imported for their value in some place.
