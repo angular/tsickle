@@ -9,16 +9,28 @@
 const childProcess = require('child_process');
 const fs = require('fs');
 const glob = require('glob');
+const prettier = require('prettier');
 
 const CLANG_FORMAT = 'node_modules/.bin/clang-format';
+
+/** Returns the clang-format formatted text of an input file. */
+function clangFormat(path, text) {
+  return childProcess.execFileSync(CLANG_FORMAT, [path], {encoding: 'utf8'});
+}
+
+/** Returns the prettier formatted text of an input file. */
+function prettierFormat(path, text) {
+  return prettier.format(text, {filepath: path});
+}
 
 /**
  * Checks that a path is formatted.
  * @return new text of file if it needs formatting or null otherwise.
  */
 function checkFile(path) {
+  const formatter = path.match(/\.md$/) ? prettierFormat : clangFormat;
   const source = fs.readFileSync(path, 'utf8');
-  const formatted = childProcess.execFileSync(CLANG_FORMAT, [path], {encoding: 'utf8'});
+  const formatted = formatter(path, source);
   if (source !== formatted) {
     return formatted;
   }
@@ -27,7 +39,8 @@ function checkFile(path) {
 
 function main(args) {
   const fix = args[0] === '--fix';
-  const sourceFiles = glob.sync('{*.js,src/**/*.[jt]s,test/**/*.[jt]s}');
+
+  const sourceFiles = glob.sync('{*.md,*.js,src/**/*.[jt]s,test/**/*.[jt]s}');
   for (const path of sourceFiles) {
     const newText = checkFile(path);
     if (newText != null) {
