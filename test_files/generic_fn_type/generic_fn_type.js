@@ -9,3 +9,5 @@ var module = module || { id: 'test_files/generic_fn_type/generic_fn_type.ts' };
  * Closure, so tsickle should emit ?.
   @type {function(?): ?} */
 let genericFnType = (x) => x;
+/** @type {function(new: (?), ?): ?} */
+let genericCtorFnType;

@@ -149,10 +149,32 @@ regex.
 
 ### Releasing
 
-On a new branch, run `npm version <major|minor|patch|...> -m 'rel: %s'` (see
-`npm help version` for details). It will update the version in `package.json`,
-commit the changes, and create a git tag. Now you push the branch, get it
-reviewed and merged.
+On a new branch, run
+
+```
+# tsickle releases are all minor releases for now, see npm help version.
+$ npm version minor -m 'rel: %s'
+```
+
+This will update the version in `package.json`, commit the changes, and
+create a git tag.
+
+Push the branch and get it reviewed, but *do not merge*.  If you click
+the "rebase and merge" button in the Github UI it changes the commit,
+so the git tag that was created would point at the wrong commit.
+
+Instead, push the branch to master directly via:
+
+```
+$ git push origin mybranch:master
+$ git push origin v0.32.0
+```
+
+Note that Github will block non-fast-forward pushes to master, so if
+there have been other intervening commits you'll need to recreate the
+release.  Once the versioned tag is pushed to Github the release (as
+found on https://github.com/angular/tsickle/releases) will be
+implicitly created.
 
 Run `bazel run :npm_package.publish` from the master branch
 (you must be logged into the `angular` shared npm account).

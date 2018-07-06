@@ -9,6 +9,6 @@
 goog.module('test_files.import_prefixed.import_prefixed_types');
 var module = module || { id: 'test_files/import_prefixed/import_prefixed_types.ts' };
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.import_prefixed.exporter");
-/** @type {tsickle_forward_declare_1.TypeExport} */
+/** @type {(string|number)} */
 const someVar = 1;
 console.log(someVar);

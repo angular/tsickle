@@ -101,6 +101,7 @@ function isAmbient(node: ts.Node): boolean {
   let current: ts.Node|undefined = node;
   while (current) {
     if (hasModifierFlag(current, ts.ModifierFlags.Ambient)) return true;
+    if (ts.isSourceFile(current) && isDtsFileName(current.fileName)) return true;
     current = current.parent;
   }
   return false;
@@ -528,10 +529,11 @@ abstract class ClosureRewriter extends Rewriter {
           // If the symbol was already in the value namespace, then it will
           // not be a type in the Closure output (because Closure collapses
           // the type and value namespaces).  Just ignore the implements.
+          this.debugWarn(impl, `type/symbol conflict for ${alias.name}, using {?} for now`);
           continue;
         }
         // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-        docTags.push({tagName, type: typeTranslator.symbolToString(sym, true)});
+        docTags.push({tagName, type: typeTranslator.symbolToString(alias, true)});
       }
     }
   }
@@ -569,10 +571,8 @@ abstract class ClosureRewriter extends Rewriter {
    * @param context The ts.Node containing the type reference; used for resolving symbols
    *     in context.
    * @param type The type to translate; if not provided, the Node's type will be used.
-   * @param resolveAlias If true, do not emit aliases as their symbol, but rather as the resolved
-   *     type underlying the alias. This should be true only when emitting the typedef itself.
    */
-  typeToClosure(context: ts.Node, type?: ts.Type, resolveAlias?: boolean): string {
+  typeToClosure(context: ts.Node, type?: ts.Type): string {
     if (this.host.untyped) {
       return '?';
     }
@@ -581,7 +581,7 @@ abstract class ClosureRewriter extends Rewriter {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    return this.newTypeTranslator(context).translate(type, resolveAlias);
+    return this.newTypeTranslator(context).translate(type);
   }
 
   newTypeTranslator(context: ts.Node) {
@@ -661,7 +661,8 @@ class Annotator extends ClosureRewriter {
     // Already imported?
     if (this.forwardDeclaredModules.has(moduleSymbol)) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    const text = this.getForwardDeclareText(sf.fileName, moduleSymbol);
+    const text =
+        this.getForwardDeclareText(sf.fileName, moduleSymbol, /* isExplicitlyImported */ false);
     this.extraDeclares += text;
   }
 
@@ -736,7 +737,7 @@ class Annotator extends ClosureRewriter {
    *     emit it as is and visit its children.
    */
   maybeProcess(node: ts.Node): boolean {
-    if (hasModifierFlag(node, ts.ModifierFlags.Ambient) || isDtsFileName(this.file.fileName)) {
+    if (isAmbient(node)) {
       // An ambient declaration declares types for TypeScript's benefit, so we want to skip Tsickle
       // conversion of its contents.
       this.writeRange(node, node.getFullStart(), node.getEnd());
@@ -1166,15 +1167,20 @@ class Annotator extends ClosureRewriter {
         {options: this.tsOpts, host: this.tsHost}, this.file.fileName,
         (specifier as ts.StringLiteral).text);
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(specifier);
-    this.emit(this.getForwardDeclareText(importPath, moduleSymbol, isDefaultImport));
+    this.emit(this.getForwardDeclareText(
+        importPath, moduleSymbol, /* isExplicitlyImported */ true, isDefaultImport));
   }
 
   /**
    * Returns the `const x = goog.forwardDeclare...` text for an import of the given `importPath`.
    * This also registers aliases for symbols from the module that map to this forward declare.
+   * @param isExplicitlyImported whether the given importPath is for a module that was explicitly
+   *     imported into the current context. tsickly only emits force loads for explicitly imported
+   *     modules, so that it doesn't break strict deps checking for the JS code.
    */
   private getForwardDeclareText(
-      importPath: string, moduleSymbol: ts.Symbol|undefined, isDefaultImport = false): string {
+      importPath: string, moduleSymbol: ts.Symbol|undefined, isExplicitlyImported: boolean,
+      isDefaultImport = false): string {
     if (this.host.untyped) return '';
     const nsImport = googmodule.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
@@ -1208,14 +1214,14 @@ class Annotator extends ClosureRewriter {
       // they do not count as values. If preserveConstEnums=true, this shouldn't hurt.
       return isValue && !isConstEnum;
     });
-    if (!hasValues) {
+    if (!hasValues && isExplicitlyImported) {
       // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
       // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
       // complaining about values not matching 'NoResolvedType', or modules not having a certain
       // member.
-      // To fix, explicitly goog.require() modules that only export types. This should usually not
-      // cause breakages due to load order (as no symbols are accessible from the module - though
-      // contrived code could observe changes in side effects).
+      // To fix, emit hard goog.require() for explicitly imported modules that only export types.
+      // This should usually not cause breakages due to load order (as no symbols are accessible
+      // from the module - though contrived code could observe changes in side effects).
       // This is a heuristic - if the module exports some values, but those are never imported,
       // the file will still end up not being imported. Hopefully modules that export values are
       // imported for their value in some place.
@@ -1457,25 +1463,33 @@ class Annotator extends ClosureRewriter {
     // namespaces, the two emits would conflict if tsickle emitted both.
     const sym = this.mustGetSymbolAtLocation(node.name);
     if (sym.flags & ts.SymbolFlags.Value) return;
+    // Type aliases are always emitted as the resolved underlying type, so there is no need to emit
+    // anything, except for exported types.
+    if (!hasModifierFlag(node, ts.ModifierFlags.Export)) return;
+    // A pure ES6 export (`export {Foo}`) is insufficient, as TS does not emit those for pure types,
+    // so tsickle has to pick a module format. We're using CommonJS to emit googmodule, and code not
+    // using googmodule doesn't care about the Closure annotations anyway, so just skip emitting if
+    // the module target isn't commonjs.
+    if (this.tsOpts.module !== ts.ModuleKind.CommonJS) return;
 
-    // Write a Closure typedef, which involves an unused "var" declaration.
+    const typeName = node.name.getText();
+
+    // Blacklist any type parameters, Closure does not support type aliases with type parameters.
     this.newTypeTranslator(node).blacklistTypeParameters(
         this.symbolsToAliasedNames, node.typeParameters);
-
-    const typeStr =
-        this.host.untyped ? '?' : this.typeToClosure(node, undefined, true /* resolveAlias */);
-    const typeName = node.name.getText();
-    this.emit(`\n/** @typedef {${typeStr}} */\n`);
-    this.emit(`var ${typeName};\n`);
+    const typeStr = this.host.untyped ? '?' : this.typeToClosure(node, undefined);
     // In the case of an export, we cannot emit a `export var foo;` because TypeScript drops exports
-    // that are never assigned values (and Closure requires us to not assign values to typedef
-    // exports).
-    // tsickle must also still emit the `var` line above so that the type can be used within the
-    // local module scope (Closure does not allow refering to "exports.Foo" within a module).
-    // With that, emit an additional "export {foo};" to export the type.
-    if (hasModifierFlag(node, ts.ModifierFlags.Export)) {
-      this.emit(`export {${typeName}};\n`);
-    }
+    // that are never assigned values, and Closure requires us to not assign values to typedef
+    // exports.
+    // Introducing a new local variable and exporting it can cause bugs due to name shadowing and
+    // confusing TypeScript's logic on what symbols and types vs values are exported.
+    // Mangling the name to avoid the conflicts would be reasonably clean, but would require a two
+    // pass emit to first find all type alias names, mangle them, and emit the use sites only later.
+    // With that, the fix here is to never emit type aliases, but always resolve the alias and emit
+    // the underlying type (fixing references in the local module, and also across modules).
+    // For downstream JavaScript code that imports the typedef, we emit an "export.Foo;" that
+    // declares and exports the type, and for TypeScript has no impact.
+    this.emit(`\n/** @typedef {${typeStr}} */\nexports.${typeName};`);
   }
 }
 
@@ -1808,7 +1822,7 @@ class ExternsWriter extends ClosureRewriter {
   }
 
   private writeExternsTypeAlias(decl: ts.TypeAliasDeclaration, namespace: string[]) {
-    const typeStr = this.typeToClosure(decl, undefined, true /* resolveAlias */);
+    const typeStr = this.typeToClosure(decl, undefined);
     this.emit(`\n/** @typedef {${typeStr}} */\n`);
     this.writeExternsVariable(getIdentifierText(decl.name), namespace);
   }

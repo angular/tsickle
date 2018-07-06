@@ -5,7 +5,7 @@
 goog.module('test_files.promisectorlike.promisectorlike');
 var module = module || { id: 'test_files/promisectorlike/promisectorlike.ts' };
 /**
- * @param {PromiseConstructorLike} ctorLike
+ * @param {function(new: (!PromiseLike<?>), function(function((undefined|?|!PromiseLike<?>)=): void, function(?=): void): void): ?} ctorLike
  * @return {!Promise<string>}
  */
 function toPromise(ctorLike) {

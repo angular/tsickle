@@ -1,4 +1,5 @@
-// test_files/class/class.ts(129,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(126,42): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(130,38): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -156,10 +157,8 @@ class AbstractClassExtendsClass extends Class {
  */
 class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
-/** @typedef {!Interface} */
-var TypeAlias;
 /**
- * @implements {TypeAlias}
+ * @implements {Interface}
  * @extends {Class}
  */
 class ImplementsTypeAlias {
@@ -196,8 +195,6 @@ if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
-/** @typedef {?} */
-var ZoneAlias;
 class ZoneImplementsAlias {
 }
 if (false) {
