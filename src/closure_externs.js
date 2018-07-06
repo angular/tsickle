@@ -77,4 +77,3 @@ var PromiseConstructorLike;
 
 /** @typedef {?} */
 var SymbolConstructor;
-
