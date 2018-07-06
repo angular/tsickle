@@ -13,15 +13,13 @@ exports.Foo = Foo;
 /** @type {string} */
 Foo.prototype.x;
 /** @typedef {number} */
-var Bar;
-exports.Bar = Bar;
+exports.Bar;
 /** @typedef {function(): void} */
-var FnType;
-exports.FnType = FnType;
+exports.FnType;
 /**
  * Uses exported types to demonstrate that the symbols can be resolved locally.
  * @param {!Foo} a
- * @param {FnType} b
+ * @param {function(): void} b
  * @return {void}
  */
 function doThing(a, b) { }

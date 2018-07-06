@@ -4,12 +4,13 @@
  */
 goog.module('test_files.typedef.typedef');
 var module = module || { id: 'test_files/typedef/typedef.ts' };
-/** @typedef {number} */
-var MyType;
 /** @type {number} */
 var y = 3;
 /** @typedef {{value: number, next: ?}} */
-var Recursive;
+exports.Recursive;
 /** @typedef {string} */
-var ExportedType;
-exports.ExportedType = ExportedType;
+exports.ExportedType;
+/** @type {number} */
+const useTypedefBeforeDefinition = 1;
+/** @typedef {number} */
+exports.UsedBeforeDefinition;

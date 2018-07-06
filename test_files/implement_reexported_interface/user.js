@@ -9,10 +9,11 @@
  */
 goog.module('test_files.implement_reexported_interface.user');
 var module = module || { id: 'test_files/implement_reexported_interface/user.ts' };
+const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.implement_reexported_interface.interface");
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.implement_reexported_interface.exporter");
 goog.require("test_files.implement_reexported_interface.exporter"); // force type-only module to be loaded
 /**
- * @implements {tsickle_forward_declare_1.ExportedInterface}
+ * @implements {tsickle_forward_declare_2.ExportedInterface}
  */
 class Test {
     constructor() {
