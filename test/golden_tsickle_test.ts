@@ -77,7 +77,7 @@ function compareAgainstGolden(
       }
     }
   } else {
-    expect(output).toEqual(golden!);
+    expect(output).toEqualWithDiff(golden!);
   }
 }
 

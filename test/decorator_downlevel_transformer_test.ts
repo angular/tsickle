@@ -71,7 +71,7 @@ describe('decorator_downlevel_transformer', () => {
   }
 
   function expectUnchanged(sourceText: string) {
-    expectTranslated(sourceText).toEqual(sourceText);
+    expectTranslated(sourceText).toEqualWithDiff(sourceText);
   }
 
   function expectTranslated(sourceText: string) {

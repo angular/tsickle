@@ -7,6 +7,7 @@
  */
 
 import * as assert from 'assert';
+import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch} from 'diff-match-patch';
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
@@ -299,17 +300,71 @@ export function getSourceMapWithName(
   return sourceMapTextToConsumer(findFileContentsByName(filename, files));
 }
 
+function removed(str: string) {
+  return '\x1B[37;41m' + str + '\x1B[0m';
+}
+
+function added(str: string) {
+  return '\x1B[37;32m' + str + '\x1B[0m';
+}
+
+/**
+ * A Jasmine "compare" function that compares the strings actual vs expected, and produces a human
+ * readable, colored diff using diff-match-patch.
+ */
+function diffStrings(actual: {}, expected: {}) {
+  if (actual === expected) return {pass: true};
+  if (typeof actual !== 'string' || typeof expected !== 'string') {
+    return {pass: false, message: `toEqualWithDiff takes two strings, got ${actual}, ${expected}`};
+  }
+  const dmp = new DiffMatchPatch();
+  dmp.Match_Distance = 0;
+  dmp.Match_Threshold = 0;
+  const diff = dmp.diff_main(expected, actual);
+  dmp.diff_cleanupSemantic(diff);
+  if (!diff.length) return {pass: true};
+  let message = '\x1B[0mstrings differ:\n';
+  for (const [diffKind, text] of diff) {
+    switch (diffKind) {
+      case DIFF_EQUAL:
+        message += text;
+        break;
+      case DIFF_DELETE:
+        // light gray on red.
+        message += '\x1B[37;41m' + text + '\x1B[0m';
+        break;
+      case DIFF_INSERT:
+        // dark gray on green.
+        message += '\x1B[90;42m' + text + '\x1B[0m';
+        break;
+      default:
+        throw new Error('unexpected diff result: ' + [diffKind, text]);
+    }
+  }
+  return {pass: false, message};
+}
+
+// Augment the global "jasmine.Matchers" type with our toEqualWithDiff function.
+declare global {
+  namespace jasmine {
+    interface Matchers<T> {
+      toEqualWithDiff(expected: string): boolean;
+    }
+  }
+}
+
 /**
  * Add
  *   beforeEach(() => { testSupport.addDiffMatchers(); });
- * to your test to get colored diff output on expectation failures.
+ * Then use expect(...).toEqualWithDiff(...) in your test to get colored diff output on expectation
+ * failures.
  */
 export function addDiffMatchers() {
-  // tslint:disable:no-require-imports
-  jasmine.addMatchers(require('jasmine-diff')(jasmine, {
-    colors: true,
-    inline: true,
-  }));
+  jasmine.addMatchers({
+    toEqualWithDiff(util: jasmine.MatchersUtil, cet: jasmine.CustomEqualityTester[]) {
+      return {compare: diffStrings};
+    },
+  });
 }
 
 export function formatDiagnostics(diags: ReadonlyArray<ts.Diagnostic>): string {
