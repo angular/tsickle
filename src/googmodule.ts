@@ -312,7 +312,11 @@ export function commonJsToGoogmoduleTransformer(
         }
         const varDecl = ts.createVariableDeclaration(newIdent, /* type */ undefined, initializer);
         const newStmt = ts.createVariableStatement(
-            /* modifiers */ undefined, ts.createVariableDeclarationList([varDecl]));
+            /* modifiers */ undefined,
+            ts.createVariableDeclarationList(
+                [varDecl],
+                // Use 'const' in ES6 mode so Closure properly forwards type aliases.
+                host.es5Mode ? undefined : ts.NodeFlags.Const));
         return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
       }
 

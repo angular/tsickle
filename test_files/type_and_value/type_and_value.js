@@ -9,7 +9,7 @@ goog.module('test_files.type_and_value.type_and_value');
 var module = module || { id: 'test_files/type_and_value/type_and_value.ts' };
 module = module;
 exports = {};
-var conflict = goog.require('test_files.type_and_value.module');
+const conflict = goog.require('test_files.type_and_value.module');
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.type_and_value.module");
 /** @type {function(new: (!Document)): ?} */
 let useBuiltInAsValue = Document;

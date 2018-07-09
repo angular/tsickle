@@ -144,6 +144,19 @@ console.log(mod_1.x);
 `);
     });
 
+    it('converts imports to goog.require calls using const in ES6 mode', () => {
+      expectCommonJs(
+          'a.ts', `import {x} from 'req/mod'; console.log(x);`,
+          /* es5 mode= */ false)
+          .toBe(`goog.module('a');
+var module = module || { id: 'a.ts' };
+module = module;
+exports = {};
+const mod_1 = goog.require('req.mod');
+console.log(mod_1.x);
+`);
+    });
+
     it('converts side-effect import to goog.require calls', () => {
       expectCommonJs('a.ts', `import 'req/mod';`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
