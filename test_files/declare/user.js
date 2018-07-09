@@ -4,7 +4,7 @@
  */
 goog.module('test_files.declare.user');
 var module = module || { id: 'test_files/declare/user.ts' };
-/** @type {!GlobalClass} */
+/** @type {!ModuleGlobalClass} */
 let x;
-/** @type {!globalNamespace.GlobalNamespaced} */
+/** @type {!moduleGlobalNamespace.GlobalNamespaced} */
 let y;

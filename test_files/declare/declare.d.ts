@@ -1,3 +1,6 @@
+// This d.ts file is a script (that is, not a module).
+// See declare_module.d.ts for the module version.
+
 declare namespace DeclareTestModule {
   namespace inner {
     var someBool: boolean;
@@ -30,7 +33,7 @@ declare namespace DeclareTestModule {
 
   enum Enumeration {
     Value1 = 2,
-    Value3
+    Value3,
   }
 
   enum StringEnum {
@@ -38,13 +41,13 @@ declare namespace DeclareTestModule {
     '.tricky.invalid name',
   }
 
-  type TypeAlias = string | number;
+  type TypeAlias = string|number;
 }
 
 // This module is quoted, which declares an importable module.
 // We can't model this in externs beyond making sure it's declared
 // in *some* namespace;
-declare module "DeclareTest-QuotedModule" {
+declare module 'DeclareTest-QuotedModule' {
   var foo: string;
 }
 
@@ -106,9 +109,7 @@ declare function usesArguments(arguments: string);
 declare function destructures({a: number});
 
 // Properly generate top-level enums.
-declare enum ChartType {
-    line, bar
-}
+declare enum ChartType { line, bar }
 
 // Should be dropped; redundant with Closure builtins.
 interface ErrorConstructor {

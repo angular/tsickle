@@ -1,3 +1,3 @@
 
-let x: GlobalClass;
-let y: globalNamespace.GlobalNamespaced;
+let x: ModuleGlobalClass;
+let y: moduleGlobalNamespace.GlobalNamespaced;
