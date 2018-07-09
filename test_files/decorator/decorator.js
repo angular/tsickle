@@ -6,16 +6,16 @@ goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
 module = module;
 exports = {};
-var tslib_1 = goog.require('tslib');
-var default_export_1 = goog.require('test_files.decorator.default_export');
+const tslib_1 = goog.require('tslib');
+const default_export_1 = goog.require('test_files.decorator.default_export');
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.default_export");
-var external_1 = goog.require('test_files.decorator.external');
+const external_1 = goog.require('test_files.decorator.external');
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.decorator.external");
-var external2_1 = goog.require('test_files.decorator.external2');
+const external2_1 = goog.require('test_files.decorator.external2');
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.decorator.external2");
 const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.decorator.only_types");
 goog.require("test_files.decorator.only_types"); // force type-only module to be loaded
-var api = goog.require('test_files.decorator.only_types');
+const api = goog.require('test_files.decorator.only_types');
 const tsickle_forward_declare_5 = goog.forwardDeclare("test_files.decorator.only_types");
 goog.require("test_files.decorator.only_types"); // force type-only module to be loaded
 /**

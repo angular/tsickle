@@ -6,7 +6,7 @@ goog.module('test_files.export.export');
 var module = module || { id: 'test_files/export/export.ts' };
 module = module;
 exports = {};
-var export_helper_1 = goog.require('test_files.export.export_helper');
+const export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export2 = export_helper_1.export2;
 exports.export5 = export_helper_1.export5;
 exports.export4 = export_helper_1.export4;
@@ -25,7 +25,7 @@ exports.DeclaredType; // re-export typedef
 exports.DeclaredInterface; // re-export typedef
 /** @type {string} */
 exports.export1 = 'wins';
-var export_helper_2 = export_helper_1;
+const export_helper_2 = export_helper_1;
 exports.export3 = export_helper_2.export4;
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper");
 /** @typedef {!tsickle_forward_declare_2.Interface} */
@@ -35,7 +35,7 @@ exports.exportLocal = 3;
 /** @type {number} */
 let export2 = 3;
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.export.export_helper");
-var type_and_value_1 = goog.require('test_files.export.type_and_value');
+const type_and_value_1 = goog.require('test_files.export.type_and_value');
 exports.TypeAndValue = type_and_value_1.TypeAndValue;
 const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.export.type_and_value");
 const tsickle_forward_declare_5 = goog.forwardDeclare("test_files.export.export_helper_3");

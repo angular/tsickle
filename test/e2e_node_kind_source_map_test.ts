@@ -25,10 +25,10 @@ describe('source maps each node with transformer', () => {
     const compiledJs = files.get('input.js')!;
     const sourceMap = getSourceMapWithName('input.js.map', files);
 
-    assertSourceMapping(compiledJs, sourceMap, 'var foo', {line: 1, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, 'const foo', {line: 1, source: 'input.ts'});
     assertSourceMapping(
         compiledJs, sourceMap, `goog.require('exporter1')`, {line: 1, source: 'input.ts'});
-    assertSourceMapping(compiledJs, sourceMap, `var exporter2_1`, {line: 2, source: 'input.ts'});
+    assertSourceMapping(compiledJs, sourceMap, `const exporter2_1`, {line: 2, source: 'input.ts'});
     assertSourceMapping(
         compiledJs, sourceMap, `goog.require('exporter2')`, {line: 2, source: 'input.ts'});
   });
