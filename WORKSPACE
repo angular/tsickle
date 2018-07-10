@@ -12,7 +12,7 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "node_reposi
 # Force developers to use the same Bazel version as Travis,
 # to prevent different local behavior than CI.
 # See travis_install.sh
-check_bazel_version("0.9.0")
+check_bazel_version("0.14.0")
 
 # NOTE: this rule installs nodejs, npm, and yarn, but does NOT install
 # your npm dependencies. You must still run the package manager.
@@ -35,9 +35,9 @@ http_archive(
 
 http_archive(
     name = "build_bazel_rules_typescript",
-    url = "https://github.com/rkirov/rules_typescript/archive/v0.16.0.zip",
-    strip_prefix = "rules_typescript-0.16.0",
-    sha256 = "f5aedd3a792e5af19cd0c0f0318cb692e2989e816e896e794152d07808fccacd",
+    url = "https://github.com/bazelbuild/rules_typescript/archive/0.15.1.zip",
+    strip_prefix = "rules_typescript-0.15.1",
+    sha256 = "3792cc20ef13bb1d1d8b1760894c3320f02a87843e3a04fed7e8e454a75328b6",
 )
 
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
