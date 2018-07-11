@@ -4,6 +4,8 @@
  */
 goog.module('test_files.structural.untyped.structural.untyped');
 var module = module || { id: 'test_files/structural.untyped/structural.untyped.ts' };
+module = module;
+exports = {};
 class StructuralTest {
     /**
      * @return {?}

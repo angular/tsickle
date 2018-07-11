@@ -18,6 +18,8 @@
 /** Here's another trailing comment */
 goog.module('test_files.file_comment.multiple_comments');
 var module = module || { id: 'test_files/file_comment/multiple_comments.ts' };
+module = module;
+exports = {};
 /**
  * @return {?}
  */

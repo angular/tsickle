@@ -4,6 +4,8 @@
  */
 goog.module('test_files.promiseconstructor.promiseconstructor');
 var module = module || { id: 'test_files/promiseconstructor/promiseconstructor.ts' };
+module = module;
+exports = {};
 /**
  * @param {(undefined|!PromiseConstructor)=} promiseCtor
  * @return {!Promise<void>}

@@ -8,6 +8,8 @@
  */
 goog.module('test_files.quote_props.quote');
 var module = module || { id: 'test_files/quote_props/quote.ts' };
+module = module;
+exports = {};
 /**
  * @record
  */

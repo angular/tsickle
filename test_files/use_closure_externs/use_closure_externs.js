@@ -7,6 +7,8 @@
  */
 goog.module('test_files.use_closure_externs.use_closure_externs');
 var module = module || { id: 'test_files/use_closure_externs/use_closure_externs.ts' };
+module = module;
+exports = {};
 console.log('work around TS dropping consecutive comments');
 /** @type {!NodeListOf<!HTMLParagraphElement>} */
 let x = document.getElementsByTagName('p');

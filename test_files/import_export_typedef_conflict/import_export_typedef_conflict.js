@@ -8,6 +8,8 @@
  */
 goog.module('test_files.import_export_typedef_conflict.import_export_typedef_conflict');
 var module = module || { id: 'test_files/import_export_typedef_conflict/import_export_typedef_conflict.ts' };
+module = module;
+exports = {};
 var ConflictingName = goog.require('test_files.import_export_typedef_conflict.exporter');
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.import_export_typedef_conflict.exporter");
 /** @typedef {number} */

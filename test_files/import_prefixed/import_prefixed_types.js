@@ -8,6 +8,8 @@
 // type TypeExport.
 goog.module('test_files.import_prefixed.import_prefixed_types');
 var module = module || { id: 'test_files/import_prefixed/import_prefixed_types.ts' };
+module = module;
+exports = {};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.import_prefixed.exporter");
 /** @type {(string|number)} */
 const someVar = 1;

@@ -8,6 +8,8 @@
  */
 goog.module('test_files.transitive_symbol_type_only.transitive_symbol_type_only');
 var module = module || { id: 'test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts' };
+module = module;
+exports = {};
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.transitive_symbol_type_only.exporter");
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.transitive_symbol_type_only.reexporter");
 goog.require("test_files.transitive_symbol_type_only.reexporter"); // force type-only module to be loaded

@@ -5,4 +5,6 @@
  */
 goog.module('test_files.file_comment.puretransform.comment_before_var');
 var module = module || { id: 'test_files/file_comment.puretransform/comment_before_var.ts' };
+module = module;
+exports = {};
 exports.y = 3;

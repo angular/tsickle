@@ -4,6 +4,8 @@
  */
 goog.module('test_files.coerce.coerce');
 var module = module || { id: 'test_files/coerce/coerce.ts' };
+module = module;
+exports = {};
 /**
  * @param {string} arg
  * @return {string}

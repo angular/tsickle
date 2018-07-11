@@ -7,6 +7,8 @@
 // containing only types and const enums must be "force loaded".
 goog.module('test_files.import_only_types.types_and_constenum');
 var module = module || { id: 'test_files/import_only_types/types_and_constenum.ts' };
+module = module;
+exports = {};
 /** @enum {number} */
 const ConstEnum = {
     BAR: 0,

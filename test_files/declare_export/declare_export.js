@@ -14,6 +14,8 @@
 // Closure builtin Error type.
 goog.module('test_files.declare_export.declare_export');
 var module = module || { id: 'test_files/declare_export/declare_export.ts' };
+module = module;
+exports = {};
 /** @typedef {!ExportDeclaredIf} */
 exports.ExportDeclaredIf;
 /** @type {!ExportDeclaredIf} */

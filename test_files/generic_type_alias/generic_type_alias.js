@@ -4,5 +4,7 @@
  */
 goog.module('test_files.generic_type_alias.generic_type_alias');
 var module = module || { id: 'test_files/generic_type_alias/generic_type_alias.ts' };
+module = module;
+exports = {};
 /** @typedef {!Array<?>} */
 exports.MyList;

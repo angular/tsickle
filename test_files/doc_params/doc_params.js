@@ -4,6 +4,8 @@
  */
 goog.module('test_files.doc_params.doc_params');
 var module = module || { id: 'test_files/doc_params/doc_params.ts' };
+module = module;
+exports = {};
 class Foo {
     /**
      * @ngInject
