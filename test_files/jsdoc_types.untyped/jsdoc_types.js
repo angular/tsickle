@@ -8,6 +8,8 @@
  */
 goog.module('test_files.jsdoc_types.untyped.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types.untyped/jsdoc_types.ts' };
+module = module;
+exports = {};
 var module1 = goog.require('test_files.jsdoc_types.untyped.module1');
 var module2_1 = goog.require('test_files.jsdoc_types.untyped.module2');
 var module2_2 = module2_1;

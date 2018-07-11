@@ -4,6 +4,8 @@
  */
 goog.module('test_files.nonnull_generics.nonnull_generics');
 var module = module || { id: 'test_files/nonnull_generics/nonnull_generics.ts' };
+module = module;
+exports = {};
 /**
  * getOrDefault removes the |null branch from its input. In TypeScript, this works, but in Closure,
  * generics like T are always nullable, and there's no syntax to specify a non-nullable generic.

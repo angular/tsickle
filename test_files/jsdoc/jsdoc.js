@@ -23,6 +23,8 @@
  */
 goog.module('test_files.jsdoc.jsdoc');
 var module = module || { id: 'test_files/jsdoc/jsdoc.ts' };
+module = module;
+exports = {};
 /**
  * @param {string} foo a string.
  * @param {string} baz

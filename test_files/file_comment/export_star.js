@@ -8,6 +8,8 @@
  */
 goog.module('test_files.file_comment.export_star');
 var module = module || { id: 'test_files/file_comment/export_star.ts' };
+module = module;
+exports = {};
 var comment_before_var_1 = goog.require('test_files.file_comment.comment_before_var');
 exports.y = comment_before_var_1.y;
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.file_comment.comment_before_var");

@@ -6,6 +6,8 @@
  * suite runner so that its types are always {?}.*/
 goog.module('test_files.jsdoc_types.nevertyped');
 var module = module || { id: 'test_files/jsdoc_types/nevertyped.ts' };
+module = module;
+exports = {};
 /**
  * @record
  */

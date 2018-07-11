@@ -4,6 +4,8 @@
  */
 goog.module('test_files.basic.untyped.basic.untyped');
 var module = module || { id: 'test_files/basic.untyped/basic.untyped.ts' };
+module = module;
+exports = {};
 /**
  * @param {?} arg1
  * @return {?}

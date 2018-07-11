@@ -4,6 +4,8 @@
  */
 goog.module('test_files.interface.interface');
 var module = module || { id: 'test_files/interface/interface.ts' };
+module = module;
+exports = {};
 /**
  * Used by implement_import.ts
  * @record

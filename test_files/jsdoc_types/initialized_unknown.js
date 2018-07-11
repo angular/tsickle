@@ -7,6 +7,8 @@
  */
 goog.module('test_files.jsdoc_types.initialized_unknown');
 var module = module || { id: 'test_files/jsdoc_types/initialized_unknown.ts' };
+module = module;
+exports = {};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.jsdoc_types.nevertyped");
 goog.require("test_files.jsdoc_types.nevertyped"); // force type-only module to be loaded
 const initializedUntyped = {

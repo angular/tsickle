@@ -4,6 +4,8 @@
  */
 goog.module('test_files.decorator.default_export');
 var module = module || { id: 'test_files/decorator/default_export.ts' };
+module = module;
+exports = {};
 class DefaultExport {
 }
 exports.default = DefaultExport;

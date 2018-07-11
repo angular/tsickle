@@ -4,6 +4,8 @@
  */
 goog.module('test_files.transitive_symbol_type_only.exporter');
 var module = module || { id: 'test_files/transitive_symbol_type_only/exporter.ts' };
+module = module;
+exports = {};
 /**
  * @record
  */

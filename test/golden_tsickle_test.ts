@@ -131,7 +131,7 @@ testFn('golden tests with transformer', () => {
       }
       const allDiagnostics = new Set<ts.Diagnostic>();
       const transformerHost: tsickle.TsickleHost = {
-        es5Mode: true,
+        es5Mode: test.isEs5Target,
         googmodule: true,
         // See test_files/jsdoc_types/nevertyped.ts.
         typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),

@@ -4,6 +4,8 @@
  */
 goog.module('test_files.enum.enum_user');
 var module = module || { id: 'test_files/enum/enum_user.ts' };
+module = module;
+exports = {};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.enum.enum");
 /**
  * @record

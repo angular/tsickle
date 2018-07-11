@@ -4,6 +4,8 @@
  */
 goog.module('test_files.class.untyped.class');
 var module = module || { id: 'test_files/class.untyped/class.ts' };
+module = module;
+exports = {};
 /**
  * @record
  */

@@ -5,6 +5,8 @@
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_namespace');
 var module = module || { id: 'test_files/namespaced/export_namespace.ts' };
+module = module;
+exports = {};
 var valueNamespace;
 (function (valueNamespace) {
     class ValueClass {

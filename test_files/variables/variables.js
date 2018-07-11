@@ -4,6 +4,8 @@
  */
 goog.module('test_files.variables.variables');
 var module = module || { id: 'test_files/variables/variables.ts' };
+module = module;
+exports = {};
 /** @type {string} */
 var v1;
 /** @type {string} */
