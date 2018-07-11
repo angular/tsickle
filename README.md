@@ -1,11 +1,11 @@
 # Tsickle - TypeScript to Closure Translator [![Linux build](https://travis-ci.org/angular/tsickle.svg?branch=master)](https://travis-ci.org/angular/tsickle) [![Windows build](https://ci.appveyor.com/api/projects/status/puxdblmlqbofqqt1/branch/master?svg=true)](https://ci.appveyor.com/project/alexeagle/tsickle/branch/master)
 
 Tsickle converts TypeScript code into a form acceptable to the [Closure
-Compiler].  This allows using TypeScript to transpile your sources, and then
+Compiler]. This allows using TypeScript to transpile your sources, and then
 using Closure Compiler to bundle and optimize them, while taking advantage of
 type information in Closure Compiler.
 
-[Closure Compiler]: https://github.com/google/closure-compiler/
+[closure compiler]: https://github.com/google/closure-compiler/
 
 ## What conversion means
 
@@ -35,12 +35,12 @@ to try it you should expect to spend some time debugging and reporting bugs.
 
 ### Project Setup
 
-Tsickle works by wrapping `tsc`.  To use it, you must set up your project such
+Tsickle works by wrapping `tsc`. To use it, you must set up your project such
 that it builds correctly when you run `tsc` from the command line, by
 configuring the settings in `tsconfig.json`.
 
 If you have complicated tsc command lines and flags in a build file (like a
-gulpfile etc.) Tsickle won't know about it.  Another reason it's nice to put
+gulpfile etc.) Tsickle won't know about it. Another reason it's nice to put
 everything in `tsconfig.json` is so your editor inherits all these settings as
 well.
 
@@ -51,15 +51,15 @@ specific options and use it as a TypeScript compiler.
 
 ### Differences from TypeScript
 
-Closure and TypeScript are not identical.  Tsickle hides most of the
+Closure and TypeScript are not identical. Tsickle hides most of the
 differences, but users must still be aware of some differences.
 
 #### `declare`
 
 Any declaration in a `.d.ts` file, as well as any declaration tagged with
 `declare ...`, is intepreted by Tsickle as a name that should be preserved
-through Closure compilation (i.e. not renamed into something shorter).  Use it
-any time the specific string names of your fields are significant.  That would
+through Closure compilation (i.e. not renamed into something shorter). Use it
+any time the specific string names of your fields are significant. That would
 most often happen when the object either coming from outside your program, or
 being passed out of the program.
 
@@ -73,9 +73,9 @@ Example:
 
 By adding `declare` to the interface (or if it were in a `.d.ts` file), Tsickle
 will inform Closure that it must use exactly the field name `.username` (and not
-e.g. `.a`) in the output JS.  This matters for this example because the input
+e.g. `.a`) in the output JS. This matters for this example because the input
 JSON probably uses the string `'username'` and not whatever name Closure would
-invent for it.  (Note: `declare` on an interface has no additional meaning in
+invent for it. (Note: `declare` on an interface has no additional meaning in
 pure TypeScript.)
 
 #### Exporting decorators
@@ -159,7 +159,7 @@ $ npm version minor -m 'rel: %s'
 This will update the version in `package.json`, commit the changes, and
 create a git tag.
 
-Push the branch and get it reviewed, but *do not merge*.  If you click
+Push the branch and get it reviewed, but _do not merge_. If you click
 the "rebase and merge" button in the Github UI it changes the commit,
 so the git tag that was created would point at the wrong commit.
 
@@ -172,7 +172,7 @@ $ git push origin v0.32.0
 
 Note that Github will block non-fast-forward pushes to master, so if
 there have been other intervening commits you'll need to recreate the
-release.  Once the versioned tag is pushed to Github the release (as
+release. Once the versioned tag is pushed to Github the release (as
 found on https://github.com/angular/tsickle/releases) will be
 implicitly created.
 
