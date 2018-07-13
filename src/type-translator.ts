@@ -730,7 +730,7 @@ export class TypeTranslator {
    */
   blacklistTypeParameters(
       blacklist: Map<ts.Symbol, string>,
-      decls: ts.NodeArray<ts.TypeParameterDeclaration>|undefined) {
+      decls: ReadonlyArray<ts.TypeParameterDeclaration>|undefined) {
     if (!decls || !decls.length) return;
     for (const tpd of decls) {
       const sym = this.typeChecker.getSymbolAtLocation(tpd.name);
