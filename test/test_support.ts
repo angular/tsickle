@@ -6,6 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+// Install source-map-support so that stack traces are mapped back to TS code.
+import 'source-map-support';
+
 import * as assert from 'assert';
 import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch} from 'diff-match-patch';
 import * as fs from 'fs';
