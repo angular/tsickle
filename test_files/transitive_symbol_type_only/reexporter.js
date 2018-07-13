@@ -7,6 +7,6 @@ var module = module || { id: 'test_files/transitive_symbol_type_only/reexporter.
 module = module;
 exports = {};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.transitive_symbol_type_only.exporter");
-goog.require("test_files.transitive_symbol_type_only.exporter"); // force type-only module to be loaded
+goog.require('test_files.transitive_symbol_type_only.exporter'); // force type-only module to be loaded
 /** @typedef {(null|string|!tsickle_forward_declare_1.ExportedInterface)} */
 exports.UsesExportedInterface;

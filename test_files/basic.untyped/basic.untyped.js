@@ -6,6 +6,8 @@ goog.module('test_files.basic.untyped.basic.untyped');
 var module = module || { id: 'test_files/basic.untyped/basic.untyped.ts' };
 module = module;
 exports = {};
+// This test is just a random collection of typed code, to
+// ensure the output is all with {?} annotations.
 /**
  * @param {?} arg1
  * @return {?}
@@ -31,8 +33,10 @@ if (false) {
 // These two declarations should not have a @type annotation,
 // regardless of untyped.
 (function () {
+    // With a type annotation:
     let { a, b } = { a: '', b: 0 };
 })();
 (function () {
+    // Without a type annotation:
     let { a, b } = { a: null, b: null };
 })();

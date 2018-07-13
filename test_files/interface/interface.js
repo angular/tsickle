@@ -44,15 +44,8 @@ usePoint({ x: 1, y: 1 });
  */
 function TrickyInterface() { }
 if (false) {
-    /* TODO: handle strange member:
-    [offset: number]: number;
-    */
     /** @type {number} */
     TrickyInterface.prototype.foo;
-    /* TODO: handle strange member:
-    (x: number): __ yuck __
-          number;
-    */
     /** @type {(undefined|string)} */
     TrickyInterface.prototype.foobar;
     /** @type {?|undefined} */
@@ -64,4 +57,7 @@ if (false) {
      * @type {function(string): number}
      */
     TrickyInterface.prototype.hasSomeParamJsDoc;
+    /* Skipping unhandled member: [offset: number]: number;*/
+    /* Skipping unhandled member: (x: number): __ yuck __
+          number;*/
 }

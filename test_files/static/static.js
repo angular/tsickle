@@ -10,6 +10,7 @@ class Static {
 }
 // This should not become a stub declaration.
 Static.bar = 3;
+// private statics also should work.
 Static.baz = 3;
 if (false) {
     /** @type {number} */

@@ -7,15 +7,22 @@
  */
 
 import * as jsdoc from '../src/jsdoc';
+import {synthesizeCommentRanges} from '../src/transformer_util';
+import * as ts from '../src/typescript';
 
 describe('jsdoc.parse', () => {
+  function parse(text: string) {
+    const synth = jsdoc.getLeadingCommentRangesSynthesized(text);
+    return jsdoc.parse(synth[0]);
+  }
+
   it('does not get non-jsdoc values', () => {
     const source = '/* ordinary comment */';
-    expect(jsdoc.parse(source)).toEqual(null);
+    expect(parse(source)).toEqual(null);
   });
   it('grabs plain text from jsdoc', () => {
     const source = '/** jsdoc comment */';
-    expect(jsdoc.parse(source)).toEqual({tags: [{tagName: '', text: 'jsdoc comment'}]});
+    expect(parse(source)).toEqual({tags: [{tagName: '', text: 'jsdoc comment'}]});
   });
   it('gathers @tags from jsdoc', () => {
     const source = `/**
@@ -26,7 +33,7 @@ describe('jsdoc.parse', () => {
   * @return foobar
   * @nosideeffects
   */`;
-    expect(jsdoc.parse(source)).toEqual({
+    expect(parse(source)).toEqual({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
         {tagName: 'param', parameterName: 'indented', text: 'from line start.'},
@@ -40,7 +47,7 @@ describe('jsdoc.parse', () => {
     const source = `/**
   * @param {string} foo
 */`;
-    expect(jsdoc.parse(source)).toEqual({
+    expect(parse(source)).toEqual({
       tags: [],
       warnings: [
         'the type annotation on @param is redundant with its TypeScript type, remove the {...} part'
@@ -49,18 +56,18 @@ describe('jsdoc.parse', () => {
   });
   it('warns on @type annotations', () => {
     const source = `/** @type {string} foo */`;
-    expect(jsdoc.parse(source)).toEqual({
+    expect(parse(source)).toEqual({
       tags: [],
       warnings: ['@type annotations are redundant with TypeScript equivalents']
     });
   });
   it('allows @suppress annotations', () => {
     const source = `/** @suppress {checkTypes} I hate types */`;
-    expect(jsdoc.parse(source)).toEqual({
+    expect(parse(source)).toEqual({
       tags: [{tagName: 'suppress', type: 'checkTypes', text: ' I hate types'}]
     });
     const malformed = `/** @suppress malformed */`;
-    expect(jsdoc.parse(malformed)).toEqual({
+    expect(parse(malformed)).toEqual({
       tags: [{tagName: 'suppress', text: 'malformed'}],
       warnings: ['malformed @suppress tag: "malformed"'],
     });

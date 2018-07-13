@@ -1,3 +1,4 @@
+// test_files/class.untyped/class.ts(41,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -11,8 +12,10 @@ exports = {};
  */
 function Interface() { }
 if (false) {
-    /** @type {?} */
-    Interface.prototype.interfaceFunc;
+    /**
+     * @return {?}
+     */
+    Interface.prototype.interfaceFunc = function () { };
 }
 class Super {
     /**
@@ -46,6 +49,7 @@ class ImplementsTypeAlias {
      */
     superFunc() { }
 }
+// Verify Closure accepts the various casts.
 /** @type {?} */
 let interfaceVar;
 interfaceVar = new Implements();
@@ -56,6 +60,7 @@ let superVar;
 superVar = new Implements();
 superVar = new Extends();
 superVar = new ImplementsTypeAlias();
+// WARNING: interface has both a type and a value, skipping emit
 /**
  * @return {?}
  */

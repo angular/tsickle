@@ -41,8 +41,8 @@ if (false) {
 function takesNonNullable(val) { }
 /** @type {{field: (null|string|number)}} */
 let x = { field: null };
-takesNonNullable(/** @type {(string|number)} */ ((x.field)));
-takesNonNullable(`${(/** @type {(string|number)} */ ((x.field)))}`);
+takesNonNullable((/** @type {(string|number)} */ (x.field)));
+takesNonNullable(`${(/** @type {(string|number)} */ (x.field))}`);
 /** @type {?} */
 let ctx;
-takesNonNullable(`org/${(/** @type {?} */ ((ctx.getTargetOrganization()))).key}/admin/folders`);
+takesNonNullable(`org/${(/** @type {?} */ (ctx.getTargetOrganization())).key}/admin/folders`);

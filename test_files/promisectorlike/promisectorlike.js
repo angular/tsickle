@@ -11,7 +11,7 @@ exports = {};
  * @return {!Promise<string>}
  */
 function toPromise(ctorLike) {
-    return /** @type {!Promise<string>} */ (new ctorLike((resolve, reject) => {
+    return (/** @type {!Promise<string>} */ (new ctorLike((resolve, reject) => {
         reject('grumpycat');
-    }));
+    })));
 }

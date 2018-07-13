@@ -12,18 +12,17 @@ exports.export1 = export_helper_1.export1;
 exports.export3 = export_helper_1.export3;
 exports.export5 = export_helper_1.export5;
 exports.export4 = export_helper_1.export4;
-const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper");
-/** @typedef {!tsickle_forward_declare_2.Bar} */
+/** @typedef {!tsickle_forward_declare_1.Bar} */
 exports.Bar; // re-export typedef
-/** @typedef {!tsickle_forward_declare_2.TypeDef} */
+/** @typedef {!tsickle_forward_declare_1.TypeDef} */
 exports.RenamedTypeDef; // re-export typedef
-/** @typedef {!tsickle_forward_declare_2.TypeDef} */
+/** @typedef {!tsickle_forward_declare_1.TypeDef} */
 exports.TypeDef; // re-export typedef
-/** @typedef {!tsickle_forward_declare_2.Interface} */
+/** @typedef {!tsickle_forward_declare_1.Interface} */
 exports.Interface; // re-export typedef
-/** @typedef {!tsickle_forward_declare_2.DeclaredType} */
+/** @typedef {!tsickle_forward_declare_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
-/** @typedef {!tsickle_forward_declare_2.DeclaredInterface} */
+/** @typedef {!tsickle_forward_declare_1.DeclaredInterface} */
 exports.DeclaredInterface; // re-export typedef
 /** @type {number} */
 const something = 1;

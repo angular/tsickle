@@ -11,7 +11,6 @@ var module = module || { id: 'test_files/namespaced/export_enum_in_namespace.ts'
 module = module;
 exports = {};
 var foo;
-// tslint:disable:no-namespace
 (function (foo) {
     let Bar;
     (function (Bar) {

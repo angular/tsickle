@@ -1,8 +1,10 @@
+// test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
 // test_files/type/type.ts(14,5): warning TS0: unhandled anonymous type
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
+// WARNING: interface has both a type and a value, skipping emit
 goog.module('test_files.type.type');
 var module = module || { id: 'test_files/type/type.ts' };
 module = module;

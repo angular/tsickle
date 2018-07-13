@@ -1,5 +1,4 @@
-// test_files/class/class.ts(126,42): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(130,38): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -21,8 +20,10 @@ exports = {};
  */
 function Interface() { }
 if (false) {
-    /** @type {function(): void} */
-    Interface.prototype.interfaceFunc;
+    /**
+     * @return {void}
+     */
+    Interface.prototype.interfaceFunc = function () { };
 }
 class Class {
     /**
@@ -52,8 +53,10 @@ if (false) {
  */
 function InterfaceExtendsInterface() { }
 if (false) {
-    /** @type {function(): void} */
-    InterfaceExtendsInterface.prototype.interfaceFunc2;
+    /**
+     * @return {void}
+     */
+    InterfaceExtendsInterface.prototype.interfaceFunc2 = function () { };
 }
 /** @type {!InterfaceExtendsInterface} */
 let interfaceExtendsInterface = {
@@ -71,9 +74,12 @@ let interfaceExtendsInterface = {
  */
 function InterfaceExtendsClass() { }
 if (false) {
-    /** @type {function(): void} */
-    InterfaceExtendsClass.prototype.interfaceFunc3;
+    /**
+     * @return {void}
+     */
+    InterfaceExtendsClass.prototype.interfaceFunc3 = function () { };
 }
+// Permutation 3: class implements.
 /**
  * @implements {Interface}
  */
@@ -100,11 +106,16 @@ class ClassImplementsAbstractClass {
      * @return {void}
      */
     abstractFunc() { }
+    // Note: because this class *implements* AbstractClass, it must also implement
+    // nonAbstractFunc despite that already having an implementation.
     /**
      * @return {void}
      */
     nonAbstractFunc() { }
 }
+// Permutation 4: class extends.
+// Note: cannot "extends" an interface.
+// So this is illegal: class ClassExtendsInterface extends Interface {
 class ClassExtendsClass extends Class {
     /**
      * @return {void}
@@ -117,6 +128,7 @@ class ClassExtendsAbstractClass extends AbstractClass {
      */
     abstractFunc() { }
 }
+// Permutation 5: abstract class implements.
 /**
  * @abstract
  * @implements {Interface}
@@ -142,6 +154,8 @@ class AbstractClassImplementsClass {
  * @extends {AbstractClass}
  */
 class AbstractClassImplementsAbstractClass {
+    // Note: because this class *implements* AbstractClass, it must also implement
+    // abstractFunc and nonAbstractFunc despite that already having an implementation.
     /**
      * @return {void}
      */
@@ -151,6 +165,9 @@ class AbstractClassImplementsAbstractClass {
      */
     nonAbstractFunc() { }
 }
+// Permutation 6: abstract class extends.
+// Note: cannot "extends" an interface.
+// So this is illegal: class AbstractClassExtendsInterface extends Interface {
 /**
  * @abstract
  */
@@ -179,20 +196,24 @@ class ImplementsTypeAlias {
      */
     classFunc() { }
 }
+// Verify Closure accepts the various subtypes of Interface.
 /** @type {!Interface} */
 let interfaceVar;
 interfaceVar = interfaceExtendsInterface;
 interfaceVar = new ClassImplementsInterface();
 interfaceVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of Class.
 /** @type {!Class} */
 let classVar;
 classVar = new ClassImplementsClass();
 classVar = new ClassExtendsClass();
 classVar = new ImplementsTypeAlias();
+// Verify Closure accepts the various subtypes of AbstractClass.
 /** @type {!AbstractClass} */
 let abstractClassVar;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
+// WARNING: interface has both a type and a value, skipping emit
 /**
  * @return {void}
  */

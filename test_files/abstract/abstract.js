@@ -50,6 +50,7 @@ if (false) {
     Base.prototype.hasReturnType = function () { };
 }
 class Derived extends Base {
+    // Workaround for https://github.com/google/closure-compiler/issues/1955
     constructor() {
         super();
     }

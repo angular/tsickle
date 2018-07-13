@@ -17,9 +17,6 @@ ts_library(
         "decorator_downlevel_transformer_test.ts",
         "googmodule_test.ts",
         "jsdoc_test.ts",
-        "source_map_test.ts",
-        "source_map_utils_test.ts",
-        "transformer_util_test.ts",
         "tsickle_test.ts",
         "type-translator_test.ts",
     ],
@@ -40,8 +37,6 @@ ts_library(
     srcs = [
         "e2e_clutz_dts_test.ts",
         "e2e_main_test.ts",
-        "e2e_node_kind_source_map_test.ts",
-        "e2e_source_map_test.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [

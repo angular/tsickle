@@ -14,7 +14,6 @@ if (false) {
     /** @type {number} */
     UpperBound.prototype.x;
 }
-// unsupported: template constraints.
 /**
  * @record
  * @template T, U

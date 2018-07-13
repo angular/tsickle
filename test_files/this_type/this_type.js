@@ -14,6 +14,7 @@ if (false) {
 }
 /** @type {function(this: (!SomeClass), string): number} */
 const variableWithFunctionTypeUsingThis = () => 1;
+// Has only a single this arg, no more parameters.
 /**
  * @return {(undefined|function(this: (string)): string)}
  */

@@ -1,3 +1,5 @@
+// test_files/quote_props/quote.ts(21,3): warning TS0: handle unnamed member:
+// 'invalid-identifier': number;
 // test_files/quote_props/quote.ts(9,13): warning TS0: Quoted has a string index type but is accessed using dotted access. Quoting the access.
 // test_files/quote_props/quote.ts(10,1): warning TS0: Quoted has a string index type but is accessed using dotted access. Quoting the access.
 // test_files/quote_props/quote.ts(13,1): warning TS0: Quoted has a string index type but is accessed using dotted access. Quoting the access.
@@ -14,18 +16,13 @@ exports = {};
  * @record
  */
 function Quoted() { }
-if (false) {
-    /* TODO: handle strange member:
-    [k: string]: number;
-    */
-}
 /** @type {!Quoted} */
 let quoted = {};
-console.log(quoted["hello"]);
-quoted["hello"] = 1;
+console.log(quoted['hello']);
+quoted['hello'] = 1;
 quoted['hello'] = 1;
 /** some comment */
-quoted["hello"] = 1;
+quoted['hello'] = 1;
 /**
  * @record
  * @extends {Quoted}
@@ -34,9 +31,8 @@ function QuotedMixed() { }
 if (false) {
     /** @type {number} */
     QuotedMixed.prototype.foo;
-    /* TODO: handle strange member:
-    'invalid-identifier': number;
-    */
+    /* Skipping unnamed member:
+    'invalid-identifier': number;*/
     /** @type {number} */
     QuotedMixed.prototype.quotedIdent;
 }
@@ -51,6 +47,7 @@ quotedMixed['foo'] = 1;
 quotedMixed['invalid-identifier'] = 1;
 // Must not be converted to non-quoted access because it was declared quoted.
 quotedMixed['quotedIdent'] = 1;
+// any does not declare any symbols.
 /** @type {?} */
 let anyTyped;
 console.log(anyTyped['token']);

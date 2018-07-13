@@ -14,7 +14,7 @@ console.log('work around TS dropping consecutive comments');
 let x = document.getElementsByTagName('p');
 console.log(x);
 /** @type {(null|!RegExpExecArray)} */
-const res = /** @type {!RegExpExecArray} */ ((/asd/.exec('asd asd')));
+const res = (/** @type {!RegExpExecArray} */ (/asd/.exec('asd asd')));
 console.log(res);
 /** @type {!ReadonlyArray<string>} */
 let a = [''];

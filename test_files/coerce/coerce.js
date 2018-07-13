@@ -11,6 +11,10 @@ exports = {};
  * @return {string}
  */
 function acceptString(arg) { return arg; }
-acceptString(/** @type {?} */ (3));
-acceptString(/** @type {?} */ (3));
+acceptString((/** @type {?} */ (3)));
+acceptString((/** @type {?} */ (3)));
 acceptString(`${(/** @type {?} */ (3))}`);
+/** @type {(null|string)} */
+const nullableVariable = 'asd';
+/** @type {string} */
+const nonNullVariable = (/** @type {string} */ (nullableVariable));

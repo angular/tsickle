@@ -14,11 +14,9 @@ import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
-import {SourceMapConsumer} from 'source-map';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
-import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
 
 /** Path to tslib.d.ts; used inside Google for this test suite. */
@@ -252,40 +250,6 @@ function getLineAndColumn(source: string, token: string): {line: number, column:
   return {line, column};
 }
 
-export function assertSourceMapping(
-    compiledJs: string, sourceMap: SourceMapConsumer, sourceSnippet: string,
-    expectedPosition: {source: string, line?: number, column?: number}) {
-  const {line, column} = getLineAndColumn(compiledJs, sourceSnippet);
-  const originalPosition = sourceMap.originalPositionFor({line, column});
-  if (expectedPosition.line) {
-    expect(originalPosition.line).toBe(expectedPosition.line, 'original line number');
-  }
-  if (expectedPosition.column) {
-    expect(originalPosition.column).toBe(expectedPosition.column, 'original column');
-  }
-  if (expectedPosition.source) {
-    expect(originalPosition.source).toBe(expectedPosition.source, 'original source file');
-  }
-}
-
-export function extractInlineSourceMap(source: string): BasicSourceMapConsumer {
-  const inlineSourceMapRegex =
-      new RegExp('//# sourceMappingURL=data:application/json;base64,(.*)$', 'mg');
-  let previousResult: RegExpExecArray|null = null;
-  let result: RegExpExecArray|null = null;
-  // We want to extract the last source map in the source file
-  // since that's probably the most recent one added.  We keep
-  // matching against the source until we don't get a result,
-  // then we use the previous result.
-  do {
-    previousResult = result;
-    result = inlineSourceMapRegex.exec(source);
-  } while (result !== null);
-  const base64EncodedMap = previousResult![1];
-  const sourceMapJson = Buffer.from(base64EncodedMap, 'base64').toString('utf8');
-  return sourceMapTextToConsumer(sourceMapJson);
-}
-
 export function findFileContentsByName(filename: string, files: Map<string, string>): string {
   for (const filepath of files.keys()) {
     if (path.parse(filepath).base === path.parse(filename).base) {
@@ -296,11 +260,6 @@ export function findFileContentsByName(filename: string, files: Map<string, stri
       undefined,
       `Couldn't find file ${filename} in files: ${JSON.stringify(Array.from(files.keys()))}`);
   throw new Error('Unreachable');
-}
-
-export function getSourceMapWithName(
-    filename: string, files: Map<string, string>): BasicSourceMapConsumer {
-  return sourceMapTextToConsumer(findFileContentsByName(filename, files));
 }
 
 function removed(str: string) {

@@ -5,6 +5,7 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
+// Line with a missing semicolon should not break the following enum.
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
 module = module;
@@ -17,14 +18,16 @@ const EnumTest1 = {
 };
 EnumTest1[EnumTest1.XYZ] = 'XYZ';
 EnumTest1[EnumTest1.PI] = 'PI';
+// Verify that the resulting TypeScript still allows you to index into the enum with all the various
+// ways allowed of enums.
 /** @type {EnumTest1} */
 let enumTestValue = EnumTest1.XYZ;
 /** @type {EnumTest1} */
 let enumTestValue2 = EnumTest1['XYZ'];
 /** @type {string} */
-let enumNumIndex = EnumTest1[/** @type {number} */ ((null))];
+let enumNumIndex = EnumTest1[(/** @type {number} */ ((/** @type {?} */ (null))))];
 /** @type {number} */
-let enumStrIndex = EnumTest1[/** @type {string} */ ((null))];
+let enumStrIndex = EnumTest1[(/** @type {string} */ ((/** @type {?} */ (null))))];
 /**
  * @param {EnumTest1} val
  * @return {void}
@@ -35,6 +38,7 @@ enumTestFunction(enumTestValue);
 let enumTestLookup = EnumTest1["XYZ"];
 /** @type {?} */
 let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
+// Verify that unions of enum members and other values are handled correctly.
 /** @type {(boolean|EnumTest1)} */
 let enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
@@ -51,7 +55,6 @@ const ComponentIndex = {
     Scheme: 1,
     UserInfo: 2,
     Domain: 0,
-    // Be sure to exercise the code with a 0 enum value.
     UserInfo2: 2,
 };
 ComponentIndex[ComponentIndex.Scheme] = 'Scheme';

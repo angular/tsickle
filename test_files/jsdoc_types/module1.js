@@ -1,3 +1,5 @@
+// test_files/jsdoc_types/module1.ts(4,3): warning TS0: handle unnamed member:
+// "quoted-bad-name": string;
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -17,7 +19,6 @@ exports.Interface = Interface;
 if (false) {
     /** @type {number} */
     Interface.prototype.x;
-    /* TODO: handle strange member:
-    "quoted-bad-name": string;
-    */
+    /* Skipping unnamed member:
+    "quoted-bad-name": string;*/
 }

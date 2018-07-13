@@ -27,5 +27,9 @@ if (false) {
 class ClassWithParams {
 }
 exports.ClassWithParams = ClassWithParams;
+/** @typedef {?} */
+exports.TypeAlias;
+/** @typedef {?} */
+exports.TypeAliasWithParam;
 /** @type {?} */
 exports.value = 3;

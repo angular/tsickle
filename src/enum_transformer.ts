@@ -21,8 +21,7 @@
 
 import * as ts from 'typescript';
 
-import {createSingleQuoteStringLiteral, getIdentifierText} from './transformer_util';
-import {hasModifierFlag} from './util';
+import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag} from './transformer_util';
 
 /** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
 function isInNamespace(node: ts.Node) {

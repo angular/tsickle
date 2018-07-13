@@ -11,8 +11,8 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import {getGeneratedExterns} from '../src/externs';
+import {normalizeLineEndings} from '../src/jsdoc';
 import * as tsickle from '../src/tsickle';
-import {normalizeLineEndings} from '../src/util';
 
 import * as testSupport from './test_support';
 

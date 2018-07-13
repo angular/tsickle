@@ -33,6 +33,7 @@ function Test3(a, b) { }
 function Test4(a) {
     return "a";
 }
+// Test a "this" param and a rest param in the same function.
 /**
  * @this {?}
  * @param {...?} params

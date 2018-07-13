@@ -18,7 +18,10 @@ if (false) {
 }
 /** @typedef {number} */
 exports.Bar;
-/** @typedef {function(): void} */
+/**
+ * A type that will be used within this file below.
+ * @typedef {function(): void}
+ */
 exports.FnType;
 /**
  * Uses exported types to demonstrate that the symbols can be resolved locally.

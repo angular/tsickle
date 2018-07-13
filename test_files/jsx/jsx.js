@@ -15,4 +15,4 @@ let helloDiv = React.createElement("div", null,
     hello,
     "hello, world",
     React.createElement(Component, null));
-React.render(helloDiv, /** @type {!HTMLElement} */ ((document.body)));
+React.render(helloDiv, (/** @type {!HTMLElement} */ (document.body)));

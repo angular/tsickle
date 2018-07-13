@@ -7,6 +7,7 @@ var module = module || { id: 'test_files/parameter_properties/parameter_properti
 module = module;
 exports = {};
 class ParamProps {
+    // The @export below should not show up in the output ctor.
     /**
      * @param {string} publicExportedP
      * @param {string} publicP

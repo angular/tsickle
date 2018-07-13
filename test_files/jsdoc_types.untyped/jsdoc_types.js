@@ -15,12 +15,14 @@ const module2_1 = goog.require('test_files.jsdoc_types.untyped.module2');
 const module2_2 = module2_1;
 const module2_3 = module2_1;
 const default_1 = goog.require('test_files.jsdoc_types.untyped.default');
+// Check that imported types get the proper names in JSDoc.
 /** @type {?} */
 let useNamespacedClass = new module1.Class();
 /** @type {?} */
 let useNamespacedClassAsType;
 /** @type {?} */
 let useNamespacedType;
+// Should be references to the symbols in module2, perhaps via locals.
 /** @type {?} */
 let useLocalClass = new module2_1.ClassOne();
 /** @type {?} */
@@ -33,12 +35,15 @@ let useLocalClassAsTypeRenamed;
 let useLocalInterface;
 /** @type {?} */
 let useClassWithParams;
+// This is purely a value; it doesn't need renaming.
 /** @type {?} */
 let useLocalValue = module2_1.value;
+// Check a default import.
 /** @type {?} */
 let useDefaultClass = new default_1.default();
 /** @type {?} */
 let useDefaultClassAsType;
+// NeverTyped should be {?}, even in typed mode.
 /** @type {?} */
 let useNeverTyped;
 /** @type {?} */

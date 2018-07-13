@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {normalizeLineEndings} from './util';
+import * as ts from './typescript';
 
 /**
  * TypeScript has an API for JSDoc already, but it's not exposed.
@@ -133,15 +133,22 @@ export interface ParsedJSDocComment {
 // such as merging (below), de-duplicating certain tags (@deprecated), and special treatment for
 // others (e.g. @suppress). We should introduce a proper model class with a more suitable data
 // strucure (e.g. a Map<TagName, Values[]>).
-export function parse(comment: string): ParsedJSDocComment|null {
-  // Make sure we have proper line endings before parsing on Windows.
-  comment = normalizeLineEndings(comment);
+export function parse(comment: ts.SynthesizedComment): ParsedJSDocComment|null {
   // TODO(evanm): this is a pile of hacky regexes for now, because we
   // would rather use the better TypeScript implementation of JSDoc
   // parsing.  https://github.com/Microsoft/TypeScript/issues/7393
-  const match = comment.match(/^\/\*\*([\s\S]*?)\*\/$/);
-  if (!match) return null;
-  return parseContents(match[1].trim());
+  if (comment.kind !== ts.SyntaxKind.MultiLineCommentTrivia) return null;
+  // comment.text does not include /* and */, so must start with '*' for JSDoc.
+  if (comment.text[0] !== '*') return null;
+  const text = comment.text.substring(1).trim();
+  return parseContents(text);
+}
+
+/**
+ * Returns the input string with line endings normalized to '\n'.
+ */
+export function normalizeLineEndings(input: string): string {
+  return input.replace(/\r\n/g, '\n');
 }
 
 /**
@@ -150,7 +157,7 @@ export function parse(comment: string): ParsedJSDocComment|null {
  *
  * @param commentText a comment's text content, i.e. the comment w/o /* and * /.
  */
-export function parseContents(commentText: string): {tags: Tag[], warnings?: string[]}|null {
+export function parseContents(commentText: string): ParsedJSDocComment|null {
   // Make sure we have proper line endings before parsing on Windows.
   commentText = normalizeLineEndings(commentText);
   // Strip all the " * " bits from the front of each line.
@@ -266,6 +273,92 @@ const SINGLETON_TAGS = new Set(['deprecated']);
 /** Tags that conflict with \@type in Closure Compiler (e.g. \@param). */
 export const TAGS_CONFLICTING_WITH_TYPE = new Set(['param', 'return']);
 
+/**
+ * A synthesized comment that (possibly) includes the original comment range it was created from.
+ */
+export interface SynthesizedCommentWithOriginal extends ts.SynthesizedComment {
+  /**
+   * The original text range of the comment (relative to the source file's full text).
+   */
+  originalRange?: ts.TextRange;
+}
+
+/**
+ * synthesizeLeadingComments parses the leading comments of node, converts them
+ * to synthetic comments, and makes sure the original text comments do not get
+ * emitted by TypeScript.
+ */
+export function synthesizeLeadingComments(node: ts.Node): SynthesizedCommentWithOriginal[] {
+  const existing = ts.getSyntheticLeadingComments(node);
+  if (existing) return existing;
+  const text = node.getFullText();
+  const synthComments = getLeadingCommentRangesSynthesized(text, node.getFullStart());
+  if (synthComments.length) {
+    ts.setSyntheticLeadingComments(node, synthComments);
+    suppressLeadingCommentsRecursively(node);
+  }
+  return synthComments;
+}
+
+/**
+ * parseLeadingCommentRangesSynthesized parses the leading comment ranges out of the given text and
+ * converts them to SynthesizedComments.
+ * @param offset the offset of text in the source file, e.g. node.getFullStart().
+ */
+// VisibleForTesting
+export function getLeadingCommentRangesSynthesized(
+    text: string, offset = 0): SynthesizedCommentWithOriginal[] {
+  const comments = ts.getLeadingCommentRanges(text, 0) || [];
+  return comments.map((cr): SynthesizedCommentWithOriginal => {
+    // Confusingly, CommentRange in TypeScript includes start and end markers, but
+    // SynthesizedComments do not.
+    const commentText = cr.kind === ts.SyntaxKind.SingleLineCommentTrivia ?
+        text.substring(cr.pos + 2, cr.end) :
+        text.substring(cr.pos + 2, cr.end - 2);
+    return {
+      ...cr,
+      text: commentText,
+      pos: -1,
+      end: -1,
+      originalRange: {pos: cr.pos + offset, end: cr.end + offset}
+    };
+  });
+}
+
+/**
+ * suppressCommentsRecursively prevents emit of leading comments on node, and any recursive nodes
+ * underneath it that start at the same offset.
+ */
+export function suppressLeadingCommentsRecursively(node: ts.Node) {
+  // TypeScript emits leading comments on a node, unless:
+  // - the comment was emitted by the parent node
+  // - the node has the NoLeadingComments emit flag.
+  // However, transformation steps sometimes copy nodes without keeping their emit flags, so just
+  // setting NoLeadingComments recursively is not enough, we must also set the text range to avoid
+  // the copied node to have comments emitted.
+  const originalStart = node.getFullStart();
+  const actualStart = node.getStart();
+  function suppressCommentsInternal(node: ts.Node): boolean {
+    ts.setEmitFlags(node, ts.EmitFlags.NoLeadingComments);
+    return !!ts.forEachChild(node, (child) => {
+      if (child.pos !== originalStart) return true;
+      return suppressCommentsInternal(child);
+    });
+  }
+  suppressCommentsInternal(node);
+}
+
+export function toSynthesizedComment(
+    tags: Tag[], escapeExtraTags?: Set<string>): ts.SynthesizedComment {
+  return {
+    kind: ts.SyntaxKind.MultiLineCommentTrivia,
+    text: toStringWithoutStartEnd(tags, escapeExtraTags),
+    pos: -1,
+    end: -1,
+    hasTrailingNewLine: true,
+  };
+}
+
 /** Serializes a Comment out to a string, but does not include the start and end comment tokens. */
 export function toStringWithoutStartEnd(tags: Tag[], escapeExtraTags = new Set<string>()): string {
   return serialize(tags, false, escapeExtraTags);
@@ -281,11 +374,12 @@ function serialize(
   if (tags.length === 0) return '';
   if (tags.length === 1) {
     const tag = tags[0];
-    if ((tag.tagName === 'type' || tag.tagName === 'nocollapse') &&
+    if ((tag.tagName === 'type' || tag.tagName === 'typedef' || tag.tagName === 'nocollapse') &&
         (!tag.text || !tag.text.match('\n'))) {
       // Special-case one-liner "type" and "nocollapse" tags to fit on one line, e.g.
       //   /** @type {foo} */
-      return '/**' + tagToString(tag, escapeExtraTags) + ' */\n';
+      const text = tagToString(tag, escapeExtraTags);
+      return includeStartEnd ? `/** ${text} */` : `*${text} `;
     }
     // Otherwise, fall through to the multi-line output.
   }
