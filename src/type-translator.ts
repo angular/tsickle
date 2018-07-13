@@ -314,7 +314,7 @@ export class TypeTranslator {
     // can emit a precise type.
     if (this.isForExterns && isModule && !isAmbient) return '?';
 
-    const lastFlag = ts.TypeFlags.IndexedAccess;
+    const lastFlag = ts.TypeFlags.Substitution;
     const mask = (lastFlag << 1) - 1;
     switch (type.flags & mask) {
       case ts.TypeFlags.Any:
@@ -361,6 +361,10 @@ export class TypeTranslator {
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:
         return this.translateUnion(type as ts.UnionType);
+      case ts.TypeFlags.Conditional:
+      case ts.TypeFlags.Substitution:
+        this.warn(`emitting ? for conditional/substitution type`);
+        return '?';
       case ts.TypeFlags.Intersection:
       case ts.TypeFlags.Index:
       case ts.TypeFlags.IndexedAccess:
