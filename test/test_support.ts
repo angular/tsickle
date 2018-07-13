@@ -20,7 +20,6 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import {BasicSourceMapConsumer, sourceMapTextToConsumer} from '../src/source_map_utils';
 import * as tsickle from '../src/tsickle';
-import {getCommonParentDirectory} from '../src/util';
 
 /** Path to tslib.d.ts; used inside Google for this test suite. */
 const tslibPath: string|null = null;
@@ -408,7 +407,7 @@ export function compileWithTransfromer(
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);
   expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
 
-  const rootModulePath = rootPath ? rootPath : getCommonParentDirectory(fileNames);
+  const rootModulePath = rootPath ? rootPath : path.dirname(fileNames[0]);
 
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
