@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {getGeneratedExterns} from '../src/externs';
 import * as tsickle from '../src/tsickle';
 import {normalizeLineEndings} from '../src/util';
 
@@ -199,12 +200,17 @@ testFn('golden tests with transformer', () => {
       }
       let allExterns: string|null = null;
       if (!test.name.endsWith('.no_externs')) {
-        for (const tsPath of tsSources.keys()) {
-          if (externs[tsPath]) {
-            if (!allExterns) allExterns = tsickle.EXTERNS_HEADER;
-            allExterns += externs[tsPath];
+        // Concatenate externs for the files that are in this tests sources (but not other, shared
+        // .d.ts files).
+        const filteredExterns: {[k: string]: string} = {};
+        let anyExternsGenerated = false;
+        for (const fileName of tsSources.keys()) {
+          if (externs[fileName]) {
+            anyExternsGenerated = true;
+            filteredExterns[fileName] = externs[fileName];
           }
         }
+        if (anyExternsGenerated) allExterns = getGeneratedExterns(filteredExterns);
       }
       compareAgainstGolden(allExterns, test.externsPath, test);
       for (const [outputPath, output] of tscOutput) {
