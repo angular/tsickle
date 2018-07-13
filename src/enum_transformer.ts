@@ -21,7 +21,7 @@
 
 import * as ts from 'typescript';
 
-import {createSingleQuoteStringLiteral} from './transformer_util';
+import {createSingleQuoteStringLiteral, getIdentifierText} from './transformer_util';
 import {hasModifierFlag} from './util';
 
 /** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
@@ -145,11 +145,13 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
       }
 
       const varDecl = ts.createVariableStatement(
-          [ts.createToken(ts.SyntaxKind.ConstKeyword)],
-          [ts.createVariableDeclaration(
-              name, undefined,
-              ts.createObjectLiteral(
-                  ts.setTextRange(ts.createNodeArray(values, true), node.members), true))]);
+          /* modifiers */ undefined,
+          ts.createVariableDeclarationList(
+              [ts.createVariableDeclaration(
+                  name, undefined,
+                  ts.createObjectLiteral(
+                      ts.setTextRange(ts.createNodeArray(values, true), node.members), true))],
+              /* create a const var */ ts.NodeFlags.Const));
       const comment: ts.SynthesizedComment = {
         kind: ts.SyntaxKind.MultiLineCommentTrivia,
         text: `* @enum {${enumType}} `,
