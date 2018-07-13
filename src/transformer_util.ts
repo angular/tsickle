@@ -697,3 +697,19 @@ export function createSingleQuoteStringLiteral(text: string): ts.StringLiteral {
   (stringLiteral as any).singleQuote = true;
   return stringLiteral;
 }
+
+/**
+ * A replacement for ts.getLeadingCommentRanges that returns the union of synthetic and
+ * non-synthetic comments on the given node, with their text included. The returned comments must
+ * not be mutated, as their content might or might not be reflected back into the AST.
+ */
+export function getAllLeadingComments(node: ts.Node):
+    ReadonlyArray<Readonly<ts.CommentRange&{text: string}>> {
+  const allRanges: Array<Readonly<ts.CommentRange&{text: string}>> = [];
+  const nodeText = node.getFullText();
+  const cr = ts.getLeadingCommentRanges(nodeText, 0);
+  if (cr) allRanges.push(...cr.map(c => ({...c, text: nodeText.substring(c.pos, c.end)})));
+  const synthetic = ts.getSyntheticLeadingComments(node);
+  if (synthetic) allRanges.push(...synthetic);
+  return allRanges;
+}

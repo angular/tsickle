@@ -30,7 +30,7 @@
 import {createArrowFunction, isQualifiedName, isTypeReferenceNode} from 'typescript';
 
 import {getDecoratorDeclarations} from './decorators';
-import {visitEachChild} from './transformer_util';
+import {getAllLeadingComments, visitEachChild} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -60,11 +60,10 @@ export function shouldLower(decorator: ts.Decorator, typeChecker: ts.TypeChecker
       if (!commentNode.parent) continue;
       commentNode = commentNode.parent;
     }
-    const range = ts.getLeadingCommentRanges(commentNode.getFullText(), 0);
+    const range = getAllLeadingComments(commentNode);
     if (!range) continue;
-    for (const {pos, end} of range) {
-      const jsDocText = commentNode.getFullText().substring(pos, end);
-      if (jsDocText.includes('@Annotation')) return true;
+    for (const {text} of range) {
+      if (text.includes('@Annotation')) return true;
     }
   }
   return false;

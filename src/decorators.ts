@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {getAllLeadingComments} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -46,12 +47,12 @@ export function hasExportingDecorator(node: ts.Node, typeChecker: ts.TypeChecker
  */
 function isExportingDecorator(decorator: ts.Decorator, typeChecker: ts.TypeChecker) {
   return getDecoratorDeclarations(decorator, typeChecker).some(declaration => {
-    const range = ts.getLeadingCommentRanges(declaration.getFullText(), 0);
+    const range = getAllLeadingComments(declaration);
     if (!range) {
       return false;
     }
-    for (const {pos, end} of range) {
-      if (/@ExportDecoratedItems\b/.test(declaration.getFullText().substring(pos, end))) {
+    for (const {text} of range) {
+      if (/@ExportDecoratedItems\b/.test(text)) {
         return true;
       }
     }

@@ -7,7 +7,7 @@
  */
 
 import * as jsdoc from './jsdoc';
-import {createNotEmittedStatement, updateSourceFileNode} from './transformer_util';
+import {createNotEmittedStatement, synthesizeCommentRanges, updateSourceFileNode} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -18,18 +18,7 @@ const FILEOVERVIEW_COMMENT_MARKERS: ReadonlySet<string> =
     new Set(['fileoverview', 'externs', 'modName', 'mods', 'pintomodule']);
 
 /**
- * Returns true if the given comment is a \@fileoverview style comment in the Closure sense, i.e. a
- * comment that has JSDoc tags marking it as a fileoverview comment.
- * Note that this is different from TypeScript's understanding of the concept, where a file comment
- * is a comment separated from the rest of the file by a double newline.
- */
-export function isClosureFileoverviewComment(text: string) {
-  const current = jsdoc.parse(text);
-  return current !== null && current.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName));
-}
-
-/**
- * Given a parsed @fileoverview comment, ensures it has all the attributes we need.
+ * Given a parsed \@fileoverview comment, ensures it has all the attributes we need.
  * This function can be called to modify an existing comment or to make a new one.
  *
  * @param tags Comment as parsed list of tags; modified in-place.
@@ -75,10 +64,38 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
 export function transformFileoverviewComment(context: ts.TransformationContext):
     (sf: ts.SourceFile) => ts.SourceFile {
   return (sf: ts.SourceFile) => {
-    let comments: ts.SynthesizedComment[] = [];
-    // Use trailing comments because that's what transformer_util.ts creates (i.e. by convention).
-    if (sf.statements.length && sf.statements[0].kind === ts.SyntaxKind.NotEmittedStatement) {
-      comments = ts.getSyntheticTrailingComments(sf.statements[0]) || [];
+    const text = sf.getFullText();
+
+    let fileComments: ts.SynthesizedComment[] = [];
+    const firstStatement = sf.statements.length && sf.statements[0] || null;
+
+    const originalComments = ts.getLeadingCommentRanges(text, 0) || [];
+    if (!firstStatement) {
+      // In an empty source file, all comments are file-level comments.
+      fileComments = synthesizeCommentRanges(sf, originalComments);
+    } else {
+      // Search for the first comment split from the file with a \n\n. All comments before that are
+      // considered fileoverview comments, all comments after that belong to the next statement(s).
+      // If none found, comments remains empty, and the code below will insert a new fileoverview
+      // comment.
+      for (let i = 0; i < originalComments.length; i++) {
+        const end = originalComments[i].end;
+        if (!text.substring(end).startsWith('\n\n')) continue;
+        // This comment is separated from the source file with a double break, marking it (and any
+        // preceding comments) as a file-level comment. Split them off and attach them onto a
+        // NotEmittedStatement, so that they do not get lost later on.
+        const synthesizedComments = jsdoc.synthesizeLeadingComments(firstStatement);
+        const notEmitted = ts.createNotEmittedStatement(sf);
+        // Modify the comments on the firstStatement in place by removing the file-level comments.
+        fileComments = synthesizedComments.splice(0, i + 1);
+        // Move the fileComments onto notEmitted.
+        ts.setSyntheticLeadingComments(notEmitted, fileComments);
+        // TODO(martinprobst): consider checking here whether any of the trailing comments contains
+        // an @fileoverview etc, and reporting an error if so.
+        sf = updateSourceFileNode(
+            sf, ts.createNodeArray([notEmitted, firstStatement, ...sf.statements.slice(1)]));
+        break;
+      }
     }
 
     // Closure Compiler considers the *last* comment with @fileoverview (or @externs or @nocompile)
@@ -87,8 +104,8 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
     // AJD considers *any* comment mentioning @fileoverview.
     let fileoverviewIdx = -1;
     let tags: jsdoc.Tag[] = [];
-    for (let i = comments.length - 1; i >= 0; i--) {
-      const parse = jsdoc.parseContents(comments[i].text);
+    for (let i = fileComments.length - 1; i >= 0; i--) {
+      const parse = jsdoc.parseContents(fileComments[i].text);
       if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
         fileoverviewIdx = i;
         tags = parse.tags;
@@ -104,7 +121,7 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
       return addNewFileoverviewComment(sf, commentText);
     }
 
-    comments[fileoverviewIdx].text = commentText;
+    fileComments[fileoverviewIdx].text = commentText;
     // sf does not need to be updated, synthesized comments are mutable.
     return sf;
   };
