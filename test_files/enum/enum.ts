@@ -75,5 +75,10 @@ enum StringKeyEnum {
 enum MixedEnum {
   STR = 'abc',
   NUM = 3,
-  'string key' = 4 
+  'string key' = 4
+}
+
+/** JSDoc in here. */
+export enum EnumWithJSDoc {
+  /** @export */ MEMBER_WITH_JSDOC,
 }

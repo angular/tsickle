@@ -186,12 +186,14 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
 
         // TypeScript enum members can have Identifier names or String names.
         // We need to emit slightly different code to support these two syntaxes:
-        let nameExpr;
-        let memberAccess;
+        let nameExpr: ts.Expression;
+        let memberAccess: ts.Expression;
         if (ts.isIdentifier(memberName)) {
           // Foo[Foo.ABC] = "ABC";
           nameExpr = createSingleQuoteStringLiteral(memberName.text);
-          memberAccess = ts.createPropertyAccess(ts.createIdentifier(name), memberName);
+          // Make sure to create a clean, new identifier, so comments do not get emitted twice.
+          const ident = ts.createIdentifier(getIdentifierText(memberName));
+          memberAccess = ts.createPropertyAccess(ts.createIdentifier(name), ident);
         } else {
           // Foo[Foo["A B C"]] = "A B C"; or Foo[Foo[expression]] = expression;
           nameExpr = ts.isComputedPropertyName(memberName) ? memberName.expression : memberName;

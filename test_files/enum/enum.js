@@ -104,3 +104,9 @@ const MixedEnum = {
 };
 MixedEnum[MixedEnum.NUM] = 'NUM';
 MixedEnum[MixedEnum['string key']] = 'string key';
+/** @enum {number} */
+const EnumWithJSDoc = {
+    /** @export */ MEMBER_WITH_JSDOC: 0,
+};
+exports.EnumWithJSDoc = EnumWithJSDoc;
+EnumWithJSDoc[EnumWithJSDoc.MEMBER_WITH_JSDOC] = 'MEMBER_WITH_JSDOC';
