@@ -8,7 +8,6 @@ module = module;
 exports = {};
 // tslint:disable-next-line:no-namespace
 var Reflect;
-// tslint:disable-next-line:no-namespace
 (function (Reflect) {
     Reflect.x = 1;
 })(Reflect || (Reflect = {}));

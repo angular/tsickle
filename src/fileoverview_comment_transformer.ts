@@ -74,11 +74,11 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
       // In an empty source file, all comments are file-level comments.
       fileComments = synthesizeCommentRanges(sf, originalComments);
     } else {
-      // Search for the first comment split from the file with a \n\n. All comments before that are
+      // Search for the last comment split from the file with a \n\n. All comments before that are
       // considered fileoverview comments, all comments after that belong to the next statement(s).
       // If none found, comments remains empty, and the code below will insert a new fileoverview
       // comment.
-      for (let i = 0; i < originalComments.length; i++) {
+      for (let i = originalComments.length - 1; i >= 0; i--) {
         const end = originalComments[i].end;
         if (!text.substring(end).startsWith('\n\n')) continue;
         // This comment is separated from the source file with a double break, marking it (and any
@@ -95,6 +95,26 @@ export function transformFileoverviewComment(context: ts.TransformationContext):
         sf = updateSourceFileNode(
             sf, ts.createNodeArray([notEmitted, firstStatement, ...sf.statements.slice(1)]));
         break;
+      }
+
+      // Now walk every top level statement and escape/drop any @fileoverview comments found.
+      // Closure ignores all @fileoverview comments but the last, so tsickle must make sure not to
+      // emit duplicated ones.
+      // TODO(martinprobst): make this an error instead of silently dropping the comment.
+      for (let i = 0; i < sf.statements.length; i++) {
+        const stmt = sf.statements[i];
+        // Accept the NotEmittedStatement inserted above.
+        if (i === 0 && stmt.kind === ts.SyntaxKind.NotEmittedStatement) continue;
+        const comments = jsdoc.synthesizeLeadingComments(stmt);
+        for (let j = 0; j < comments.length; j++) {
+          const c = comments[j];
+          const parse = jsdoc.parse(c);
+          if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+            // Remove this fileoverview comment and continue at the same index.
+            comments.splice(j, 1);
+            j--;
+          }
+        }
       }
     }
 
