@@ -230,3 +230,12 @@ if (false) {
     /** @type {string} */
     ZoneImplementsAlias.prototype.zone;
 }
+class WithOptionalField {
+    constructor() {
+        this.optionalField = 'a';
+    }
+}
+if (false) {
+    /** @type {(undefined|string)} */
+    WithOptionalField.prototype.optionalField;
+}

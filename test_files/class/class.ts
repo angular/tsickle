@@ -130,3 +130,7 @@ type ZoneAlias = Zone;
 class ZoneImplementsAlias implements ZoneAlias {
   zone: string;
 }
+
+class WithOptionalField {
+  optionalField?: string = 'a';
+}
