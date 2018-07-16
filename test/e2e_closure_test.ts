@@ -49,7 +49,6 @@ describe('golden file tests', () => {
         'checkRegExp',
         'checkTypes',
         'checkVars',
-        'commonJsModuleLoad',
         'conformanceViolations',
         'const',
         'constantProperty',
@@ -66,8 +65,8 @@ describe('golden file tests', () => {
         'invalidCasts',
         'misplacedTypeAnnotation',
         'missingGetCssName',
-        // 'missingOverride',  // disabled: currently not implemented by
-        // tsickle.
+        // disabled: @override currently not implemented by tsickle.
+        // 'missingOverride',
         'missingPolyfill',
         'missingProperties',
         'missingProvide',
@@ -75,15 +74,16 @@ describe('golden file tests', () => {
         'missingReturn',
         'msgDescriptions',
         'nonStandardJsDocs',
-        // 'reportUnknownTypes',  // disabled: too many positives, not really a
-        // workable option.
+        // disabled: too many false positives, not really a workable option.
+        // 'reportUnknownTypes',
         'suspiciousCode',
         'strictModuleDepCheck',
         'typeInvalidation',
         'undefinedNames',
         'undefinedVars',
         'unknownDefines',
-        'unusedLocalVariables',
+        // disabled: many tests do not use local vars.
+        // 'unusedLocalVariables',
         'unusedPrivateMembers',
         'uselessCode',
         'useOfGoogBase',
