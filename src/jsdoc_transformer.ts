@@ -458,6 +458,40 @@ export function jsdocTransformer(
         return decls;
       }
 
+      /**
+       * visitHeritageClause works around a Closure Compiler issue, where the expression in an
+       * "extends" clause must be a simple identifier, and in particular must not be a parenthesized
+       * expression.
+       *
+       * This is triggered when TS code writes "class X extends (Foo as Bar) { ... }", commonly done
+       * to support mixins. For extends clauses in classes, the code below drops the cast and any
+       * parentheticals, leaving just the original expression.
+       *
+       * This is an incomplete workaround, as Closure will still bail on other super expressions,
+       * but retains compatibility with the previous emit that (accidentally) dropped the cast
+       * expression.
+       *
+       * TODO(martinprobst): remove this once the Closure side issue has been resolved.
+       */
+      function visitHeritageClause(heritageClause: ts.HeritageClause) {
+        if (heritageClause.token !== ts.SyntaxKind.ExtendsKeyword || !heritageClause.parent ||
+            heritageClause.parent.kind === ts.SyntaxKind.InterfaceDeclaration) {
+          return ts.visitEachChild(heritageClause, visitor, context);
+        }
+        if (heritageClause.types.length !== 1) {
+          moduleTypeTranslator.error(
+              heritageClause, `expected exactly one type in class extension clause`);
+        }
+        const type = heritageClause.types[0];
+        let expr: ts.Expression = type.expression;
+        while (ts.isParenthesizedExpression(expr) || ts.isNonNullExpression(expr) ||
+               ts.isAssertionExpression(expr)) {
+          expr = expr.expression;
+        }
+        return ts.updateHeritageClause(heritageClause, [ts.updateExpressionWithTypeArguments(
+                                                           type, type.typeArguments || [], expr)]);
+      }
+
       function visitInterfaceDeclaration(iface: ts.InterfaceDeclaration): ts.Statement[] {
         const sym = typeChecker.getSymbolAtLocation(iface.name);
         if (!sym) {
@@ -877,6 +911,8 @@ export function jsdocTransformer(
             return visitClassDeclaration(node as ts.ClassDeclaration);
           case ts.SyntaxKind.InterfaceDeclaration:
             return visitInterfaceDeclaration(node as ts.InterfaceDeclaration);
+          case ts.SyntaxKind.HeritageClause:
+            return visitHeritageClause(node as ts.HeritageClause);
           case ts.SyntaxKind.Constructor:
           case ts.SyntaxKind.FunctionDeclaration:
           case ts.SyntaxKind.MethodDeclaration:
