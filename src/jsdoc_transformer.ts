@@ -383,6 +383,44 @@ function createClosurePropertyDeclaration(
 }
 
 /**
+ * Removes any type assertions and non-null expressions from the AST before TypeScript processing.
+ *
+ * Ideally, the code in jsdoc_transformer below should just remove the cast expression and
+ * replace it with the Closure equivalent. However Angular's compiler is fragile to AST
+ * nodes being removed or changing type, so the code must retain the type assertion
+ * expression, see: https://github.com/angular/angular/issues/24895.
+ *
+ * tsickle also cannot just generate and keep a `(/.. @type {SomeType} ./ (expr as SomeType))` because
+ * TypeScript removes the parenthesized expressions in that syntax, (reasonably) believing
+ * they were only added for the TS cast.
+ *
+ * The final workaround is then to keep the TypeScript type assertions, and have a post-Angular
+ * processing step that removes the assertions before TypeScript sees them.
+ *
+ * TODO(martinprobst): remove once the Angular issue is fixed.
+ */
+export function removeTypeAssertions(): ts.TransformerFactory<ts.SourceFile> {
+  return (context: ts.TransformationContext) => {
+    return (sourceFile: ts.SourceFile) => {
+      function visitor(node: ts.Node): ts.Node {
+        switch (node.kind) {
+          case ts.SyntaxKind.TypeAssertionExpression:
+          case ts.SyntaxKind.AsExpression:
+            return ts.visitNode((node as ts.AssertionExpression).expression, visitor);
+          case ts.SyntaxKind.NonNullExpression:
+            return ts.visitNode((node as ts.NonNullExpression).expression, visitor);
+          default:
+            break;
+        }
+        return ts.visitEachChild(node, visitor, context);
+      }
+
+      return visitor(sourceFile) as ts.SourceFile;
+    };
+  };
+}
+
+/**
  * jsdocTransformer returns a transformer factory that converts TypeScript types into the equivalent
  * JSDoc annotations.
  */
@@ -603,9 +641,8 @@ export function jsdocTransformer(
 
       /** Converts a TypeScript type assertion into a Closure Cast. */
       function visitAssertionExpression(assertion: ts.AssertionExpression) {
-        const expression = ts.visitNode(assertion.expression, visitor);
         const type = typeChecker.getTypeAtLocation(assertion.type);
-        return createClosureCast(assertion, expression, type);
+        return createClosureCast(assertion, ts.visitEachChild(assertion, visitor, context), type);
       }
 
       /**
@@ -613,11 +650,10 @@ export function jsdocTransformer(
        * |undefined from a union type.
        */
       function visitNonNullExpression(nonNull: ts.NonNullExpression) {
-        const expression = ts.visitNode(nonNull.expression, visitor);
         const type = typeChecker.getTypeAtLocation(nonNull.expression);
         const nonNullType = typeChecker.getNonNullableType(type);
-        const nullableFlags = ts.TypeFlags.Null | ts.TypeFlags.Undefined;
-        return createClosureCast(nonNull, expression, nonNullType);
+        return createClosureCast(
+            nonNull, ts.visitEachChild(nonNull, visitor, context), nonNullType);
       }
 
       function visitImportDeclaration(importDecl: ts.ImportDeclaration) {
@@ -868,9 +904,9 @@ export function jsdocTransformer(
             break;
           case ts.SyntaxKind.TypeAliasDeclaration:
             return visitTypeAliasDeclaration(node as ts.TypeAliasDeclaration);
-          case ts.SyntaxKind.TypeAssertionExpression:
           case ts.SyntaxKind.AsExpression:
-            return visitAssertionExpression(node as ts.AssertionExpression);
+          case ts.SyntaxKind.TypeAssertionExpression:
+            return visitAssertionExpression(node as ts.TypeAssertion);
           case ts.SyntaxKind.NonNullExpression:
             return visitNonNullExpression(node as ts.NonNullExpression);
           default:

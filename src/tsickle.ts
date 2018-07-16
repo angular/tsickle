@@ -11,7 +11,7 @@ import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
 import {transformFileoverviewComment} from './fileoverview_comment_transformer';
 import * as googmodule from './googmodule';
-import {AnnotatorHost, jsdocTransformer} from './jsdoc_transformer';
+import {AnnotatorHost, jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {quotingTransformer} from './quoting_transformer';
 import {isDtsFileName} from './transformer_util';
@@ -115,6 +115,10 @@ export function emitWithTsickle(
       ...(tsickleTransformers.after || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
     ]
   };
+  if (host.transformTypesToClosure) {
+    // See comment on remoteTypeAssertions.
+    tsTransformers.before!.push(removeTypeAssertions());
+  }
   if (host.googmodule) {
     tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
