@@ -13,5 +13,7 @@ exports = {};
  */
 function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
-/** @type {?} */
-NeverTyped.prototype.foo;
+if (false) {
+    /** @type {?} */
+    NeverTyped.prototype.foo;
+}

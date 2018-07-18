@@ -11,5 +11,7 @@ exports = {};
  */
 function ExportedInterface() { }
 exports.ExportedInterface = ExportedInterface;
-/** @type {string} */
-ExportedInterface.prototype.fooStr;
+if (false) {
+    /** @type {string} */
+    ExportedInterface.prototype.fooStr;
+}

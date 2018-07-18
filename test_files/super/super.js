@@ -57,8 +57,10 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
  * @record
  */
 function SuperTestInterface() { }
-/** @type {number} */
-SuperTestInterface.prototype.foo;
+if (false) {
+    /** @type {number} */
+    SuperTestInterface.prototype.foo;
+}
 /**
  * @implements {SuperTestInterface}
  */

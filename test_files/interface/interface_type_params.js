@@ -10,15 +10,19 @@ exports = {};
  * @record
  */
 function UpperBound() { }
-/** @type {number} */
-UpperBound.prototype.x;
+if (false) {
+    /** @type {number} */
+    UpperBound.prototype.x;
+}
 // unsupported: template constraints.
 /**
  * @record
  * @template T, U
  */
 function WithTypeParam() { }
-/** @type {T} */
-WithTypeParam.prototype.tea;
-/** @type {U} */
-WithTypeParam.prototype.you;
+if (false) {
+    /** @type {T} */
+    WithTypeParam.prototype.tea;
+    /** @type {U} */
+    WithTypeParam.prototype.you;
+}
