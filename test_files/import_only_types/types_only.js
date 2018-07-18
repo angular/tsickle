@@ -12,8 +12,10 @@ exports = {};
  */
 function Foo() { }
 exports.Foo = Foo;
-/** @type {string} */
-Foo.prototype.x;
+if (false) {
+    /** @type {string} */
+    Foo.prototype.x;
+}
 /** @typedef {number} */
 exports.Bar;
 /** @typedef {function(): void} */

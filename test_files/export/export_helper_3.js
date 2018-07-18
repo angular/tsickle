@@ -11,5 +11,7 @@ exports = {};
  */
 function Foo() { }
 exports.Foo = Foo;
-/** @type {string} */
-Foo.prototype.fooStr;
+if (false) {
+    /** @type {string} */
+    Foo.prototype.fooStr;
+}

@@ -14,6 +14,11 @@ exports = {};
  * @record
  */
 function Quoted() { }
+if (false) {
+    /* TODO: handle strange member:
+    [k: string]: number;
+    */
+}
 /** @type {!Quoted} */
 let quoted = {};
 console.log(quoted["hello"]);
@@ -26,13 +31,15 @@ quoted["hello"] = 1;
  * @extends {Quoted}
  */
 function QuotedMixed() { }
-/** @type {number} */
-QuotedMixed.prototype.foo;
-/* TODO: handle strange member:
-'invalid-identifier': number;
-*/
-/** @type {number} */
-QuotedMixed.prototype.quotedIdent;
+if (false) {
+    /** @type {number} */
+    QuotedMixed.prototype.foo;
+    /* TODO: handle strange member:
+    'invalid-identifier': number;
+    */
+    /** @type {number} */
+    QuotedMixed.prototype.quotedIdent;
+}
 /** @type {!QuotedMixed} */
 let quotedMixed = { foo: 1, 'invalid-identifier': 2, 'quotedIdent': 3 };
 console.log(quotedMixed.foo);

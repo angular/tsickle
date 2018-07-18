@@ -14,5 +14,10 @@ exports.Class = Class;
  */
 function Interface() { }
 exports.Interface = Interface;
-/** @type {?} */
-Interface.prototype.x;
+if (false) {
+    /** @type {?} */
+    Interface.prototype.x;
+    /* TODO: handle strange member:
+    "quoted-bad-name": string;
+    */
+}

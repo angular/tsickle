@@ -10,8 +10,10 @@ exports = {};
  * @record
  */
 function Interface() { }
-/** @type {?} */
-Interface.prototype.interfaceFunc;
+if (false) {
+    /** @type {?} */
+    Interface.prototype.interfaceFunc;
+}
 class Super {
     /**
      * @return {?}
