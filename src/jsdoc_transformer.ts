@@ -187,10 +187,6 @@ export function maybeAddHeritageClauses(
   }
 }
 
-/** Flags that declare a field of the same name if set on a ctor parameter. */
-const FIELD_DECLARATION_MODIFIERS: ts.ModifierFlags = ts.ModifierFlags.Private |
-    ts.ModifierFlags.Protected | ts.ModifierFlags.Public | ts.ModifierFlags.Readonly;
-
 /**
  * createMemberTypeDeclaration emits the type annotations for members of a class. It's necessary in
  * the case where TypeScript syntax specifies there are additional properties on the class, because
@@ -237,9 +233,11 @@ function createMemberTypeDeclaration(
   }
 
   if (ctors.length > 0) {
-    const ctor = ctors[0];
+    // Only the actual constructor implementation, which must be last in a potential sequence of
+    // overloaded constructors, may contain parameter properties.
+    const ctor = ctors[ctors.length - 1];
     paramProps = ctor.parameters.filter(
-        p => transformerUtil.hasModifierFlag(p, FIELD_DECLARATION_MODIFIERS));
+        p => transformerUtil.hasModifierFlag(p, ts.ModifierFlags.ParameterPropertyModifier));
   }
 
   if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0 &&

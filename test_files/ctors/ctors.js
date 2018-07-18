@@ -22,3 +22,15 @@ if (false) {
 }
 /** @type {function(new: (!X), number): ?} */
 let y = X;
+class OverloadedCtor {
+    /**
+     * @param {(string|number)} a
+     */
+    constructor(a) {
+        this.a = a;
+    }
+}
+if (false) {
+    /** @type {(string|number)} */
+    OverloadedCtor.prototype.a;
+}
