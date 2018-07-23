@@ -114,7 +114,7 @@ to install the dependencies.
   single run),
 - `bazel test test:e2e_test` executes the e2e tests,
 - `bazel test test:golden_test` executes the golden tests,
-- `gulp test.check-format` checks the source code formatting using
+- `node check-format.js` checks the source code formatting using
   `clang-format`,
 - `yarn test` runs unit tests, e2e tests and checks the source code formatting.
 
