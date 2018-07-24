@@ -20,8 +20,10 @@ exports = {};
  * @record
  */
 function Interface() { }
-/** @type {function(): void} */
-Interface.prototype.interfaceFunc;
+if (false) {
+    /** @type {function(): void} */
+    Interface.prototype.interfaceFunc;
+}
 class Class {
     /**
      * @return {void}
@@ -49,8 +51,10 @@ if (false) {
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() { }
-/** @type {function(): void} */
-InterfaceExtendsInterface.prototype.interfaceFunc2;
+if (false) {
+    /** @type {function(): void} */
+    InterfaceExtendsInterface.prototype.interfaceFunc2;
+}
 /** @type {!InterfaceExtendsInterface} */
 let interfaceExtendsInterface = {
     /**
@@ -66,8 +70,10 @@ let interfaceExtendsInterface = {
  * @record
  */
 function InterfaceExtendsClass() { }
-/** @type {function(): void} */
-InterfaceExtendsClass.prototype.interfaceFunc3;
+if (false) {
+    /** @type {function(): void} */
+    InterfaceExtendsClass.prototype.interfaceFunc3;
+}
 /**
  * @implements {Interface}
  */

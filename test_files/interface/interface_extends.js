@@ -10,20 +10,26 @@ exports = {};
  * @record
  */
 function ParentInterface() { }
-/** @type {number} */
-ParentInterface.prototype.x;
+if (false) {
+    /** @type {number} */
+    ParentInterface.prototype.x;
+}
 /**
  * @record
  * @extends {ParentInterface}
  */
 function SubType() { }
-/** @type {number} */
-SubType.prototype.y;
+if (false) {
+    /** @type {number} */
+    SubType.prototype.y;
+}
 /**
  * @record
  * @extends {ParentInterface}
  * @extends {SubType}
  */
 function SubMulti() { }
-/** @type {number} */
-SubMulti.prototype.z;
+if (false) {
+    /** @type {number} */
+    SubMulti.prototype.z;
+}

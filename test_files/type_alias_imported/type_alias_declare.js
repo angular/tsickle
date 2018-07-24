@@ -14,5 +14,7 @@ exports = {};
  */
 function X() { }
 exports.X = X;
-/** @type {string} */
-X.prototype.x;
+if (false) {
+    /** @type {string} */
+    X.prototype.x;
+}

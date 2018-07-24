@@ -71,10 +71,12 @@ let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
  */
 function InterfaceUsingConstEnum() { }
 exports.InterfaceUsingConstEnum = InterfaceUsingConstEnum;
-/** @type {ConstEnum} */
-InterfaceUsingConstEnum.prototype.field;
-/** @type {ConstEnum} */
-InterfaceUsingConstEnum.prototype.field2;
+if (false) {
+    /** @type {ConstEnum} */
+    InterfaceUsingConstEnum.prototype.field;
+    /** @type {ConstEnum} */
+    InterfaceUsingConstEnum.prototype.field2;
+}
 /** @enum {number} */
 const EnumWithNonConstValues = {
     Scheme: (x => x + 1)(3),

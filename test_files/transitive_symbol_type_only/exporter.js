@@ -11,5 +11,7 @@ exports = {};
  */
 function ExportedInterface() { }
 exports.ExportedInterface = ExportedInterface;
-/** @type {number} */
-ExportedInterface.prototype.x;
+if (false) {
+    /** @type {number} */
+    ExportedInterface.prototype.x;
+}

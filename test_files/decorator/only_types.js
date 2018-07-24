@@ -14,5 +14,7 @@ exports = {};
  */
 function AnotherType() { }
 exports.AnotherType = AnotherType;
-/** @type {string} */
-AnotherType.prototype.field;
+if (false) {
+    /** @type {string} */
+    AnotherType.prototype.field;
+}

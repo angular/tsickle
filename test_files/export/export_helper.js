@@ -28,8 +28,10 @@ exports.export2 = 3;
  */
 function Bar() { }
 exports.Bar = Bar;
-/** @type {number} */
-Bar.prototype.barField;
+if (false) {
+    /** @type {number} */
+    Bar.prototype.barField;
+}
 /** @type {number} */
 exports.export5 = 3;
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");
