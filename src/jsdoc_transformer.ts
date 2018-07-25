@@ -703,7 +703,7 @@ export function jsdocTransformer(
         if (!sym) return importDecl;
         // Write the export declaration here so that forward declares come after it, and
         // fileoverview comments do not get moved behind statements.
-        const importPath = googmodule.resolveIndexShorthand(
+        const importPath = googmodule.resolveModuleName(
             {options: tsOptions, host: tsHost}, sourceFile.fileName,
             (importDecl.moduleSpecifier as ts.StringLiteral).text);
 

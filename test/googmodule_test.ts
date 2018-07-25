@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {resolve} from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
@@ -396,5 +397,67 @@ var x = require('bar');
 var x = goog.require('bar');
 `);
     });
+  });
+});
+
+describe('resolveIndexShorthand', () => {
+  let resolutionHost: ts.ModuleResolutionHost;
+  const opts: ts.CompilerOptions = {
+    ...testSupport.compilerOptions,
+    baseUrl: '/root',
+    outDir: '/root/bin',
+    rootDir: '/root',
+    rootDirs: ['/root', '/root/gen'],
+    paths: {
+      '*': ['*', 'gen/*', 'bin/*'],
+      'prefix/*': ['changed_prefix/*', 'gen/changed_prefix/*'],
+      'angular': ['typings/angular/index'],
+    },
+  };
+  beforeEach(() => {
+    resolutionHost = {
+      fileExists(fileName: string): boolean {
+        switch (fileName) {
+          case '/root/my/input.ts':
+          case '/root/gen/file.ts':
+          case '/root/changed_prefix/prefixed.ts':
+          case '/root/gen/changed_prefix/gen.ts':
+          case '/root/typings/angular/index.d.ts':
+            return true;
+          default:
+            return false;
+        }
+      },
+      readFile(fileName: string) {
+        return 'export const x = 1;';
+      },
+      getCurrentDirectory() {
+        return '/root';
+      },
+    };
+  });
+
+  function expectResolve(context: string, target: string) {
+    const resolved =
+        googmodule.resolveModuleName({options: opts, host: resolutionHost}, context, target);
+    return expect(resolved);
+  }
+
+  it('resolves generated files', () => {
+    expectResolve('/root/my/input.ts', 'file').toBe('/root/gen/file.ts');
+    expectResolve('my/input.ts', 'file').toBe('/root/gen/file.ts');
+  });
+
+  it('resolves into prefix mapped', () => {
+    expectResolve('my/input.ts', 'prefix/prefixed').toBe('/root/changed_prefix/prefixed.ts');
+    expectResolve('/root/my/input.ts', 'prefix/prefixed').toBe('/root/changed_prefix/prefixed.ts');
+    expectResolve('/root/my/input.ts', 'prefix/gen').toBe('/root/gen/changed_prefix/gen.ts');
+    expectResolve('/root/gen/file.ts', 'prefix/prefixed').toBe('/root/changed_prefix/prefixed.ts');
+  });
+
+  it('resolves path mapped modules', () => {
+    expectResolve('my/input.ts', 'angular').toBe('/root/typings/angular/index.d.ts');
+    expectResolve('/root/my/input.ts', 'angular').toBe('/root/typings/angular/index.d.ts');
+    expectResolve('/root/gen/file.ts', 'angular').toBe('/root/typings/angular/index.d.ts');
   });
 });

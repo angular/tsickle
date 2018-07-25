@@ -129,24 +129,19 @@ export function extractGoogNamespaceImport(tsImport: string): string|null {
 const TS_EXTENSIONS = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
 
 /**
- * Convert from implicit `import {} from 'pkg'` to `import {} from 'pkg/index'.
- * TypeScript supports the shorthand, but not all ES6 module loaders do.
- * Workaround for https://github.com/Microsoft/TypeScript/issues/12597
+ * Convert from implicit `import {} from 'pkg'` to a full resolved file name, including any `/index`
+ * suffix and also resolving path mappings. TypeScript and many module loaders support the
+ * shorthand, but `goog.module` does not, so tsickle needs to resolve the module name shorthand
+ * before generating `goog.module` names.
  */
-export function resolveIndexShorthand(
+export function resolveModuleName(
     {options, host}: {options: ts.CompilerOptions, host: ts.ModuleResolutionHost},
     pathOfImportingFile: string, imported: string): string {
   // The strategy taken here is to use ts.resolveModuleName() to resolve the import to
-  // a specific path, and then if that path is different than the path that was
-  // asked for, we assume it was an index import and construct a new import statement.
-  //
-  // We need to be careful about paths -- `pathOfImportingFile` is the absolute path to the
-  // source file, while `imported` may be a path relative to that.
-
+  // a specific path, which resolves any /index and path mappings.
   const resolved = ts.resolveModuleName(imported, pathOfImportingFile, options, host);
   if (!resolved || !resolved.resolvedModule) return imported;
-  const requestedModule = imported.replace(TS_EXTENSIONS, '');
-  const resolvedModule = resolved.resolvedModule.resolvedFileName.replace(TS_EXTENSIONS, '');
+  const resolvedModule = resolved.resolvedModule.resolvedFileName;
 
   // Check if the resolution went into node_modules.
   // Note that the ResolvedModule returned by resolveModuleName() has an
@@ -161,24 +156,9 @@ export function resolveIndexShorthand(
     return imported;
   }
 
-  // Check if the resolution chose a different file than what was asked for.
-  // Compare filenames, but don't use path.basename() because we want a file
-  // name of '' if the requested path ends in a slash.
-  const requestedFileName = requestedModule.substr(requestedModule.lastIndexOf('/'));
-  const resolvedFileName = resolvedModule.substr(resolvedModule.lastIndexOf('/'));
-
-  if (requestedFileName === resolvedFileName) {
-    // It ended up at the same file as it started with, so we don't need
-    // a rewrite anyway.
-    return imported;
-  }
-
-  // If we get here, it seems that the import resolved to somewhere else.
-  // Construct a new import path.  Note that it must be relative to the original
-  // filename, and also that path.relative() randomly uses the cwd if any of
-  // its arguments aren't themselves absolute.
-  return './' +
-      path.relative(path.dirname(pathOfImportingFile), resolvedModule).replace(path.sep, '/');
+  // Otherwise return the full resolved file name. This path will be turned into a module name using
+  // AnnotatorHost#pathToModuleName, which also takes care of baseUrl and rootDirs.
+  return resolved.resolvedModule.resolvedFileName;
 }
 
 /**
@@ -195,7 +175,7 @@ function importPathToGoogNamespace(
     modName = nsImport;
   } else {
     if (host.convertIndexImportShorthand) {
-      tsImport = resolveIndexShorthand(host, file.fileName, tsImport);
+      tsImport = resolveModuleName(host, file.fileName, tsImport);
     }
     modName = host.pathToModuleName(file.fileName, tsImport);
   }
