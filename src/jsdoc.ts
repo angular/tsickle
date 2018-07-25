@@ -410,10 +410,10 @@ export function merge(tags: Tag[]): Tag {
   let optional = false;
   let restParam = false;
   for (const tag of tags) {
-    if (tag.tagName) tagNames.add(tag.tagName);
-    if (tag.parameterName) parameterNames.add(tag.parameterName);
-    if (tag.type) types.add(tag.type);
-    if (tag.text) texts.add(tag.text);
+    tagNames.add(tag.tagName);
+    if (tag.parameterName !== undefined) parameterNames.add(tag.parameterName);
+    if (tag.type !== undefined) types.add(tag.type);
+    if (tag.text !== undefined) texts.add(tag.text);
     if (tag.optional) optional = true;
     if (tag.restParam) restParam = true;
   }

@@ -410,7 +410,15 @@ export class ModuleTypeTranslator {
   getFunctionTypeJSDoc(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []):
       [jsdoc.Tag[], string[]] {
     const typeChecker = this.typeChecker;
-    const newDoc = extraTags;
+
+    // De-duplicate tags and docs found for the fnDecls.
+    const tagsByName = new Map<string, jsdoc.Tag>();
+    function addTag(tag: jsdoc.Tag) {
+      const existing = tagsByName.get(tag.tagName);
+      tagsByName.set(tag.tagName, existing ? jsdoc.merge([existing, tag]) : tag);
+    }
+    for (const extraTag of extraTags) addTag(extraTag);
+
     const lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
     const minArgsCount = Math.min(...lens);
     const maxArgsCount = Math.max(...lens);
@@ -436,12 +444,12 @@ export class ModuleTypeTranslator {
       // is it worth checking for this and erroring?
       for (const tag of tags) {
         if (tag.tagName === 'param' || tag.tagName === 'return') continue;
-        newDoc.push(tag);
+        addTag(tag);
       }
 
       // Add @abstract on "abstract" declarations.
       if (hasModifierFlag(fnDecl, ts.ModifierFlags.Abstract)) {
-        newDoc.push({tagName: 'abstract'});
+        addTag({tagName: 'abstract'});
       }
 
       // Add any @template tags.
@@ -511,6 +519,8 @@ export class ModuleTypeTranslator {
         });
       }
     }
+
+    const newDoc = Array.from(tagsByName.values());
 
     if (typeParameterNames.size > 0) {
       newDoc.push({tagName: 'template', text: Array.from(typeParameterNames.values()).join(', ')});

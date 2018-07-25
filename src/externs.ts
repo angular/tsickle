@@ -445,8 +445,7 @@ export function generateExterns(
         }
         // Gather up all overloads of this function.
         const sym = typeChecker.getSymbolAtLocation(name)!;
-        const decls = sym.declarations!.filter(d => d.kind === ts.SyntaxKind.FunctionDeclaration) as
-            ts.FunctionDeclaration[];
+        const decls = sym.declarations!.filter(ts.isFunctionDeclaration);
         // Only emit the first declaration of each overloaded function.
         if (fnDecl !== decls[0]) break;
         const params = emitFunctionType(decls);
