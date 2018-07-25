@@ -177,9 +177,9 @@ export function generateExterns(
    * overloads), and returns the parameter names chosen.
    */
   function emitFunctionType(decls: ts.FunctionLikeDeclaration[], extraTags: jsdoc.Tag[] = []) {
-    const [tags, paramNames] = mtt.getFunctionTypeJSDoc(decls);
+    const [tags, paramNames] = mtt.getFunctionTypeJSDoc(decls, extraTags);
     emit('\n');
-    emit(jsdoc.toString(extraTags.concat(tags)));
+    emit(jsdoc.toString(tags));
     return paramNames;
   }
 
