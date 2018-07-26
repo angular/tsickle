@@ -19,7 +19,7 @@
     "source-map-support": "^0.5.0"
   },
   "peerDependencies": {
-    "typescript": ">=2.4.2 <2.9"
+    "typescript": ">=2.4.2 <2.10"
   },
   "devDependencies": {
     "@types/diff": "3.2.2",
