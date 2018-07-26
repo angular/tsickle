@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as typeTranslator from '../src/type-translator';
+import * as typeTranslator from '../src/type_translator';
 
 describe('isBuiltinLibDTS', () => {
   it('matches builtins', () => {

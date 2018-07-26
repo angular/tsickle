@@ -31,7 +31,7 @@ ts_library(
         "quoting_transformer.ts",
         "transformer_util.ts",
         "tsickle.ts",
-        "type-translator.ts",
+        "type_translator.ts",
         "typescript.ts",
         ":typescript-2.4.d.ts",
     ],

@@ -18,7 +18,7 @@ ts_library(
         "googmodule_test.ts",
         "jsdoc_test.ts",
         "tsickle_test.ts",
-        "type-translator_test.ts",
+        "type_translator_test.ts",
     ],
     tsconfig = "//:tsconfig.json",
     deps = [
