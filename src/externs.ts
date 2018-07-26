@@ -27,7 +27,7 @@
 import * as path from 'path';
 
 import * as jsdoc from './jsdoc';
-import {AnnotatorHost, escapeForComment, isValidClosurePropertyName, maybeAddHeritageClauses} from './jsdoc_transformer';
+import {AnnotatorHost, escapeForComment, isValidClosurePropertyName, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName} from './transformer_util';
 import * as ts from './typescript';
@@ -268,6 +268,7 @@ export function generateExterns(
         jsdocTags.push({tagName: 'record'});
         jsdocTags.push({tagName: 'struct'});
       }
+      maybeAddTemplateClause(jsdocTags, decl);
       if (writeJsDoc) emit(jsdoc.toString(jsdocTags));
       writeFunction(name, paramNames, namespace);
     }
