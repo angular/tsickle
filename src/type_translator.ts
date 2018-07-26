@@ -336,8 +336,10 @@ export class TypeTranslator {
         }
         return this.symbolToString(type.symbol, true);
       case ts.TypeFlags.ESSymbol:
-        // NOTE: currently this is just a typedef for {?}, shrug.
-        // https://github.com/google/closure-compiler/blob/55cf43ee31e80d89d7087af65b5542aa63987874/externs/es3.js#L34
+      case ts.TypeFlags.UniqueESSymbol:
+        // ESSymbol indicates something typed symbol.
+        // UniqueESSymbol indicates a specific unique symbol, used e.g. to index into an object.
+        // Closure does not have this distinction, so tsickle emits both as 'symbol'.
         return 'symbol';
       case ts.TypeFlags.Void:
         return 'void';
