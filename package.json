@@ -32,9 +32,12 @@
     "google-closure-compiler": "20180610.0.2",
     "jasmine": "3.1.0",
     "prettier": "1.13.7",
+    "protobufjs": "5.0.0",
     "source-map-support": "^0.5.6",
     "tslint": "5.9.1",
-    "typescript": "git://github.com/mprobst/TypeScript.git#5456479a4a"
+    "tsickle": "0.28.0",
+    "typescript": "git://github.com/mprobst/TypeScript.git#5456479a4a",
+    "tsutils": "2.20.0"
   },
   "scripts": {
     "build": "bazel build //:npm_package",
