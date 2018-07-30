@@ -214,52 +214,56 @@ export class TypeTranslator {
     // This must happen before the alias check below, it might introduce a new alias for the symbol.
     if ((sym.flags & ts.SymbolFlags.TypeParameter) === 0) this.ensureSymbolDeclared(sym);
 
-    // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
-    function writeText(text: string) {
-      str += text;
+    for (const [k, v] of this.symbolsToAliasedNames) {
+      console.error(k.escapedName, v, k);
     }
-    const writeSymbol = (text: string, symbol: ts.Symbol) => {
-      // When writing a symbol, check if there is an alias for it in the current scope that should
-      // take precedence, e.g. from a goog.forwardDeclare.
-      if (symbol.flags & ts.SymbolFlags.Alias) {
-        symbol = this.typeChecker.getAliasedSymbol(symbol);
-      }
-      const alias = this.symbolsToAliasedNames.get(symbol);
-      if (alias) {
-        // If so, discard the entire current text and only use the alias - otherwise if a symbol has
-        // a local alias but appears in a dotted type path (e.g. when it's imported using import *
-        // as foo), str would contain both the prefx *and* the full alias (foo.alias.name).
-        str = alias;
-      } else {
-        str += text;
-      }
-    };
-    const doNothing = () => {
-      return;
-    };
 
-    const builder = this.typeChecker.getSymbolDisplayBuilder();
-    const writer: ts.SymbolWriter = {
-      writeSymbol,
-      writeKeyword: writeText,
-      writeOperator: writeText,
-      writePunctuation: writeText,
-      writeSpace: writeText,
-      writeStringLiteral: writeText,
-      writeParameter: writeText,
-      writeProperty: writeText,
-      writeLine: doNothing,
-      increaseIndent: doNothing,
-      decreaseIndent: doNothing,
-      clear: doNothing,
-      trackSymbol(symbol: ts.Symbol, enclosingDeclaration?: ts.Node, meaning?: ts.SymbolFlags) {
-        return;
-      },
-      reportInaccessibleThisError: doNothing,
-      reportPrivateInBaseOfClassExpression: doNothing,
-    };
-    builder.buildSymbolDisplay(sym, writer, this.node);
+    if (sym.flags & ts.SymbolFlags.Alias) {
+      console.error('dealiased');
+      sym = this.typeChecker.getAliasedSymbol(sym);
+    }
+
+    let entityToString = (name: ts.EntityName): string => {
+      // This always returns undefined:
+      // const x = this.typeChecker.getSymbolAtLocation(name);
+
+      switch (name.kind) {
+        case ts.SyntaxKind.Identifier:
+          return name.text;
+        case ts.SyntaxKind.QualifiedName:
+          // XXX right here we need to handle aliasing, not below.
+          return entityToString(name.left) + '.' + name.right.text;
+        default:
+          throw new Error('entityToString not exhaustive');
+      }
+    }
+
+    console.error(sym);
+    const name = this.typeChecker.symbolToEntityName(
+      sym,
+      ts.SymbolFlags.Type,
+      /* enclosing declaration */ undefined,
+      0//ts.NodeBuilderFlags.UseFullyQualifiedType
+    );
+    if (!name) throw new Error('symbol has no name');
+
+    str = entityToString(name);
+
+    // XXX this is the wrong place to resolve aliases, see above.
+    // When writing a symbol, check if there is an alias for it in the current scope that should
+    // take precedence, e.g. from a goog.forwardDeclare.
+    const alias = this.symbolsToAliasedNames.get(sym);
+    if (alias) {
+      // If so, discard the entire current text and only use the alias - otherwise if a symbol has
+      // a local alias but appears in a dotted type path (e.g. when it's imported using import *
+      // as foo), str would contain both the prefx *and* the full alias (foo.alias.name).
+      console.error('rewrote alias');
+      str = alias;
+    }
+
+    console.error(name);
+    console.error('=>', str);
     return this.stripClutzNamespace(str);
   }
 
