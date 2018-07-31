@@ -23,6 +23,7 @@ node_repositories(package_json = [
     "//test_ts25:package.json",
     "//test_ts26:package.json",
     "//test_ts27:package.json",
+    "//test_ts29:package.json",
     "//:package.json",
 ])
 

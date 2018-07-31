@@ -1,6 +1,6 @@
 {
   "name": "tsickle",
-  "version": "0.32.0",
+  "version": "0.33.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "src/tsickle.js",
   "typings": "src/tsickle.d.ts",
@@ -17,7 +17,7 @@
     "source-map": "^0.6.0"
   },
   "peerDependencies": {
-    "typescript": "git://github.com/mprobst/TypeScript.git#5456479a4a"
+    "typescript": ">=2.4.2 <3.1"
   },
   "devDependencies": {
     "@types/diff-match-patch": "^1.0.32",
@@ -34,7 +34,7 @@
     "prettier": "1.13.7",
     "source-map-support": "^0.5.6",
     "tslint": "5.9.1",
-    "typescript": "git://github.com/mprobst/TypeScript.git#5456479a4a"
+    "typescript": "3.0.1"
   },
   "scripts": {
     "build": "bazel build //:npm_package",

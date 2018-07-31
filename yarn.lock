@@ -393,9 +393,9 @@ tsutils@^2.12.1:
   dependencies:
     tslib "^1.8.1"
 
-"typescript@git://github.com/mprobst/TypeScript.git#5456479a4a":
-  version "2.9.2"
-  resolved "git://github.com/mprobst/TypeScript.git#5456479a4a"
+typescript@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.1.tgz#43738f29585d3a87575520a4b93ab6026ef11fdb"
 
 util-deprecate@~1.0.1:
   version "1.0.2"
