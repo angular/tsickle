@@ -795,8 +795,6 @@ export function jsdocTransformer(
         if (host.untyped) return exportDecl;
 
         const result: ts.Node[] = [exportDecl];
-        const typeTranslator =
-            moduleTypeTranslator.newTypeTranslator(ts.getOriginalNode(exportDecl));
         for (const [exportedName, sym] of typesToExport) {
           let aliasedSymbol = sym;
           if (sym.flags & ts.SymbolFlags.Alias) {
@@ -805,13 +803,8 @@ export function jsdocTransformer(
           const isTypeAlias = (aliasedSymbol.flags & ts.SymbolFlags.Value) === 0 &&
               (aliasedSymbol.flags & (ts.SymbolFlags.TypeAlias | ts.SymbolFlags.Interface)) !== 0;
           if (!isTypeAlias) continue;
-          const typeName = moduleTypeTranslator.symbolsToAliasedNames.get(aliasedSymbol);
-          if (!typeName) {
-            moduleTypeTranslator.error(
-                ts.getOriginalNode(exportDecl), `cannot find alias for re-exported symbol`);
-            continue;
-          }
-          // Leading newline prevents the typedef from being swallowed.
+          const typeName =
+              moduleTypeTranslator.symbolsToAliasedNames.get(aliasedSymbol) || aliasedSymbol.name;
           const stmt = ts.createStatement(
               ts.createPropertyAccess(ts.createIdentifier('exports'), exportedName));
           addCommentOn(stmt, [{tagName: 'typedef', type: '!' + typeName}]);
