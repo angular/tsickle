@@ -9,15 +9,19 @@
 // E.g. "export declare interface Error" should not conflict with the
 // Closure builtin Error type.
 
-export declare interface ExportDeclaredIf { x: number; }
 let user1: ExportDeclaredIf;
+export declare interface ExportDeclaredIf { x: number; }
 export declare const exportedDeclaredVar: number;
-let user2 = exportedDeclaredVar;
 export declare class ExportDeclaredClass { x: number; }
 let user3: ExportDeclaredClass;
-export declare function exportedDeclaredFn(): string;
-let user4 = exportedDeclaredFn;
 export declare const multiExportedDeclaredVar1: string, multiExportedDeclaredVar2: number;
-let user5 = multiExportedDeclaredVar1;
-export declare type X = string;
-let user6: X;
+export declare type ExportDeclaredType = string;
+let user6: ExportDeclaredType;
+export declare function exportedDeclaredFn(): ExportDeclaredIf;
+
+
+declare namespace exported.namespace {
+   class ExportedClassInNamespace {}
+}
+
+const fromClassInNamespace = new exported.namespace.ExportedClassInNamespace();

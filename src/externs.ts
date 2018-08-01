@@ -7,25 +7,63 @@
  */
 
 /**
- * @fileoverview Externs creates Closure Compiler \@externs definitions from the ambient
- * declarations in a TypeScript file.
+ * @fileoverview Externs creates Closure Compiler \@externs definitions from the
+ * ambient declarations in a TypeScript file.
  *
- * For example, a
- *   declare interface Foo { bar: string; }
- * Would generate a
- *   /.. \@externs ./
- *   /.. \@record ./
- *   var Foo = function() {};
- *   /.. \@type {string} ./
- *   Foo.prototype.bar;
+ * For example, a declare interface Foo { bar: string; } Would generate a /..
+ *   \@externs ./ /.. \@record ./ var Foo = function() {}; /.. \@type {string}
+ *   ./ Foo.prototype.bar;
  *
- * The generated externs indicate to Closure Compiler that symbols are external to the optimization
- * process, i.e. they are provided by outside code. That most importantly means they must not be
- * renamed or removed.
+ * The generated externs indicate to Closure Compiler that symbols are external
+ * to the optimization process, i.e. they are provided by outside code. That
+ * most importantly means they must not be renamed or removed.
+ *
+ * A major difficulty here is that TypeScript supports module-scoped external
+ * symbols; `.d.ts` files can contain `export`s and `import` other files.
+ * Closure Compiler does not have such a concept, so tsickle must emulate the
+ * behaviour. It does so by following this scheme:
+ *
+ * 1. non-module .d.ts produces global symbols
+ * 2. module .d.ts produce symbols namespaced to the module, by creating a
+ *    mangled name matching the current file's path.
+ *    1. if there's a shim defined, we expect the shim to have a
+ *       goog.module/provide that references the mangled path. tsickle does not
+ *       emit any code for `export as namespace` and similar in this case.
+ *    2. if there is no shim, tsickle produces a `goog.provide()` in externs so
+ *       that code can import (require) the defined symbols. Note that given
+ *       there is no shim, imports will only work for types, but not values. If
+ *       a module describes values, it should have a shim (but tsickle does not
+ *       report that as an error right now).
+ * 3. declarations in `.ts` files produce types that can be separately emitted
+ *    in e.g. an `externs.js`, using `getGeneratedExterns` below.
+ *    1. non-exported symbols produce global types, because that's what users
+ *       expect and it matches TypeScripts emit, which just references `Foo` for
+ *       a locally declared symbol `Foo` in a module. Arguably these should be
+ *       wrapped in `declare global { ... }`.
+ *    2. exported symbols are scoped to the `.ts` file by prefixing them with a
+ *       mangled name. Exported types are re-exported from the JavaScript
+ *       `goog.module`, allowing downstream code to reference them. This has the
+ *       same problem regarding ambient values as above, it is unclear where the
+ *       value symbol would be defined, so for the time being this is
+ *       unsupported.
+ *
+ * The effect of this is that:
+ * - symbols in a module (i.e. not globals) are generally scoped to the local
+ *   module using a mangled name, preventing symbol collisions on the Closure
+ *   side.
+ * - importing code can unconditionally refer to and import any symbol defined
+ *   in a module `X` as `path.to.module.X`, regardless of whether the defining
+ *   location is a `.d.ts` file or a `.ts` file, and regardless whether the
+ *   symbol is ambient.
+ * - if there is a shim present, tsickle avoids emitting the Closure namespace
+ *   itself, expecting the shim to provide the namespace and initialize it to a
+ *   symbol that provides the right value at runtime (i.e. the implementation of
+ *   whatever third party library the .d.ts describes).
  */
 
 import * as path from 'path';
 
+import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
@@ -58,6 +96,12 @@ const CLOSURE_EXTERNS_BLACKLIST: ReadonlyArray<string> = [
  * The header to be used in generated externs.  This is not included in the output of
  * generateExterns() because generateExterns() works one file at a time, and typically you create
  * one externs file from the entire compilation unit.
+ *
+ * Suppressions:
+ * - duplicate: because externs might duplicate re-opened definitions from other JS files.
+ * - checkTypes: Closure's type system does not match TS'.
+ * - undefinedNames: code below tries to be careful not to overwrite previously emitted definitions,
+ *   but on the flip side might accidentally miss definitions.
  */
 const EXTERNS_HEADER = `/**
  * @externs
@@ -79,6 +123,31 @@ export function getGeneratedExterns(externs: {[fileName: string]: string}): stri
   return allExterns;
 }
 
+/**
+ * Returns a mangled version of the module name (resolved file name) for source file.
+ *
+ * The mangled name is safe to use as a JavaScript identifier. It is used as a globally unique
+ * prefix to scope symbols in externs file (see code below).
+ *
+ * @param contextFileName if given is used as the context file path to resolve the source file's
+ *     name against.
+ */
+export function moduleNameAsIdentifier(
+    host: AnnotatorHost, fileName: string, contextFileName?: string): string {
+  const resolved = resolveModuleName(host, contextFileName || '', fileName);
+  return host.pathToModuleName('', resolved).replace(/\./g, '$');
+}
+
+/**
+ * isInGlobalAugmentation returns true if declaration is the immediate child of a 'declare global'
+ * block.
+ */
+function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
+  // declare global { ... } creates a ModuleDeclaration containing a ModuleBlock containing the
+  // declaration, with the ModuleDeclaration having the GlobalAugmentation flag set.
+  if (!declaration.parent || !declaration.parent.parent) return false;
+  return (declaration.parent.parent.flags & ts.NodeFlags.GlobalAugmentation) !== 0;
+}
 
 /**
  * generateExterns generates extern definitions for all ambient declarations in the given source
@@ -86,17 +155,79 @@ export function getGeneratedExterns(externs: {[fileName: string]: string}): stri
  * comment with \@fileoverview and \@externs (see above for that).
  */
 export function generateExterns(
-    typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
-    host: AnnotatorHost): {output: string, diagnostics: ts.Diagnostic[]} {
+    typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, host: AnnotatorHost,
+    moduleResolutionHost: ts.ModuleResolutionHost,
+    options: ts.CompilerOptions): {output: string, diagnostics: ts.Diagnostic[]} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
   const isDts = isDtsFileName(sourceFile.fileName);
+  const isExternalModule = ts.isExternalModule(sourceFile);
+
   const mtt =
       new ModuleTypeTranslator(sourceFile, typeChecker, host, diagnostics, /*isForExterns*/ true);
+
+  let rootNamespace = '';
+  if (isExternalModule) {
+    // .d.ts files that are modules do not declare global symbols - their symbols must be explicitly
+    // imported to be used. However Closure Compiler has no concept of externs that are modules and
+    // require imports. This code mangles the symbol names by wrapping them in a top level variable
+    // that's unique to this file. That allows emitting them for Closure as global symbols while
+    // avoiding collisions. This is necessary as symbols local to this module can (and will very
+    // commonly) conflict with the namespace used in "export as namespace", e.g. "angular", and also
+    // to avoid users accidentally using these symbols in .js files (and more collisions). The
+    // symbols that are "hidden" like that can be made accessible through an "export as namespace"
+    // declaration (see below).
+    rootNamespace = moduleNameAsIdentifier(host, sourceFile.fileName);
+  }
 
   for (const stmt of sourceFile.statements) {
     if (!isDts && !hasModifierFlag(stmt, ts.ModifierFlags.Ambient)) continue;
     visitor(stmt, []);
+  }
+
+  if (output && isExternalModule) {
+    // If tsickle generated any externs and this is an external module, prepend the namespace
+    // declaration for it.
+    output = `/** @const */\nvar ${rootNamespace} = {};\n` + output;
+
+    // There can only be one export =.
+    const exportAssignment = sourceFile.statements.find(ts.isExportAssignment);
+    let exportedNamespace = rootNamespace;
+    if (exportAssignment && exportAssignment.isExportEquals) {
+      if (ts.isIdentifier(exportAssignment.expression) ||
+          ts.isQualifiedName(exportAssignment.expression)) {
+        // E.g. export = someName;
+        // If someName is "declare global { namespace someName {...} }", tsickle must not qualify
+        // access to it with module namespace as it is emitted in the global namespace.
+        const symbol = typeChecker.getSymbolAtLocation(exportAssignment.expression);
+        const isGlobalSymbol = symbol && symbol.declarations &&
+            symbol.declarations.some(d => isInGlobalAugmentation(d));
+        const entityName = getEntityNameText(exportAssignment.expression);
+        if (isGlobalSymbol) {
+          exportedNamespace = entityName;
+        } else {
+          exportedNamespace = rootNamespace + '.' + entityName;
+        }
+      } else {
+        reportDiagnostic(
+            diagnostics, exportAssignment.expression,
+            `export = expression must be a qualified name.`);
+      }
+    }
+
+    if (isDts && host.provideExternalModuleDtsNamespace) {
+      const closureNamespace = host.pathToModuleName('', sourceFile.fileName);
+      emit(`\n// Publish non-shimmed external module externs as a Closure namespace.\n`);
+      emit(`goog.provide('${closureNamespace}');\n`);
+      emit(`/** @const */\n${closureNamespace} = ${exportedNamespace};\n`);
+
+      // In a non-shimmed module, create a global namespace.
+      for (const nsExport of sourceFile.statements.filter(ts.isNamespaceExportDeclaration)) {
+        const namespaceName = getIdentifierText(nsExport.name);
+        emit(`// export as namespace ${namespaceName}\n`);
+        writeVariableStatement(namespaceName, [], exportedNamespace);
+      }
+    }
   }
 
   return {output, diagnostics};
@@ -111,12 +242,24 @@ export function generateExterns(
    *   interface Foo { x: number; }
    *   interface Foo { y: number; }
    * we only want to emit the "\@record" for Foo on the first one.
+   *
+   * The exception are variable declarations, which - in externs - do not assign a value:
+   *   /.. \@type {...} ./
+   *   var someVariable;
+   *   /.. \@type {...} ./
+   *   someNamespace.someVariable;
+   * If a later declaration wants to add additional properties on someVariable, tsickle must still
+   * emit an assignment into the object, as it's otherwise absent.
    */
-  function isFirstDeclaration(decl: ts.DeclarationStatement): boolean {
+  function isFirstValueDeclaration(decl: ts.DeclarationStatement): boolean {
     if (!decl.name) return true;
     const sym = typeChecker.getSymbolAtLocation(decl.name)!;
     if (!sym.declarations || sym.declarations.length < 2) return true;
-    return decl === sym.declarations[0];
+    const earlierDecls = sym.declarations.slice(0, sym.declarations.indexOf(decl));
+    // Either there are no earlier declarations, or all of them are variables (see above). tsickle
+    // emits a value for all other declaration kinds (function for functions, classes, interfaces,
+    // {} object for namespaces).
+    return earlierDecls.length === 0 || earlierDecls.every(ts.isVariableDeclaration);
   }
 
   /** Writes the actual variable statement of a Closure variable declaration. */
@@ -159,7 +302,7 @@ export function generateExterns(
         if (sym.flags & ts.SymbolFlags.Alias) {
           sym = typeChecker.getAliasedSymbol(sym);
         }
-        const typeTranslator = mtt.newTypeTranslator(node);
+        const typeTranslator = mtt.newTypeTranslator(sourceFile);
         if (typeTranslator.isBlackListed(sym)) {
           if (additionalDocTag) emit(` /** ${additionalDocTag} */`);
           return;
@@ -170,7 +313,8 @@ export function generateExterns(
     if (additionalDocTag) {
       emit(' ' + additionalDocTag);
     }
-    emit(` @type {${mtt.typeToClosure(node, type)}} */`);
+    type = type || typeChecker.getTypeAtLocation(node);
+    emit(` @type {${mtt.typeToClosure(sourceFile, type)}} */`);
   }
 
   /**
@@ -245,7 +389,7 @@ export function generateExterns(
     const typeName = namespace.concat([name.getText()]).join('.');
     if (CLOSURE_EXTERNS_BLACKLIST.indexOf(typeName) >= 0) return;
 
-    if (isFirstDeclaration(decl)) {
+    if (isFirstValueDeclaration(decl)) {
       let paramNames: string[] = [];
       const jsdocTags: jsdoc.Tag[] = [];
       let writeJsDoc = true;
@@ -340,6 +484,89 @@ export function generateExterns(
   }
 
   /**
+   * Adds aliases for the symbols imported in the given declaration, so that their types get
+   * printed as the fully qualified name, and not just as a reference to the local import alias.
+   *
+   * tsickle generates .js files that (at most) contain a `goog.provide`, but are not
+   * `goog.module`s. These files cannot express an aliased import. However Closure Compiler allows
+   * referencing types using fully qualified names in such files, so tsickle can resolve the
+   * imported module URI and produce `path.to.module.Symbol` as an alias, and use that when
+   * referencing the type.
+   */
+  function addImportAliases(decl: ts.ImportDeclaration|ts.ImportEqualsDeclaration) {
+    let moduleUri: string;
+    if (ts.isImportDeclaration(decl)) {
+      moduleUri = (decl.moduleSpecifier as ts.StringLiteral).text;
+    } else if (ts.isExternalModuleReference(decl.moduleReference)) {
+      // import foo = require('./bar');
+      moduleUri = (decl.moduleReference.expression as ts.StringLiteral).text;
+    } else {
+      // import foo = bar.baz.bam;
+      // unsupported.
+      return;
+    }
+
+    const googNamespace = extractGoogNamespaceImport(moduleUri);
+    const moduleName = googNamespace ||
+        host.pathToModuleName(
+            sourceFile.fileName, resolveModuleName(host, sourceFile.fileName, moduleUri));
+
+    if (ts.isImportEqualsDeclaration(decl)) {
+      // import foo = require('./bar');
+      addImportAlias(decl.name, moduleName, undefined);
+      return;
+    }
+
+    // Side effect import 'path'; declares no local aliases.
+    if (!decl.importClause) return;
+
+    if (decl.importClause.name) {
+      // import name from ... -> map to .default on the module.name.
+      if (googNamespace) {
+        addImportAlias(decl.importClause.name, googNamespace, undefined);
+      } else {
+        addImportAlias(decl.importClause.name, moduleName, 'default');
+      }
+    }
+    const namedBindings = decl.importClause.namedBindings;
+    if (!namedBindings) return;
+
+    if (ts.isNamespaceImport(namedBindings)) {
+      // import * as name -> map directly to the module.name.
+      addImportAlias(namedBindings.name, moduleName, undefined);
+    }
+
+    if (ts.isNamedImports(namedBindings)) {
+      // import {A as B}, map to module.name.A
+      for (const namedBinding of namedBindings.elements) {
+        addImportAlias(namedBinding.name, moduleName, namedBinding.name);
+      }
+    }
+  }
+
+  /**
+   * Adds an import alias for the symbol defined at the given node. Creates an alias name based on
+   * the given moduleName and (optionally) the name.
+   */
+  function addImportAlias(node: ts.Node, moduleName: string, name: ts.Identifier|string|undefined) {
+    let symbol = typeChecker.getSymbolAtLocation(node);
+    if (!symbol) {
+      reportDiagnostic(diagnostics, node, `named import has no symbol`);
+      return;
+    }
+    let aliasName = moduleName;
+    if (typeof name === 'string') {
+      aliasName += '.' + name;
+    } else if (name) {
+      aliasName += '.' + getIdentifierText(name);
+    }
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = typeChecker.getAliasedSymbol(symbol);
+    }
+    mtt.symbolsToAliasedNames.set(symbol, aliasName);
+  }
+
+  /**
    * Produces a compiler error that references the Node's kind. This is useful for the "else"
    * branch of code that is attempting to handle all possible input Node types, to ensure all cases
    * covered.
@@ -348,19 +575,60 @@ export function generateExterns(
     reportDiagnostic(diagnostics, node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
   }
 
+  /**
+   * getNamespaceForLocalDeclaration returns the namespace that should be used for the given
+   * declaration, deciding whether to namespace the symbol to the file or whether to create a
+   * global name.
+   *
+   * The function covers these cases:
+   * 1) a declaration in a .d.ts
+   * 1a) where the .d.ts is an external module     --> namespace
+   * 1b) where the .d.ts is not an external module --> global
+   * 2) a declaration in a .ts file (all are treated as modules)
+   * 2a) that is exported                          --> namespace
+   * 2b) that is unexported                        --> global
+   *
+   * For 1), all symbols in .d.ts should generally be namespaced to the file to avoid collisions.
+   * However .d.ts files that are not external modules do declare global names (1b).
+   *
+   * For 2), ambient declarations in .ts files must be namespaced, for the same collision reasons.
+   * The exception is 2b), where in TypeScript, an unexported local "declare const x: string;"
+   * creates a symbol that, when used locally, is emitted as just "x". That is, it behaves
+   * like a variable declared in a 'declare global' block. Closure Compiler would fail the build if
+   * there is no declaration for "x", so tsickle must generate a global external symbol, i.e.
+   * without the namespace wrapper.
+   */
+  function getNamespaceForTopLevelDeclaration(
+      declaration: ts.Node, namespace: ReadonlyArray<string>): ReadonlyArray<string> {
+    // Only use rootNamespace for top level symbols, any other namespacing (global names, nested
+    // namespaces) is always kept.
+    if (namespace.length !== 0) return namespace;
+    // All names in a module (external) .d.ts file can only be accessed locally, so they always get
+    // namespace prefixed.
+    if (isDts && isExternalModule) return [rootNamespace];
+    // Same for exported declarations in regular .ts files.
+    if (hasModifierFlag(declaration, ts.ModifierFlags.Export)) return [rootNamespace];
+    // But local declarations in .ts files or .d.ts files (1b, 2b) are global, too.
+    return [];
+  }
+
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
+    if (node.parent === sourceFile) {
+      namespace = getNamespaceForTopLevelDeclaration(node, namespace);
+    }
+
     switch (node.kind) {
       case ts.SyntaxKind.ModuleDeclaration:
         const decl = node as ts.ModuleDeclaration;
         switch (decl.name.kind) {
           case ts.SyntaxKind.Identifier:
-            // E.g. "declare namespace foo {"
-            const name = getIdentifierText(decl.name as ts.Identifier);
-            if (name === 'global') {
+            if (decl.flags & ts.NodeFlags.GlobalAugmentation) {
               // E.g. "declare global { ... }".  Reset to the outer namespace.
               namespace = [];
             } else {
-              if (isFirstDeclaration(decl)) {
+              // E.g. "declare namespace foo {"
+              const name = getIdentifierText(decl.name as ts.Identifier);
+              if (isFirstValueDeclaration(decl)) {
                 emit('/** @const */\n');
                 writeVariableStatement(name, namespace, '{}');
               }
@@ -370,31 +638,25 @@ export function generateExterns(
             break;
           case ts.SyntaxKind.StringLiteral:
             // E.g. "declare module 'foo' {" (note the quotes).
-            // We still want to emit externs for this module, but
-            // Closure doesn't really provide a mechanism for
-            // module-scoped externs.  For now, ignore the enclosing
-            // namespace (because this is declaring a top-level module)
-            // and emit into a fake namespace.
+            // We still want to emit externs for this module, but Closure doesn't provide a
+            // mechanism for module-scoped externs. Instead, we emit in a mangled namespace.
+            // The mangled namespace (after resolving files) matches the emit for an original module
+            // file, so effectively this augments any existing module.
 
-            // Declare the top-level "tsickle_declare_module".
-            emit('/** @const */\n');
-            writeVariableStatement('tsickle_declare_module', [], '{}');
-            namespace = ['tsickle_declare_module'];
-
-            // Declare the inner "tsickle_declare_module.foo", if it's not
-            // declared already elsewhere.
-            let importName = (decl.name as ts.StringLiteral).text;
+            const importName = (decl.name as ts.StringLiteral).text;
+            const importedModuleName = resolveModuleName(
+                {host: moduleResolutionHost, options}, sourceFile.fileName, importName);
+            const mangled = moduleNameAsIdentifier(host, importedModuleName);
             emit(`// Derived from: declare module "${importName}"\n`);
-            // We also don't care about the actual name of the module ("foo"
-            // in the above example), except that we want it to not conflict.
-            importName = importName.replace(/_/, '__').replace(/[^A-Za-z]/g, '_');
-            if (isFirstDeclaration(decl)) {
-              emit('/** @const */\n');
-              writeVariableStatement(importName, namespace, '{}');
-            }
+            namespace = [mangled];
 
-            // Declare the contents inside the "tsickle_declare_module.foo".
-            if (decl.body) visitor(decl.body, namespace.concat(importName));
+            // Declare "mangled$name" if it's not declared already elsewhere.
+            if (isFirstValueDeclaration(decl)) {
+              emit('/** @const */\n');
+              writeVariableStatement(mangled, [], '{}');
+            }
+            // Declare the contents inside the "mangled$name".
+            if (decl.body) visitor(decl.body, [mangled]);
             break;
           default:
             errorUnimplementedKind(decl.name, 'externs generation of namespace');
@@ -415,7 +677,7 @@ export function generateExterns(
           break;
         }
         if (importEquals.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference) {
-          emit(`\n/* TODO: import ${localName} = require(...) */\n`);
+          addImportAliases(importEquals);
           break;
         }
         const qn = getEntityNameText(importEquals.moduleReference);
@@ -452,6 +714,13 @@ export function generateExterns(
         break;
       case ts.SyntaxKind.TypeAliasDeclaration:
         writeTypeAlias(node as ts.TypeAliasDeclaration, namespace);
+        break;
+      case ts.SyntaxKind.ImportDeclaration:
+        addImportAliases(node as ts.ImportDeclaration);
+        break;
+      case ts.SyntaxKind.NamespaceExportDeclaration:
+      case ts.SyntaxKind.ExportAssignment:
+        // Handled on the file level.
         break;
       default:
         const locationStr = namespace.join('.') || path.basename(node.getSourceFile().fileName);

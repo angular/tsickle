@@ -141,6 +141,7 @@ testFn('golden tests with transformer', () => {
         transformTypesToClosure: !test.isPureTransformerTest,
         addDtsClutzAliases: test.isDeclarationTest,
         untyped: test.isUntypedTest,
+        provideExternalModuleDtsNamespace: !test.hasShim,
         logWarning: (diag: ts.Diagnostic) => {
           allDiagnostics.add(diag);
         },
@@ -177,9 +178,9 @@ testFn('golden tests with transformer', () => {
             if (test.isDeclarationTest) {
               // Only compare .d.ts files for declaration tests.
               if (!fileName.endsWith('.d.ts')) return;
-            } else {
+            } else if (!fileName.endsWith('.js')) {
               // Only compare .js files for regular test runs (non-declaration).
-              if (!fileName.endsWith('.js')) return;
+              return;
             }
             // Normally we don't check .d.ts files, we are only interested to test that
             // we don't throw when we generate them, but if we're in a .declaration test,

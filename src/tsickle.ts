@@ -124,10 +124,11 @@ export function emitWithTsickle(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
   }
 
-  const writeFileDelegate = writeFile || tsHost.writeFile.bind(tsHost);
+  const writeFileDelegate: ts.WriteFileCallback = writeFile || tsHost.writeFile.bind(tsHost);
   const writeFileImpl =
       (fileName: string, content: string, writeByteOrderMark: boolean,
-       onError?: (message: string) => void, sourceFiles?: ReadonlyArray<ts.SourceFile>) => {
+       onError: ((message: string) => void)|undefined,
+       sourceFiles: ReadonlyArray<ts.SourceFile>) => {
         if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
           // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
           // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
@@ -148,23 +149,25 @@ export function emitWithTsickle(
   const externs: {[fileName: string]: string} = {};
   if (host.transformTypesToClosure) {
     const sourceFiles = targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
-    sourceFiles.forEach(sf => {
-      if (isDtsFileName(sf.fileName) && host.shouldSkipTsickleProcessing(sf.fileName)) {
-        return;
+    for (const sourceFile of sourceFiles) {
+      const isDts = isDtsFileName(sourceFile.fileName);
+      if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
+        continue;
       }
       // fileName might be absolute, which would cause emits different by checkout location or
       // non-deterministic output for build systems that use hashed work directories (bazel).
       // fileNameToModuleId gives the logical, base path relative ID for the given fileName, which
       // avoids this issue.
-      const moduleId = host.fileNameToModuleId(sf.fileName);
-      const {output, diagnostics} = generateExterns(typeChecker, sf, host);
+      const moduleId = host.fileNameToModuleId(sourceFile.fileName);
+      const {output, diagnostics} = generateExterns(
+          typeChecker, sourceFile, host, /* moduleResolutionHost */ host.host, tsOptions);
       if (output) {
         externs[moduleId] = output;
       }
       if (diagnostics) {
         tsickleDiagnostics.push(...diagnostics);
       }
-    });
+    }
   }
   // All diagnostics (including warnings) are treated as errors.
   // If the host decides to ignore warnings, just discard them.

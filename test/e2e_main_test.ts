@@ -35,8 +35,7 @@ describe('toClosureJS', () => {
     expect(tsickle.getGeneratedExterns(result.externs)).toContain(`/** @const */
 var __NS = {};
  /** @type {number} */
-__NS.__ns1;
-`);
+__NS.__ns1;`);
 
     const underscoreDotJs = files.get('./test_files/underscore/underscore.js');
     expect(underscoreDotJs).toContain(`goog.module('test_files.underscore.underscore')`);

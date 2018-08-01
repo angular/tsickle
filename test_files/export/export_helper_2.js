@@ -30,7 +30,7 @@ const ConstEnum = {
     AValue: 1,
 };
 exports.ConstEnum = ConstEnum;
-/** @typedef {!DeclaredType} */
+/** @typedef {!test_files$export$export_helper_2.DeclaredType} */
 exports.DeclaredType;
-/** @typedef {!DeclaredInterface} */
+/** @typedef {!test_files$export$export_helper_2.DeclaredInterface} */
 exports.DeclaredInterface;

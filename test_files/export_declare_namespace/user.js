@@ -7,7 +7,7 @@ var module = module || { id: 'test_files/export_declare_namespace/user.ts' };
 module = module;
 exports = {};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export_declare_namespace.export_declare_namespace");
-/** @type {!exportedDeclaredNamespace.Used} */
+/** @type {!tsickle_forward_declare_1.exportedDeclaredNamespace.Used} */
 let x;
-/** @type {!nested.exportedNamespace.User} */
+/** @type {!tsickle_forward_declare_1.nested.exportedNamespace.User} */
 let y;

@@ -3,8 +3,8 @@
  * module.
  */
 
-goog.module('test_files.export_equals.namespace');
+goog.module('test_files.export_equals.shim.namespace');
 
 // Assign the external namespace. "SomeNamespace" is assumed to be loaded separately, e.g. through a
 // script tag or so.
-exports = SomeNamespace;
+exports = window['SomeNamespace'];

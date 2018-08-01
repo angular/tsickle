@@ -16,24 +16,15 @@ goog.module('test_files.declare_export.declare_export');
 var module = module || { id: 'test_files/declare_export/declare_export.ts' };
 module = module;
 exports = {};
-/** @typedef {!ExportDeclaredIf} */
-exports.ExportDeclaredIf;
-/** @type {!ExportDeclaredIf} */
+/** @type {!test_files$declare_export$declare_export.ExportDeclaredIf} */
 let user1;
-exports.exportedDeclaredVar = window.exportedDeclaredVar;
-/** @type {number} */
-let user2 = exports.exportedDeclaredVar;
-exports.ExportDeclaredClass = ExportDeclaredClass;
-/** @type {!ExportDeclaredClass} */
+/** @typedef {!test_files$declare_export$declare_export.ExportDeclaredIf} */
+exports.ExportDeclaredIf;
+/** @type {!test_files$declare_export$declare_export.ExportDeclaredClass} */
 let user3;
-exports.exportedDeclaredFn = exportedDeclaredFn;
-/** @type {function(): string} */
-let user4 = exportedDeclaredFn;
-exports.multiExportedDeclaredVar1 = window.multiExportedDeclaredVar1;
-exports.multiExportedDeclaredVar2 = window.multiExportedDeclaredVar2;
-/** @type {string} */
-let user5 = exports.multiExportedDeclaredVar1;
-/** @typedef {!X} */
-exports.X;
+/** @typedef {!test_files$declare_export$declare_export.ExportDeclaredType} */
+exports.ExportDeclaredType;
 /** @type {string} */
 let user6;
+/** @type {!exported.namespace.ExportedClassInNamespace} */
+const fromClassInNamespace = new exported.namespace.ExportedClassInNamespace();

@@ -7,6 +7,10 @@
  */
 
 import * as path from 'path';
+
+import {moduleNameAsIdentifier} from './externs';
+import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
+import {hasModifierFlag} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -149,6 +153,44 @@ export function symbolToDebugString(sym: ts.Symbol): string {
   return debugString;
 }
 
+/** A module declared as "declare module 'external_name' {...}" (note the quotes). */
+type AmbientModuleDeclaration = ts.ModuleDeclaration&{name: ts.StringLiteral};
+
+/**
+ * Searches for an ambient module declaration in the ancestors of declarations, depth first, and
+ * returns the first or null if none found.
+ */
+function getContainingAmbientModuleDeclaration(declarations: ts.Declaration[]):
+    AmbientModuleDeclaration|null {
+  for (const declaration of declarations) {
+    let parent = declaration.parent;
+    while (parent) {
+      if (ts.isModuleDeclaration(parent) && ts.isStringLiteral(parent.name)) {
+        return parent as AmbientModuleDeclaration;
+      }
+      parent = parent.parent;
+    }
+  }
+  return null;
+}
+
+/** Returns true if any of declarations is a top level declaration in an external module. */
+function isTopLevelExternal(declarations: ts.Declaration[]) {
+  for (const declaration of declarations) {
+    if (declaration.parent === undefined) continue;
+    if (ts.isSourceFile(declaration.parent) && ts.isExternalModule(declaration.parent)) return true;
+  }
+  return false;
+}
+
+/**
+ * Returns true if a and b are (or were originally before transformation) nodes of the same source
+ * file.
+ */
+function isDeclaredInSameFile(a: ts.Node, b: ts.Node) {
+  return ts.getOriginalNode(a).getSourceFile() === ts.getOriginalNode(b).getSourceFile();
+}
+
 /** TypeTranslator translates TypeScript types to Closure types. */
 export class TypeTranslator {
   /**
@@ -174,8 +216,8 @@ export class TypeTranslator {
    *     translation, e.g. to blacklist a symbol.
    */
   constructor(
-      private readonly typeChecker: ts.TypeChecker, private readonly node: ts.Node,
-      private readonly pathBlackList?: Set<string>,
+      private readonly host: AnnotatorHost, private readonly typeChecker: ts.TypeChecker,
+      private readonly node: ts.Node, private readonly pathBlackList?: Set<string>,
       private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>(),
       private readonly ensureSymbolDeclared: (sym: ts.Symbol) => void = () => {}) {
     // Normalize paths to not break checks on Windows.
@@ -196,43 +238,12 @@ export class TypeTranslator {
    *     would be fully qualified. I.e. this flag is false for generic types.
    */
   symbolToString(sym: ts.Symbol, useFqn: boolean): string {
-    if (useFqn && this.isForExterns) {
-      // For regular type emit, we can use TypeScript's naming rules, as they match Closure's name
-      // scoping rules. However when emitting externs files for ambients, naming rules change. As
-      // Closure doesn't support externs modules, all names must be global and use global fully
-      // qualified names. The code below uses TypeScript to convert a symbol to a full qualified
-      // name and then emits that.
-      let fqn = this.typeChecker.getFullyQualifiedName(sym);
-      if (fqn.startsWith(`"`) || fqn.startsWith(`'`)) {
-        // Quoted FQNs mean the name is from a module, e.g. `'path/to/module'.some.qualified.Name`.
-        // tsickle generally re-scopes names in modules that are moved to externs into the global
-        // namespace. That does not quite match TS' semantics where ambient types from modules are
-        // local. However value declarations that are local to modules but not defined do not make
-        // sense if not global, e.g. "declare class X {}; new X();" cannot work unless `X` is
-        // actually a global.
-        // So this code strips the module path from the type and uses the FQN as a global.
-        fqn = fqn.replace(/^["'][^"']+['"]\./, '');
-      }
-      // Declarations in module can re-open global types using "declare global { ... }". The fqn
-      // then contains the prefix "global." here. As we're mapping to global types, just strip the
-      // prefix.
-      const isInGlobal = (sym.declarations || []).some(d => {
-        let current: ts.Node|undefined = d;
-        while (current) {
-          if (current.flags & ts.NodeFlags.GlobalAugmentation) return true;
-          current = current.parent;
-        }
-        return false;
-      });
-      if (isInGlobal) {
-        fqn = fqn.replace(/^global\./, '');
-      }
-      return this.stripClutzNamespace(fqn);
-    }
     // TypeScript resolves e.g. union types to their members, which can include symbols not declared
     // in the current scope. Ensure that all symbols found this way are actually declared.
     // This must happen before the alias check below, it might introduce a new alias for the symbol.
-    if ((sym.flags & ts.SymbolFlags.TypeParameter) === 0) this.ensureSymbolDeclared(sym);
+    if (!this.isForExterns && (sym.flags & ts.SymbolFlags.TypeParameter) === 0) {
+      this.ensureSymbolDeclared(sym);
+    }
 
     // This follows getSingleLineStringWriter in the TypeScript compiler.
     let str = '';
@@ -251,6 +262,9 @@ export class TypeTranslator {
         // a local alias but appears in a dotted type path (e.g. when it's imported using import *
         // as foo), str would contain both the prefx *and* the full alias (foo.alias.name).
         str = alias;
+      } else if (str.length === 0) {
+        const mangledPrefix = this.maybeGetMangledNamePrefix(symbol);
+        str += mangledPrefix + text;
       } else {
         str += text;
       }
@@ -281,6 +295,55 @@ export class TypeTranslator {
     };
     builder.buildSymbolDisplay(sym, writer, this.node);
     return this.stripClutzNamespace(str);
+  }
+
+  /**
+   * Returns the mangled name prefix for symbol, or an empty string if not applicable.
+   *
+   * Type names are emitted with a mangled prefix if they are top level symbols declared in an
+   * external module (.d.ts or .ts), and are ambient declarations ("declare ..."). This is because
+   * their declarations get moved to externs files (to make external names visible to Closure and
+   * prevent renaming), which only use global names. This means the names must be mangled to prevent
+   * collisions and allow referencing them uniquely.
+   *
+   * This method also handles the special case of symbols declared in an ambient external module
+   * context.
+   *
+   * Symbols declared in a global block, e.g. "declare global { type X; }", are handled implicitly:
+   * when referenced, they are written as just "X", which is not a top level declaration, so the
+   * code below ignores them.
+   */
+  maybeGetMangledNamePrefix(symbol: ts.Symbol): string|'' {
+    if (!symbol.declarations) return '';
+    const declarations = symbol.declarations;
+    let ambientModuleDeclaration: AmbientModuleDeclaration|null = null;
+    // If the symbol is neither a top level declaration in an external module nor in an ambient
+    // block, tsickle should not emit a prefix: it's either not an external symbol, or it's an
+    // external symbol nested in a module, so it will need to be qualified, and the mangling prefix
+    // goes on the qualifier.
+    if (!isTopLevelExternal(declarations)) {
+      ambientModuleDeclaration = getContainingAmbientModuleDeclaration(declarations);
+      if (!ambientModuleDeclaration) return '';
+    }
+    // At this point, the declaration is from an external module (possibly ambient).
+    // These declarations must be prefixed if either:
+    // (a) tsickle is emitting an externs file, so all symbols are qualified within it
+    // (b) or the declaration must be an exported ambient declaration from the local file.
+    // Ambient external declarations from other files are imported, so there's a local alias for the
+    // module and no mangling is needed.
+    if (!this.isForExterns &&
+        !declarations.every(
+            d => isDeclaredInSameFile(this.node, d) && isAmbient(d) &&
+                hasModifierFlag(d, ts.ModifierFlags.Export))) {
+      return '';
+    }
+    // If from an ambient declaration, use and resolve the name from that. Otherwise, use the file
+    // name from the (arbitrary) first declaration to mangle.
+    const fileName = ambientModuleDeclaration ?
+        ambientModuleDeclaration.name.text :
+        ts.getOriginalNode(declarations[0]).getSourceFile().fileName;
+    const mangled = moduleNameAsIdentifier(this.host, fileName, this.node.getSourceFile().fileName);
+    return mangled + '.';
   }
 
   // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special

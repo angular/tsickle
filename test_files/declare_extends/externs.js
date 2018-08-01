@@ -60,6 +60,14 @@ var foo = {};
 foo.NamespacedParent = function() {};
  /** @type {number} */
 foo.NamespacedParent.prototype.x;
+/**
+ * @extends {foo.NamespacedParent}
+ * @constructor
+ * @struct
+ */
+foo.NamespacedChildSameNamespace = function() {};
+ /** @type {number} */
+foo.NamespacedChildSameNamespace.prototype.y;
 /** @const */
 var bar = {};
 /**

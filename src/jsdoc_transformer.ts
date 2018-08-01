@@ -29,6 +29,7 @@
 import {addSyntheticTrailingComment} from 'typescript';
 
 import {hasExportingDecorator} from './decorators';
+import {moduleNameAsIdentifier} from './externs';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
@@ -61,6 +62,16 @@ export interface AnnotatorHost {
    * If true, do not modify quotes around property accessors.
    */
   disableAutoQuoting?: boolean;
+  /**
+   * Whether tsickle should insert goog.provide() calls into the externs generated for `.d.ts` files
+   * that are external modules.
+   */
+  provideExternalModuleDtsNamespace?: boolean;
+
+  /** host allows resolving file names to modules. */
+  host: ts.ModuleResolutionHost;
+  /** Used together with the host for file name -> module name resolution. */
+  options: ts.CompilerOptions;
 }
 
 function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>) {
@@ -840,31 +851,23 @@ export function jsdocTransformer(
         for (const decl of declNames) {
           const sym = typeChecker.getSymbolAtLocation(decl)!;
           const isValue = sym.flags & ts.SymbolFlags.Value;
-          const declName = transformerUtil.getIdentifierText(decl);
-          if (node.kind === ts.SyntaxKind.VariableStatement) {
-            // For variables, TypeScript rewrites every reference to the variable name as an
-            // "exports." access, to maintain mutable ES6 exports semantics. Indirecting through the
-            // window object means we reference the correct global symbol. Closure Compiler does
-            // understand that "var foo" in externs corresponds to "window.foo".
-            result.push(ts.createStatement(ts.createAssignment(
-                ts.createPropertyAccess(ts.createIdentifier('exports'), declName),
-                ts.createPropertyAccess(ts.createIdentifier('window'), declName))));
-          } else if (!isValue) {
+          // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
+          // exists in externs). Export them as a typedef, which forwards to the type in externs.
+          // Note: TypeScript emits odd code for exported ambients (exports.x for variables, just x
+          // for everything else). That seems buggy, and in either case this code should not attempt
+          // to fix it.
+          // See also https://github.com/Microsoft/TypeScript/issues/8015.
+          if (!isValue) {
             // Do not emit re-exports for ModuleDeclarations.
             // Ambient ModuleDeclarations are always referenced as global symbols, so they don't
             // need to be exported.
             if (node.kind === ts.SyntaxKind.ModuleDeclaration) continue;
-            // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
-            // exists in externs). Export them as a typedef, which forwards to the type in externs.
+            const mangledName = moduleNameAsIdentifier(host, sourceFile.fileName);
+            const declName = transformerUtil.getIdentifierText(decl);
             const stmt = ts.createStatement(
                 ts.createPropertyAccess(ts.createIdentifier('exports'), declName));
-            addCommentOn(stmt, [{tagName: 'typedef', type: '!' + declName}]);
+            addCommentOn(stmt, [{tagName: 'typedef', type: `!${mangledName}.${declName}`}]);
             result.push(stmt);
-          } else {
-            // exports.declName = declName;
-            result.push(ts.createStatement(ts.createAssignment(
-                ts.createPropertyAccess(ts.createIdentifier('exports'), declName),
-                ts.createIdentifier(declName))));
           }
         }
         return result;

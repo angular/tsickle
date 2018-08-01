@@ -27,7 +27,7 @@ describe('golden file tests', () => {
     goldenJs.push('test_files/clutz.no_externs/some_other.js');
     goldenJs.push('test_files/import_from_goog/closure_Module.js');
     goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
-    goldenJs.push('test_files/export_equals/shim.js');
+    goldenJs.push('test_files/export_equals.shim/shim.js');
     goldenJs.push('test_files/type_propaccess.no_externs/nested_clazz.js');
     const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
     const startTime = Date.now();

@@ -182,6 +182,10 @@ export class GoldenFileTest {
     return /\.es5\b/.test(this.name);
   }
 
+  get hasShim(): boolean {
+    return /\.shim\b/.test(this.name);
+  }
+
   /**
    * Find the absolute path to the tsickle root directory by reading the
    * symlink bazel puts into bazel-bin back into the test_files directory
@@ -216,6 +220,7 @@ export function goldenTests(): GoldenFileTest[] {
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
     const tsFiles = tsPaths.map(f => path.relative(testDir, f));
+    tsFiles.sort();  // Source order is significant for externs concatenation after the test.
     return new GoldenFileTest(testDir, tsFiles);
   });
 

@@ -9,6 +9,7 @@ declare class ImplementingClass implements ParentInterface { foo(): void; }
 
 declare namespace foo {
   class NamespacedParent { x: number; }
+  class NamespacedChildSameNamespace extends NamespacedParent { y: number; }
 }
 
 declare namespace bar {
