@@ -27,8 +27,6 @@
  * invocations.
  */
 
-import {createArrowFunction, isQualifiedName, isTypeReferenceNode} from 'typescript';
-
 import {getDecoratorDeclarations} from './decorators';
 import {getAllLeadingComments, visitEachChild} from './transformer_util';
 import * as ts from './typescript';
