@@ -29,7 +29,7 @@ import * as path from 'path';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, escapeForComment, isValidClosurePropertyName, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
-import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName} from './transformer_util';
+import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportError} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -194,7 +194,7 @@ export function generateExterns(
       emit(`${fqn} = function(${paramsStr}) {};\n`);
     } else {
       if (name.kind !== ts.SyntaxKind.Identifier) {
-        error(name, 'Non-namespaced computed name in externs');
+        reportError(diagnostics, name, 'Non-namespaced computed name in externs');
       }
       emit(`function ${name.getText()}(${paramsStr}) {}\n`);
     }
@@ -238,7 +238,7 @@ export function generateExterns(
       decl: ts.InterfaceDeclaration|ts.ClassDeclaration, namespace: ReadonlyArray<string>) {
     const name = decl.name;
     if (!name) {
-      error(decl, 'anonymous type in externs');
+      reportError(diagnostics, decl, 'anonymous type in externs');
       return;
     }
     const typeName = namespace.concat([name.getText()]).join('.');
@@ -338,24 +338,13 @@ export function generateExterns(
     }
   }
 
-  function error(node: ts.Node, messageText: string) {
-    diagnostics.push({
-      file: node.getSourceFile(),
-      start: node.getStart(),
-      length: node.getEnd() - node.getStart(),
-      messageText,
-      category: ts.DiagnosticCategory.Error,
-      code: 0,
-    });
-  }
-
   /**
    * Produces a compiler error that references the Node's kind. This is useful for the "else"
    * branch of code that is attempting to handle all possible input Node types, to ensure all cases
    * covered.
    */
   function errorUnimplementedKind(node: ts.Node, where: string) {
-    error(node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
+    reportError(diagnostics, node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
   }
 
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
@@ -441,7 +430,7 @@ export function generateExterns(
         const fnDecl = node as ts.FunctionDeclaration;
         const name = fnDecl.name;
         if (!name) {
-          error(fnDecl, 'anonymous function in externs');
+          reportError(diagnostics, fnDecl, 'anonymous function in externs');
           break;
         }
         // Gather up all overloads of this function.

@@ -15,7 +15,7 @@
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
-import {createSingleQuoteStringLiteral, debugWarn, getIdentifierText, hasModifierFlag} from './transformer_util';
+import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, reportError, reportWarning} from './transformer_util';
 import * as typeTranslator from './type_translator';
 import * as ts from './typescript';
 
@@ -120,24 +120,11 @@ export class ModuleTypeTranslator {
   ) {}
 
   debugWarn(context: ts.Node, messageText: string) {
-    debugWarn(this.host, context, messageText);
-  }
-
-  addDiagnostic(diagnostic: ts.Diagnostic) {
-    this.diagnostics.push(diagnostic);
+    reportWarning(this.host, context, messageText);
   }
 
   error(node: ts.Node, messageText: string) {
-    const diagnostic: ts.Diagnostic = {
-      file: this.sourceFile,
-      // Cannot use getStart as node might be synthesized.
-      start: node.pos >= 0 ? node.pos : 0,
-      length: node.end - node.pos,
-      messageText,
-      category: ts.DiagnosticCategory.Error,
-      code: 0,
-    };
-    this.addDiagnostic(diagnostic);
+    reportError(this.diagnostics, node, messageText);
   }
 
   /**

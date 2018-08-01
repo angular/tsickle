@@ -9,7 +9,7 @@
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
 import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
-import {transformFileoverviewComment} from './fileoverview_comment_transformer';
+import {transformFileoverviewCommentFactory} from './fileoverview_comment_transformer';
 import * as googmodule from './googmodule';
 import {AnnotatorHost, jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
@@ -91,7 +91,7 @@ export function emitWithTsickle(
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type annotations.
-    tsickleSourceTransformers.push(transformFileoverviewComment);
+    tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, tsHost, typeChecker, tsickleDiagnostics));
     if (!host.disableAutoQuoting) {

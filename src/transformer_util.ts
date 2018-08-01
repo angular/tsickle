@@ -190,19 +190,35 @@ export function createMultiLineComment(original: ts.Node, text: string) {
  * to do. By default, tsickle does not report any warnings to the caller, and warnings are hidden
  * behind a debug flag, as warnings are only for tsickle to debug itself.
  */
-export function debugWarn(
-    host: {logWarning ? (d: ts.Diagnostic) : void}, context: ts.Node, messageText: string) {
+export function reportWarning(
+    host: {logWarning ? (d: ts.Diagnostic) : void}, node: ts.Node, messageText: string) {
   if (!host.logWarning) return;
-  // Use a ts.Diagnosic so that the warning includes context and file offets.
-  const diagnostic: ts.Diagnostic = {
-    file: context.getSourceFile(),
-    start: context.getStart(),
-    length: context.getEnd() - context.getStart(),
+  host.logWarning(createDiagnostic(node, ts.DiagnosticCategory.Warning, messageText));
+}
+
+/**
+ * Reports an error by adding a diagnostic to the given array.
+ *
+ * This is used for input errors where tsickle cannot emit a correct result. Errors are always
+ * reported and break the compilation operation.
+ */
+export function reportError(diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string) {
+  diagnostics.push(createDiagnostic(node, ts.DiagnosticCategory.Error, messageText));
+}
+
+function createDiagnostic(
+    node: ts.Node, category: ts.DiagnosticCategory, messageText: string): ts.Diagnostic {
+  // Cannot use getStart as node might be synthesized.
+  const start = node.pos >= 0 ? node.pos : 0;
+  const length = node.end - node.pos;
+  return {
+    file: node.getSourceFile(),
+    start,
+    length,
     messageText,
-    category: ts.DiagnosticCategory.Warning,
+    category,
     code: 0,
   };
-  host.logWarning(diagnostic);
 }
 
 /**
