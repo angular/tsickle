@@ -192,13 +192,14 @@ export function createMultiLineComment(original: ts.Node, text: string) {
 export function reportDebugWarning(
     host: {logWarning ? (d: ts.Diagnostic) : void}, node: ts.Node, messageText: string) {
   if (!host.logWarning) return;
-  host.logWarning(createDiagnostic(node, ts.DiagnosticCategory.Warning, messageText));
+  host.logWarning(createDiagnostic(
+      node, messageText, /* textRange */ undefined, ts.DiagnosticCategory.Warning));
 }
 
 /**
  * Creates and reports a diagnostic by adding it to the given array.
  *
- * This is used for erros and warnings in tsickle's input. Emit errors (the default) if tsickle
+ * This is used for errors and warnings in tsickle's input. Emit errors (the default) if tsickle
  * cannot emit a correct result given the input. Emit warnings for questionable input if there's a
  * good chance that the output will work.
  *
@@ -211,18 +212,18 @@ export function reportDebugWarning(
 export function reportDiagnostic(
     diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string, textRange?: ts.TextRange,
     category = ts.DiagnosticCategory.Error) {
-  diagnostics.push(createDiagnostic(node, category, messageText, textRange));
+  diagnostics.push(createDiagnostic(node, messageText, textRange, category));
 }
 
 function createDiagnostic(
-    node: ts.Node, category: ts.DiagnosticCategory, messageText: string,
-    textRange?: ts.TextRange): ts.Diagnostic {
-  // Cannot use getStart as node might be synthesized.
+    node: ts.Node, messageText: string, textRange: ts.TextRange|undefined,
+    category: ts.DiagnosticCategory): ts.Diagnostic {
   let start, length: number;
   if (textRange) {
     start = textRange.pos;
     length = textRange.end - textRange.pos;
   } else {
+    // Only use getStart if node has a valid pos, as it might be synthesized.
     start = node.pos >= 0 ? node.getStart() : 0;
     length = node.end - node.pos;
   }

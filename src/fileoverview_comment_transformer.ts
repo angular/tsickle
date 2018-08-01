@@ -65,13 +65,12 @@ export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]
   return (): (sourceFile: ts.SourceFile) => ts.SourceFile => {
     function checkNoFileoverviewComments(
         context: ts.Node, comments: jsdoc.SynthesizedCommentWithOriginal[], message: string) {
-      for (let j = 0; j < comments.length; j++) {
-        const c = comments[j];
-        const parse = jsdoc.parse(c);
+      for (const comment of comments) {
+        const parse = jsdoc.parse(comment);
         if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
           // Report a warning; this should not break compilation in third party code.
           reportDiagnostic(
-              diagnostics, context, message, c.originalRange, ts.DiagnosticCategory.Warning);
+              diagnostics, context, message, comment.originalRange, ts.DiagnosticCategory.Warning);
         }
       }
     }
@@ -130,8 +129,8 @@ export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]
 
       // Closure Compiler considers the *last* comment with @fileoverview (or @externs or
       // @nocompile) that has not been attached to some other tree node to be the file overview
-      // comment, and only applies @suppress tags from it. AJD considers *any* comment mentioning
-      // @fileoverview.
+      // comment, and only applies @suppress tags from it. Google-internal tooling considers *any*
+      // comment mentioning @fileoverview.
       let fileoverviewIdx = -1;
       let tags: jsdoc.Tag[] = [];
       for (let i = fileComments.length - 1; i >= 0; i--) {
