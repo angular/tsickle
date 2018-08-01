@@ -1,3 +1,4 @@
+// test_files/file_comment/multiple_comments.ts(8,1): warning TS0: duplicate file level comment
 /**
  * @license
  * Copyright Google Inc. All Rights Reserved.
@@ -6,7 +7,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 /**
- * @fileoverview This comment is ignore by Closure compiler.
+ * @fileoverview This comment is ignored by Closure compiler.
  * @suppress {undefinedVars}
  */
 /**

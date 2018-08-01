@@ -1,3 +1,4 @@
+// test_files/file_comment/latecomment.ts(3,1): warning TS0: file comments must be at the top of the file, separated from the file body by an empty line.
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -8,4 +9,5 @@ module = module;
 exports = {};
 /** @type {number} */
 const someVariable = 1;
-someVariable + 2;
+/** @fileoverview This file overview comment appears after the first statement in the file. */
+console.log(someVariable + 2);

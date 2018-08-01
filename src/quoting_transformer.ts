@@ -7,7 +7,7 @@
  */
 
 import {AnnotatorHost, isValidClosurePropertyName} from './jsdoc_transformer';
-import {createSingleQuoteStringLiteral, reportWarning} from './transformer_util';
+import {createSingleQuoteStringLiteral, reportDebugWarning} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -48,7 +48,7 @@ export function quotingTransformer(
           // Properties containing non-JS identifier names can only be accessed with quotes.
           if (!isValidClosurePropertyName(propName)) break;
           const symName = typeChecker.symbolToString(quotedPropSym);
-          reportWarning(
+          reportDebugWarning(
               host, eae,
               `Declared property ${symName} accessed with quotes. ` +
                   `This can lead to renaming bugs. A better fix is to use 'declare interface' ` +
@@ -74,7 +74,7 @@ export function quotingTransformer(
           // the index access in another location.
           if (propSym) break;
 
-          reportWarning(
+          reportDebugWarning(
               host, pae,
               typeChecker.typeToString(t) +
                   ` has a string index type but is accessed using dotted access. ` +

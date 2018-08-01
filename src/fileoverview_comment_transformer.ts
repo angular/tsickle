@@ -7,7 +7,7 @@
  */
 
 import * as jsdoc from './jsdoc';
-import {createNotEmittedStatement, synthesizeCommentRanges, updateSourceFileNode} from './transformer_util';
+import {createNotEmittedStatement, reportDiagnostic, synthesizeCommentRanges, updateSourceFileNode} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -61,89 +61,106 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
  * A transformer that ensures the emitted JS file has an \@fileoverview comment that contains an
  * \@suppress {checkTypes} annotation by either adding or updating an existing comment.
  */
-export function transformFileoverviewComment(context: ts.TransformationContext):
-    (sf: ts.SourceFile) => ts.SourceFile {
-  return (sf: ts.SourceFile) => {
-    const text = sf.getFullText();
-
-    let fileComments: ts.SynthesizedComment[] = [];
-    const firstStatement = sf.statements.length && sf.statements[0] || null;
-
-    const originalComments = ts.getLeadingCommentRanges(text, 0) || [];
-    if (!firstStatement) {
-      // In an empty source file, all comments are file-level comments.
-      fileComments = synthesizeCommentRanges(sf, originalComments);
-    } else {
-      // Search for the last comment split from the file with a \n\n. All comments before that are
-      // considered fileoverview comments, all comments after that belong to the next statement(s).
-      // If none found, comments remains empty, and the code below will insert a new fileoverview
-      // comment.
-      for (let i = originalComments.length - 1; i >= 0; i--) {
-        const end = originalComments[i].end;
-        if (!text.substring(end).startsWith('\n\n')) continue;
-        // This comment is separated from the source file with a double break, marking it (and any
-        // preceding comments) as a file-level comment. Split them off and attach them onto a
-        // NotEmittedStatement, so that they do not get lost later on.
-        const synthesizedComments = jsdoc.synthesizeLeadingComments(firstStatement);
-        const notEmitted = ts.createNotEmittedStatement(sf);
-        // Modify the comments on the firstStatement in place by removing the file-level comments.
-        fileComments = synthesizedComments.splice(0, i + 1);
-        // Move the fileComments onto notEmitted.
-        ts.setSyntheticLeadingComments(notEmitted, fileComments);
-        // TODO(martinprobst): consider checking here whether any of the trailing comments contains
-        // an @fileoverview etc, and reporting an error if so.
-        sf = updateSourceFileNode(
-            sf, ts.createNodeArray([notEmitted, firstStatement, ...sf.statements.slice(1)]));
-        break;
-      }
-
-      // Now walk every top level statement and escape/drop any @fileoverview comments found.
-      // Closure ignores all @fileoverview comments but the last, so tsickle must make sure not to
-      // emit duplicated ones.
-      // TODO(martinprobst): make this an error instead of silently dropping the comment.
-      for (let i = 0; i < sf.statements.length; i++) {
-        const stmt = sf.statements[i];
-        // Accept the NotEmittedStatement inserted above.
-        if (i === 0 && stmt.kind === ts.SyntaxKind.NotEmittedStatement) continue;
-        const comments = jsdoc.synthesizeLeadingComments(stmt);
-        for (let j = 0; j < comments.length; j++) {
-          const c = comments[j];
-          const parse = jsdoc.parse(c);
-          if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
-            // Remove this fileoverview comment and continue at the same index.
-            comments.splice(j, 1);
-            j--;
-          }
+export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]) {
+  return (): (sourceFile: ts.SourceFile) => ts.SourceFile => {
+    function checkNoFileoverviewComments(
+        context: ts.Node, comments: jsdoc.SynthesizedCommentWithOriginal[], message: string) {
+      for (let j = 0; j < comments.length; j++) {
+        const c = comments[j];
+        const parse = jsdoc.parse(c);
+        if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+          // Report a warning; this should not break compilation in third party code.
+          reportDiagnostic(
+              diagnostics, context, message, c.originalRange, ts.DiagnosticCategory.Warning);
         }
       }
     }
 
-    // Closure Compiler considers the *last* comment with @fileoverview (or @externs or @nocompile)
-    // that has not been attached to some other tree node to be the file overview comment, and
-    // only applies @suppress tags from it.
-    // AJD considers *any* comment mentioning @fileoverview.
-    let fileoverviewIdx = -1;
-    let tags: jsdoc.Tag[] = [];
-    for (let i = fileComments.length - 1; i >= 0; i--) {
-      const parse = jsdoc.parseContents(fileComments[i].text);
-      if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
-        fileoverviewIdx = i;
-        tags = parse.tags;
-        break;
+    return (sourceFile: ts.SourceFile) => {
+      const text = sourceFile.getFullText();
+
+      let fileComments: ts.SynthesizedComment[] = [];
+      const firstStatement = sourceFile.statements.length && sourceFile.statements[0] || null;
+
+      const originalComments = ts.getLeadingCommentRanges(text, 0) || [];
+      if (!firstStatement) {
+        // In an empty source file, all comments are file-level comments.
+        fileComments = synthesizeCommentRanges(sourceFile, originalComments);
+      } else {
+        // Search for the last comment split from the file with a \n\n. All comments before that are
+        // considered fileoverview comments, all comments after that belong to the next
+        // statement(s). If none found, comments remains empty, and the code below will insert a new
+        // fileoverview comment.
+        for (let i = originalComments.length - 1; i >= 0; i--) {
+          const end = originalComments[i].end;
+          if (!text.substring(end).startsWith('\n\n') &&
+              !text.substring(end).startsWith('\r\n\r\n')) {
+            continue;
+          }
+          // This comment is separated from the source file with a double break, marking it (and any
+          // preceding comments) as a file-level comment. Split them off and attach them onto a
+          // NotEmittedStatement, so that they do not get lost later on.
+          const synthesizedComments = jsdoc.synthesizeLeadingComments(firstStatement);
+          const notEmitted = ts.createNotEmittedStatement(sourceFile);
+          // Modify the comments on the firstStatement in place by removing the file-level comments.
+          fileComments = synthesizedComments.splice(0, i + 1);
+          // Move the fileComments onto notEmitted.
+          ts.setSyntheticLeadingComments(notEmitted, fileComments);
+          sourceFile = updateSourceFileNode(
+              sourceFile,
+              ts.createNodeArray([notEmitted, firstStatement, ...sourceFile.statements.slice(1)]));
+          break;
+        }
+
+
+        // Now walk every top level statement and escape/drop any @fileoverview comments found.
+        // Closure ignores all @fileoverview comments but the last, so tsickle must make sure not to
+        // emit duplicated ones.
+        for (let i = 0; i < sourceFile.statements.length; i++) {
+          const stmt = sourceFile.statements[i];
+          // Accept the NotEmittedStatement inserted above.
+          if (i === 0 && stmt.kind === ts.SyntaxKind.NotEmittedStatement) continue;
+          const comments = jsdoc.synthesizeLeadingComments(stmt);
+          checkNoFileoverviewComments(
+              stmt, comments,
+              `file comments must be at the top of the file, ` +
+                  `separated from the file body by an empty line.`);
+        }
       }
-    }
 
-    augmentFileoverviewComments(tags);
-    const commentText = jsdoc.toStringWithoutStartEnd(tags);
+      // Closure Compiler considers the *last* comment with @fileoverview (or @externs or
+      // @nocompile) that has not been attached to some other tree node to be the file overview
+      // comment, and only applies @suppress tags from it. AJD considers *any* comment mentioning
+      // @fileoverview.
+      let fileoverviewIdx = -1;
+      let tags: jsdoc.Tag[] = [];
+      for (let i = fileComments.length - 1; i >= 0; i--) {
+        const parse = jsdoc.parseContents(fileComments[i].text);
+        if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+          fileoverviewIdx = i;
+          tags = parse.tags;
+          break;
+        }
+      }
 
-    if (fileoverviewIdx < 0) {
-      // No existing comment to merge with, just emit a new one.
-      return addNewFileoverviewComment(sf, commentText);
-    }
+      if (fileoverviewIdx !== -1) {
+        checkNoFileoverviewComments(
+            firstStatement || sourceFile, fileComments.slice(0, fileoverviewIdx),
+            `duplicate file level comment`);
+      }
 
-    fileComments[fileoverviewIdx].text = commentText;
-    // sf does not need to be updated, synthesized comments are mutable.
-    return sf;
+      augmentFileoverviewComments(tags);
+      const commentText = jsdoc.toStringWithoutStartEnd(tags);
+
+      if (fileoverviewIdx < 0) {
+        // No existing comment to merge with, just emit a new one.
+        return addNewFileoverviewComment(sourceFile, commentText);
+      }
+
+      fileComments[fileoverviewIdx].text = commentText;
+      // sf does not need to be updated, synthesized comments are mutable.
+      return sourceFile;
+    };
   };
 }
 

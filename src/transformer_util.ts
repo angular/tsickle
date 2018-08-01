@@ -172,7 +172,6 @@ export function createSingleLineComment(original: ts.Node, text: string) {
 
 /** Creates a not emitted statement with the given text as a single line comment. */
 export function createMultiLineComment(original: ts.Node, text: string) {
-  const notEmitted = ts.createNotEmittedStatement(original);
   const comment: ts.SynthesizedComment = {
     kind: ts.SyntaxKind.MultiLineCommentTrivia,
     text: ' ' + text,
@@ -190,27 +189,43 @@ export function createMultiLineComment(original: ts.Node, text: string) {
  * to do. By default, tsickle does not report any warnings to the caller, and warnings are hidden
  * behind a debug flag, as warnings are only for tsickle to debug itself.
  */
-export function reportWarning(
+export function reportDebugWarning(
     host: {logWarning ? (d: ts.Diagnostic) : void}, node: ts.Node, messageText: string) {
   if (!host.logWarning) return;
   host.logWarning(createDiagnostic(node, ts.DiagnosticCategory.Warning, messageText));
 }
 
 /**
- * Reports an error by adding a diagnostic to the given array.
+ * Creates and reports a diagnostic by adding it to the given array.
  *
- * This is used for input errors where tsickle cannot emit a correct result. Errors are always
- * reported and break the compilation operation.
+ * This is used for erros and warnings in tsickle's input. Emit errors (the default) if tsickle
+ * cannot emit a correct result given the input. Emit warnings for questionable input if there's a
+ * good chance that the output will work.
+ *
+ * For typical tsickle users, errors are always reported and break the compilation operation,
+ * warnings will only be emitted for first party code (and break the compilation there), but wil be
+ * ignored for third party code.
+ *
+ * @param textRange pass to overrride the text range from the node with a more specific range.
  */
-export function reportError(diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string) {
-  diagnostics.push(createDiagnostic(node, ts.DiagnosticCategory.Error, messageText));
+export function reportDiagnostic(
+    diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string, textRange?: ts.TextRange,
+    category = ts.DiagnosticCategory.Error) {
+  diagnostics.push(createDiagnostic(node, category, messageText, textRange));
 }
 
 function createDiagnostic(
-    node: ts.Node, category: ts.DiagnosticCategory, messageText: string): ts.Diagnostic {
+    node: ts.Node, category: ts.DiagnosticCategory, messageText: string,
+    textRange?: ts.TextRange): ts.Diagnostic {
   // Cannot use getStart as node might be synthesized.
-  const start = node.pos >= 0 ? node.pos : 0;
-  const length = node.end - node.pos;
+  let start, length: number;
+  if (textRange) {
+    start = textRange.pos;
+    length = textRange.end - textRange.pos;
+  } else {
+    start = node.pos >= 0 ? node.getStart() : 0;
+    length = node.end - node.pos;
+  }
   return {
     file: node.getSourceFile(),
     start,

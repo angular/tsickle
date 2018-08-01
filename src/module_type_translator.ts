@@ -15,7 +15,7 @@
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
-import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, reportError, reportWarning} from './transformer_util';
+import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
 import * as typeTranslator from './type_translator';
 import * as ts from './typescript';
 
@@ -120,11 +120,11 @@ export class ModuleTypeTranslator {
   ) {}
 
   debugWarn(context: ts.Node, messageText: string) {
-    reportWarning(this.host, context, messageText);
+    reportDebugWarning(this.host, context, messageText);
   }
 
   error(node: ts.Node, messageText: string) {
-    reportError(this.diagnostics, node, messageText);
+    reportDiagnostic(this.diagnostics, node, messageText);
   }
 
   /**
@@ -355,22 +355,10 @@ export class ModuleTypeTranslator {
       const parsed = jsdoc.parse(comment);
       if (parsed) {
         if (reportWarnings && parsed.warnings) {
-          let diagStart = start;
-          let diagLength = length;
-          if (comment.originalRange) {
-            // If known, report the precise range of the incorrect comment, otherwise just use the
-            // Node's full trivia width.
-            diagStart = comment.originalRange.pos;
-            diagLength = comment.originalRange.end - comment.originalRange.pos;
-          }
-          this.diagnostics.push({
-            file: this.sourceFile,
-            start: diagStart,
-            length: diagLength,
-            messageText: parsed.warnings.join('\n'),
-            category: ts.DiagnosticCategory.Warning,
-            code: 0,
-          });
+          const range = comment.originalRange || {pos: start, end: start + length};
+          reportDiagnostic(
+              this.diagnostics, node, parsed.warnings.join('\n'), range,
+              ts.DiagnosticCategory.Warning);
         }
         return [parsed.tags, comment];
       }

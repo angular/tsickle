@@ -29,7 +29,7 @@ import * as path from 'path';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, escapeForComment, isValidClosurePropertyName, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
-import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportError} from './transformer_util';
+import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportDiagnostic} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -194,7 +194,7 @@ export function generateExterns(
       emit(`${fqn} = function(${paramsStr}) {};\n`);
     } else {
       if (name.kind !== ts.SyntaxKind.Identifier) {
-        reportError(diagnostics, name, 'Non-namespaced computed name in externs');
+        reportDiagnostic(diagnostics, name, 'Non-namespaced computed name in externs');
       }
       emit(`function ${name.getText()}(${paramsStr}) {}\n`);
     }
@@ -238,7 +238,7 @@ export function generateExterns(
       decl: ts.InterfaceDeclaration|ts.ClassDeclaration, namespace: ReadonlyArray<string>) {
     const name = decl.name;
     if (!name) {
-      reportError(diagnostics, decl, 'anonymous type in externs');
+      reportDiagnostic(diagnostics, decl, 'anonymous type in externs');
       return;
     }
     const typeName = namespace.concat([name.getText()]).join('.');
@@ -344,7 +344,7 @@ export function generateExterns(
    * covered.
    */
   function errorUnimplementedKind(node: ts.Node, where: string) {
-    reportError(diagnostics, node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
+    reportDiagnostic(diagnostics, node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
   }
 
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
@@ -430,7 +430,7 @@ export function generateExterns(
         const fnDecl = node as ts.FunctionDeclaration;
         const name = fnDecl.name;
         if (!name) {
-          reportError(diagnostics, fnDecl, 'anonymous function in externs');
+          reportDiagnostic(diagnostics, fnDecl, 'anonymous function in externs');
           break;
         }
         // Gather up all overloads of this function.

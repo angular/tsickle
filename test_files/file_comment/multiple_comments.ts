@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 /**
- * @fileoverview This comment is ignore by Closure compiler.
+ * @fileoverview This comment is ignored by Closure compiler.
  * @suppress {undefinedVars}
  */
 /**

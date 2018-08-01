@@ -1,5 +1,5 @@
 /**
- * @fileoverview added by tsickle
+ * @fileoverview A file.
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.fileoverview_and_jsdoc');
