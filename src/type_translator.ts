@@ -76,6 +76,7 @@ export function typeToDebugString(type: ts.Type): string {
 
   if (type.flags === ts.TypeFlags.Object) {
     const objType = type as ts.ObjectType;
+    debugString += ` objectFlags:0x${objType.objectFlags}`;
     // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
     const objectFlags: ts.ObjectFlags[] = [
       ts.ObjectFlags.Class,
@@ -607,6 +608,10 @@ export class TypeTranslator {
           indexable = true;
           break;
         default:
+          if (!isValidClosurePropertyName(field)) {
+            this.warn(`omitting inexpressible property name: ${field}`);
+            continue;
+          }
           const member = type.symbol.members.get(field)!;
           // optional members are handled by the type including |undefined in a union type.
           const memberType =
