@@ -33,6 +33,7 @@ import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
+import {isValidClosurePropertyName} from './type_translator';
 import * as ts from './typescript';
 
 /** AnnotatorHost contains host properties for the JSDoc-annotation process. */
@@ -300,25 +301,6 @@ function createMemberTypeDeclaration(
   return ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
 }
 
-/**
- * TypeScript allows you to write identifiers quoted, like:
- *   interface Foo {
- *     'bar': string;
- *     'complex name': string;
- *   }
- *   Foo.bar;  // ok
- *   Foo['bar']  // ok
- *   Foo['complex name']  // ok
- *
- * In Closure-land, we want identify that the legal name 'bar' can become an
- * ordinary field, but we need to skip strings like 'complex name'.
- */
-export function isValidClosurePropertyName(name: string): boolean {
-  // In local experimentation, it appears that reserved words like 'var' and
-  // 'if' are legal JS and still accepted by Closure.
-  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
-}
-
 function propertyName(prop: ts.NamedDeclaration): string|null {
   if (!prop.name) return null;
 
@@ -388,8 +370,8 @@ function createClosurePropertyDeclaration(
  * nodes being removed or changing type, so the code must retain the type assertion
  * expression, see: https://github.com/angular/angular/issues/24895.
  *
- * tsickle also cannot just generate and keep a `(/.. @type {SomeType} ./ (expr as SomeType))` because
- * TypeScript removes the parenthesized expressions in that syntax, (reasonably) believing
+ * tsickle also cannot just generate and keep a `(/.. @type {SomeType} ./ (expr as SomeType))`
+ * because TypeScript removes the parenthesized expressions in that syntax, (reasonably) believing
  * they were only added for the TS cast.
  *
  * The final workaround is then to keep the TypeScript type assertions, and have a post-Angular

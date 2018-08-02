@@ -6,8 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {AnnotatorHost, isValidClosurePropertyName} from './jsdoc_transformer';
+import {AnnotatorHost} from './jsdoc_transformer';
 import {createSingleQuoteStringLiteral, reportDebugWarning} from './transformer_util';
+import {isValidClosurePropertyName} from './type_translator';
 import * as ts from './typescript';
 
 /**
