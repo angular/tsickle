@@ -10,6 +10,25 @@ import * as path from 'path';
 import * as ts from './typescript';
 
 /**
+ * TypeScript allows you to write identifiers quoted, like:
+ *   interface Foo {
+ *     'bar': string;
+ *     'complex name': string;
+ *   }
+ *   Foo.bar;  // ok
+ *   Foo['bar']  // ok
+ *   Foo['complex name']  // ok
+ *
+ * In Closure-land, we want identify that the legal name 'bar' can become an
+ * ordinary field, but we need to skip strings like 'complex name'.
+ */
+export function isValidClosurePropertyName(name: string): boolean {
+  // In local experimentation, it appears that reserved words like 'var' and
+  // 'if' are legal JS and still accepted by Closure.
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+}
+
+/**
  * Determines if fileName refers to a builtin lib.d.ts file.
  * This is a terrible hack but it mirrors a similar thing done in Clutz.
  */

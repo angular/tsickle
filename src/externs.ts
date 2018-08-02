@@ -27,9 +27,10 @@
 import * as path from 'path';
 
 import * as jsdoc from './jsdoc';
-import {AnnotatorHost, escapeForComment, isValidClosurePropertyName, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
+import {AnnotatorHost, escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportDiagnostic} from './transformer_util';
+import {isValidClosurePropertyName} from './type_translator';
 import * as ts from './typescript';
 
 /**
