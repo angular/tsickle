@@ -6,7 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-export interface FileMap<T> { [fileName: string]: T; }
+export interface FileMap<T> {
+  [fileName: string]: T;
+}
 
 /** A class that maintains the module dependency graph of output JS files. */
 export class ModulesManifest {

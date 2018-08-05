@@ -26,7 +26,7 @@
     "@types/minimist": "1.2.0",
     "@types/mkdirp": "0.5.2",
     "@types/node": "^10.3.3",
-    "clang-format": "1.2.2",
+    "clang-format": "^1.2.4",
     "diff-match-patch": "^1.0.1",
     "glob": "7.1.2",
     "google-closure-compiler": "20180610.0.2",

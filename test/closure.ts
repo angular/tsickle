@@ -32,7 +32,9 @@ export interface Options {
  * flag name to flag value.  Array-valued flags are translated into the
  * repeated form expected by the compiler.
  */
-export interface Flags { [flag: string]: boolean|string|string[]; }
+export interface Flags {
+  [flag: string]: boolean|string|string[];
+}
 
 /** The type of compilation results, containing exit code and console output. */
 export interface Result {
