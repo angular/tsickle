@@ -14,7 +14,7 @@
   "dependencies": {
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "source-map": "^0.6.0"
+    "source-map": "^0.7.3"
   },
   "peerDependencies": {
     "typescript": "git://github.com/mprobst/TypeScript.git#5456479a4a"
@@ -22,18 +22,18 @@
   "devDependencies": {
     "@types/diff-match-patch": "^1.0.32",
     "@types/glob": "5.0.35",
-    "@types/jasmine": "2.8.6",
+    "@types/jasmine": "2.8.8",
     "@types/minimist": "1.2.0",
     "@types/mkdirp": "0.5.2",
-    "@types/node": "^10.3.3",
+    "@types/node": "^10.5.6",
     "clang-format": "^1.2.4",
     "diff-match-patch": "^1.0.1",
     "glob": "7.1.2",
-    "google-closure-compiler": "20180610.0.2",
+    "google-closure-compiler": "20180716.0.1",
     "jasmine": "3.1.0",
-    "prettier": "1.13.7",
+    "prettier": "1.14.0",
     "source-map-support": "^0.5.6",
-    "tslint": "5.9.1",
+    "tslint": "5.11.0",
     "typescript": "git://github.com/mprobst/TypeScript.git#5456479a4a"
   },
   "scripts": {
