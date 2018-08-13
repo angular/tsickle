@@ -211,7 +211,8 @@ export function generateExterns(
       } else {
         reportDiagnostic(
             diagnostics, exportAssignment.expression,
-            `export = expression must be a qualified name.`);
+            `export = expression must be a qualified name, got ${
+                ts.SyntaxKind[exportAssignment.expression.kind]}.`);
       }
     }
 

@@ -1,0 +1,1 @@
+test_files/declare_export_global/declare_export_global_nested.d.ts(17,10): error TS0: export = expression must be a qualified name, got PropertyAccessExpression.
