@@ -56,11 +56,6 @@ var relative_ambient_external_module = {};
 relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModule = function() {};
  /** @type {!relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModule} */
 relative_ambient_external_module.user;
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare_export_dts.declare_export_dts');
-/** @const */
-test_files.declare_export_dts.declare_export_dts = test_files$declare_export_dts$declare_export_dts;
 // externs from test_files/declare_export_dts/declare_export_var.d.ts:
 /** @const */
 var test_files$declare_export_dts$declare_export_var = {};
@@ -75,10 +70,5 @@ test_files$declare_export_dts$declare_export_var.namespaceInDtsModule = {};
  * @struct
  */
 test_files$declare_export_dts$declare_export_var.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace = function() {};
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare_export_dts.declare_export_var');
-/** @const */
-test_files.declare_export_dts.declare_export_var = test_files$declare_export_dts$declare_export_var.variableDeclaredInDtsModule;
 // export as namespace variableDeclaredInDtsModule
 var variableDeclaredInDtsModule = test_files$declare_export_dts$declare_export_var.variableDeclaredInDtsModule;

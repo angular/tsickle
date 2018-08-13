@@ -25,15 +25,9 @@
  *
  * 1. non-module .d.ts produces global symbols
  * 2. module .d.ts produce symbols namespaced to the module, by creating a
- *    mangled name matching the current file's path.
- *    1. if there's a shim defined, we expect the shim to have a
- *       goog.module/provide that references the mangled path. tsickle does not
- *       emit any code for `export as namespace` and similar in this case.
- *    2. if there is no shim, tsickle produces a `goog.provide()` in externs so
- *       that code can import (require) the defined symbols. Note that given
- *       there is no shim, imports will only work for types, but not values. If
- *       a module describes values, it should have a shim (but tsickle does not
- *       report that as an error right now).
+ *    mangled name matching the current file's path. tsickle expects outside
+ *    code (e.g. build system integration or manually written code) to contain a
+ *    goog.module/provide that references the mangled path.
  * 3. declarations in `.ts` files produce types that can be separately emitted
  *    in e.g. an `externs.js`, using `getGeneratedExterns` below.
  *    1. non-exported symbols produce global types, because that's what users
@@ -54,7 +48,7 @@
  * - importing code can unconditionally refer to and import any symbol defined
  *   in a module `X` as `path.to.module.X`, regardless of whether the defining
  *   location is a `.d.ts` file or a `.ts` file, and regardless whether the
- *   symbol is ambient.
+ *   symbol is ambient (assuming there's an appropriate shim).
  * - if there is a shim present, tsickle avoids emitting the Closure namespace
  *   itself, expecting the shim to provide the namespace and initialize it to a
  *   symbol that provides the right value at runtime (i.e. the implementation of
@@ -217,12 +211,9 @@ export function generateExterns(
     }
 
     if (isDts && host.provideExternalModuleDtsNamespace) {
-      const closureNamespace = host.pathToModuleName('', sourceFile.fileName);
-      emit(`\n// Publish non-shimmed external module externs as a Closure namespace.\n`);
-      emit(`goog.provide('${closureNamespace}');\n`);
-      emit(`/** @const */\n${closureNamespace} = ${exportedNamespace};\n`);
-
-      // In a non-shimmed module, create a global namespace.
+      // In a non-shimmed module, create a global namespace. This exists purely for backwards
+      // compatiblity, in the medium term all code using tsickle should always use `goog.module`s,
+      // so global names should not be neccessary.
       for (const nsExport of sourceFile.statements.filter(ts.isNamespaceExportDeclaration)) {
         const namespaceName = getIdentifierText(nsExport.name);
         emit(`// export as namespace ${namespaceName}\n`);

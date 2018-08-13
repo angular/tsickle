@@ -200,11 +200,6 @@ moduleGlobalNamespace.GlobalNamespaced = function() {};
 test_files$declare$declare_module.moduleExported;
  /** @type {string} */
 test_files$declare$declare_module.moduleUnexported;
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare.declare_module');
-/** @const */
-test_files.declare.declare_module = test_files$declare$declare_module;
 // externs from test_files/declare/declare_nondts.ts:
 /** @const */
 var test_files$declare$declare_nondts = {};

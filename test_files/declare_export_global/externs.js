@@ -10,11 +10,6 @@ var test_files$declare_export_global$declare_export_global = {};
 var globalNamespace = {};
  /** @type {number} */
 globalNamespace.x;
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare_export_global.declare_export_global');
-/** @const */
-test_files.declare_export_global.declare_export_global = globalNamespace;
 // externs from test_files/declare_export_global/declare_export_global_nested.d.ts:
 /** @const */
 var test_files$declare_export_global$declare_export_global_nested = {};
@@ -24,8 +19,3 @@ var globalParentNamespace = {};
 globalParentNamespace.globalNestedNamespace = {};
  /** @type {number} */
 globalParentNamespace.globalNestedNamespace.x;
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare_export_global.declare_export_global_nested');
-/** @const */
-test_files.declare_export_global.declare_export_global_nested = test_files$declare_export_global$declare_export_global_nested;

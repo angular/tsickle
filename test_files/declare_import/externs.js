@@ -44,11 +44,6 @@ test_files$declare_import$declare_import.ExtendsLocalClosureClassName = function
 test_files$declare_import$declare_import.ExtendsImportEquals = function() {};
  /** @type {!Array<!test_files.declare_import.exporting.ExportedFromDts>} */
 test_files$declare_import$declare_import.arrayWithImported;
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare_import.declare_import');
-/** @const */
-test_files.declare_import.declare_import = test_files$declare_import$declare_import;
 // externs from test_files/declare_import/exporting.d.ts:
 /** @const */
 var test_files$declare_import$exporting = {};
@@ -57,11 +52,6 @@ var test_files$declare_import$exporting = {};
  * @struct
  */
 test_files$declare_import$exporting.ExportedFromDts = function() {};
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.declare_import.exporting');
-/** @const */
-test_files.declare_import.exporting = test_files$declare_import$exporting;
 // externs from test_files/declare_import/googdecl.d.ts:
 // Derived from: declare module "goog:imported.closure.Class"
 /** @const */

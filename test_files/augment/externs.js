@@ -35,11 +35,6 @@ test_files$augment$angular$index.angular.IAngularStatic.prototype.version;
  * @return {string}
  */
 test_files$augment$angular$index.angular.IAngularStatic.prototype.copy = function(a) {};
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.augment.angular.index');
-/** @const */
-test_files.augment.angular.index = test_files$augment$angular$index.angular;
 // export as namespace angular
 var angular = test_files$augment$angular$index.angular;
 // externs from test_files/augment/zz_angular-augment.d.ts:
@@ -61,8 +56,3 @@ test_files$augment$angular$index.local.LocalType;
 
 /** @typedef {!test_files.augment.angular.index.Scope} */
 test_files$augment$angular$index.local.UsingSymbolFromAugmentedModule;
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.augment.zz_angular_augment');
-/** @const */
-test_files.augment.zz_angular_augment = test_files$augment$zz_angular_augment;

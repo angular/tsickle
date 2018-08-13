@@ -23,8 +23,11 @@ describe('golden file tests', () => {
     goldenJs.push('src/closure_externs.js');
     goldenJs.push('third_party/tslib/externs.js');
     goldenJs.push('third_party/tslib/tslib.js');
+    goldenJs.push('test_files/augment/shim.js');
     goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
     goldenJs.push('test_files/clutz.no_externs/some_other.js');
+    goldenJs.push('test_files/declare/shim.js');
+    goldenJs.push('test_files/declare_export_dts/shim.js');
     goldenJs.push('test_files/import_from_goog/closure_Module.js');
     goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
     goldenJs.push('test_files/export_equals.shim/shim.js');

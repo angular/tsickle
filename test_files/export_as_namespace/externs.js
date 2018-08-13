@@ -18,10 +18,5 @@ test_files$export_as_namespace$export_as_namespace.foo.Bar = function() {};
  * @return {void}
  */
 test_files$export_as_namespace$export_as_namespace.foo.Bar.prototype.baz = function() {};
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.export_as_namespace.export_as_namespace');
-/** @const */
-test_files.export_as_namespace.export_as_namespace = test_files$export_as_namespace$export_as_namespace;
 // export as namespace exportNamespace
 var exportNamespace = test_files$export_as_namespace$export_as_namespace;

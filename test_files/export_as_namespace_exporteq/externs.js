@@ -18,10 +18,5 @@ test_files$export_as_namespace_exporteq$export_as_namespace_exporteq.anamespace.
  * @return {string}
  */
 test_files$export_as_namespace_exporteq$export_as_namespace_exporteq.anamespace.NamespacedClass.prototype.method = function() {};
-
-// Publish non-shimmed external module externs as a Closure namespace.
-goog.provide('test_files.export_as_namespace_exporteq.export_as_namespace_exporteq');
-/** @const */
-test_files.export_as_namespace_exporteq.export_as_namespace_exporteq = test_files$export_as_namespace_exporteq$export_as_namespace_exporteq.anamespace;
 // export as namespace exportedNamespaceIncludingImportEq
 var exportedNamespaceIncludingImportEq = test_files$export_as_namespace_exporteq$export_as_namespace_exporteq.anamespace;
