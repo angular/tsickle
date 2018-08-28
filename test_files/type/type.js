@@ -1,5 +1,20 @@
 // test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
 // test_files/type/type.ts(14,5): warning TS0: unhandled anonymous type
+// test_files/type/type.ts(44,5): warning TS0: Skipping class entry MyRecord in intersection type
+// test_files/type/type.ts(45,5): warning TS0: Skipping non-object entry in intersection type: {type flags:0x4 Number}
+// test_files/type/type.ts(46,5): warning TS0: Skipping non-object entry in intersection type: {type flags:0x2 String}
+// test_files/type/type.ts(46,5): warning TS0: Skipping non-object entry in intersection type: {type flags:0x4 Number}
+// test_files/type/type.ts(47,5): warning TS0: Skipping class entry Date in intersection type
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type with multiple call signatures
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type with multiple call signatures
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type with multiple call signatures
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type with multiple call signatures
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type with multiple call signatures
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type with multiple call signatures
+// test_files/type/type.ts(48,5): warning TS0: omitting inexpressible property name: __@iterator
+// test_files/type/type.ts(48,5): warning TS0: omitting inexpressible property name: __@unscopables
+// test_files/type/type.ts(48,5): warning TS0: unhandled anonymous type
+// test_files/type/type.ts(49,5): warning TS0: unhandled anonymous type
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -66,3 +81,25 @@ typeCallback(val => val + 1);
  */
 function typeGenericCallback(callback) { }
 typeGenericCallback(val => val);
+/**
+ * @record
+ */
+function MyRecord() { }
+if (false) {
+    /** @type {string} */
+    MyRecord.prototype.b;
+}
+/** @type {{a: number, b: string}} */
+const typeIntersectionOfObjectTypes = { a: 42, b: 'b' };
+/** @type {{a: number}} */
+let typeIntersectionWithRecordInterface = { a: 42, b: 'b' };
+/** @type {{a: number}} */
+let typeIntersectionMixed1;
+/** @type {?} */
+let typeIntersectionMixed2;
+/** @type {{a: number}} */
+let typeIntersectionMixed3;
+/** @type {?} */
+let typeIntersectionMixed4;
+/** @type {?} */
+let typeIntersectionMixed5 = Object.assign(() => 1, { a: 1 });

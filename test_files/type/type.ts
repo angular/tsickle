@@ -35,3 +35,15 @@ function typeCallback(callback: (val: number) => number) { }
 typeCallback(val => val + 1);
 function typeGenericCallback<T>(callback: (val: T) => T) { }
 typeGenericCallback(val => val);
+
+interface MyRecord {
+  b: string;
+}
+
+const typeIntersectionOfObjectTypes: {a: number}&{b: string} = {a: 42, b: 'b'};
+let typeIntersectionWithRecordInterface: {a: number}&MyRecord = {a: 42, b: 'b'};
+let typeIntersectionMixed1: {a: number}&number;
+let typeIntersectionMixed2: string&number;
+let typeIntersectionMixed3: {a: number}&Date;
+let typeIntersectionMixed4: {a: number}&string[];
+let typeIntersectionMixed5: {a: number}&{(): number} = Object.assign(() => 1, {a: 1});

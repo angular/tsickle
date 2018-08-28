@@ -452,6 +452,7 @@ export class TypeTranslator {
         this.warn(`emitting ? for conditional/substitution type`);
         return '?';
       case ts.TypeFlags.Intersection:
+        return this.translateIntersection(type as ts.IntersectionType);
       case ts.TypeFlags.Index:
       case ts.TypeFlags.IndexedAccess:
         // TODO(ts2.1): handle these special types.
@@ -477,6 +478,33 @@ export class TypeTranslator {
         // The switch statement should have been exhaustive.
         throw new Error(`unknown type flags ${type.flags} on ${typeToDebugString(type)}`);
     }
+  }
+
+  private translateIntersection(type: ts.IntersectionType): string {
+    const allMembers = new Map<ts.__String, ts.Symbol>();
+    type.types.forEach(subtype => {
+      if (!(subtype.flags & ts.TypeFlags.Object) || !subtype.symbol || !subtype.symbol.members) {
+        this.warn(`Skipping non-object entry in intersection type: ${typeToDebugString(subtype)}`);
+        return;
+      }
+      const objectSubtype = subtype as ts.ObjectType;
+      // If we process these, we'll emit every property in the class.  This will
+      // cause Closure Compiler to invalidate those properties.
+      if (objectSubtype.objectFlags & (ts.ObjectFlags.Class | ts.ObjectFlags.Interface)) {
+        this.warn(`Skipping class entry ${subtype.symbol.name} in intersection type`);
+        return;
+      }
+      this.seenAnonymousTypes.add(subtype);
+      subtype.symbol.members.forEach((symbol, key) => allMembers.set(key, symbol));
+    });
+    // No members are objects.
+    if (!allMembers.size) {
+      return '?';
+    }
+    // members is an ES6 map, but the .d.ts defining it defined their own map
+    // type, so typescript doesn't believe it's a map.
+    // tslint:disable-next-line:no-any
+    return this.translateObjectMembers(type, allMembers as any);
   }
 
   private translateUnion(type: ts.UnionType): string {
@@ -618,10 +646,6 @@ export class TypeTranslator {
    */
   private translateAnonymousType(type: ts.Type): string {
     this.seenAnonymousTypes.add(type);
-    // Gather up all the named fields and whether the object is also callable.
-    let callable = false;
-    let indexable = false;
-    const fields: string[] = [];
     if (!type.symbol || !type.symbol.members) {
       this.warn('anonymous type has no symbol');
       return '?';
@@ -658,11 +682,19 @@ export class TypeTranslator {
       // it's possible to return null from a ctor it seems like a bad idea.)
       return `function(new: (${constructedType})${paramsStr}): ?`;
     }
-
     // members is an ES6 map, but the .d.ts defining it defined their own map
-    // type, so typescript doesn't believe that .keys() is iterable
+    // type, so typescript doesn't believe it's a map.
     // tslint:disable-next-line:no-any
-    for (const field of (type.symbol.members.keys() as any)) {
+    return this.translateObjectMembers(type, type.symbol.members as any);
+  }
+
+  translateObjectMembers(type: ts.Type, members: Map<string, ts.Symbol>) {
+    // Gather up all the named fields and whether the object is also callable.
+    let callable = false;
+    let indexable = false;
+    const fields: string[] = [];
+
+    for (const field of members.keys()) {
       switch (field) {
         case '__call':
           callable = true;
@@ -675,7 +707,7 @@ export class TypeTranslator {
             this.warn(`omitting inexpressible property name: ${field}`);
             continue;
           }
-          const member = type.symbol.members.get(field)!;
+          const member = members.get(field)!;
           // optional members are handled by the type including |undefined in a union type.
           const memberType =
               this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));

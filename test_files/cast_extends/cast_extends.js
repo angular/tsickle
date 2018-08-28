@@ -1,5 +1,7 @@
-// test_files/cast_extends/cast_extends.ts(17,1): warning TS0: unhandled type flags: Intersection
-// test_files/cast_extends/cast_extends.ts(23,10): warning TS0: unhandled type flags: Intersection
+// test_files/cast_extends/cast_extends.ts(17,1): warning TS0: Skipping non-object entry in intersection type: {type flags:0x8000 TypeParameter symbol.name:"T"}
+// test_files/cast_extends/cast_extends.ts(17,1): warning TS0: Skipping class entry MixedIn in intersection type
+// test_files/cast_extends/cast_extends.ts(23,10): warning TS0: Skipping non-object entry in intersection type: {type flags:0x8000 TypeParameter symbol.name:"T"}
+// test_files/cast_extends/cast_extends.ts(23,10): warning TS0: Skipping class entry MixedIn in intersection type
 /**
  *
  * @fileoverview Reproduces an issue where tsickle would emit a cast for the "extends" claus, and
