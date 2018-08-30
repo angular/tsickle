@@ -115,3 +115,10 @@ declare enum ChartType { line, bar }
 interface ErrorConstructor {
   foo(): void;
 }
+
+// Verify that when the constructor has params, we don't drop that the class
+// has a template param (in the externs, both are expressed on the ctor).
+declare class Container<T> {
+  value: T;
+  constructor(t: T);
+}
