@@ -177,6 +177,16 @@ var ChartType = {};
 ChartType.line;
 /** @const {number} */
 ChartType.bar;
+
+/**
+ * @template T
+ * @constructor
+ * @struct
+ * @param {T} t
+ */
+function Container(t) {}
+ /** @type {T} */
+Container.prototype.value;
 // externs from test_files/declare/declare_module.d.ts:
 /** @const */
 var test_files$declare$declare_module = {};

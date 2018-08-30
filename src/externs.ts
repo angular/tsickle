@@ -382,31 +382,34 @@ export function generateExterns(
     if (CLOSURE_EXTERNS_BLACKLIST.indexOf(typeName) >= 0) return;
 
     if (isFirstValueDeclaration(decl)) {
+      // Emit the 'function' that is actually the declaration of the interface
+      // itself.  If it's a class, this function also must include the type
+      // annotations of the constructor.
       let paramNames: string[] = [];
       const jsdocTags: jsdoc.Tag[] = [];
-      let writeJsDoc = true;
+      let wroteJsDoc = false;
       maybeAddHeritageClauses(jsdocTags, mtt, decl);
+      maybeAddTemplateClause(jsdocTags, decl);
       if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
-        jsdocTags.push({tagName: 'constructor'});
-        jsdocTags.push({tagName: 'struct'});
+        // TODO: it appears you can just write 'class Foo { ...' in externs.
+        // This code instead tries to translate it to a function.
+        jsdocTags.push({tagName: 'constructor'}, {tagName: 'struct'});
         const ctors = (decl as ts.ClassDeclaration)
                           .members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
         if (ctors.length) {
-          writeJsDoc = false;
           const firstCtor: ts.ConstructorDeclaration = ctors[0] as ts.ConstructorDeclaration;
-          const ctorTags = [{tagName: 'constructor'}, {tagName: 'struct'}];
           if (ctors.length > 1) {
-            paramNames = emitFunctionType(ctors as ts.ConstructorDeclaration[], ctorTags);
+            paramNames = emitFunctionType(ctors as ts.ConstructorDeclaration[], jsdocTags);
           } else {
-            paramNames = emitFunctionType([firstCtor], ctorTags);
+            paramNames = emitFunctionType([firstCtor], jsdocTags);
           }
+          wroteJsDoc = true;
         }
       } else {
-        jsdocTags.push({tagName: 'record'});
-        jsdocTags.push({tagName: 'struct'});
+        // Otherwise it's an interface; tag it as structurally typed.
+        jsdocTags.push({tagName: 'record'}, {tagName: 'struct'});
       }
-      maybeAddTemplateClause(jsdocTags, decl);
-      if (writeJsDoc) emit(jsdoc.toString(jsdocTags));
+      if (!wroteJsDoc) emit(jsdoc.toString(jsdocTags));
       writeFunction(name, paramNames, namespace);
     }
 
