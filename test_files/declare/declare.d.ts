@@ -122,3 +122,9 @@ declare class Container<T> {
   value: T;
   constructor(t: T);
 }
+
+// Verify that optional 'any' comes out as {?|undefined}.
+declare interface OptionalAny {
+  optionalAny?: any;
+  optionalString?: string;
+}

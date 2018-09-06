@@ -272,20 +272,12 @@ export function generateExterns(
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
       const name = getIdentifierText(decl.name as ts.Identifier);
       if (CLOSURE_EXTERNS_BLACKLIST.indexOf(name) >= 0) return;
-      emitJSDocType(decl);
+      emit(jsdoc.toString([{tagName: 'type', type: mtt.typeToClosure(decl)}]));
       emit('\n');
       writeVariableStatement(name, namespace);
     } else {
       errorUnimplementedKind(decl.name, 'externs for variable');
     }
-  }
-
-  /**
-   * Emits a type annotation in JSDoc, or {?} if the type is unavailable.
-   */
-  function emitJSDocType(node: ts.Node) {
-    const type = mtt.typeToClosure(node);
-    emit(jsdoc.toString([{tagName: 'type', type}]));
   }
 
   /**
@@ -400,7 +392,12 @@ export function generateExterns(
         case ts.SyntaxKind.PropertyDeclaration:
           const prop = member as ts.PropertySignature;
           if (prop.name.kind === ts.SyntaxKind.Identifier) {
-            emitJSDocType(prop);
+            let type = mtt.typeToClosure(prop);
+            if (prop.questionToken && type === '?') {
+              // An optional 'any' type translates to '?|undefined' in Closure.
+              type = '?|undefined';
+            }
+            emit(jsdoc.toString([{tagName: 'type', type}]));
             if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
               emit(`\n${typeName}.${prop.name.getText()};\n`);
             } else {
