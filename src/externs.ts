@@ -282,31 +282,10 @@ export function generateExterns(
 
   /**
    * Emits a type annotation in JSDoc, or {?} if the type is unavailable.
-   * @param skipBlacklisted if true, do not emit a type at all for blacklisted types.
    */
-  function emitJSDocType(
-      node: ts.Node, additionalDocTag?: string, type?: ts.Type, skipBlacklisted = false) {
-    if (skipBlacklisted) {
-      // Check if the type is blacklisted, and do not emit any @type at all if so.
-      type = type || typeChecker.getTypeAtLocation(node);
-      let sym = type.symbol;
-      if (sym) {
-        if (sym.flags & ts.SymbolFlags.Alias) {
-          sym = typeChecker.getAliasedSymbol(sym);
-        }
-        const typeTranslator = mtt.newTypeTranslator(sourceFile);
-        if (typeTranslator.isBlackListed(sym)) {
-          if (additionalDocTag) emit(` /** ${additionalDocTag} */`);
-          return;
-        }
-      }
-    }
-    emit(' /**');
-    if (additionalDocTag) {
-      emit(' ' + additionalDocTag);
-    }
-    type = type || typeChecker.getTypeAtLocation(node);
-    emit(` @type {${mtt.typeToClosure(sourceFile, type)}} */`);
+  function emitJSDocType(node: ts.Node) {
+    const type = mtt.typeToClosure(node);
+    emit(jsdoc.toString([{tagName: 'type', type}]));
   }
 
   /**

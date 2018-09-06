@@ -11,25 +11,25 @@ var test_files$declare_export$untyped$declare_export = {};
  * @struct
  */
 test_files$declare_export$untyped$declare_export.ExportDeclaredIf = function() {};
- /** @type {?} */
+/** @type {?} */
 test_files$declare_export$untyped$declare_export.ExportDeclaredIf.prototype.x;
- /** @type {?} */
+/** @type {?} */
 test_files$declare_export$untyped$declare_export.exportedDeclaredVar;
 /**
  * @constructor
  * @struct
  */
 test_files$declare_export$untyped$declare_export.ExportDeclaredClass = function() {};
- /** @type {?} */
+/** @type {?} */
 test_files$declare_export$untyped$declare_export.ExportDeclaredClass.prototype.x;
 
 /**
  * @return {?}
  */
 test_files$declare_export$untyped$declare_export.exportedDeclaredFn = function() {};
- /** @type {?} */
+/** @type {?} */
 test_files$declare_export$untyped$declare_export.multiExportedDeclaredVar1;
- /** @type {?} */
+/** @type {?} */
 test_files$declare_export$untyped$declare_export.multiExportedDeclaredVar2;
 
 /** @typedef {?} */

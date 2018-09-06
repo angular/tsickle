@@ -8,5 +8,5 @@
 var test_files$underscore$underscore = {};
 /** @const */
 var __NS = {};
- /** @type {number} */
+/** @type {number} */
 __NS.__ns1;

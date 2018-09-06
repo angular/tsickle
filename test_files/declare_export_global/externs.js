@@ -8,7 +8,7 @@
 var test_files$declare_export_global$declare_export_global = {};
 /** @const */
 var globalNamespace = {};
- /** @type {number} */
+/** @type {number} */
 globalNamespace.x;
 // externs from test_files/declare_export_global/declare_export_global_nested.d.ts:
 /** @const */
@@ -17,5 +17,5 @@ var test_files$declare_export_global$declare_export_global_nested = {};
 var globalParentNamespace = {};
 /** @const */
 globalParentNamespace.globalNestedNamespace = {};
- /** @type {number} */
+/** @type {number} */
 globalParentNamespace.globalNestedNamespace.x;

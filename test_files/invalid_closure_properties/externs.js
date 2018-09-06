@@ -6,5 +6,5 @@
 // externs from test_files/invalid_closure_properties/invalid_closure_properties.ts:
 /** @const */
 var test_files$invalid_closure_properties$invalid_closure_properties = {};
- /** @type {symbol} */
+/** @type {symbol} */
 SymbolConstructor.prototype.observable;

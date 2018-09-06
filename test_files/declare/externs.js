@@ -8,14 +8,14 @@
 var DeclareTestModule = {};
 /** @const */
 DeclareTestModule.inner = {};
- /** @type {boolean} */
+/** @type {boolean} */
 DeclareTestModule.inner.someBool;
 /**
  * @record
  * @struct
  */
 DeclareTestModule.Foo = function() {};
- /** @type {string} */
+/** @type {string} */
 DeclareTestModule.Foo.prototype.field;
 
 /**
@@ -30,7 +30,7 @@ DeclareTestModule.Foo.prototype.method = function(a) {};
  * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};
- /** @type {number} */
+/** @type {number} */
 DeclareTestModule.Clazz.field;
 
 /**
@@ -87,9 +87,9 @@ DeclareTestModule.TypeAlias;
 // Derived from: declare module "DeclareTest-QuotedModule"
 /** @const */
 var DeclareTest_QuotedModule = {};
- /** @type {string} */
+/** @type {string} */
 DeclareTest_QuotedModule.foo;
- /** @type {number} */
+/** @type {number} */
 var declareGlobalVar;
 
 /**
@@ -102,7 +102,7 @@ function declareGlobalFunction(x) {}
  * @struct
  */
 function DeclareTestInterface() {}
- /** @type {string} */
+/** @type {string} */
 DeclareTestInterface.prototype.foo;
 
 /**
@@ -128,7 +128,7 @@ function CodeMirror(x_or_y, x) {}
  * @struct
  */
 CodeMirror.Editor = function() {};
- /** @type {string} */
+/** @type {string} */
 CodeMirror.Editor.prototype.name;
 
 /**
@@ -156,7 +156,7 @@ function TestOverload2(a, b) {}
  * @struct
  */
 function BareInterface() {}
- /** @type {string} */
+/** @type {string} */
 BareInterface.prototype.name;
 
 /**
@@ -185,12 +185,12 @@ ChartType.bar;
  * @param {T} t
  */
 function Container(t) {}
- /** @type {T} */
+/** @type {T} */
 Container.prototype.value;
 // externs from test_files/declare/declare_module.d.ts:
 /** @const */
 var test_files$declare$declare_module = {};
- /** @type {string} */
+/** @type {string} */
 var moduleGlobalX;
 /**
  * @constructor
@@ -199,19 +199,19 @@ var moduleGlobalX;
 function ModuleGlobalClass() {}
 /** @const */
 var moduleGlobalNamespace = {};
- /** @type {string} */
+/** @type {string} */
 moduleGlobalNamespace.y;
 /**
  * @constructor
  * @struct
  */
 moduleGlobalNamespace.GlobalNamespaced = function() {};
- /** @type {string} */
+/** @type {string} */
 test_files$declare$declare_module.moduleExported;
- /** @type {string} */
+/** @type {string} */
 test_files$declare$declare_module.moduleUnexported;
 // externs from test_files/declare/declare_nondts.ts:
 /** @const */
 var test_files$declare$declare_nondts = {};
- /** @type {number} */
+/** @type {number} */
 var declaredInPlainTS;
