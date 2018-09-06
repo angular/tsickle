@@ -9,7 +9,7 @@
  * @struct
  */
 function Parent() {}
- /** @type {number} */
+/** @type {number} */
 Parent.prototype.x;
 /**
  * @extends {Parent}
@@ -17,7 +17,7 @@ Parent.prototype.x;
  * @struct
  */
 function Child() {}
- /** @type {number} */
+/** @type {number} */
 Child.prototype.y;
 /**
  * @record
@@ -58,7 +58,7 @@ var foo = {};
  * @struct
  */
 foo.NamespacedParent = function() {};
- /** @type {number} */
+/** @type {number} */
 foo.NamespacedParent.prototype.x;
 /**
  * @extends {foo.NamespacedParent}
@@ -66,7 +66,7 @@ foo.NamespacedParent.prototype.x;
  * @struct
  */
 foo.NamespacedChildSameNamespace = function() {};
- /** @type {number} */
+/** @type {number} */
 foo.NamespacedChildSameNamespace.prototype.y;
 /** @const */
 var bar = {};
@@ -76,5 +76,5 @@ var bar = {};
  * @struct
  */
 bar.NamespacedChild = function() {};
- /** @type {number} */
+/** @type {number} */
 bar.NamespacedChild.prototype.y;

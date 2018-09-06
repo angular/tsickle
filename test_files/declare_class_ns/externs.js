@@ -15,9 +15,9 @@ function ClassAndNamespace() {}
  * @return {void}
  */
 ClassAndNamespace.prototype.classFunction = function(x) {};
- /** @type {number} */
+/** @type {number} */
 ClassAndNamespace.bar;
- /** @type {number} */
+/** @type {number} */
 ClassAndNamespace.baz;
 
 /**

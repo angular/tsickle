@@ -6,5 +6,5 @@
 // externs from test_files/decorator_nested_scope/decorator_nested_scope.ts:
 /** @const */
 var test_files$decorator_nested_scope$decorator_nested_scope = {};
- /** @type {?} */
+/** @type {?} */
 var Component;

@@ -18,9 +18,9 @@ test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNam
  * @struct
  */
 test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.User = function() {};
- /** @type {!test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.Used} */
+/** @type {!test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.Used} */
 test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.User.prototype.fieldFromLocalNamespace;
- /** @type {!test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.Used} */
+/** @type {!test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.Used} */
 test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.User.prototype.fieldFromOtherNamespace;
 /** @const */
 test_files$export_declare_namespace$export_declare_namespace.nested = {};
@@ -36,9 +36,9 @@ test_files$export_declare_namespace$export_declare_namespace.nested.exportedName
  * @struct
  */
 test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.User = function() {};
- /** @type {!test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.Used} */
+/** @type {!test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.Used} */
 test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.User.prototype.fieldFromLocalNamespace;
- /** @type {!test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.Used} */
+/** @type {!test_files$export_declare_namespace$export_declare_namespace.exportedDeclaredNamespace.Used} */
 test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.User.prototype.fieldFromOtherNamespace;
 /** @const */
 var globalNamespace = {};
@@ -47,7 +47,7 @@ var globalNamespace = {};
  * @struct
  */
 globalNamespace.ClassInGlobal = function() {};
- /** @type {!test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.Used} */
+/** @type {!test_files$export_declare_namespace$export_declare_namespace.nested.exportedNamespace.Used} */
 globalNamespace.ClassInGlobal.prototype.field;
 /** @const */
 test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUsingGlobal = {};
@@ -56,7 +56,7 @@ test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUs
  * @struct
  */
 test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUsingGlobal.User = function() {};
- /** @type {!globalNamespace.ClassInGlobal} */
+/** @type {!globalNamespace.ClassInGlobal} */
 test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUsingGlobal.User.prototype.field;
 /** @const */
 test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUsingModuleType = {};
@@ -65,5 +65,5 @@ test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUs
  * @struct
  */
 test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUsingModuleType.User = function() {};
- /** @type {?} */
+/** @type {?} */
 test_files$export_declare_namespace$export_declare_namespace.exportedNamespaceUsingModuleType.User.prototype.field;

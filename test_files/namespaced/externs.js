@@ -15,9 +15,9 @@ decl.ns.one = {};
  * @struct
  */
 decl.ns.one.NamespacedClass = function() {};
- /** @type {!decl.ns.two.NamespacedClass} */
+/** @type {!decl.ns.two.NamespacedClass} */
 decl.ns.one.NamespacedClass.prototype.x;
- /** @type {!decl.ns.one.NamespacedClass} */
+/** @type {!decl.ns.one.NamespacedClass} */
 decl.ns.one.NamespacedClass.prototype.y;
 /** @const */
 decl.ns.two = {};
@@ -26,7 +26,7 @@ decl.ns.two = {};
  * @struct
  */
 decl.ns.two.NamespacedClass = function() {};
- /** @type {!decl.ns.two.NamespacedClass} */
+/** @type {!decl.ns.two.NamespacedClass} */
 decl.ns.two.NamespacedClass.prototype.x;
- /** @type {!decl.ns.one.NamespacedClass} */
+/** @type {!decl.ns.one.NamespacedClass} */
 decl.ns.two.NamespacedClass.prototype.y;

@@ -14,5 +14,5 @@ test_files$export$export_helper_2.DeclaredType;
  * @struct
  */
 test_files$export$export_helper_2.DeclaredInterface = function() {};
- /** @type {number} */
+/** @type {number} */
 test_files$export$export_helper_2.DeclaredInterface.prototype.a;

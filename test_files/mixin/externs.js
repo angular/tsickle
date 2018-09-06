@@ -18,7 +18,7 @@ function MyMixin(base) {}
 function MixinConstructor() {}
 
 /* TODO: ConstructSignature:  */
- /** @type {string} */
+/** @type {string} */
 MyMixin.prototype.mixinProp;
 /**
  * NOTE: tsickle could not resolve supertype, class definition may be incomplete.
@@ -27,5 +27,5 @@ MyMixin.prototype.mixinProp;
  * @struct
  */
 function MyClass() {}
- /** @type {string} */
+/** @type {string} */
 MyClass.prototype.classProp;

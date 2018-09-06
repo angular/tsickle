@@ -11,20 +11,20 @@ var test_files$declare_export$declare_export = {};
  * @struct
  */
 test_files$declare_export$declare_export.ExportDeclaredIf = function() {};
- /** @type {number} */
+/** @type {number} */
 test_files$declare_export$declare_export.ExportDeclaredIf.prototype.x;
- /** @type {number} */
+/** @type {number} */
 test_files$declare_export$declare_export.exportedDeclaredVar;
 /**
  * @constructor
  * @struct
  */
 test_files$declare_export$declare_export.ExportDeclaredClass = function() {};
- /** @type {number} */
+/** @type {number} */
 test_files$declare_export$declare_export.ExportDeclaredClass.prototype.x;
- /** @type {string} */
+/** @type {string} */
 test_files$declare_export$declare_export.multiExportedDeclaredVar1;
- /** @type {number} */
+/** @type {number} */
 test_files$declare_export$declare_export.multiExportedDeclaredVar2;
 
 /** @typedef {string} */

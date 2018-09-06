@@ -34,7 +34,7 @@ describe('toClosureJS', () => {
 
     expect(tsickle.getGeneratedExterns(result.externs)).toContain(`/** @const */
 var __NS = {};
- /** @type {number} */
+/** @type {number} */
 __NS.__ns1;`);
 
     const underscoreDotJs = files.get('./test_files/underscore/underscore.js');

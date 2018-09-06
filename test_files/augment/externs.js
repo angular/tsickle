@@ -6,7 +6,7 @@
 // externs from test_files/augment/angular/index.d.ts:
 /** @const */
 var test_files$augment$angular$index = {};
- /** @type {!IAngularStatic} */
+/** @type {!IAngularStatic} */
 test_files$augment$angular$index.angular;
 /** @const */
 test_files$augment$angular$index.angular = {};
@@ -15,7 +15,7 @@ test_files$augment$angular$index.angular = {};
  * @struct
  */
 test_files$augment$angular$index.angular.Scope = function() {};
- /** @type {string} */
+/** @type {string} */
 test_files$augment$angular$index.angular.Scope.prototype.name;
 /** @const */
 test_files$augment$angular$index.angular.sub = {};
@@ -27,7 +27,7 @@ test_files$augment$angular$index.angular.sub.SubType;
  * @struct
  */
 test_files$augment$angular$index.angular.IAngularStatic = function() {};
- /** @type {string} */
+/** @type {string} */
 test_files$augment$angular$index.angular.IAngularStatic.prototype.version;
 
 /**
@@ -46,7 +46,7 @@ var test_files$augment$zz_angular_augment = {};
  * @struct
  */
 test_files$augment$angular$index.sub.AugmentSubType = function() {};
- /** @type {string} */
+/** @type {string} */
 test_files$augment$angular$index.sub.AugmentSubType.prototype.prop;
 /** @const */
 test_files$augment$angular$index.local = {};

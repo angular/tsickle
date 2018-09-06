@@ -379,7 +379,7 @@ function serialize(
       // Special-case one-liner "type" and "nocollapse" tags to fit on one line, e.g.
       //   /** @type {foo} */
       const text = tagToString(tag, escapeExtraTags);
-      return includeStartEnd ? `/** ${text} */` : `*${text} `;
+      return includeStartEnd ? `/**${text} */` : `*${text} `;
     }
     // Otherwise, fall through to the multi-line output.
   }
