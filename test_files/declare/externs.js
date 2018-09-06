@@ -187,6 +187,15 @@ ChartType.bar;
 function Container(t) {}
 /** @type {T} */
 Container.prototype.value;
+/**
+ * @record
+ * @struct
+ */
+function OptionalAny() {}
+/** @type {?|undefined} */
+OptionalAny.prototype.optionalAny;
+/** @type {(undefined|string)} */
+OptionalAny.prototype.optionalString;
 // externs from test_files/declare/declare_module.d.ts:
 /** @const */
 var test_files$declare$declare_module = {};
