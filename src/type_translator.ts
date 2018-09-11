@@ -521,7 +521,14 @@ export class TypeTranslator {
         this.warn('class has no symbol');
         return '?';
       }
-      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
+      const name = this.symbolToString(type.symbol, /* useFqn */ true);
+      if (name === '(Anonymous class)') {
+        // Values that have anonymous class types produce this name, but the type
+        // appears otherwise identical to a named class.  Given that the type is
+        // anonymous here, there's not really a useful name we can emit.
+        return '?';
+      }
+      return '!' + name;
     } else if (type.objectFlags & ts.ObjectFlags.Interface) {
       // Note: ts.InterfaceType has a typeParameters field, but that
       // specifies the parameters that the interface type *expects*
