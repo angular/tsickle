@@ -262,12 +262,14 @@ export class TypeTranslator {
         // a local alias but appears in a dotted type path (e.g. when it's imported using import *
         // as foo), str would contain both the prefx *and* the full alias (foo.alias.name).
         str = alias;
-      } else if (str.length === 0) {
-        const mangledPrefix = this.maybeGetMangledNamePrefix(symbol);
-        str += mangledPrefix + text;
-      } else {
-        str += text;
+        return;
       }
+
+      if (str.length === 0) {
+        const mangledPrefix = this.maybeGetMangledNamePrefix(symbol);
+        text = mangledPrefix + text;
+      }
+      str += text;
     };
     const doNothing = () => {
       return;
