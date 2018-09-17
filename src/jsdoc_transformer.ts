@@ -59,9 +59,9 @@ export interface AnnotatorHost {
    */
   convertIndexImportShorthand?: boolean;
   /**
-   * If true, do not modify quotes around property accessors.
+   * If true, modify quotes around property accessors to match the type declaration.
    */
-  disableAutoQuoting?: boolean;
+  enableAutoQuoting?: boolean;
   /**
    * Whether tsickle should insert goog.provide() calls into the externs generated for `.d.ts` files
    * that are external modules.
