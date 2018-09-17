@@ -1,6 +1,4 @@
 // test_files/enum/enum.ts(2,7): warning TS0: should not emit a 'never' type
-// test_files/enum/enum.ts(8,33): warning TS0: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
-// test_files/enum/enum.ts(15,22): warning TS0: Declared property XYZ accessed with quotes. This can lead to renaming bugs. A better fix is to use 'declare interface' on the declaration.
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
