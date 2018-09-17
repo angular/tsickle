@@ -94,7 +94,7 @@ export function emitWithTsickle(
     tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, tsHost, typeChecker, tsickleDiagnostics));
-    if (!host.disableAutoQuoting) {
+    if (host.enableAutoQuoting) {
       tsickleSourceTransformers.push(quotingTransformer(host, typeChecker, tsickleDiagnostics));
     }
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));

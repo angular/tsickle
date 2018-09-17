@@ -142,6 +142,7 @@ testFn('golden tests with transformer', () => {
         addDtsClutzAliases: test.isDeclarationTest,
         untyped: test.isUntypedTest,
         provideExternalModuleDtsNamespace: !test.hasShim,
+        enableAutoQuoting: test.isQuotingTest,
         logWarning: (diag: ts.Diagnostic) => {
           allDiagnostics.add(diag);
         },
