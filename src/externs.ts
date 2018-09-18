@@ -57,6 +57,7 @@
 
 import * as path from 'path';
 
+import {getEnumType} from './enum_transformer';
 import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
@@ -309,10 +310,13 @@ export function generateExterns(
   }
 
   function writeEnum(decl: ts.EnumDeclaration, namespace: ReadonlyArray<string>) {
+    // E.g. /** @enum {number} */ var COUNTRY = {US: 1, CA: 1};
     const name = getIdentifierText(decl.name);
-    emit('\n/** @const */\n');
-    writeVariableStatement(name, namespace, '{}');
-    namespace = namespace.concat([name]);
+    let members = '';
+    const enumType = getEnumType(typeChecker, decl);
+    // Closure enums members must have a value of the correct type, but the actual value does not
+    // matter in externs.
+    const initializer = enumType === 'string' ? `''` : 1;
     for (const member of decl.members) {
       let memberName: string|undefined;
       switch (member.name.kind) {
@@ -327,13 +331,15 @@ export function generateExterns(
           break;
       }
       if (!memberName) {
-        emit(`\n/* TODO: ${ts.SyntaxKind[member.name.kind]}: ${
-            escapeForComment(member.name.getText())} */\n`);
+        members += `  /* TODO: ${ts.SyntaxKind[member.name.kind]}: ${
+            escapeForComment(member.name.getText())} */\n`;
         continue;
       }
-      emit('/** @const {number} */\n');
-      writeVariableStatement(memberName, namespace);
+      members += `  ${memberName}: ${initializer},\n`;
     }
+
+    emit(`\n/** @enum {${enumType}} */\n`);
+    writeVariableStatement(name, namespace, `{\n${members}}`);
   }
 
   function writeTypeAlias(decl: ts.TypeAliasDeclaration, namespace: ReadonlyArray<string>) {

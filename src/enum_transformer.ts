@@ -63,8 +63,8 @@ function getEnumMemberType(typeChecker: ts.TypeChecker, member: ts.EnumMember): 
  * getEnumType computes the Closure type of an enum, by iterating through the members and gathering
  * their types.
  */
-function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclaration): 'number'|'string'|
-    '?' {
+export function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclaration): 'number'|
+    'string'|'?' {
   let hasNumber = false;
   let hasString = false;
   for (const member of enumDecl.members) {

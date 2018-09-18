@@ -68,19 +68,17 @@ DeclareTestModule.NotYetHandled = function() {};
 
 /* TODO: IndexSignature: DeclareTestModule */
 
-/** @const */
-DeclareTestModule.Enumeration = {};
-/** @const {number} */
-DeclareTestModule.Enumeration.Value1;
-/** @const {number} */
-DeclareTestModule.Enumeration.Value3;
+/** @enum {number} */
+DeclareTestModule.Enumeration = {
+  Value1: 1,
+  Value3: 1,
+};
 
-/** @const */
-DeclareTestModule.StringEnum = {};
-/** @const {number} */
-DeclareTestModule.StringEnum.foo;
-
-/* TODO: StringLiteral: '.tricky.invalid name' */
+/** @enum {number} */
+DeclareTestModule.StringEnum = {
+  foo: 1,
+  /* TODO: StringLiteral: '.tricky.invalid name' */
+};
 
 /** @typedef {(string|number)} */
 DeclareTestModule.TypeAlias;
@@ -171,12 +169,11 @@ function usesArguments(tsickle_arguments) {}
  */
 function destructures(__0) {}
 
-/** @const */
-var ChartType = {};
-/** @const {number} */
-ChartType.line;
-/** @const {number} */
-ChartType.bar;
+/** @enum {number} */
+var ChartType = {
+  line: 1,
+  bar: 1,
+};
 
 /**
  * @template T
