@@ -14,3 +14,14 @@ declare enum MixedAmbientEnum {
   ENUM_MEMBER_1 = 'a',
   ENUM_MEMBER_2 = 1,
 }
+
+declare enum StringKeyEnum {
+  'foo',
+  '.tricky.invalid name',
+}
+
+declare namespace namespaceWithEnums {
+  enum EnumInNamespace {
+    V = 1,
+  }
+}

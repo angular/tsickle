@@ -22,3 +22,16 @@ var MixedAmbientEnum = {
   ENUM_MEMBER_1: 1,
   ENUM_MEMBER_2: 1,
 };
+
+/** @enum {number} */
+var StringKeyEnum = {
+  foo: 1,
+  /* TODO: StringLiteral: '.tricky.invalid name' */
+};
+/** @const */
+var namespaceWithEnums = {};
+
+/** @enum {number} */
+namespaceWithEnums.EnumInNamespace = {
+  V: 1,
+};

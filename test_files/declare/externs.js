@@ -68,18 +68,6 @@ DeclareTestModule.NotYetHandled = function() {};
 
 /* TODO: IndexSignature: DeclareTestModule */
 
-/** @enum {number} */
-DeclareTestModule.Enumeration = {
-  Value1: 1,
-  Value3: 1,
-};
-
-/** @enum {number} */
-DeclareTestModule.StringEnum = {
-  foo: 1,
-  /* TODO: StringLiteral: '.tricky.invalid name' */
-};
-
 /** @typedef {(string|number)} */
 DeclareTestModule.TypeAlias;
 // Derived from: declare module "DeclareTest-QuotedModule"

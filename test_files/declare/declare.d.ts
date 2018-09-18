@@ -31,16 +31,6 @@ declare namespace DeclareTestModule {
     [key: string]: string;
   }
 
-  enum Enumeration {
-    Value1 = 2,
-    Value3,
-  }
-
-  enum StringEnum {
-    'foo',
-    '.tricky.invalid name',
-  }
-
   type TypeAlias = string|number;
 }
 
