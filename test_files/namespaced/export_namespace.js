@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_namespace');

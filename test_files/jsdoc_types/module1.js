@@ -2,7 +2,7 @@
 // "quoted-bad-name": string;
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc_types.module1');
 var module = module || { id: 'test_files/jsdoc_types/module1.ts' };

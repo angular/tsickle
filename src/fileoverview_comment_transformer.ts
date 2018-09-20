@@ -52,6 +52,10 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
   // 3) Suppress uselessCode.  We emit an "if (false)" around type declarations,
   // which is flagged as unused code unless we suppress it.
   suppressions.add('uselessCode');
+  // 4) Suppress missingReturn.  If the TS compiler's exhaustiveness analysis
+  // concludes that all possible branches return a value, then we don't want
+  // Closure to second-guess this decision.
+  suppressions.add('missingReturn');
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 
   return tags;

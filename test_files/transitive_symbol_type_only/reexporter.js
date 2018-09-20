@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 goog.module('test_files.transitive_symbol_type_only.reexporter');
 var module = module || { id: 'test_files/transitive_symbol_type_only/reexporter.ts' };

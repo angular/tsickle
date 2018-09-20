@@ -1,7 +1,7 @@
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 // This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:
