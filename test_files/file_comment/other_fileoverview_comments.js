@@ -1,7 +1,7 @@
 /**
  * @fileoverview added by tsickle
  * @modName {some_mod}
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.other_fileoverview_comments');
 var module = module || { id: 'test_files/file_comment/other_fileoverview_comments.ts' };

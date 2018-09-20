@@ -3,7 +3,7 @@
  * @fileoverview tsickle's Closure compatible exported enum emit does not work in namespaces. Bar
  * below must be exported onto foo, which tsickle does by disabling its emit for namespace'd enums.
  *
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_enum_in_namespace');

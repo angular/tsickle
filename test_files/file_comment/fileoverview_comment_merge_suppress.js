@@ -1,7 +1,7 @@
 /**
  *
  * @fileoverview Tests merging JSDoc tags in fileoverview comments.
- * @suppress {checkTypes,extraRequire,uselessCode}
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode}
  *
  */
 /** second comment here */

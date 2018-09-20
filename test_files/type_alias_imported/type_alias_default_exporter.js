@@ -3,7 +3,7 @@
  * @fileoverview Declares a type alias as default export. This allows testing that the appropriate
  * type reference is created (no .default property).
  *
- * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
  */
 goog.module('test_files.type_alias_imported.type_alias_default_exporter');
 var module = module || { id: 'test_files/type_alias_imported/type_alias_default_exporter.ts' };
