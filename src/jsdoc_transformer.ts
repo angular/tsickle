@@ -822,6 +822,7 @@ export function jsdocTransformer(
           case ts.SyntaxKind.InterfaceDeclaration:
           case ts.SyntaxKind.ClassDeclaration:
           case ts.SyntaxKind.ModuleDeclaration:
+          case ts.SyntaxKind.EnumDeclaration:
             const decl = node as ts.NamedDeclaration;
             if (!decl.name || decl.name.kind !== ts.SyntaxKind.Identifier) {
               break;

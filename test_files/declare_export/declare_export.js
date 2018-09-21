@@ -28,3 +28,4 @@ exports.ExportDeclaredType;
 let user6;
 /** @type {!exported.namespace.ExportedClassInNamespace} */
 const fromClassInNamespace = new exported.namespace.ExportedClassInNamespace();
+;

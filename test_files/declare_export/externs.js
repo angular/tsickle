@@ -43,3 +43,8 @@ exported.namespace = {};
  * @struct
  */
 exported.namespace.ExportedClassInNamespace = function() {};
+
+/** @enum {number} */
+test_files$declare_export$declare_export.ExportDeclaredEnum = {
+  VALUE: 1,
+};

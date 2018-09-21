@@ -21,6 +21,7 @@
 
 import * as ts from 'typescript';
 
+import {isAmbient} from './jsdoc_transformer';
 import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag} from './transformer_util';
 
 /** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
@@ -101,6 +102,10 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
       // namespaces. tsickle's emit for namespaces is unintelligible for Closure in any case, so
       // this is left to fix for another day.
       if (isInNamespace(node)) return ts.visitEachChild(node, visitor, context);
+
+      // TypeScript does not emit any code for ambient enums, so early exit here to prevent the code
+      // below from producing runtime values for an ambient structure.
+      if (isAmbient(node)) return ts.visitEachChild(node, visitor, context);
 
       const name = node.name.getText();
       const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);

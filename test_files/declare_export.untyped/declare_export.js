@@ -7,3 +7,4 @@ var module = module || { id: 'test_files/declare_export.untyped/declare_export.t
 module = module;
 exports = {};
 ;
+;

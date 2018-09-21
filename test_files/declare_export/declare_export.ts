@@ -19,9 +19,9 @@ export declare type ExportDeclaredType = string;
 let user6: ExportDeclaredType;
 export declare function exportedDeclaredFn(): ExportDeclaredIf;
 
-
 declare namespace exported.namespace {
    class ExportedClassInNamespace {}
 }
 
 const fromClassInNamespace = new exported.namespace.ExportedClassInNamespace();
+export declare enum ExportDeclaredEnum { VALUE = 1 };

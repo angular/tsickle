@@ -34,3 +34,8 @@ test_files$declare_export$untyped$declare_export.multiExportedDeclaredVar2;
 
 /** @typedef {?} */
 test_files$declare_export$untyped$declare_export.X;
+
+/** @enum {number} */
+test_files$declare_export$untyped$declare_export.ExportDeclaredEnum = {
+  VALUE: 1,
+};
