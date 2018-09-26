@@ -472,28 +472,34 @@ export class ModuleTypeTranslator {
 
       // Return type.
       if (!isConstructor) {
+        const returnTag: jsdoc.Tag = {
+          tagName: 'return',
+        };
         const retType = typeChecker.getReturnTypeOfSignature(sig);
-        const retTypeString: string = this.typeToClosure(fnDecl, retType);
-        let returnDoc: string|undefined;
-        for (const {tagName, text} of tags) {
-          if (tagName === 'return') {
-            returnDoc = text;
-            break;
+        // tslint:disable-next-line:no-any accessing TS internal field.
+        if ((retType as any).isThisType) {
+          // foo(): this
+          addTag({tagName: 'template', text: 'THIS'});
+          addTag({tagName: 'this', type: 'THIS'});
+          returnTag.type = 'THIS';
+        } else {
+          returnTag.type = this.typeToClosure(fnDecl, retType);
+          for (const {tagName, text} of tags) {
+            if (tagName === 'return') {
+              returnTag.text = text;
+              break;
+            }
           }
         }
-        returnTags.push({
-          tagName: 'return',
-          type: retTypeString,
-          text: returnDoc,
-        });
+        returnTags.push(returnTag);
       }
     }
 
-    const newDoc = Array.from(tagsByName.values());
-
     if (typeParameterNames.size > 0) {
-      newDoc.push({tagName: 'template', text: Array.from(typeParameterNames.values()).join(', ')});
+      addTag({tagName: 'template', text: Array.from(typeParameterNames.values()).join(', ')});
     }
+
+    const newDoc = Array.from(tagsByName.values());
 
     // Merge the JSDoc tags for each overloaded parameter.
     // Ensure each parameter has a unique name; the merging process can otherwise

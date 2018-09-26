@@ -425,7 +425,9 @@ export function merge(tags: Tag[]): Tag {
   const parameterName =
       parameterNames.size > 0 ? Array.from(parameterNames).join('_or_') : undefined;
   const type = types.size > 0 ? Array.from(types).join('|') : undefined;
-  const text = texts.size > 0 ? Array.from(texts).join(' / ') : undefined;
+  // @template uses text (not type!) to declare its type parameters, with ','-separated text.
+  const isTemplateTag = tagName === 'template';
+  const text = texts.size > 0 ? Array.from(texts).join(isTemplateTag ? ',' : ' / ') : undefined;
   const tag: Tag = {tagName, parameterName, type, text};
   // Note: a param can either be optional or a rest param; if we merged an
   // optional and rest param together, prefer marking it as a rest param.
