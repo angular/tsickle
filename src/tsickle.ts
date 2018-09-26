@@ -6,6 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as path from 'path';
+
+import {assertAbsolute} from './cli_support';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
 import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
@@ -16,9 +19,9 @@ import {ModulesManifest} from './modules_manifest';
 import {quotingTransformer} from './quoting_transformer';
 import {isDtsFileName} from './transformer_util';
 import * as ts from './typescript';
+
 // Retained here for API compatibility.
 export {getGeneratedExterns} from './externs';
-
 export {FileMap, ModulesManifest} from './modules_manifest';
 
 export interface TsickleHost extends googmodule.GoogModuleProcessorHost, AnnotatorHost {
@@ -86,6 +89,10 @@ export function emitWithTsickle(
     targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
     customTransformers: EmitTransformers = {}): EmitResult {
+  for (const sf of program.getSourceFiles()) {
+    assertAbsolute(sf.fileName);
+  }
+
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
@@ -129,6 +136,7 @@ export function emitWithTsickle(
       (fileName: string, content: string, writeByteOrderMark: boolean,
        onError: ((message: string) => void)|undefined,
        sourceFiles: ReadonlyArray<ts.SourceFile>) => {
+        assertAbsolute(fileName);
         if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
           // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
           // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful

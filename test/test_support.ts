@@ -19,8 +19,25 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
 
-/** Path to tslib.d.ts; used inside Google for this test suite. */
-const tslibPath: string|null = null;
+/**
+ * Return the 'root dir' under tests, which is the path to the image of
+ * the source tree set up under the hermetic testing environment.
+ */
+function rootDir(): string {
+  const runfiles = process.env['RUNFILES'];
+  assert(runfiles);
+  return path.join(runfiles!, 'tsickle');
+}
+
+/**
+ * Absolute path to tslib.d.ts.
+ *
+ * The test suite runs the TS compiler, which wants to load tslib.
+ * But bazel wants to run the test suite hermetically, so TS fails to find
+ * tslib if we let it do its normal module resolution.  So instead we fix
+ * the path here to the known path to the desired file.
+ */
+const tslibPath = path.join(rootDir(), 'node_modules/tslib/tslib.d.ts');
 
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
@@ -37,12 +54,11 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   importHelpers: true,
   noEmitHelpers: true,
   baseUrl: '.',
-  paths: tslibPath ? {
+  paths: {
     // The compiler builtin 'tslib' library is looked up by name,
     // so this entry controls which code is used for tslib.
     'tslib': [tslibPath]
-  } :
-                     undefined,
+  },
 };
 
 /** The TypeScript compiler options used by the test suite. */
@@ -50,9 +66,8 @@ export const compilerOptions: ts.CompilerOptions = {
   ...baseCompilerOptions,
   emitDecoratorMetadata: true,
   jsx: ts.JsxEmit.React,
-  // Flags below are needed to make sure source paths are correctly set on write calls.
-  rootDir: path.resolve(process.cwd()),
-  outDir: '.',
+  // Tests assume that rootDir is always present.
+  rootDir: rootDir(),
 };
 
 /**
@@ -99,17 +114,20 @@ export function createSourceCachingHost(
     tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.CompilerHost {
   const host = ts.createCompilerHost(tsCompilerOptions);
 
+  host.getCurrentDirectory = () => {
+    return rootDir();
+  };
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
                         onError?: (msg: string) => void): ts.SourceFile|undefined => {
+    cliSupport.assertAbsolute(fileName);
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
     fileName = path.normalize(fileName);
     if (fileName === cachedLibPath) return cachedLib;
-    if (tslibPath && fileName === tslibPath) {
+    if (fileName === tslibPath) {
       return ts.createSourceFile(
           fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest, true);
     }
-    if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
     const contents = sources.get(fileName);
     if (contents !== undefined) {
       return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
@@ -119,11 +137,9 @@ export function createSourceCachingHost(
   };
   const originalFileExists = host.fileExists;
   host.fileExists = (fileName: string): boolean => {
-    if (path.isAbsolute(fileName)) fileName = path.relative(process.cwd(), fileName);
-    if (sources.has(fileName)) {
-      return true;
-    }
-    if (tslibPath && fileName === tslibPath) return true;
+    cliSupport.assertAbsolute(fileName);
+    if (sources.has(fileName)) return true;
+    if (fileName === tslibPath) return true;
     // Typescript occasionally needs to look on disk for files we don't pass into
     // the program as a source (eg to resolve a module that's in node_modules),
     // but only .ts files explicitly passed in should be findable
@@ -140,13 +156,18 @@ export function createProgramAndHost(
     sources: Map<string, string>, tsCompilerOptions: ts.CompilerOptions = compilerOptions):
     {host: ts.CompilerHost, program: ts.Program} {
   const host = createSourceCachingHost(sources);
-
   const program = ts.createProgram(Array.from(sources.keys()), tsCompilerOptions, host);
   return {program, host};
 }
 
 export class GoldenFileTest {
-  constructor(public path: string, public tsFiles: string[]) {}
+  constructor(
+      /** Absolute path to directory containing test. */
+      public path: string,
+      /** Relative paths from this.path to source files in test. */
+      public tsFiles: string[]) {
+    cliSupport.assertAbsolute(this.path);
+  }
 
   get name(): string {
     return path.basename(this.path);
@@ -219,7 +240,6 @@ export function goldenTests(): GoldenFileTest[] {
   const testDirs = testNames.map(testName => path.join(basePath, testName))
                        .filter(testDir => fs.statSync(testDir).isDirectory());
   const tests = testDirs.map(testDir => {
-    testDir = path.relative(process.cwd(), testDir);
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
@@ -339,9 +359,9 @@ export function addDiffMatchers() {
 }
 
 export function formatDiagnostics(diags: ReadonlyArray<ts.Diagnostic>): string {
+  // TODO(evanm): this should reuse the CompilerHost.
   const host: ts.FormatDiagnosticsHost = {
-    // TODO(evanm): do not depend on current directory here.
-    getCurrentDirectory: ts.sys.getCurrentDirectory,
+    getCurrentDirectory: () => rootDir(),
     getCanonicalFileName(filename: string) {
       return filename;
     },

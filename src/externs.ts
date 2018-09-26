@@ -108,9 +108,11 @@ const EXTERNS_HEADER = `/**
 /**
  * Concatenate all generated externs definitions together into a string, including a file comment
  * header.
+ *
+ * @param rootDir Project root.  Emitted comments will reference paths relative to this root.
+ *    This param is effectively required, but made optional here until Angular is fixed.
  */
-export function getGeneratedExterns(
-    rootDir: string, externs: {[fileName: string]: string}): string {
+export function getGeneratedExterns(externs: {[fileName: string]: string}, rootDir = ''): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
     allExterns += `// externs from ${path.relative(rootDir, fileName)}:\n`;
@@ -124,14 +126,9 @@ export function getGeneratedExterns(
  *
  * The mangled name is safe to use as a JavaScript identifier. It is used as a globally unique
  * prefix to scope symbols in externs file (see code below).
- *
- * @param contextFileName if given is used as the context file path to resolve the source file's
- *     name against.
  */
-export function moduleNameAsIdentifier(
-    host: AnnotatorHost, fileName: string, contextFileName?: string): string {
-  const resolved = resolveModuleName(host, contextFileName || '', fileName);
-  return host.pathToModuleName('', resolved).replace(/\./g, '$');
+export function moduleNameAsIdentifier(host: AnnotatorHost, fileName: string): string {
+  return host.pathToModuleName('', fileName).replace(/\./g, '$');
 }
 
 /**

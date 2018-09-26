@@ -344,7 +344,7 @@ export class TypeTranslator {
     const fileName = ambientModuleDeclaration ?
         ambientModuleDeclaration.name.text :
         ts.getOriginalNode(declarations[0]).getSourceFile().fileName;
-    const mangled = moduleNameAsIdentifier(this.host, fileName, this.node.getSourceFile().fileName);
+    const mangled = moduleNameAsIdentifier(this.host, fileName);
     return mangled + '.';
   }
 

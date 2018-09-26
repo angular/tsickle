@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
@@ -16,35 +17,33 @@ import * as testSupport from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 
-function sources(sourceText: string): Map<string, string> {
-  const sources = new Map<string, string>([
-    [testCaseFileName, sourceText],
-    // Provides a rename of any 'FakeDecorator' that we can use as an annotator
-    // without the compiler complaining we didn't actually provide a value
-    [
-      'bar.d.ts', `declare module "bar" {
-      export class BarService {}
-      type FakeDecorator = any;
-    }`
-    ]
-  ]);
-  return sources;
-}
 
 describe('decorator_downlevel_transformer', () => {
   beforeEach(() => {
     testSupport.addDiffMatchers();
   });
   function translate(sourceText: string, allowErrors = false) {
-    const {host, program} =
-        testSupport.createProgramAndHost(sources(sourceText), testSupport.compilerOptions);
+    const rootDir = testSupport.compilerOptions.rootDir!;
+    const sources = new Map<string, string>([
+      [path.join(rootDir, testCaseFileName), sourceText],
+      // Provides a rename of any 'FakeDecorator' that we can use as an annotator
+      // without the compiler complaining we didn't actually provide a value
+      [
+        path.join(rootDir, 'bar.d.ts'), `declare module "bar" {
+          export class BarService {}
+          type FakeDecorator = any;
+        }`
+      ]
+    ]);
+
+    const {host, program} = testSupport.createProgramAndHost(sources, testSupport.compilerOptions);
     if (!allowErrors) {
       const diagnostics = ts.getPreEmitDiagnostics(program);
       testSupport.expectDiagnosticsEmpty(diagnostics);
     }
 
     const transformerHost: tsickle.TsickleHost = {
-      shouldSkipTsickleProcessing: (filePath) => !sources(sourceText).has(filePath),
+      shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
       pathToModuleName: cliSupport.pathToModuleName.bind(null, '/'),
       shouldIgnoreWarningsForPath: (filePath) => false,
       fileNameToModuleId: (filePath) => filePath,
@@ -67,7 +66,7 @@ describe('decorator_downlevel_transformer', () => {
       testSupport.expectDiagnosticsEmpty(diagnostics);
     }
 
-    return {output: files.get(testCaseFileName)!, diagnostics};
+    return {output: files.get(path.join(rootDir, testCaseFileName))!, diagnostics};
   }
 
   function expectUnchanged(sourceText: string) {
