@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {resolve} from 'path';
+import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
@@ -23,10 +23,13 @@ function processES5(fileName: string, content: string, {
 } = {}) {
   const options = Object.assign({}, testSupport.compilerOptions, {allowJs: isJsTranspilation});
   options.outDir = 'fakeOutDir';
+  const rootDir = options.rootDir!;
+  fileName = path.join(rootDir, fileName);
   const tsHost = testSupport.createSourceCachingHost(new Map([[fileName, content]]));
   const host: googmodule.GoogModuleProcessorHost = {
-    fileNameToModuleId: (fn: string) => fn,
-    pathToModuleName: cliSupport.pathToModuleName.bind(null, process.cwd()),
+    fileNameToModuleId: (fn: string) => path.relative(rootDir, fn),
+    pathToModuleName: (context, fileName) =>
+        cliSupport.pathToModuleName(rootDir, context, fileName),
     es5Mode: isES5,
     options: testSupport.compilerOptions,
     host: tsHost,
@@ -49,7 +52,7 @@ function processES5(fileName: string, content: string, {
   diagnostics.push(...res.diagnostics);
   expect(diagnostics).toEqual([]);
   if (!output) throw new Error('no output');
-  return {output, manifest};
+  return {output, manifest, rootDir};
 }
 
 describe('convertCommonJsToGoogModule', () => {
@@ -334,7 +337,7 @@ goog_foo_1, goog_foo_2;
   });
 
   it('gathers referenced modules', () => {
-    const {output, manifest} = processES5('a/b.ts', `
+    const {output, manifest, rootDir} = processES5('a/b.ts', `
 import '../foo/bare_require';
 import sym from 'goog:foo.bar';
 import {es6RelativeRequire} from './relative';
@@ -352,7 +355,7 @@ var relative_2 = goog.require('non.relative');
 console.log(goog_foo_bar_1, relative_1.es6RelativeRequire, relative_2.es6NonRelativeRequire);
 `);
 
-    expect(manifest.getReferencedModules('a/b.ts')).toEqual([
+    expect(manifest.getReferencedModules(path.join(rootDir, 'a/b.ts'))).toEqual([
       'foo.bare_require',
       'foo.bar',
       'a.relative',

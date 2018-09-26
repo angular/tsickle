@@ -20,6 +20,10 @@ ts_library(
         "tsickle_test.ts",
         "type_translator_test.ts",
     ],
+    # Unit tests run the TS compiler, which attempts to module-resolve 'tslib'
+    # when configured with --importHelpers.  So the tests must have tslib.d.ts
+    # available as a runtime data dep.
+    data = ["//:node_modules"],
     tsconfig = "//:tsconfig.json",
     deps = [
         ":test_support",

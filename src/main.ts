@@ -156,7 +156,7 @@ export function toClosureJS(
   const absoluteFileNames = fileNames.map(i => path.resolve(i));
 
   const compilerHost = ts.createCompilerHost(options);
-  const program = ts.createProgram(fileNames, options, compilerHost);
+  const program = ts.createProgram(absoluteFileNames, options, compilerHost);
   const filesToProcess = new Set(absoluteFileNames);
   const rootModulePath = options.rootDir || getCommonParentDirectory(absoluteFileNames);
   const transformerHost: tsickle.TsickleHost = {
@@ -164,7 +164,8 @@ export function toClosureJS(
       return !filesToProcess.has(path.resolve(fileName));
     },
     shouldIgnoreWarningsForPath: (fileName: string) => false,
-    pathToModuleName: cliSupport.pathToModuleName.bind(null, rootModulePath),
+    pathToModuleName: (context, fileName) =>
+        cliSupport.pathToModuleName(rootModulePath, context, fileName),
     fileNameToModuleId: (fileName) => path.relative(rootModulePath, fileName),
     es5Mode: true,
     googmodule: true,
@@ -223,7 +224,7 @@ function main(args: string[]): number {
     mkdirp.sync(path.dirname(settings.externsPath));
     fs.writeFileSync(
         settings.externsPath,
-        tsickle.getGeneratedExterns(config.options.rootDir || '', result.externs));
+        tsickle.getGeneratedExterns(result.externs, config.options.rootDir || ''));
   }
   return 0;
 }

@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {assertAbsolute, pathToModuleName} from '../src/cli_support';
 import {getGeneratedExterns} from '../src/externs';
 import {normalizeLineEndings} from '../src/jsdoc';
 import * as tsickle from '../src/tsickle';
@@ -135,7 +136,8 @@ testFn('golden tests with transformer', () => {
         es5Mode: test.isEs5Target,
         googmodule: true,
         // See test_files/jsdoc_types/nevertyped.ts.
-        typeBlackListPaths: new Set(['test_files/jsdoc_types/nevertyped.ts']),
+        typeBlackListPaths: new Set(
+            [path.join(tsCompilerOptions.rootDir!, 'test_files/jsdoc_types/nevertyped.ts')]),
         convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,
@@ -149,11 +151,13 @@ testFn('golden tests with transformer', () => {
         shouldSkipTsickleProcessing: (fileName) => !tsSources.has(fileName),
         shouldIgnoreWarningsForPath: () => false,
         pathToModuleName: (context, importPath) => {
-          importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
-          if (importPath[0] === '.') importPath = path.join(path.dirname(context), importPath);
-          return importPath.replace(/\/|\\/g, '.').replace(/[^a-zA-Z$.0-9_]/g, '_');
+          return pathToModuleName(tsCompilerOptions.rootDir!, context, importPath);
         },
-        fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
+        fileNameToModuleId: (fileName) => {
+          assertAbsolute(fileName);
+          fileName = path.relative(tsCompilerOptions.rootDir!, fileName);
+          return fileName.replace(/^\.\//, '');
+        },
         options: tsCompilerOptions,
         host: tsHost,
       };
@@ -213,7 +217,7 @@ testFn('golden tests with transformer', () => {
           }
         }
         if (anyExternsGenerated) {
-          allExterns = getGeneratedExterns(tsCompilerOptions.rootDir!, filteredExterns);
+          allExterns = getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
         }
       }
       compareAgainstGolden(allExterns, test.externsPath, test);

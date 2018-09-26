@@ -9,7 +9,9 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {assertAbsolute} from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
+
 import * as testSupport from './test_support';
 
 describe('emitWithTsickle', () => {
@@ -19,14 +21,13 @@ describe('emitWithTsickle', () => {
       customTransformers?: tsickle.EmitTransformers): {[fileName: string]: string} {
     const tsCompilerOptions:
         ts.CompilerOptions = {...testSupport.compilerOptions, ...tsConfigOverride};
-    const tsSourcesMap = objectToMap(tsSources);
 
-    const {program, host: tsHost} =
-        testSupport.createProgramAndHost(tsSourcesMap, tsCompilerOptions);
-    const diagnostics = program.getSemanticDiagnostics();
-    if (diagnostics.length) {
-      throw new Error(testSupport.formatDiagnostics(diagnostics));
+    const sources = new Map<string, string>();
+    for (const fileName of Object.keys(tsSources)) {
+      sources.set(path.join(tsCompilerOptions.rootDir!, fileName), tsSources[fileName]);
     }
+    const {program, host: tsHost} = testSupport.createProgramAndHost(sources, tsCompilerOptions);
+    testSupport.expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
     const tsickleHost: tsickle.TsickleHost = {
       es5Mode: true,
       googmodule: false,
@@ -35,7 +36,10 @@ describe('emitWithTsickle', () => {
       transformTypesToClosure: true,
       untyped: true,
       logWarning: (diag: ts.Diagnostic) => {},
-      shouldSkipTsickleProcessing: (fileName) => !tsSourcesMap.has(fileName),
+      shouldSkipTsickleProcessing: (fileName) => {
+        assertAbsolute(fileName);
+        return !sources.has(fileName);
+      },
       shouldIgnoreWarningsForPath: () => false,
       pathToModuleName: (context, importPath) => {
         importPath = importPath.replace(/(\.d)?\.[tj]s$/, '');
@@ -50,7 +54,9 @@ describe('emitWithTsickle', () => {
     const jsSources: {[fileName: string]: string} = {};
     tsickle.emitWithTsickle(
         program, tsickleHost, tsHost, tsCompilerOptions, /* sourceFile */ undefined,
-        (fileName: string, data: string) => jsSources[fileName] = data,
+        (fileName: string, data: string) => {
+          jsSources[path.relative(tsCompilerOptions.rootDir!, fileName)] = data;
+        },
         /* cancellationToken */ undefined, /* emitOnlyDtsFiles */ undefined, customTransformers);
     return jsSources;
   }
@@ -79,11 +85,14 @@ describe('emitWithTsickle', () => {
         },
         {beforeTs: [transformValue]});
 
-    expect(jsSources['./a.js']).toContain('exports.x = 2;');
+    expect(jsSources['a.js']).toContain('exports.x = 2;');
   });
 
   it('should export const enums when preserveConstEnums is true', () => {
-    const tsSources = {'a.ts': `export const enum Foo { Bar };`, 'b.ts': `export * from './a';`};
+    const tsSources = {
+      'a.ts': `export const enum Foo { Bar };`,
+      'b.ts': `export * from './a';`,
+    };
 
     const jsSources = emitWithTsickle(
         tsSources, {
@@ -92,13 +101,16 @@ describe('emitWithTsickle', () => {
         },
         {es5Mode: false, googmodule: false});
 
-    expect(jsSources['./b.js']).toContain(`export { Foo } from './a';`);
+    expect(jsSources['b.js']).toContain(`export { Foo } from './a';`);
   });
 
   describe('regressions', () => {
     it('should produce correct .d.ts files when expanding `export *` with es2015 module syntax',
        () => {
-         const tsSources = {'a.ts': `export const x = 1;`, 'b.ts': `export * from './a';\n`};
+         const tsSources = {
+           'a.ts': `export const x = 1;`,
+           'b.ts': `export * from './a';\n`,
+         };
          const jsSources = emitWithTsickle(
              tsSources, {
                declaration: true,
@@ -106,12 +118,7 @@ describe('emitWithTsickle', () => {
              },
              {es5Mode: false, googmodule: false});
 
-         expect(jsSources['./b.d.ts']).toEqual(`export * from './a';\n`);
+         expect(jsSources['b.d.ts']).toEqual(`export * from './a';\n`);
        });
   });
 });
-
-function objectToMap(data: {[key: string]: string}): Map<string, string> {
-  const entries = Object.keys(data).map(key => [key, data[key]]) as Array<[string, string]>;
-  return new Map(entries);
-}
