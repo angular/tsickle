@@ -32,7 +32,8 @@ describe('toClosureJS', () => {
       expect(testSupport.formatDiagnostics(result.diagnostics)).toBe('');
     }
 
-    expect(tsickle.getGeneratedExterns(result.externs)).toContain(`/** @const */
+    expect(tsickle.getGeneratedExterns(testSupport.compilerOptions.rootDir!, result.externs))
+        .toContain(`/** @const */
 var __NS = {};
 /** @type {number} */
 __NS.__ns1;`);

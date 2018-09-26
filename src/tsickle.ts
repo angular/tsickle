@@ -154,15 +154,10 @@ export function emitWithTsickle(
       if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
         continue;
       }
-      // fileName might be absolute, which would cause emits different by checkout location or
-      // non-deterministic output for build systems that use hashed work directories (bazel).
-      // fileNameToModuleId gives the logical, base path relative ID for the given fileName, which
-      // avoids this issue.
-      const moduleId = host.fileNameToModuleId(sourceFile.fileName);
       const {output, diagnostics} = generateExterns(
           typeChecker, sourceFile, host, /* moduleResolutionHost */ host.host, tsOptions);
       if (output) {
-        externs[moduleId] = output;
+        externs[sourceFile.fileName] = output;
       }
       if (diagnostics) {
         tsickleDiagnostics.push(...diagnostics);

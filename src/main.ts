@@ -221,7 +221,9 @@ function main(args: string[]): number {
 
   if (settings.externsPath) {
     mkdirp.sync(path.dirname(settings.externsPath));
-    fs.writeFileSync(settings.externsPath, tsickle.getGeneratedExterns(result.externs));
+    fs.writeFileSync(
+        settings.externsPath,
+        tsickle.getGeneratedExterns(config.options.rootDir || '', result.externs));
   }
   return 0;
 }
