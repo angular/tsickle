@@ -212,7 +212,9 @@ testFn('golden tests with transformer', () => {
             filteredExterns[fileName] = externs[fileName];
           }
         }
-        if (anyExternsGenerated) allExterns = getGeneratedExterns(filteredExterns);
+        if (anyExternsGenerated) {
+          allExterns = getGeneratedExterns(tsCompilerOptions.rootDir!, filteredExterns);
+        }
       }
       compareAgainstGolden(allExterns, test.externsPath, test);
       for (const [outputPath, output] of tscOutput) {

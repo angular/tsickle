@@ -109,10 +109,11 @@ const EXTERNS_HEADER = `/**
  * Concatenate all generated externs definitions together into a string, including a file comment
  * header.
  */
-export function getGeneratedExterns(externs: {[fileName: string]: string}): string {
+export function getGeneratedExterns(
+    rootDir: string, externs: {[fileName: string]: string}): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
-    allExterns += `// externs from ${fileName}:\n`;
+    allExterns += `// externs from ${path.relative(rootDir, fileName)}:\n`;
     allExterns += externs[fileName];
   }
   return allExterns;
