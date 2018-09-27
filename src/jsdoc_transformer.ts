@@ -26,8 +26,6 @@
  * CommonJS-style exports for type constructs, expanding `export *`, parenthesizing casts, etc.
  */
 
-import {addSyntheticTrailingComment} from 'typescript';
-
 import {hasExportingDecorator} from './decorators';
 import {moduleNameAsIdentifier} from './externs';
 import * as googmodule from './googmodule';
@@ -287,7 +285,7 @@ function createMemberTypeDeclaration(
       mtt.error(fnDecl, 'anonymous abstract function');
       continue;
     }
-    const [tags, paramNames] = mtt.getFunctionTypeJSDoc([fnDecl], []);
+    const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
     if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
     // memberNamespace because abstract methods cannot be static in TypeScript.
     const abstractFnDecl = ts.createStatement(ts.createAssignment(
@@ -297,7 +295,7 @@ function createMemberTypeDeclaration(
             /* asterisk */ undefined,
             /* name */ undefined,
             /* typeParameters */ undefined,
-            paramNames.map(
+            parameterNames.map(
                 n => ts.createParameter(
                     /* decorators */ undefined, /* modifiers */ undefined,
                     /* dotDotDot */ undefined, n)),
@@ -429,7 +427,23 @@ export function jsdocTransformer(
        */
       const expandedStarImports = new Set<string>();
 
+      /**
+       * While Closure compiler supports parameterized types, including parameterized `this` on
+       * methods, it does not support constraints on them. That means that a `\@template`d `this` is
+       * always considered to be `unknown`.
+       *
+       * To help Closure Compiler, we keep track of any templated this return type, and substitute
+       * explicit casts to the templated type.
+       *
+       * This is an incomplete solution and works around a specific problem with warnings on unknown
+       * this accesses. More generally, Closure also cannot infer constraints for any other
+       * templated types, but that might require a more general solution in Closure Compiler.
+       */
+      let contextThisType: ts.Type|null = null;
+
       function visitClassDeclaration(classDecl: ts.ClassDeclaration): ts.Statement[] {
+        const contextThisTypeBackup = contextThisType;
+
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(classDecl);
         if (transformerUtil.hasModifierFlag(classDecl, ts.ModifierFlags.Abstract)) {
           mjsdoc.tags.push({tagName: 'abstract'});
@@ -446,6 +460,7 @@ export function jsdocTransformer(
         // parameter property comments when visiting the constructor.
         decls.push(ts.visitEachChild(classDecl, visitor, context));
         if (memberDecl) decls.push(memberDecl);
+        contextThisType = contextThisTypeBackup;
         return decls;
       }
 
@@ -526,21 +541,43 @@ export function jsdocTransformer(
       }
 
       /** Function declarations are emitted as they are, with only JSDoc added. */
-      function addJsDocToFunctionLikeDeclaration(fnDecl: ts.FunctionLikeDeclaration) {
+      function visitFunctionLikeDeclaration(fnDecl: ts.FunctionLikeDeclaration) {
         if (!fnDecl.body) {
           // Two cases: abstract methods and overloaded methods/functions.
           // Abstract methods are handled in emitTypeAnnotationsHandler.
           // Overloads are union-ized into the shared type in FunctionType.
-          return;
+          return ts.visitEachChild(fnDecl, visitor, context);
         }
         const extraTags = [];
         if (hasExportingDecorator(fnDecl, typeChecker)) extraTags.push({tagName: 'export'});
 
-        const [tags, ] = moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl], extraTags);
+        const {tags, thisReturnType} =
+            moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl], extraTags);
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(fnDecl);
         mjsdoc.tags = tags;
         mjsdoc.updateComment();
         moduleTypeTranslator.blacklistTypeParameters(fnDecl, fnDecl.typeParameters);
+
+        const contextThisTypeBackup = contextThisType;
+        contextThisType = thisReturnType;
+        const result = ts.visitEachChild(fnDecl, visitor, context);
+        contextThisType = contextThisTypeBackup;
+        return result;
+      }
+
+      /**
+       * In methods with a templated this type, add explicit casts to the target type to property
+       * accesses on this.
+       *
+       * @see contextThisType
+       */
+      function visitPropertyAccessExpression(node: ts.PropertyAccessExpression) {
+        if (!contextThisType) return ts.visitEachChild(node, visitor, context);
+        if (node.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+        return ts.updatePropertyAccess(
+            node, createClosureCast(node, node.expression, contextThisType), node.name);
       }
 
       /**
@@ -801,7 +838,7 @@ export function jsdocTransformer(
           const stmt = ts.createStatement(
               ts.createPropertyAccess(ts.createIdentifier('exports'), exportedName));
           addCommentOn(stmt, [{tagName: 'typedef', type: '!' + typeName}]);
-          addSyntheticTrailingComment(
+          ts.addSyntheticTrailingComment(
               stmt, ts.SyntaxKind.SingleLineCommentTrivia, ' re-export typedef', true);
           result.push(stmt);
         }
@@ -895,8 +932,9 @@ export function jsdocTransformer(
           case ts.SyntaxKind.MethodDeclaration:
           case ts.SyntaxKind.GetAccessor:
           case ts.SyntaxKind.SetAccessor:
-            addJsDocToFunctionLikeDeclaration(node as ts.FunctionLikeDeclaration);
-            break;
+            return visitFunctionLikeDeclaration(node as ts.FunctionLikeDeclaration);
+          case ts.SyntaxKind.PropertyAccessExpression:
+            return visitPropertyAccessExpression(node as ts.PropertyAccessExpression);
           case ts.SyntaxKind.VariableStatement:
             return visitVariableStatement(node as ts.VariableStatement);
           case ts.SyntaxKind.PropertyDeclaration:

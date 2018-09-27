@@ -284,10 +284,10 @@ export function generateExterns(
    * overloads), and returns the parameter names chosen.
    */
   function emitFunctionType(decls: ts.FunctionLikeDeclaration[], extraTags: jsdoc.Tag[] = []) {
-    const [tags, paramNames] = mtt.getFunctionTypeJSDoc(decls, extraTags);
+    const {tags, parameterNames} = mtt.getFunctionTypeJSDoc(decls, extraTags);
     emit('\n');
     emit(jsdoc.toString(tags));
-    return paramNames;
+    return parameterNames;
   }
 
   function writeFunction(name: ts.Node, params: string[], namespace: ReadonlyArray<string>) {

@@ -1,4 +1,10 @@
+class UnrelatedClass {
+  a = 1;
+}
+
 class MethodsReturnThis {
+  b = 1;
+
   returnsThis() {
     return this;
   }
@@ -8,6 +14,27 @@ class MethodsReturnThis {
   }
 
   templateAndThis<T>(t: T): this {
+    return this;
+  }
+
+  // Ensures that access to `this` is cast to the precise type.
+  castsThisPropertyAccess(): this {
+    this.b = 2;
+    return this;
+  }
+
+  // Ensures that nested access to a differently scoped `this` is not cast.
+  nestedDifferentThis(): this {
+    function differentThis(this: UnrelatedClass) {
+      this.a = 2;
+    }
+    class NestedClass {
+      c = 3;
+
+      method() {
+        this.c = 4;
+      }
+    }
     return this;
   }
 
