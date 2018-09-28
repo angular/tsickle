@@ -32,6 +32,16 @@ class MethodsReturnThis {
     templateAndThis(t) {
         return this;
     }
+    /**
+    /**
+     * @template THIS,T
+     * @this {THIS}
+     * @param {T} t
+     * @return {THIS}
+     */
+    overloadedThis(t) {
+        return this;
+    }
 }
 class SubclassReturnsThis extends MethodsReturnThis {
     /**

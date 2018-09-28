@@ -10,6 +10,13 @@ class MethodsReturnThis {
   templateAndThis<T>(t: T): this {
     return this;
   }
+
+  overloadedThis(a: number): this;
+  overloadedThis<U extends string>(u: U): this;
+  overloadedThis<T extends string>(u: T): this;
+  overloadedThis<T>(t: T): this {
+    return this;
+  }
 }
 
 class SubclassReturnsThis extends MethodsReturnThis {
