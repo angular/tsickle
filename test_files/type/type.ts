@@ -15,6 +15,14 @@ let typeObjectMixedIndexProperty: {a:number, [key:string]: number};
 let typeObjectEmpty: {};
 let typeNonPrimitive: object;
 
+// Verify assignability into these supertypes.
+typeObjectEmpty = 1;
+typeObjectEmpty = 'a';
+typeObjectEmpty = new Date();
+typeObjectEmpty = {};
+typeNonPrimitive = {};
+typeNonPrimitive = new Date();
+
 let typeTuple: [number, number] = [1, 2];
 let typeComplexTuple: [string, true|{a:string}] = ['', true];
 let typeTupleTuple: [[number, number]] = [[1, 2]];

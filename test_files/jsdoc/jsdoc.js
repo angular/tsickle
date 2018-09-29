@@ -146,7 +146,7 @@ const c = 'c';
  * as this breaks their closure plugin :-(
  *
  * @polymerBehavior
- * @type {!Object}
+ * @type {*}
  */
 const somePolymerBehavior = {};
 /**

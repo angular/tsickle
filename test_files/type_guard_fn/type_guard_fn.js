@@ -7,7 +7,7 @@ var module = module || { id: 'test_files/type_guard_fn/type_guard_fn.ts' };
 module = module;
 exports = {};
 /**
- * @param {!Object} a
+ * @param {*} a
  * @return {boolean}
  */
 function isBoolean(a) {

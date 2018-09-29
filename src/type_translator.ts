@@ -715,9 +715,21 @@ export class TypeTranslator {
         }
         return `!Object<${keyType},${this.translate(valType)}>`;
       } else if (!callable && !indexable) {
-        // Special-case the empty object {} because Closure doesn't like it.
-        // TODO(evanm): revisit this if it is a problem.
-        return '!Object';
+        // The object has no members.  This is the TS type '{}',
+        // which means "any value other than null or undefined".
+        // What is this in Closure's type system?
+        //
+        // First, {!Object} is wrong because it is not a supertype of
+        // {string} or {number}.  This would mean you cannot assign a
+        // number to a variable of TS type {}.
+        //
+        // We get closer with {*}, aka the ALL type.  This one better
+        // captures the typical use of the TS {}, which users use for
+        // "I don't care".
+        //
+        // {*} unfortunately does include null/undefined, so it's a closer
+        // match for TS 3.0's 'unknown'.
+        return '*';
       }
     }
 

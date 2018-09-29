@@ -23,10 +23,17 @@ let typeObject = { a: 3, b: 'b' };
 let typeObjectIndexable;
 /** @type {?} */
 let typeObjectMixedIndexProperty;
-/** @type {!Object} */
+/** @type {*} */
 let typeObjectEmpty;
 /** @type {!Object} */
 let typeNonPrimitive;
+// Verify assignability into these supertypes.
+typeObjectEmpty = 1;
+typeObjectEmpty = 'a';
+typeObjectEmpty = new Date();
+typeObjectEmpty = {};
+typeNonPrimitive = {};
+typeNonPrimitive = new Date();
 /** @type {!Array<?>} */
 let typeTuple = [1, 2];
 /** @type {!Array<?>} */
@@ -49,7 +56,7 @@ let typeFunc = function () { };
 let typeFunc2 = function (a, b) { return ''; };
 /** @type {function(number, function(number): string): string} */
 let typeFunc3 = function (x, cb) { return ''; };
-/** @type {function(number, (undefined|!Object)=): string} */
+/** @type {function(number, (undefined|*)=): string} */
 let typeFuncOptionalArg;
 /** @type {function(number, ...number): void} */
 let typeFuncVarArgs;
