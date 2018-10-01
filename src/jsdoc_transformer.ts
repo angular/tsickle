@@ -429,8 +429,8 @@ export function jsdocTransformer(
 
       /**
        * While Closure compiler supports parameterized types, including parameterized `this` on
-       * methods, it does not support constraints on them. That means that a `\@template`d `this` is
-       * always considered to be `unknown`.
+       * methods, it does not support constraints on them. That means that an `\@template`d type is
+       * always considered to be `unknown` within the method, including `THIS`.
        *
        * To help Closure Compiler, we keep track of any templated this return type, and substitute
        * explicit casts to the templated type.
@@ -566,18 +566,13 @@ export function jsdocTransformer(
       }
 
       /**
-       * In methods with a templated this type, add explicit casts to the target type to property
-       * accesses on this.
+       * In methods with a templated this type, adds explicit casts to accesses on this.
        *
        * @see contextThisType
        */
-      function visitPropertyAccessExpression(node: ts.PropertyAccessExpression) {
+      function visitThisExpression(node: ts.ThisExpression) {
         if (!contextThisType) return ts.visitEachChild(node, visitor, context);
-        if (node.expression.kind !== ts.SyntaxKind.ThisKeyword) {
-          return ts.visitEachChild(node, visitor, context);
-        }
-        return ts.updatePropertyAccess(
-            node, createClosureCast(node, node.expression, contextThisType), node.name);
+        return createClosureCast(node, node, contextThisType);
       }
 
       /**
@@ -933,8 +928,8 @@ export function jsdocTransformer(
           case ts.SyntaxKind.GetAccessor:
           case ts.SyntaxKind.SetAccessor:
             return visitFunctionLikeDeclaration(node as ts.FunctionLikeDeclaration);
-          case ts.SyntaxKind.PropertyAccessExpression:
-            return visitPropertyAccessExpression(node as ts.PropertyAccessExpression);
+          case ts.SyntaxKind.ThisKeyword:
+            return visitThisExpression(node as ts.ThisExpression);
           case ts.SyntaxKind.VariableStatement:
             return visitVariableStatement(node as ts.VariableStatement);
           case ts.SyntaxKind.PropertyDeclaration:

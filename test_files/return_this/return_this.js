@@ -25,7 +25,7 @@ class MethodsReturnThis {
      * @return {THIS}
      */
     returnsThis() {
-        return this;
+        return (/** @type {MethodsReturnThis} */ (this));
     }
     /**
      * @template THIS
@@ -33,7 +33,7 @@ class MethodsReturnThis {
      * @return {THIS}
      */
     explicitThis() {
-        return this;
+        return (/** @type {MethodsReturnThis} */ (this));
     }
     /**
      * @template THIS,T
@@ -42,7 +42,7 @@ class MethodsReturnThis {
      * @return {THIS}
      */
     templateAndThis(t) {
-        return this;
+        return (/** @type {MethodsReturnThis} */ (this));
     }
     // Ensures that access to `this` is cast to the precise type.
     /**
@@ -52,7 +52,7 @@ class MethodsReturnThis {
      */
     castsThisPropertyAccess() {
         (/** @type {MethodsReturnThis} */ (this)).b = 2;
-        return this;
+        return (/** @type {MethodsReturnThis} */ (this));
     }
     // Ensures that nested access to a differently scoped `this` is not cast.
     /**
@@ -83,7 +83,7 @@ class MethodsReturnThis {
             /** @type {number} */
             NestedClass.prototype.c;
         }
-        return this;
+        return (/** @type {MethodsReturnThis} */ (this));
     }
     /**
      * @template THIS,T
@@ -92,7 +92,7 @@ class MethodsReturnThis {
      * @return {THIS}
      */
     overloadedThis(t) {
-        return this;
+        return (/** @type {MethodsReturnThis} */ (this));
     }
 }
 if (false) {
