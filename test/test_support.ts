@@ -233,8 +233,7 @@ export class GoldenFileTest {
 }
 
 export function goldenTests(): GoldenFileTest[] {
-  assert(process.env['RUNFILES']);
-  const basePath = path.join(process.env['RUNFILES']!, 'tsickle', 'test_files');
+  const basePath = path.join(rootDir(), 'test_files');
   const testNames = fs.readdirSync(basePath);
 
   const testDirs = testNames.map(testName => path.join(basePath, testName))
