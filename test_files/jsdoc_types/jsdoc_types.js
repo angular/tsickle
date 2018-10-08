@@ -9,8 +9,6 @@ exports = {};
 const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.jsdoc_types.module1");
 const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.jsdoc_types.module2");
 const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.jsdoc_types.default");
-const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.jsdoc_types.nevertyped");
-goog.require('test_files.jsdoc_types.nevertyped'); // force type-only module to be loaded
 /**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.

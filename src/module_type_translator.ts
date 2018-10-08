@@ -218,6 +218,9 @@ export class ModuleTypeTranslator {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate forward declare.
     if (this.forwardDeclaredModules.has(moduleSymbol)) return;
+    if (this.host.typeBlackListPaths && this.host.typeBlackListPaths.has(importPath)) {
+      return;  // Do not emit goog.forwardDeclare or goog.require for blacklisted paths.
+    }
     const nsImport = googmodule.extractGoogNamespaceImport(importPath);
     const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
     const moduleNamespace = nsImport !== null ?
@@ -294,7 +297,6 @@ export class ModuleTypeTranslator {
       this.error(decl, `declaration from module used in ambient type: ${sym.name}`);
       return;
     }
-
     // Actually import the symbol.
     const sourceFile = decl.getSourceFile();
     if (sourceFile === ts.getOriginalNode(this.sourceFile)) return;
