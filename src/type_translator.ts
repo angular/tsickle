@@ -442,9 +442,17 @@ export class TypeTranslator {
           this.warn(`TypeParameter without a symbol`);  // should not happen (tm)
           return '?';
         }
+        // In Closure, type parameters ("<T>") are non-nullable by default, unlike references to
+        // classes or interfaces. However this code path can be reached by bound type parameters,
+        // where the type parameter's symbol references a plain class or interface. In this case,
+        // add `!` to avoid emitting a nullable type.
+        let prefix = '';
+        if ((type.symbol.flags & ts.SymbolFlags.TypeParameter) === 0) {
+          prefix = '!';
+        }
         // In Closure Compiler, type parameters *are* scoped to their containing class.
         const useFqn = false;
-        return this.symbolToString(type.symbol, useFqn);
+        return prefix + this.symbolToString(type.symbol, useFqn);
       case ts.TypeFlags.Object:
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:
