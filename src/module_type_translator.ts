@@ -21,6 +21,13 @@ import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, repo
 import * as typeTranslator from './type_translator';
 
 /**
+ * We are in the process of transitioning tsickle from using goog.forwardDeclare()
+ * into using goog.requireType().  Flipping this flag makes it easy for us to toggle
+ * between the two.
+ */
+const USE_REQUIRE_TYPE = false;
+
+/**
  * MutableJSDoc encapsulates a (potential) JSDoc comment on a specific node, and allows code to
  * modify (including delete) it.
  */
@@ -84,7 +91,7 @@ function getParameterName(param: ts.ParameterDeclaration, index: number): string
 
 /**
  * ModuleTypeTranslator encapsulates knowledge and helper functions to translate types in the scope
- * of a specific module. This includes managing Closure forward declare statements and any symbol
+ * of a specific module. This includes managing Closure requireType statements and any symbol
  * aliases in scope for a whole file.
  */
 export class ModuleTypeTranslator {
@@ -92,25 +99,22 @@ export class ModuleTypeTranslator {
    * A mapping of aliases for symbols in the current file, used when emitting types. TypeScript
    * emits imported symbols with unpredictable prefixes. To generate correct type annotations,
    * tsickle creates its own aliases for types, and registers them in this map (see
-   * `emitImportDeclaration` and `forwardDeclare()` below). The aliases are then used when emitting
+   * `emitImportDeclaration` and `requireType()` below). The aliases are then used when emitting
    * types.
    */
   symbolsToAliasedNames = new Map<ts.Symbol, string>();
 
   /**
-   * The set of module symbols forward declared in the local namespace (with goog.forwarDeclare).
-   *
-   * Symbols not imported must be declared, which is done by adding forward declares to
-   * `extraImports` below.
+   * The set of module symbols requireTyped in the local namespace.  This tracks which imported
+   * modules we've already added to additionalImports below.
    */
-  private forwardDeclaredModules = new Set<ts.Symbol>();
+  private requireTypeModules = new Set<ts.Symbol>();
+
   /**
-   * The list of generated goog.forwardDeclare statements for this module. These are inserted into
+   * The list of generated goog.requireType statements for this module. These are inserted into
    * the module's body statements after translation.
    */
-  private forwardDeclares: ts.Statement[] = [];
-  /** A counter to generate unique names for goog.forwardDeclare variables. */
-  private forwardDeclareCounter = 0;
+  private additionalImports: ts.Statement[] = [];
 
   constructor(
       public sourceFile: ts.SourceFile,
@@ -210,20 +214,26 @@ export class ModuleTypeTranslator {
   }
 
   /**
-   * Returns the `const x = goog.forwardDeclare...` text for an import of the given `importPath`.
-   * This also registers aliases for symbols from the module that map to this forward declare.
+   * Records that we we want a `const x = goog.requireType...` import of the given `importPath`,
+   * which will be inserted when we emit.
+   * This also registers aliases for symbols from the module that map to this requireType.
+   *
+   * @param isExplicitImport True if this comes from an underlying 'import' statement, false
+   *     if this reference is needed just because a symbol's type relies on it.
+   * @param isDefaultImport True if the import statement is a default import, e.g.
+   *     `import Foo from ...;`, which matters for adjusting whether we emit a `.default`.
    */
-  forwardDeclare(
+  requireType(
       importPath: string, moduleSymbol: ts.Symbol, isExplicitImport: boolean,
       isDefaultImport = false) {
     if (this.host.untyped) return;
-    // Already imported? Do not emit a duplicate forward declare.
-    if (this.forwardDeclaredModules.has(moduleSymbol)) return;
+    // Already imported? Do not emit a duplicate requireType.
+    if (this.requireTypeModules.has(moduleSymbol)) return;
     if (typeTranslator.isBlacklisted(this.host.typeBlackListPaths, moduleSymbol)) {
-      return;  // Do not emit goog.forwardDeclare or goog.require for blacklisted symbols.
+      return;  // Do not emit goog.requireType for blacklisted paths.
     }
     const nsImport = googmodule.extractGoogNamespaceImport(importPath);
-    const forwardDeclarePrefix = `tsickle_forward_declare_${++this.forwardDeclareCounter}`;
+    const requireTypePrefix = `tsickle_forward_declare_${this.requireTypeModules.size + 1}`;
     const moduleNamespace = nsImport !== null ?
         nsImport :
         this.host.pathToModuleName(this.sourceFile.fileName, importPath);
@@ -231,62 +241,67 @@ export class ModuleTypeTranslator {
     // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
     // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
     // here would cause a change in load order, which is observable (and can lead to errors).
-    // Instead, goog.forwardDeclare types, which allows using them in type annotations without
-    // causing a load. See below for the exception to the rule.
-    // const forwardDeclarePrefix = goog.forwardDeclare(moduleNamespace)
-    this.forwardDeclares.push(ts.createVariableStatement(
+    // Instead, goog.requireType types, which allows using them in type annotations without
+    // causing a load.
+    //   const requireTypePrefix = goog.requireType(moduleNamespace)
+    this.additionalImports.push(ts.createVariableStatement(
         undefined,
         ts.createVariableDeclarationList(
             [ts.createVariableDeclaration(
-                forwardDeclarePrefix, undefined,
+                requireTypePrefix, undefined,
                 ts.createCall(
-                    ts.createPropertyAccess(ts.createIdentifier('goog'), 'forwardDeclare'),
+                    ts.createPropertyAccess(
+                        ts.createIdentifier('goog'),
+                        USE_REQUIRE_TYPE ? 'requireType' : 'forwardDeclare'),
                     undefined, [ts.createLiteral(moduleNamespace)]))],
             ts.NodeFlags.Const)));
-    this.forwardDeclaredModules.add(moduleSymbol);
+    this.requireTypeModules.add(moduleSymbol);
     const exports = this.typeChecker.getExportsOfModule(moduleSymbol).map(e => {
       if (e.flags & ts.SymbolFlags.Alias) {
         e = this.typeChecker.getAliasedSymbol(e);
       }
       return e;
     });
-    const hasValues = exports.some(e => {
-      const isValue = (e.flags & ts.SymbolFlags.Value) !== 0;
-      const isConstEnum = (e.flags & ts.SymbolFlags.ConstEnum) !== 0;
-      // const enums are inlined by TypeScript (if preserveConstEnums=false), so there is never a
-      // value import generated for them. That means for the purpose of force-importing modules,
-      // they do not count as values. If preserveConstEnums=true, this shouldn't hurt.
-      return isValue && !isConstEnum;
-    });
-    if (isExplicitImport && !hasValues) {
-      // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
-      // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
-      // complaining about values not matching 'NoResolvedType', or modules not having a certain
-      // member.
-      // To fix, explicitly goog.require() modules that only export types. This should usually not
-      // cause breakages due to load order (as no symbols are accessible from the module - though
-      // contrived code could observe changes in side effects).
-      // This is a heuristic - if the module exports some values, but those are never imported,
-      // the file will still end up not being imported. Hopefully modules that export values are
-      // imported for their value in some place.
-      // goog.require("${moduleNamespace}");
-      const hardRequire = ts.createStatement(ts.createCall(
-          ts.createPropertyAccess(ts.createIdentifier('goog'), 'require'), undefined,
-          [createSingleQuoteStringLiteral(moduleNamespace)]));
-      const comment: ts.SynthesizedComment = {
-        kind: ts.SyntaxKind.SingleLineCommentTrivia,
-        text: ' force type-only module to be loaded',
-        hasTrailingNewLine: true,
-        pos: -1,
-        end: -1,
-      };
-      ts.setSyntheticTrailingComments(hardRequire, [comment]);
-      this.forwardDeclares.push(hardRequire);
+    if (!USE_REQUIRE_TYPE) {
+      // TODO(evmar): delete this block when USE_REQUIRE_TYPE is removed.
+      const hasValues = exports.some(e => {
+        const isValue = (e.flags & ts.SymbolFlags.Value) !== 0;
+        const isConstEnum = (e.flags & ts.SymbolFlags.ConstEnum) !== 0;
+        // const enums are inlined by TypeScript (if preserveConstEnums=false), so there is never a
+        // value import generated for them. That means for the purpose of force-importing modules,
+        // they do not count as values. If preserveConstEnums=true, this shouldn't hurt.
+        return isValue && !isConstEnum;
+      });
+      if (isExplicitImport && !hasValues) {
+        // Closure Compiler's toolchain will drop files that are never goog.require'd *before* type
+        // checking (e.g. when using --closure_entry_point or similar tools). This causes errors
+        // complaining about values not matching 'NoResolvedType', or modules not having a certain
+        // member.
+        // To fix, explicitly goog.require() modules that only export types. This should usually not
+        // cause breakages due to load order (as no symbols are accessible from the module - though
+        // contrived code could observe changes in side effects).
+        // This is a heuristic - if the module exports some values, but those are never imported,
+        // the file will still end up not being imported. Hopefully modules that export values are
+        // imported for their value in some place.
+        // goog.require("${moduleNamespace}");
+        const hardRequire = ts.createStatement(ts.createCall(
+            ts.createPropertyAccess(ts.createIdentifier('goog'), 'require'), undefined,
+            [createSingleQuoteStringLiteral(moduleNamespace)]));
+        const comment: ts.SynthesizedComment = {
+          kind: ts.SyntaxKind.SingleLineCommentTrivia,
+          text: ' force type-only module to be loaded',
+          hasTrailingNewLine: true,
+          pos: -1,
+          end: -1,
+        };
+        ts.setSyntheticTrailingComments(hardRequire, [comment]);
+        this.additionalImports.push(hardRequire);
+      }
     }
     for (const sym of exports) {
       // goog: imports don't actually use the .default property that TS thinks they have.
-      const qualifiedName = nsImport && isDefaultImport ? forwardDeclarePrefix :
-                                                          forwardDeclarePrefix + '.' + sym.name;
+      const qualifiedName =
+          nsImport && isDefaultImport ? requireTypePrefix : requireTypePrefix + '.' + sym.name;
       this.symbolsToAliasedNames.set(sym, qualifiedName);
     }
   }
@@ -305,10 +320,10 @@ export class ModuleTypeTranslator {
     // A source file might not have a symbol if it's not a module (no ES6 im/exports).
     if (!moduleSymbol) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    this.forwardDeclare(sourceFile.fileName, moduleSymbol, false);
+    this.requireType(sourceFile.fileName, moduleSymbol, /* isExplicitlyImported? */ false);
   }
 
-  insertForwardDeclares(sourceFile: ts.SourceFile) {
+  insertAdditionalImports(sourceFile: ts.SourceFile) {
     let insertion = 0;
     // Skip over a leading file comment holder.
     if (sourceFile.statements.length &&
@@ -317,7 +332,7 @@ export class ModuleTypeTranslator {
     }
     return ts.updateSourceFileNode(sourceFile, [
       ...sourceFile.statements.slice(0, insertion),
-      ...this.forwardDeclares,
+      ...this.additionalImports,
       ...sourceFile.statements.slice(insertion),
     ]);
   }

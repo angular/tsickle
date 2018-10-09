@@ -261,7 +261,7 @@ export class TypeTranslator {
       }
       let symbol = identifier.symbol;
       // When writing a symbol, check if there is an alias for it in the current scope that should
-      // take precedence, e.g. from a goog.forwardDeclare.
+      // take precedence, e.g. from a goog.requireType.
       if (symbol.flags & ts.SymbolFlags.Alias) {
         symbol = this.typeChecker.getAliasedSymbol(symbol);
       }

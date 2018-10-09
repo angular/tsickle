@@ -711,24 +711,28 @@ export function jsdocTransformer(
       }
 
       function visitImportDeclaration(importDecl: ts.ImportDeclaration) {
-        // No need to forward declare side effect imports.
+        // For each import, insert a goog.requireType for the module, so that if TypeScript does not
+        // emit the module because it's only used in type positions, the JSDoc comments still
+        // reference a valid Closure level symbol.
+
+        // No need to requireType side effect imports.
         if (!importDecl.importClause) return importDecl;
-        // Introduce a goog.forwardDeclare for the module, so that if TypeScript does not emit the
-        // module because it's only used in type positions, the JSDoc comments still reference a
-        // valid Closure level symbol.
+
         const sym = typeChecker.getSymbolAtLocation(importDecl.moduleSpecifier);
         // Scripts do not have a symbol, and neither do unused modules. Scripts can still be
         // imported, either as side effect imports or with an empty import set ("{}"). TypeScript
         // does not emit a runtime load for an import with an empty list of symbols, but the import
         // forces any global declarations from the library to be visible, which is what users use
-        // this for. No symbols from the script need forward declaration, so just return.
+        // this for. No symbols from the script need requireType, so just return.
+        // TODO(evmar): revisit this.  If TS needs to see the module import, it's likely Closure
+        // does too.
         if (!sym) return importDecl;
 
         const importPath = googmodule.resolveModuleName(
             {options: tsOptions, moduleResolutionHost}, sourceFile.fileName,
             (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
-        moduleTypeTranslator.forwardDeclare(
+        moduleTypeTranslator.requireType(
             importPath, sym, /* isExplicitlyImported? */ true,
             /* default import? */ !!importDecl.importClause.name);
         return importDecl;
@@ -759,16 +763,16 @@ export function jsdocTransformer(
       }
 
       /**
-       * visitExportDeclaration forward declares exported modules and emits explicit exports for
+       * visitExportDeclaration requireTypes exported modules and emits explicit exports for
        * types (which normally do not get emitted by TypeScript).
        */
       function visitExportDeclaration(exportDecl: ts.ExportDeclaration): ts.Node|ts.Node[] {
         const importedModuleSymbol = exportDecl.moduleSpecifier &&
             typeChecker.getSymbolAtLocation(exportDecl.moduleSpecifier)!;
         if (importedModuleSymbol) {
-          // Forward declare all explicitly imported modules, so that symbols can be referenced and
-          // type only modules get force-loaded.
-          moduleTypeTranslator.forwardDeclare(
+          // requireType all explicitly imported modules, so that symbols can be referenced and
+          // type only modules are usable from type declarations.
+          moduleTypeTranslator.requireType(
               (exportDecl.moduleSpecifier as ts.StringLiteral).text, importedModuleSymbol,
               /* isExplicitlyImported? */ true, /* default import? */ false);
         }
@@ -968,7 +972,7 @@ export function jsdocTransformer(
 
       sourceFile = ts.visitEachChild(sourceFile, visitor, context);
 
-      return moduleTypeTranslator.insertForwardDeclares(sourceFile);
+      return moduleTypeTranslator.insertAdditionalImports(sourceFile);
     };
   };
 }
