@@ -62,11 +62,12 @@ function compareAgainstGolden(
   if (output != null) output = normalizeLineEndings(output);
 
   if (UPDATE_GOLDENS && output !== golden) {
-    console.log('Updating golden file for', goldenPath);
+    const relativeGolden = path.relative(testSupport.compilerOptions.rootDir!, goldenPath);
+    console.log('Updating golden file for', relativeGolden);
     // If we need to write a new file, we won't have a symlink into the real
     // test_files directory, so we need to get an absolute path by combining
     // the relative path with the workspaceRoot
-    const goldenSourcePath = path.join(test.getWorkspaceRoot(), goldenPath);
+    const goldenSourcePath = path.join(test.getWorkspaceRoot(), relativeGolden);
     if (output !== null) {
       fs.writeFileSync(goldenSourcePath, output, {encoding: 'utf-8'});
     } else {
