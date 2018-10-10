@@ -38,10 +38,13 @@ const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
  * path, updating the content of the golden when UPDATE_GOLDENS is true.
  *
  * @param output The expected output, where the empty string indicates
- *    the file is expected to exist and be empty, while null indicates
- *    the file is expected to not exist.  (This subtlety is used for
- *    externs files, where the majority of tests are not expected to
- *    produce one.)
+ *     the file is expected to exist and be empty, while null indicates
+ *     the file is expected to not exist.  (This subtlety is used for
+ *     externs files, where the majority of tests are not expected to
+ *     produce one.)
+ * @param goldenPath The absolute path to the matching golden file.  Note that
+ *     this must be the path to the true source directory, not some bazel sandbox
+ *     path, if you want UPDATE_GOLDENS to work.
  */
 function compareAgainstGolden(
     output: string|null, goldenPath: string, test: testSupport.GoldenFileTest) {
@@ -63,17 +66,13 @@ function compareAgainstGolden(
 
   if (UPDATE_GOLDENS && output !== golden) {
     console.log('Updating golden file for', goldenPath);
-    // If we need to write a new file, we won't have a symlink into the real
-    // test_files directory, so we need to get an absolute path by combining
-    // the relative path with the workspaceRoot
-    const goldenSourcePath = path.join(test.getWorkspaceRoot(), goldenPath);
     if (output !== null) {
-      fs.writeFileSync(goldenSourcePath, output, {encoding: 'utf-8'});
+      fs.writeFileSync(goldenPath, output, {encoding: 'utf-8'});
     } else {
       // The desired golden state is for there to be no output file.
       // Ensure no file exists.
       try {
-        fs.unlinkSync(goldenSourcePath);
+        fs.unlinkSync(goldenPath);
       } catch (e) {
         // ignore.
       }
@@ -87,6 +86,8 @@ function compareAgainstGolden(
 const testFn = TEST_FILTER ? fdescribe : describe;
 
 testFn('golden tests with transformer', () => {
+  const sourceRoot = testSupport.getSourceRoot();
+
   beforeEach(() => {
     testSupport.addDiffMatchers();
   });
@@ -102,6 +103,7 @@ testFn('golden tests with transformer', () => {
     }
     it(test.name, () => {
       expect(test.tsFiles.length).toBeGreaterThan(0);
+
       // Read all the inputs into a map, and create a ts.Program from them.
       const tsSources = new Map<string, string>();
       for (const tsFile of test.tsFiles) {
@@ -161,6 +163,15 @@ testFn('golden tests with transformer', () => {
         options: tsCompilerOptions,
         host: tsHost,
       };
+
+      /**
+       * Converts a runfiles path to the absolute path to the original source.
+       * Used for updating goldens.
+       */
+      function pathToSourcePath(fileName: string): string {
+        return path.join(sourceRoot, path.relative(tsCompilerOptions.rootDir!, fileName));
+      }
+
       const tscOutput = new Map<string, string>();
       let targetSource: ts.SourceFile|undefined = undefined;
       if (TEST_FILTER && TEST_FILTER.fileName) {
@@ -220,7 +231,7 @@ testFn('golden tests with transformer', () => {
           allExterns = getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
         }
       }
-      compareAgainstGolden(allExterns, test.externsPath, test);
+      compareAgainstGolden(allExterns, pathToSourcePath(test.externsPath), test);
       for (const [outputPath, output] of tscOutput) {
         const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
@@ -234,7 +245,7 @@ testFn('golden tests with transformer', () => {
                     .join('') +
               out;
         }
-        compareAgainstGolden(out, outputPath, test);
+        compareAgainstGolden(out, pathToSourcePath(outputPath), test);
       }
       const dtsDiags: ts.Diagnostic[] = [];
       if (diagnosticsByFile.size) {
@@ -249,8 +260,8 @@ testFn('golden tests with transformer', () => {
       }
       if (dtsDiags.length) {
         compareAgainstGolden(
-            testSupport.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'),
-            test);
+            testSupport.formatDiagnostics(dtsDiags),
+            pathToSourcePath(path.join(test.path, 'dtsdiagnostics.txt')), test);
       }
     });
   });

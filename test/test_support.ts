@@ -211,25 +211,23 @@ export class GoldenFileTest {
     return /\.shim\b/.test(this.name);
   }
 
-  /**
-   * Find the absolute path to the tsickle root directory by reading the
-   * symlink bazel puts into bazel-bin back into the test_files directory
-   * and chopping off the test_files portion.
-   */
-  getWorkspaceRoot(): string {
-    if (!this.tsFiles.length || !this.tsFiles[0]) {
-      throw new Error(
-          'The workspace root was requested, but there were no source files to follow symlinks for.');
-    }
-    const resolvedFileSymLink = fs.readlinkSync(path.join(this.path, this.tsFiles[0]));
-    const resolvedPathParts = resolvedFileSymLink.split(path.sep);
-    const testFilesSegmentIndex = resolvedPathParts.findIndex(s => s === 'test_files');
-    return path.join(path.sep, ...resolvedPathParts.slice(0, testFilesSegmentIndex));
-  }
-
   static tsPathToJs(tsPath: string): string {
     return tsPath.replace(/\.tsx?$/, '.js');
   }
+}
+
+/**
+ * Compute the absolute path to the source tree, outside of any bazel sandbox redirection.
+ *
+ * To update test golden files (including deleting them when necessary), we need the real path to
+ * the source tree.
+ */
+export function getSourceRoot(): string {
+  // The trick used here is to dereference a symlink for a file that is known to be present in
+  // runfiles, then map the resulting path back the containing directory.
+  const pathInSourceTree = 'node_modules/tslib/tslib.d.ts';
+  const dereferencedPath = fs.readlinkSync(path.join(rootDir(), pathInSourceTree));
+  return dereferencedPath.substr(0, dereferencedPath.length - pathInSourceTree.length - 1);
 }
 
 export function goldenTests(): GoldenFileTest[] {
