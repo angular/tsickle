@@ -1,4 +1,12 @@
+// test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
+// test_files/class/class.ts(52,1): warning TS0: omitting @implements of a class: Class
+// test_files/class/class.ts(55,1): warning TS0: omitting @implements of a class: AbstractClass
+// test_files/class/class.ts(76,1): warning TS0: omitting @implements of a class: Class
+// test_files/class/class.ts(79,1): warning TS0: omitting @implements of a class: AbstractClass
+// test_files/class/class.ts(98,1): warning TS0: omitting @implements of a class: Class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(126,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
+// test_files/class/class.ts(130,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
@@ -90,7 +98,7 @@ class ClassImplementsInterface {
     interfaceFunc() { }
 }
 /**
- * @extends {Class}
+ * @implements {InexpressibleType}
  */
 class ClassImplementsClass {
     /**
@@ -99,7 +107,7 @@ class ClassImplementsClass {
     classFunc() { }
 }
 /**
- * @extends {AbstractClass}
+ * @implements {InexpressibleType}
  */
 class ClassImplementsAbstractClass {
     /**
@@ -141,7 +149,7 @@ class AbstractClassImplementsInterface {
 }
 /**
  * @abstract
- * @extends {Class}
+ * @implements {InexpressibleType}
  */
 class AbstractClassImplementsClass {
     /**
@@ -151,7 +159,7 @@ class AbstractClassImplementsClass {
 }
 /**
  * @abstract
- * @extends {AbstractClass}
+ * @implements {InexpressibleType}
  */
 class AbstractClassImplementsAbstractClass {
     // Note: because this class *implements* AbstractClass, it must also implement
@@ -184,7 +192,7 @@ class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /**
  * @implements {Interface}
- * @extends {Class}
+ * @implements {InexpressibleType}
  */
 class ImplementsTypeAlias {
     /**
@@ -218,12 +226,18 @@ abstractClassVar = new ClassExtendsAbstractClass();
  * @return {void}
  */
 function Zone() { }
+/**
+ * @implements {InexpressibleType}
+ */
 class ZoneImplementsInterface {
 }
 if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
+/**
+ * @implements {InexpressibleType}
+ */
 class ZoneImplementsAlias {
 }
 if (false) {
