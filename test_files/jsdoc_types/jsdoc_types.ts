@@ -3,9 +3,9 @@
  * ensuring that the type gets the proper name in JSDoc comments.
  */
 
-import * as module1 from './module1';
-import {ClassOne, value, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTwo, Interface, ClassWithParams} from './module2';
 import DefaultClass from './default';
+import * as module1 from './module1';
+import {ClassOne, ClassOne as RenamedClassOne, ClassTwo as RenamedClassTwo, ClassWithParams, Interface, value} from './module2';
 import {NeverTyped, NeverTypedTemplated} from './nevertyped';
 
 // Check that imported types get the proper names in JSDoc.
