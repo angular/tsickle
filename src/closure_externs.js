@@ -77,3 +77,13 @@ var PromiseConstructorLike;
 
 /** @typedef {?} */
 var SymbolConstructor;
+
+/**
+ * This type is used as a marker in locations where TypeScript knows the type
+ * but we cannot express that type in the Closure system.
+ *
+ * It's used in 'implements' clauses so that a person debugging the emitted JS
+ * can see that tsickle saw the type but ignored it.
+ * @record
+ */
+class InexpressibleType {}
