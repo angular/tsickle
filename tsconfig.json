@@ -2,12 +2,21 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "module": "commonjs",
-    "lib": ["es5", "es6", "es2015.collection", "es2015.iterable", "dom"],
+    "lib": [
+      "es5",
+      "es6",
+      "es2015.collection",
+      "es2015.iterable",
+      "es2015.core",
+      "dom"
+    ],
     "jsx": "react",
-    "types": ["node", "jasmine"],
+    "types": [
+      "node",
+      "jasmine"
+    ],
     "downlevelIteration": true,
     "target": "es2015",
-
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
