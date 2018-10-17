@@ -9,8 +9,8 @@
 import * as ts from './typescript';
 
 /** @return true if node has the specified modifier flag set. */
-export function hasModifierFlag(node: ts.Node, flag: ts.ModifierFlags): boolean {
-  return (ts.getCombinedModifierFlags(node) & flag) !== 0;
+export function hasModifierFlag(declaration: ts.Declaration, flag: ts.ModifierFlags): boolean {
+  return (ts.getCombinedModifierFlags(declaration) & flag) !== 0;
 }
 
 /** Returns true if fileName is a .d.ts file. */

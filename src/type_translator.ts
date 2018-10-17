@@ -383,11 +383,11 @@ export class TypeTranslator {
     if (type.symbol) {
       for (const decl of type.symbol.declarations || []) {
         if (ts.isExternalModule(decl.getSourceFile())) isModule = true;
-        let current: ts.Node|undefined = decl;
+        let current: ts.Declaration|undefined = decl;
         while (current) {
           if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
           if (current.kind === ts.SyntaxKind.ModuleDeclaration) isInNamespace = true;
-          current = current.parent;
+          current = current.parent as ts.Declaration | undefined;
         }
       }
     }

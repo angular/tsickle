@@ -174,7 +174,9 @@ export function generateExterns(
   }
 
   for (const stmt of sourceFile.statements) {
-    if (!isDts && !hasModifierFlag(stmt, ts.ModifierFlags.Ambient)) continue;
+    if (!isDts && !hasModifierFlag(stmt as ts.DeclarationStatement, ts.ModifierFlags.Ambient)) {
+      continue;
+    }
     visitor(stmt, []);
   }
 
@@ -574,7 +576,7 @@ export function generateExterns(
    * without the namespace wrapper.
    */
   function getNamespaceForTopLevelDeclaration(
-      declaration: ts.Node, namespace: ReadonlyArray<string>): ReadonlyArray<string> {
+      declaration: ts.Declaration, namespace: ReadonlyArray<string>): ReadonlyArray<string> {
     // Only use rootNamespace for top level symbols, any other namespacing (global names, nested
     // namespaces) is always kept.
     if (namespace.length !== 0) return namespace;
@@ -589,7 +591,7 @@ export function generateExterns(
 
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
     if (node.parent === sourceFile) {
-      namespace = getNamespaceForTopLevelDeclaration(node, namespace);
+      namespace = getNamespaceForTopLevelDeclaration(node as ts.DeclarationStatement, namespace);
     }
 
     switch (node.kind) {

@@ -84,7 +84,9 @@ function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<st
 export function isAmbient(node: ts.Node): boolean {
   let current: ts.Node|undefined = node;
   while (current) {
-    if (transformerUtil.hasModifierFlag(current, ts.ModifierFlags.Ambient)) return true;
+    if (transformerUtil.hasModifierFlag(current as ts.Declaration, ts.ModifierFlags.Ambient)) {
+      return true;
+    }
     current = current.parent;
   }
   return false;
@@ -908,7 +910,9 @@ export function jsdocTransformer(
 
       function visitor(node: ts.Node): ts.Node|ts.Node[] {
         if (isAmbient(node)) {
-          if (!transformerUtil.hasModifierFlag(node, ts.ModifierFlags.Export)) return node;
+          if (!transformerUtil.hasModifierFlag(node as ts.Declaration, ts.ModifierFlags.Export)) {
+            return node;
+          }
           return visitExportedAmbient(node);
         }
         switch (node.kind) {
