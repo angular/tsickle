@@ -114,88 +114,107 @@ export function maybeAddHeritageClauses(
     decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration) {
   if (!decl.heritageClauses) return;
   const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
-  const classHasSuperClass =
-      isClass && decl.heritageClauses.some(hc => hc.token === ts.SyntaxKind.ExtendsKeyword);
-  for (const heritage of decl.heritageClauses!) {
-    if (!heritage.types) continue;
-    if (isClass && heritage.token !== ts.SyntaxKind.ImplementsKeyword && !isAmbient(decl)) {
-      // If a class has "extends Foo", that is preserved in the ES6 output
-      // and we don't need to do anything.  But if it has "implements Foo",
-      // that is a TS-specific thing and we need to translate it to the
-      // the Closure "@implements {Foo}".
+  for (const heritage of decl.heritageClauses) {
+    const isExtends = heritage.token === ts.SyntaxKind.ExtendsKeyword;
+    if (isClass && isExtends) {
+      // If a class has an "extends", that is preserved in the ES6 output
+      // and we don't need to emit any additional jsdoc.
+      //
       // However for ambient declarations, we only emit externs, and in those we do need to
       // add "@extends {Foo}" as they use ES5 syntax.
-      continue;
+      if (!isAmbient(decl)) continue;
     }
-    for (const impl of heritage.types) {
-      let tagName = decl.kind === ts.SyntaxKind.InterfaceDeclaration ? 'extends' : 'implements';
 
-      const sym = mtt.typeChecker.getSymbolAtLocation(impl.expression);
-      if (!sym) {
-        // It's possible for a class declaration to extend an expression that
-        // does not have have a symbol, for example when a mixin function is
-        // used to build a base class, as in `declare MyClass extends
-        // MyMixin(MyBaseClass)`.
-        //
-        // Handling this correctly is tricky. Closure throws on this
-        // `extends <expression>` syntax (see
-        // https://github.com/google/closure-compiler/issues/2182). We would
-        // probably need to generate an intermediate class declaration and
-        // extend that. For now, just omit the `extends` annotation.
-        mtt.debugWarn(decl, `could not resolve supertype: ${impl.getText()}`);
-        docTags.push({
-          tagName: '',
-          text: 'NOTE: tsickle could not resolve supertype, ' +
-              'class definition may be incomplete.\n'
-        });
+    // Otherwise, if we get here, we need to emit some jsdoc.
+    for (const expr of heritage.types) {
+      const parentName = heritageName(isExtends, expr);
+      // parentName may be null, indicating that the clause is something inexpressible
+      // in Closure, e.g. "class Foo implements Partial<Bar>".  For 'extends' clauses
+      // that means we cannot emit anything at all.
+      if (isExtends && !parentName) {
         continue;
       }
-      let alias: ts.Symbol = sym;
-      if (sym.flags & ts.SymbolFlags.TypeAlias) {
-        // It's implementing a type alias.  Follow the type alias back
-        // to the original symbol to check whether it's a type or a value.
-        const type = mtt.typeChecker.getDeclaredTypeOfSymbol(sym);
-        if (!type.symbol) {
-          // It's not clear when this can happen, but if it does all we
-          // do is fail to emit the @implements, which isn't so harmful.
-          continue;
-        }
-        alias = type.symbol;
-      }
-      if (alias.flags & ts.SymbolFlags.Alias) {
-        alias = mtt.typeChecker.getAliasedSymbol(alias);
-      }
-      const typeTranslator = mtt.newTypeTranslator(impl.expression);
-      if (typeTranslator.isBlackListed(alias)) {
-        continue;
-      }
-      // We can only @implements an interface, not a class.
-      // But it's fine to translate TS "implements Class" into Closure
-      // "@extends {Class}" because this is just a type hint.
-      if (alias.flags & ts.SymbolFlags.Class) {
-        if (!isClass) {
-          // Only classes can extend classes in TS. Ignoring the heritage clause should be safe,
-          // as interfaces are @record anyway, so should prevent property disambiguation.
-
-          // Problem: validate that methods are there?
-          continue;
-        }
-        if (classHasSuperClass && heritage.token !== ts.SyntaxKind.ExtendsKeyword) {
-          // Do not emit an @extends for a class that already has a proper ES6 extends class. This
-          // risks incorrect optimization, as @extends takes precedence, and Closure won't be
-          // aware of the actual type hierarchy of the class.
-          continue;
-        }
-        tagName = 'extends';
-      } else if (alias.flags & ts.SymbolFlags.Value) {
-        // If the symbol was already in the value namespace, then it will
-        // not be a type in the Closure output (because Closure collapses
-        // the type and value namespaces).  Just ignore the implements.
-        continue;
-      }
-      // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-      docTags.push({tagName, type: typeTranslator.symbolToString(alias, true)});
+      docTags.push({
+        tagName: isExtends ? 'extends' : 'implements',
+        type: parentName || 'InexpressibleType',
+      });
     }
+  }
+
+  /**
+   * Computes the Closure name of an expression occurring in a heritage clause,
+   * e.g. "implements FooBar".  Will return null if the expression is inexpressible
+   * in Closure semantics.  Note that we don't need to consider all possible
+   * combinations of types/values and extends/implements because our input is
+   * already verified to be valid TypeScript.  See test_files/class/ for the full
+   * cartesian product of test cases.
+   * @param isExtends True if were in an 'extends' false in an 'implements'.
+   */
+  function heritageName(isExtends: boolean, expr: ts.ExpressionWithTypeArguments): string|null {
+    const sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
+    if (!sym) {
+      // It's possible for a class declaration to extend an expression that
+      // does not have have a symbol, for example when a mixin function is
+      // used to build a base class, as in `declare MyClass extends
+      // MyMixin(MyBaseClass)`.
+      //
+      // Handling this correctly is tricky. Closure throws on this
+      // `extends <expression>` syntax (see
+      // https://github.com/google/closure-compiler/issues/2182). We would
+      // probably need to generate an intermediate class declaration and
+      // extend that.
+      mtt.debugWarn(decl, `could not resolve supertype: ${expr.getText()}`);
+      return null;
+    }
+
+    let alias: ts.Symbol = sym;
+    if (sym.flags & ts.SymbolFlags.TypeAlias) {
+      // It's implementing a type alias.  Follow the type alias back
+      // to the original symbol to check whether it's a type or a value.
+      const type = mtt.typeChecker.getDeclaredTypeOfSymbol(sym);
+      if (!type.symbol) {
+        // It's not clear when this can happen.
+        mtt.debugWarn(decl, `could not get type of symbol: ${expr.getText()}`);
+        return null;
+      }
+      alias = type.symbol;
+    }
+    if (alias.flags & ts.SymbolFlags.Alias) {
+      alias = mtt.typeChecker.getAliasedSymbol(alias);
+    }
+    const typeTranslator = mtt.newTypeTranslator(expr.expression);
+    if (typeTranslator.isBlackListed(alias)) {
+      // Don't emit references to blacklisted types.
+      return null;
+    }
+
+    if (alias.flags & ts.SymbolFlags.Class) {
+      if (!isClass) {
+        // Closure interfaces cannot extend or implements classes.
+        mtt.debugWarn(decl, `omitting interface deriving from class: ${expr.getText()}`);
+        return null;
+      }
+      if (!isExtends) {
+        // Closure can only @implements an interface, not a class.
+        mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
+        return null;
+      }
+    } else if (alias.flags & ts.SymbolFlags.Value) {
+      // If it's something other than a classin the value namespace, then it will
+      // not be a type in the Closure output (because Closure collapses
+      // the type and value namespaces).
+      mtt.debugWarn(
+          decl, `omitting heritage reference to a type/value conflict: ${expr.getText()}`);
+      return null;
+    } else if (alias.flags & ts.SymbolFlags.TypeLiteral) {
+      // A type literal is a type like `{foo: string}`.
+      // These can come up as the output of a mapped type.
+      mtt.debugWarn(decl, `omitting heritage reference to a type literal: ${expr.getText()}`);
+      return null;
+    }
+
+    // typeToClosure includes nullability modifiers, so call symbolToString directly here.
+    return typeTranslator.symbolToString(alias, true);
   }
 }
 
