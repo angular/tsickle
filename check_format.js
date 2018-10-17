@@ -48,7 +48,7 @@ function main(args) {
         fs.writeFileSync(path, newText);
         console.log(`wrote ${path}`);
       } else {
-        console.error(`${path} not formatted; run 'node check_format.js --fix'`);
+        console.error(`${path} not formatted; run\n\tnode check_format.js --fix`);
         return 1;
       }
     }
