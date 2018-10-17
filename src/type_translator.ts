@@ -10,7 +10,7 @@ import * as path from 'path';
 
 import {moduleNameAsIdentifier} from './externs';
 import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
-import {hasModifierFlag} from './transformer_util';
+import {getIdentifierText, hasModifierFlag} from './transformer_util';
 import * as ts from './typescript';
 
 /**
@@ -229,10 +229,6 @@ export class TypeTranslator {
 
   /**
    * Converts a ts.Symbol to a string.
-   * Other approaches that don't work:
-   * - TypeChecker.typeToString translates Array as T[].
-   * - TypeChecker.symbolToString emits types without their namespace,
-   *   and doesn't let you pass the flag to control that.
    * @param useFqn whether to scope the name using its fully qualified name. Closure's template
    *     arguments are always scoped to the class containing them, where TypeScript's template args
    *     would be fully qualified. I.e. this flag is false for generic types.
@@ -245,12 +241,27 @@ export class TypeTranslator {
       this.ensureSymbolDeclared(sym);
     }
 
-    // This follows getSingleLineStringWriter in the TypeScript compiler.
+    const name = this.typeChecker.symbolToEntityName(
+        sym, ts.SymbolFlags.None, this.node, ts.NodeBuilderFlags.UseFullyQualifiedType);
+    // name might be undefined, e.g. for anonymous classes.
+    if (!name) return '?';
+
+    // TypeScript's symbolToEntityName returns a tree of Identifier objects. tsickle needs to
+    // identify and alias specifiy symbols on it. The code below accesses the TypeScript @internal
+    // symbol field on Identifier to do so.
+    type IdentifierWithSymbol = ts.Identifier&{symbol: ts.Symbol};
     let str = '';
-    function writeText(text: string) {
-      str += text;
-    }
-    const writeSymbol = (text: string, symbol: ts.Symbol) => {
+    /** Recursively visits components of entity name and writes them to `str` above. */
+    const writeEntityWithSymbols = (name: ts.EntityName) => {
+      let identifier: IdentifierWithSymbol;
+      if (ts.isQualifiedName(name)) {
+        writeEntityWithSymbols(name.left);
+        str += '.';
+        identifier = name.right as IdentifierWithSymbol;
+      } else {
+        identifier = name as IdentifierWithSymbol;
+      }
+      let symbol = identifier.symbol;
       // When writing a symbol, check if there is an alias for it in the current scope that should
       // take precedence, e.g. from a goog.forwardDeclare.
       if (symbol.flags & ts.SymbolFlags.Alias) {
@@ -265,37 +276,14 @@ export class TypeTranslator {
         return;
       }
 
+      let text = getIdentifierText(identifier);
       if (str.length === 0) {
         const mangledPrefix = this.maybeGetMangledNamePrefix(symbol);
         text = mangledPrefix + text;
       }
       str += text;
     };
-    const doNothing = () => {
-      return;
-    };
-
-    const builder = this.typeChecker.getSymbolDisplayBuilder();
-    const writer: ts.SymbolWriter = {
-      writeSymbol,
-      writeKeyword: writeText,
-      writeOperator: writeText,
-      writePunctuation: writeText,
-      writeSpace: writeText,
-      writeStringLiteral: writeText,
-      writeParameter: writeText,
-      writeProperty: writeText,
-      writeLine: doNothing,
-      increaseIndent: doNothing,
-      decreaseIndent: doNothing,
-      clear: doNothing,
-      trackSymbol(symbol: ts.Symbol, enclosingDeclaration?: ts.Node, meaning?: ts.SymbolFlags) {
-        return;
-      },
-      reportInaccessibleThisError: doNothing,
-      reportPrivateInBaseOfClassExpression: doNothing,
-    };
-    builder.buildSymbolDisplay(sym, writer, this.node);
+    writeEntityWithSymbols(name);
     return this.stripClutzNamespace(str);
   }
 
@@ -530,10 +518,9 @@ export class TypeTranslator {
         return '?';
       }
       const name = this.symbolToString(type.symbol, /* useFqn */ true);
-      if (name === '(Anonymous class)') {
-        // Values that have anonymous class types produce this name, but the type
-        // appears otherwise identical to a named class.  Given that the type is
-        // anonymous here, there's not really a useful name we can emit.
+      if (name === '?') {
+        // Values that have anonymous class types produce '?'. Make sure not to emit '!?', which is
+        // a syntax error in Closure Compiler.
         return '?';
       }
       return '!' + name;
