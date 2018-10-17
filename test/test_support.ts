@@ -41,7 +41,7 @@ const tslibPath = path.join(rootDir(), 'node_modules/tslib/tslib.d.ts');
 
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
-  target: ts.ScriptTarget.ES2015,
+  target: ts.ScriptTarget.Latest,
   // Disable searching for @types typings. This prevents TS from looking
   // around for a node_modules directory.
   types: [],
@@ -91,16 +91,8 @@ export const inlineSourceMapCompilerOptions: ts.CompilerOptions = {
   sourceMap: false,
 };
 
-const {cachedLibPath, cachedLib} = (() => {
-  const host = ts.createCompilerHost(baseCompilerOptions);
-  const fn = host.getDefaultLibFileName(baseCompilerOptions);
-  const p = ts.getDefaultLibFilePath(baseCompilerOptions);
-  return {
-    // Normalize path to fix mixed/wrong directory separators on Windows.
-    cachedLibPath: path.normalize(p),
-    cachedLib: host.getSourceFile(fn, baseCompilerOptions.target!),
-  };
-})();
+const cachedLibs = new Map<string, ts.SourceFile>();
+const cachedLibDir = path.normalize(path.dirname(ts.getDefaultLibFilePath({})));
 
 /** Creates a ts.Program from a set of input files. */
 export function createProgram(
@@ -123,7 +115,14 @@ export function createSourceCachingHost(
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
     fileName = path.normalize(fileName);
-    if (fileName === cachedLibPath) return cachedLib;
+    if (cachedLibs.has(fileName)) return cachedLibs.get(fileName);
+    // Cache files in TypeScript's lib directory.
+    if (fileName.startsWith(cachedLibDir)) {
+      const sf = ts.createSourceFile(
+          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest, true);
+      cachedLibs.set(fileName, sf);
+      return sf;
+    }
     if (fileName === tslibPath) {
       return ts.createSourceFile(
           fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest, true);
