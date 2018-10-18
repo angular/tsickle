@@ -228,12 +228,11 @@ export class TypeTranslator {
   }
 
   /**
-   * Converts a ts.Symbol to a string.
-   * @param useFqn whether to scope the name using its fully qualified name. Closure's template
-   *     arguments are always scoped to the class containing them, where TypeScript's template args
-   *     would be fully qualified. I.e. this flag is false for generic types.
+   * Converts a ts.Symbol to a string, applying aliases and ensuring symbols are imported.
+   * @return a string representation of the symbol as a valid Closure type name, or `undefined` if
+   *     the type cannot be expressed (e.g. for anonymous types).
    */
-  symbolToString(sym: ts.Symbol, useFqn: boolean): string {
+  symbolToString(sym: ts.Symbol): string|undefined {
     // TypeScript resolves e.g. union types to their members, which can include symbols not declared
     // in the current scope. Ensure that all symbols found this way are actually declared.
     // This must happen before the alias check below, it might introduce a new alias for the symbol.
@@ -244,7 +243,7 @@ export class TypeTranslator {
     const name = this.typeChecker.symbolToEntityName(
         sym, ts.SymbolFlags.None, this.node, ts.NodeBuilderFlags.UseFullyQualifiedType);
     // name might be undefined, e.g. for anonymous classes.
-    if (!name) return '?';
+    if (!name) return undefined;
 
     // TypeScript's symbolToEntityName returns a tree of Identifier objects. tsickle needs to
     // identify and alias specifiy symbols on it. The code below accesses the TypeScript @internal
@@ -408,7 +407,7 @@ export class TypeTranslator {
           this.warn(`EnumType without a symbol`);
           return '?';
         }
-        return this.symbolToString(type.symbol, true);
+        return this.symbolToString(type.symbol) || '?';
       case ts.TypeFlags.ESSymbol:
       case ts.TypeFlags.UniqueESSymbol:
         // ESSymbol indicates something typed symbol.
@@ -438,9 +437,9 @@ export class TypeTranslator {
         if ((type.symbol.flags & ts.SymbolFlags.TypeParameter) === 0) {
           prefix = '!';
         }
-        // In Closure Compiler, type parameters *are* scoped to their containing class.
-        const useFqn = false;
-        return prefix + this.symbolToString(type.symbol, useFqn);
+        const name = this.symbolToString(type.symbol);
+        if (!name) return '?';
+        return prefix + name;
       case ts.TypeFlags.Object:
         return this.translateObject(type as ts.ObjectType);
       case ts.TypeFlags.Union:
@@ -501,7 +500,7 @@ export class TypeTranslator {
       this.warn(`EnumLiteralType without a symbol`);
       return '?';
     }
-    return this.symbolToString(enumLiteralBaseType.symbol, true);
+    return this.symbolToString(enumLiteralBaseType.symbol) || '?';
   }
 
   // translateObject translates a ts.ObjectType, which is the type of all
@@ -517,10 +516,10 @@ export class TypeTranslator {
         this.warn('class has no symbol');
         return '?';
       }
-      const name = this.symbolToString(type.symbol, /* useFqn */ true);
-      if (name === '?') {
-        // Values that have anonymous class types produce '?'. Make sure not to emit '!?', which is
-        // a syntax error in Closure Compiler.
+      const name = this.symbolToString(type.symbol);
+      if (!name) {
+        // An anonymous type. Make sure not to emit '!?', as that is a syntax error in Closure
+        // Compiler.
         return '?';
       }
       return '!' + name;
@@ -545,7 +544,7 @@ export class TypeTranslator {
           return '?';
         }
       }
-      return '!' + this.symbolToString(type.symbol, /* useFqn */ true);
+      return '!' + this.symbolToString(type.symbol);
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.

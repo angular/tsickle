@@ -194,7 +194,7 @@ export function maybeAddHeritageClauses(
         continue;
       }
       // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-      docTags.push({tagName, type: typeTranslator.symbolToString(alias, true)});
+      docTags.push({tagName, type: typeTranslator.symbolToString(alias) || 'InexpressibleType'});
     }
   }
 }
