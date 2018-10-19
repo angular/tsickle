@@ -32,7 +32,7 @@ let useDefaultClassAsType: DefaultClass;
 let useNeverTyped: NeverTyped;
 let useNeverTyped2: string|NeverTyped;
 let useNeverTypedTemplated: NeverTypedTemplated<string>;
-/** Note: JSDoc should not reference NeverTyped because the type is blacklisted. */
+/** Note: no implements JSDoc clause because the type is blacklisted. */
 class ImplementsNeverTyped implements NeverTyped {
   foo: number;
 }

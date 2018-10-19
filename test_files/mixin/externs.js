@@ -21,6 +21,8 @@ function MixinConstructor() {}
 /** @type {string} */
 MyMixin.prototype.mixinProp;
 /**
+ * NOTE: tsickle could not resolve supertype, class definition may be incomplete.
+ * 
  * @constructor
  * @struct
  */
