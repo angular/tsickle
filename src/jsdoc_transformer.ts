@@ -114,6 +114,7 @@ export function maybeAddHeritageClauses(
     decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration) {
   if (!decl.heritageClauses) return;
   const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
+  const hasExtends = decl.heritageClauses.some(c => c.token === ts.SyntaxKind.ExtendsKeyword);
   for (const heritage of decl.heritageClauses) {
     const isExtends = heritage.token === ts.SyntaxKind.ExtendsKeyword;
     if (isClass && isExtends) {
@@ -127,17 +128,23 @@ export function maybeAddHeritageClauses(
 
     // Otherwise, if we get here, we need to emit some jsdoc.
     for (const expr of heritage.types) {
-      const parentName = heritageName(isExtends, expr);
-      // parentName may be null, indicating that the clause is something inexpressible
-      // in Closure, e.g. "class Foo implements Partial<Bar>".  For 'extends' clauses
-      // that means we cannot emit anything at all.
-      if (isExtends && !parentName) {
-        continue;
+      const heritage = heritageName(isExtends, hasExtends, expr);
+      // heritageName may return null, indicating that the clause is something inexpressible
+      // in Closure, e.g. "class Foo implements Partial<Bar>".
+      if (!heritage) {
+        // For 'extends' clauses that means we cannot emit anything at all.
+        if (!isExtends) {
+          docTags.push({
+            tagName: isExtends ? 'extends' : 'implements',
+            type: 'InexpressibleType',
+          });
+        }
+      } else {
+        docTags.push({
+          tagName: heritage.tagName,
+          type: heritage.parentName,
+        });
       }
-      docTags.push({
-        tagName: isExtends ? 'extends' : 'implements',
-        type: parentName || 'InexpressibleType',
-      });
     }
   }
 
@@ -148,9 +155,13 @@ export function maybeAddHeritageClauses(
    * combinations of types/values and extends/implements because our input is
    * already verified to be valid TypeScript.  See test_files/class/ for the full
    * cartesian product of test cases.
-   * @param isExtends True if were in an 'extends' false in an 'implements'.
+   * @param isExtends True if we're in an 'extends', false in an 'implements'.
+   * @param hasExtends True if there are any 'extends' clauses present at all.
    */
-  function heritageName(isExtends: boolean, expr: ts.ExpressionWithTypeArguments): string|null {
+  function heritageName(
+      isExtends: boolean, hasExtends: boolean,
+      expr: ts.ExpressionWithTypeArguments): {tagName: string, parentName: string}|null {
+    let tagName = isExtends ? 'extends' : 'implements';
     let sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
     if (!sym) {
       // It's possible for a class declaration to extend an expression that
@@ -196,9 +207,19 @@ export function maybeAddHeritageClauses(
         return null;
       }
       if (!isExtends) {
-        // Closure can only @implements an interface, not a class.
-        mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
-        return null;
+        if (!hasExtends) {
+          // A special case: for a class that has no existing 'extends' clause but does
+          // have an 'implements' clause that refers to another class, we change it to
+          // instead be an 'extends'.  This was a poorly-thought-out hack that may
+          // actually cause compiler bugs:
+          //   https://github.com/google/closure-compiler/issues/3126
+          // but we have code that now relies on it, ugh.
+          tagName = 'extends';
+        } else {
+          // Closure can only @implements an interface, not a class.
+          mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
+          return null;
+        }
       }
     } else if (sym.flags & ts.SymbolFlags.Value) {
       // If it's something other than a class in the value namespace, then it will
@@ -215,7 +236,9 @@ export function maybeAddHeritageClauses(
     }
 
     // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-    return typeTranslator.symbolToString(sym) || null;
+    const parentName = typeTranslator.symbolToString(sym);
+    if (!parentName) return null;
+    return {tagName, parentName};
   }
 }
 
