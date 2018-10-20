@@ -79,9 +79,14 @@ export interface EmitResult extends ts.EmitResult {
 }
 
 export interface EmitTransformers {
+  /** Custom transformers to evaluate before Tsickle .js transformations. */
   beforeTsickle?: Array<ts.TransformerFactory<ts.SourceFile>>;
+  /** Custom transformers to evaluate before built-in .js transformations. */
   beforeTs?: Array<ts.TransformerFactory<ts.SourceFile>>;
+  /** Custom transformers to evaluate after built-in .js transformations. */
   afterTs?: Array<ts.TransformerFactory<ts.SourceFile>>;
+  /** Custom transformers to evaluate after built-in .d.ts transformations. */
+  afterDeclarations?: Array<ts.TransformerFactory<ts.Bundle|ts.SourceFile>>;
 }
 
 export function emitWithTsickle(
@@ -120,7 +125,8 @@ export function emitWithTsickle(
     after: [
       ...(customTransformers.afterTs || []),
       ...(tsickleTransformers.after || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
-    ]
+    ],
+    afterDeclarations: customTransformers.afterDeclarations,
   };
   if (host.transformTypesToClosure) {
     // See comment on remoteTypeAssertions.
