@@ -1,4 +1,3 @@
-// test_files/interface/implement_import.ts(7,1): warning TS0: omitting @implements of a class: User
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
@@ -29,7 +28,7 @@ if (false) {
     MyPoint.prototype.y;
 }
 /**
- * @implements {InexpressibleType}
+ * @extends {tsickle_forward_declare_1.User}
  */
 class ImplementsUser {
     /**

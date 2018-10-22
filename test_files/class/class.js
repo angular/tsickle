@@ -1,9 +1,4 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
-// test_files/class/class.ts(52,1): warning TS0: omitting @implements of a class: Class
-// test_files/class/class.ts(55,1): warning TS0: omitting @implements of a class: AbstractClass
-// test_files/class/class.ts(76,1): warning TS0: omitting @implements of a class: Class
-// test_files/class/class.ts(79,1): warning TS0: omitting @implements of a class: AbstractClass
-// test_files/class/class.ts(98,1): warning TS0: omitting @implements of a class: Class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(126,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
 // test_files/class/class.ts(130,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
@@ -98,7 +93,7 @@ class ClassImplementsInterface {
     interfaceFunc() { }
 }
 /**
- * @implements {InexpressibleType}
+ * @extends {Class}
  */
 class ClassImplementsClass {
     /**
@@ -107,7 +102,7 @@ class ClassImplementsClass {
     classFunc() { }
 }
 /**
- * @implements {InexpressibleType}
+ * @extends {AbstractClass}
  */
 class ClassImplementsAbstractClass {
     /**
@@ -149,7 +144,7 @@ class AbstractClassImplementsInterface {
 }
 /**
  * @abstract
- * @implements {InexpressibleType}
+ * @extends {Class}
  */
 class AbstractClassImplementsClass {
     /**
@@ -159,7 +154,7 @@ class AbstractClassImplementsClass {
 }
 /**
  * @abstract
- * @implements {InexpressibleType}
+ * @extends {AbstractClass}
  */
 class AbstractClassImplementsAbstractClass {
     // Note: because this class *implements* AbstractClass, it must also implement
@@ -192,7 +187,7 @@ class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /**
  * @implements {Interface}
- * @implements {InexpressibleType}
+ * @extends {Class}
  */
 class ImplementsTypeAlias {
     /**
