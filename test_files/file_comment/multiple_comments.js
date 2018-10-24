@@ -13,7 +13,7 @@
 /**
  *
  * @fileoverview The last fileoverview actually takes effect.
- * @suppress {checkTypes,extraRequire,globalThis,missingReturn,uselessCode}
+ * @suppress {checkTypes,extraRequire,globalThis,missingReturn,unusedPrivateMembers,uselessCode}
  *
  */
 /** Here's another trailing comment */

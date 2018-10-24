@@ -1,7 +1,7 @@
 // test_files/decorator/decorator.ts(13,66): warning TS0: should not emit a 'never' type
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
@@ -126,11 +126,18 @@ if (false) {
     /**
      * Some comment
      * @type {number}
+     * @private
      */
     DecoratorTest.prototype.x;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @private
+     */
     DecoratorTest.prototype.y;
-    /** @type {!tsickle_forward_declare_2.AClass} */
+    /**
+     * @type {!tsickle_forward_declare_2.AClass}
+     * @private
+     */
     DecoratorTest.prototype.z;
 }
 let DecoratedClass = class DecoratedClass {

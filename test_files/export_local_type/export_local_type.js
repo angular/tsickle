@@ -1,6 +1,6 @@
 /**
  * @fileoverview Regression test to ensure local type symbols can be exported.
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.export_local_type.export_local_type');
 var module = module || { id: 'test_files/export_local_type/export_local_type.ts' };

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Reproduces an error that caused incorrect Automatic Semicolon Insertion.
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.arrow_fn.es5.arrow_fn_es5');
 var module = module || { id: 'test_files/arrow_fn.es5/arrow_fn_es5.ts' };

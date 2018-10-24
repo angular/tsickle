@@ -56,6 +56,9 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
   // concludes that all possible branches return a value, then we don't want
   // Closure to second-guess this decision.
   suppressions.add('missingReturn');
+  // 5) Suppress unusedPrivateMembers.  TS also captures this, so we don't
+  // want to check it a second time.
+  suppressions.add('unusedPrivateMembers');
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 
   return tags;

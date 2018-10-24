@@ -405,6 +405,12 @@ function createClosurePropertyDeclaration(
 
   const tags = mtt.getJSDoc(prop, /* reportWarnings */ true);
   tags.push({tagName: 'type', type});
+  const flags = ts.getCombinedModifierFlags(prop);
+  if (flags & ts.ModifierFlags.Protected) {
+    tags.push({tagName: 'protected'});
+  } else if (flags & ts.ModifierFlags.Private) {
+    tags.push({tagName: 'private'});
+  }
   if (hasExportingDecorator(prop, mtt.typeChecker)) {
     tags.push({tagName: 'export'});
   }

@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.ctors.ctors');
 var module = module || { id: 'test_files/ctors/ctors.ts' };
@@ -17,7 +17,10 @@ class X {
     }
 }
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @private
+     */
     X.prototype.a;
 }
 /** @type {function(new: (!X), number): ?} */
@@ -31,6 +34,9 @@ class OverloadedCtor {
     }
 }
 if (false) {
-    /** @type {(string|number)} */
+    /**
+     * @type {(string|number)}
+     * @private
+     */
     OverloadedCtor.prototype.a;
 }
