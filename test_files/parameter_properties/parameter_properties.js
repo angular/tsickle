@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.parameter_properties.parameter_properties');
 var module = module || { id: 'test_files/parameter_properties/parameter_properties.ts' };
@@ -33,9 +33,15 @@ if (false) {
     ParamProps.prototype.publicExportedP;
     /** @type {string} */
     ParamProps.prototype.publicP;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @protected
+     */
     ParamProps.prototype.protectedP;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @private
+     */
     ParamProps.prototype.privateP;
     /** @type {string} */
     ParamProps.prototype.readonlyP;

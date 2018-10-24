@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.basic.untyped.basic.untyped');
 var module = module || { id: 'test_files/basic.untyped/basic.untyped.ts' };
@@ -27,7 +27,10 @@ class Foo {
 if (false) {
     /** @type {?} */
     Foo.prototype.field;
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @private
+     */
     Foo.prototype.ctorArg;
 }
 // These two declarations should not have a @type annotation,

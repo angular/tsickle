@@ -1,6 +1,6 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingReturn,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.static.static');
 var module = module || { id: 'test_files/static/static.ts' };
@@ -15,6 +15,9 @@ Static.baz = 3;
 if (false) {
     /** @type {number} */
     Static.bar;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @private
+     */
     Static.baz;
 }
