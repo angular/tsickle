@@ -61,6 +61,10 @@ export interface AnnotatorHost {
    */
   enableAutoQuoting?: boolean;
   /**
+   * If true, JSDoc tags with the same name are not merged.
+   */
+  noTagMerge?: boolean;
+  /**
    * Whether tsickle should insert goog.provide() calls into the externs generated for `.d.ts` files
    * that are external modules.
    */

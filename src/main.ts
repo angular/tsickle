@@ -31,6 +31,8 @@ export interface Settings {
 
   /** If true, log internal debug warnings to the console. */
   verbose?: boolean;
+
+  noTagMerge?: boolean;
 }
 
 function usage() {
@@ -43,6 +45,7 @@ tsickle flags are:
   --externs=PATH        save generated Closure externs.js to PATH
   --typed               [experimental] attempt to provide Closure types instead of {?}
   --enableAutoQuoting   automatically apply quotes to property accesses
+  --noTagMerge          do not merge JSDoc tags with the same name
 `);
 }
 
@@ -66,6 +69,8 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
       case 'typed':
         settings.isTyped = true;
         break;
+      case 'noTagMerge':
+        settings.noTagMerge = true;
       case 'verbose':
         settings.verbose = true;
         break;
@@ -174,6 +179,7 @@ export function toClosureJS(
     typeBlackListPaths: new Set(),
     enableAutoQuoting: settings.enableAutoQuoting,
     untyped: false,
+    noTagMerge: settings.noTagMerge,
     logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
     host: compilerHost,

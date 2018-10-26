@@ -381,12 +381,21 @@ export class ModuleTypeTranslator {
   getFunctionTypeJSDoc(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []):
       {tags: jsdoc.Tag[], parameterNames: string[], thisReturnType: ts.Type|null} {
     const typeChecker = this.typeChecker;
+    const noTagMerge = this.host.noTagMerge;
 
-    // De-duplicate tags and docs found for the fnDecls.
-    const tagsByName = new Map<string, jsdoc.Tag>();
+    // const tagsByName = new Map<string, jsdoc.Tag>();
+    const newDoc: jsdoc.Tag[] = [];
     function addTag(tag: jsdoc.Tag) {
-      const existing = tagsByName.get(tag.tagName);
-      tagsByName.set(tag.tagName, existing ? jsdoc.merge([existing, tag]) : tag);
+      if (noTagMerge) {
+        newDoc.push(tag);
+      } else {  // De-duplicate tags and docs found for the fnDecls.
+        const existingIndex = newDoc.findIndex((t) => t.tagName === tag.tagName);
+        if (existingIndex > -1) {
+          newDoc[existingIndex] = jsdoc.merge([newDoc[existingIndex], tag]);
+        } else {
+          newDoc.push(tag);
+        }
+      }
     }
     for (const extraTag of extraTags) addTag(extraTag);
 
@@ -502,8 +511,6 @@ export class ModuleTypeTranslator {
     if (typeParameterNames.size > 0) {
       addTag({tagName: 'template', text: Array.from(typeParameterNames.values()).join(', ')});
     }
-
-    const newDoc = Array.from(tagsByName.values());
 
     // Merge the JSDoc tags for each overloaded parameter.
     // Ensure each parameter has a unique name; the merging process can otherwise
