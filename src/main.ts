@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
-import * as ts from './typescript';
+import * as ts from 'typescript';
 
 import * as cliSupport from './cli_support';
 import * as tsickle from './tsickle';

@@ -27,9 +27,10 @@
  * invocations.
  */
 
+import * as ts from 'typescript';
+
 import {getDecoratorDeclarations} from './decorators';
 import {getAllLeadingComments, visitEachChild} from './transformer_util';
-import * as ts from './typescript';
 
 /**
  * Returns true if the given decorator should be downleveled.

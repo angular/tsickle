@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as ts from './typescript';
+import * as ts from 'typescript';
 
 /**
  * TypeScript has an API for JSDoc already, but it's not exposed.

@@ -7,10 +7,10 @@
  */
 
 import * as path from 'path';
+import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
 import {createNotEmittedStatementWithComments, createSingleQuoteStringLiteral,} from './transformer_util';
-import * as ts from './typescript';
 
 export interface GoogModuleProcessorHost {
   /**

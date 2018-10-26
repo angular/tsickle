@@ -6,10 +6,11 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as ts from 'typescript';
+
 import {AnnotatorHost} from './jsdoc_transformer';
 import {createSingleQuoteStringLiteral, reportDebugWarning} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
-import * as ts from './typescript';
 
 /**
  * quotingTransformer warns on quoted accesses to declared properties, and converts dotted property

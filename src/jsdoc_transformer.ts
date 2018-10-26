@@ -26,6 +26,8 @@
  * CommonJS-style exports for type constructs, expanding `export *`, parenthesizing casts, etc.
  */
 
+import * as ts from 'typescript';
+
 import {hasExportingDecorator} from './decorators';
 import {moduleNameAsIdentifier} from './externs';
 import * as googmodule from './googmodule';
@@ -33,7 +35,6 @@ import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
-import * as ts from './typescript';
 
 /** AnnotatorHost contains host properties for the JSDoc-annotation process. */
 export interface AnnotatorHost {

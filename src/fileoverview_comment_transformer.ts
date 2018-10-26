@@ -6,9 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as ts from 'typescript';
+
 import * as jsdoc from './jsdoc';
 import {createNotEmittedStatement, reportDiagnostic, synthesizeCommentRanges, updateSourceFileNode} from './transformer_util';
-import * as ts from './typescript';
 
 /**
  * A set of JSDoc tags that mark a comment as a fileoverview comment. These are recognized by other

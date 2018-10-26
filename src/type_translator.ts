@@ -7,11 +7,11 @@
  */
 
 import * as path from 'path';
+import * as ts from 'typescript';
 
 import {moduleNameAsIdentifier} from './externs';
 import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
 import {getIdentifierText, hasModifierFlag} from './transformer_util';
-import * as ts from './typescript';
 
 /**
  * TypeScript allows you to write identifiers quoted, like:
@@ -640,7 +640,7 @@ export class TypeTranslator {
         this.warn('unhandled anonymous type with constructor signature but no declaration');
         return '?';
       }
-      if (decl.kind === ts.SyntaxKindJSDocSignature) {
+      if (decl.kind === ts.SyntaxKind.JSDocSignature) {
         this.warn('unhandled JSDoc based constructor signature');
         return '?';
       }
@@ -743,7 +743,7 @@ export class TypeTranslator {
       this.warn('signature without declaration');
       return 'Function';
     }
-    if (sig.declaration.kind === ts.SyntaxKindJSDocSignature) {
+    if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
       this.warn('signature with JSDoc declaration');
       return 'Function';
     }

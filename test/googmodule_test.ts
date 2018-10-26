@@ -12,8 +12,6 @@ import * as ts from 'typescript';
 import * as cliSupport from '../src/cli_support';
 import * as googmodule from '../src/googmodule';
 import {ModulesManifest} from '../src/modules_manifest';
-import * as transformerUtil from '../src/transformer_util';
-import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
 

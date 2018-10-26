@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as path from 'path';
+import * as ts from 'typescript';
 
 import {assertAbsolute} from './cli_support';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
@@ -18,7 +18,6 @@ import {AnnotatorHost, jsdocTransformer, removeTypeAssertions} from './jsdoc_tra
 import {ModulesManifest} from './modules_manifest';
 import {quotingTransformer} from './quoting_transformer';
 import {isDtsFileName} from './transformer_util';
-import * as ts from './typescript';
 
 // Retained here for API compatibility.
 export {getGeneratedExterns} from './externs';

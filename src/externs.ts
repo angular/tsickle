@@ -56,6 +56,7 @@
  */
 
 import * as path from 'path';
+import * as ts from 'typescript';
 
 import {getEnumType} from './enum_transformer';
 import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
@@ -64,7 +65,6 @@ import {AnnotatorHost, escapeForComment, maybeAddHeritageClauses, maybeAddTempla
 import {ModuleTypeTranslator} from './module_type_translator';
 import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportDiagnostic} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
-import * as ts from './typescript';
 
 /**
  * Symbols that are already declared as externs in Closure, that should

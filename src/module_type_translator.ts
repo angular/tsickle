@@ -12,12 +12,13 @@
  * ModuleTypeTranslator.
  */
 
+import * as ts from 'typescript';
+
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
 import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
 import * as typeTranslator from './type_translator';
-import * as ts from './typescript';
 
 /**
  * MutableJSDoc encapsulates a (potential) JSDoc comment on a specific node, and allows code to
@@ -436,7 +437,7 @@ export class ModuleTypeTranslator {
       // Merge the parameters into a single list of merged names and list of types
       const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
       if (!sig || !sig.declaration) throw new Error(`invalid signature ${fnDecl.name}`);
-      if (sig.declaration.kind === ts.SyntaxKindJSDocSignature) {
+      if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
         throw new Error(`JSDoc signature ${fnDecl.name}`);
       }
       for (let i = 0; i < sig.declaration.parameters.length; i++) {

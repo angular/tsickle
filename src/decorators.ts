@@ -6,8 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import * as ts from 'typescript';
+
 import {getAllLeadingComments} from './transformer_util';
-import * as ts from './typescript';
 
 /**
  * Returns the declarations for the given decorator.

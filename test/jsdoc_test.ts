@@ -7,8 +7,6 @@
  */
 
 import * as jsdoc from '../src/jsdoc';
-import {synthesizeCommentRanges} from '../src/transformer_util';
-import * as ts from '../src/typescript';
 
 describe('jsdoc.parse', () => {
   function parse(text: string) {
