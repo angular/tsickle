@@ -383,12 +383,12 @@ export class ModuleTypeTranslator {
     const typeChecker = this.typeChecker;
     const noTagMerge = this.host.noTagMerge;
 
-    // const tagsByName = new Map<string, jsdoc.Tag>();
     const newDoc: jsdoc.Tag[] = [];
     function addTag(tag: jsdoc.Tag) {
       if (noTagMerge) {
         newDoc.push(tag);
-      } else {  // De-duplicate tags and docs found for the fnDecls.
+      } else {
+        // De-duplicate tags and docs found for the fnDecls.
         const existingIndex = newDoc.findIndex((t) => t.tagName === tag.tagName);
         if (existingIndex > -1) {
           newDoc[existingIndex] = jsdoc.merge([newDoc[existingIndex], tag]);

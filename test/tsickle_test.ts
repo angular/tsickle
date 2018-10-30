@@ -35,6 +35,7 @@ describe('emitWithTsickle', () => {
       transformDecorators: true,
       transformTypesToClosure: true,
       untyped: true,
+      noTagMerge: false,
       logWarning: (diag: ts.Diagnostic) => {},
       shouldSkipTsickleProcessing: (fileName) => {
         assertAbsolute(fileName);
@@ -102,6 +103,24 @@ describe('emitWithTsickle', () => {
         {es5Mode: false, googmodule: false});
 
     expect(jsSources['b.js']).toContain(`export { Foo } from './a';`);
+  });
+
+  it('should not merge JSDoc tags with --noMergeTag flag', () => {
+    const tsSources = {
+      'a.ts': `
+        /**
+         *  @example
+         *   example 1
+         *  @example
+         *   example 2
+        */
+        function test() {}
+      `
+    };
+    const jsSources = emitWithTsickle(tsSources, {}, {noTagMerge: true});
+    const jsContent = jsSources['a.js'];
+    const count = (jsContent.match(/@example/g) || []).length;
+    expect(count).toEqual(2);
   });
 
   describe('regressions', () => {
