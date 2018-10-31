@@ -16,6 +16,16 @@ class Protected {
         this.anotherPrivate = anotherPrivate;
         this.anotherProtected = anotherProtected;
     }
+    /**
+     * @private
+     * @return {void}
+     */
+    privateMethod() { }
+    /**
+     * @protected
+     * @return {void}
+     */
+    protectedMethod() { }
 }
 if (false) {
     /**
@@ -38,4 +48,17 @@ if (false) {
      * @protected
      */
     Protected.prototype.anotherProtected;
+}
+/**
+ * @abstract
+ */
+class Abstract {
+}
+if (false) {
+    /**
+     * @abstract
+     * @protected
+     * @return {void}
+     */
+    Abstract.prototype.foo = function () { };
 }

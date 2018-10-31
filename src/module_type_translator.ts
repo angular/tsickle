@@ -420,9 +420,16 @@ export class ModuleTypeTranslator {
         addTag(tag);
       }
 
+      const flags = ts.getCombinedModifierFlags(fnDecl);
       // Add @abstract on "abstract" declarations.
-      if (hasModifierFlag(fnDecl, ts.ModifierFlags.Abstract)) {
+      if (flags & ts.ModifierFlags.Abstract) {
         addTag({tagName: 'abstract'});
+      }
+      // Add @protected/@private if present.
+      if (flags & ts.ModifierFlags.Protected) {
+        addTag({tagName: 'protected'});
+      } else if (flags & ts.ModifierFlags.Private) {
+        addTag({tagName: 'private'});
       }
 
       // Add any @template tags.
