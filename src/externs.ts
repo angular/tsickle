@@ -58,7 +58,7 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import {AnnotatorHost} from './annotator_host';
+import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
 import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
@@ -120,16 +120,6 @@ export function getGeneratedExterns(externs: {[fileName: string]: string}, rootD
     allExterns += externs[fileName];
   }
   return allExterns;
-}
-
-/**
- * Returns a mangled version of the module name (resolved file name) for source file.
- *
- * The mangled name is safe to use as a JavaScript identifier. It is used as a globally unique
- * prefix to scope symbols in externs file (see code below).
- */
-export function moduleNameAsIdentifier(host: AnnotatorHost, fileName: string): string {
-  return host.pathToModuleName('', fileName).replace(/\./g, '$');
 }
 
 /**

@@ -9,8 +9,7 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import {AnnotatorHost} from './annotator_host';
-import {moduleNameAsIdentifier} from './externs';
+import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
 
 /**
