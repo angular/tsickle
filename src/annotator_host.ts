@@ -54,3 +54,13 @@ export interface AnnotatorHost {
   /** Used together with the host for file name -> module name resolution. */
   options: ts.CompilerOptions;
 }
+
+/**
+ * Returns a mangled version of the module name (resolved file name) for source file.
+ *
+ * The mangled name is safe to use as a JavaScript identifier. It is used as a globally unique
+ * prefix to scope symbols in externs file (see externs.ts).
+ */
+export function moduleNameAsIdentifier(host: AnnotatorHost, fileName: string): string {
+  return host.pathToModuleName('', fileName).replace(/\./g, '$');
+}

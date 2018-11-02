@@ -28,9 +28,8 @@
 
 import * as ts from 'typescript';
 
-import {AnnotatorHost} from './annotator_host';
+import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {hasExportingDecorator} from './decorators';
-import {moduleNameAsIdentifier} from './externs';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
