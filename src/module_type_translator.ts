@@ -14,9 +14,9 @@
 
 import * as ts from 'typescript';
 
+import {AnnotatorHost} from './annotator_host';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
-import {AnnotatorHost} from './jsdoc_transformer';
 import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
 import * as typeTranslator from './type_translator';
 

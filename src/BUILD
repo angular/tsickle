@@ -5,6 +5,7 @@ load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 ts_library(
     name = "src",
     srcs = [
+        "annotator_host.ts",
         "cli_support.ts",
         "decorator_downlevel_transformer.ts",
         "decorators.ts",

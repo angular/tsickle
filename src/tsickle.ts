@@ -8,13 +8,14 @@
 
 import * as ts from 'typescript';
 
+import {AnnotatorHost} from './annotator_host';
 import {assertAbsolute} from './cli_support';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
 import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
 import {transformFileoverviewCommentFactory} from './fileoverview_comment_transformer';
 import * as googmodule from './googmodule';
-import {AnnotatorHost, jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
+import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {quotingTransformer} from './quoting_transformer';
 import {isDtsFileName} from './transformer_util';
