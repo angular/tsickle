@@ -10,8 +10,8 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import {moduleNameAsIdentifier} from './externs';
-import {AnnotatorHost, isAmbient} from './jsdoc_transformer';
-import {getIdentifierText, hasModifierFlag} from './transformer_util';
+import {AnnotatorHost} from './jsdoc_transformer';
+import {getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
 
 /**
  * TypeScript allows you to write identifiers quoted, like:

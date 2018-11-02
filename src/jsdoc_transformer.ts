@@ -81,18 +81,6 @@ function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<st
   return comment;
 }
 
-/** @return true if node has the specified modifier flag set. */
-export function isAmbient(node: ts.Node): boolean {
-  let current: ts.Node|undefined = node;
-  while (current) {
-    if (transformerUtil.hasModifierFlag(current as ts.Declaration, ts.ModifierFlags.Ambient)) {
-      return true;
-    }
-    current = current.parent;
-  }
-  return false;
-}
-
 type HasTypeParameters =
     ts.InterfaceDeclaration|ts.ClassLikeDeclaration|ts.TypeAliasDeclaration|ts.SignatureDeclaration;
 
@@ -124,7 +112,7 @@ export function maybeAddHeritageClauses(
       //
       // However for ambient declarations, we only emit externs, and in those we do need to
       // add "@extends {Foo}" as they use ES5 syntax.
-      if (!isAmbient(decl)) continue;
+      if (!transformerUtil.isAmbient(decl)) continue;
     }
 
     // Otherwise, if we get here, we need to emit some jsdoc.
@@ -959,7 +947,7 @@ export function jsdocTransformer(
       }
 
       function visitor(node: ts.Node): ts.Node|ts.Node[] {
-        if (isAmbient(node)) {
+        if (transformerUtil.isAmbient(node)) {
           if (!transformerUtil.hasModifierFlag(node as ts.Declaration, ts.ModifierFlags.Export)) {
             return node;
           }

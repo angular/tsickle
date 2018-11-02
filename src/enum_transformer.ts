@@ -21,8 +21,7 @@
 
 import * as ts from 'typescript';
 
-import {isAmbient} from './jsdoc_transformer';
-import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag} from './transformer_util';
+import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
 
 /** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
 function isInNamespace(node: ts.Node) {
