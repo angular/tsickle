@@ -58,10 +58,11 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {AnnotatorHost} from './annotator_host';
 import {getEnumType} from './enum_transformer';
 import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
-import {AnnotatorHost, escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
+import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportDiagnostic} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';

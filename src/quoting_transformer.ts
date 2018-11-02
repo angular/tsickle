@@ -8,7 +8,7 @@
 
 import * as ts from 'typescript';
 
-import {AnnotatorHost} from './jsdoc_transformer';
+import {AnnotatorHost} from './annotator_host';
 import {createSingleQuoteStringLiteral, reportDebugWarning} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 

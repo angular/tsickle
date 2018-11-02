@@ -28,6 +28,7 @@
 
 import * as ts from 'typescript';
 
+import {AnnotatorHost} from './annotator_host';
 import {hasExportingDecorator} from './decorators';
 import {moduleNameAsIdentifier} from './externs';
 import * as googmodule from './googmodule';
@@ -35,43 +36,6 @@ import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
-
-/** AnnotatorHost contains host properties for the JSDoc-annotation process. */
-export interface AnnotatorHost {
-  /**
-   * If provided a function that logs an internal warning.
-   * These warnings are not actionable by an end user and should be hidden
-   * by default.
-   */
-  logWarning?: (warning: ts.Diagnostic) => void;
-  pathToModuleName: (context: string, importPath: string) => string;
-  /**
-   * If true, convert every type to the Closure {?} type, which means
-   * "don't check types".
-   */
-  untyped?: boolean;
-  /** If provided, a set of paths whose types should always generate as {?}. */
-  typeBlackListPaths?: Set<string>;
-  /**
-   * Convert shorthand "/index" imports to full path (include the "/index").
-   * Annotation will be slower because every import must be resolved.
-   */
-  convertIndexImportShorthand?: boolean;
-  /**
-   * If true, modify quotes around property accessors to match the type declaration.
-   */
-  enableAutoQuoting?: boolean;
-  /**
-   * Whether tsickle should insert goog.provide() calls into the externs generated for `.d.ts` files
-   * that are external modules.
-   */
-  provideExternalModuleDtsNamespace?: boolean;
-
-  /** host allows resolving file names to modules. */
-  host: ts.ModuleResolutionHost;
-  /** Used together with the host for file name -> module name resolution. */
-  options: ts.CompilerOptions;
-}
 
 function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>) {
   const comment = jsdoc.toSynthesizedComment(tags, escapeExtraTags);
