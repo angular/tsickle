@@ -13,6 +13,18 @@ export function hasModifierFlag(declaration: ts.Declaration, flag: ts.ModifierFl
   return (ts.getCombinedModifierFlags(declaration) & flag) !== 0;
 }
 
+/** @return true if node has the specified modifier flag set. */
+export function isAmbient(node: ts.Node): boolean {
+  let current: ts.Node|undefined = node;
+  while (current) {
+    if (hasModifierFlag(current as ts.Declaration, ts.ModifierFlags.Ambient)) {
+      return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
+
 /** Returns true if fileName is a .d.ts file. */
 export function isDtsFileName(fileName: string): boolean {
   return fileName.endsWith('.d.ts');
