@@ -450,24 +450,11 @@ export function decoratorDownlevelTransformer(
           paramInfo!.decorators.push(decorator);
         }
         if (param.type) {
-          paramInfo!.type = param.type;
           // param has a type provided, e.g. "foo: Bar".
-          // The type will be emitted as a value expression later on, so verify that "Bar" is a
-          // value (e.g. a constructor) and not just a type.
-          // let sym = typeChecker.getTypeAtLocation(param.type).getSymbol();
-          // if (sym) {
-          //   // Symbol might be an alias for a non-value symbol, in which case we cannot reify it
-          //   // later and emit an appropriate expression. Note: the code here handles a parameter
-          //   // whose type is not a value (and potentially an alias). See
-          //   typeReferenceToExpression
-          //   // for code handling a local, in-file type alias.
-          //   if (sym.flags & ts.SymbolFlags.Alias) {
-          //     sym = typeChecker.getAliasedSymbol(sym);
-          //   }
-          //   if (sym.flags & ts.SymbolFlags.Value) {
-          //     paramInfo!.type = param.type;
-          //   }
-          // }
+          // The type will be emitted as a value expression in entityNameToExpression, which takes
+          // care not to emit anything for types that cannot be expressed as a value (e.g.
+          // interfaces).
+          paramInfo!.type = param.type;
         }
         parametersInfo.push(paramInfo);
         const newParam = ts.updateParameter(
