@@ -49,7 +49,7 @@ describe('emitWithTsickle', () => {
       fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
       ...tsickleHostOverride,
       options: tsCompilerOptions,
-      host: tsHost,
+      moduleResolutionHost: tsHost,
     };
     const jsSources: {[fileName: string]: string} = {};
     tsickle.emitWithTsickle(

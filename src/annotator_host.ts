@@ -49,8 +49,9 @@ export interface AnnotatorHost {
    */
   provideExternalModuleDtsNamespace?: boolean;
 
-  /** host allows resolving file names to modules. */
-  host: ts.ModuleResolutionHost;
+  /** Used resolving file names to modules. */
+  moduleResolutionHost: ts.ModuleResolutionHost;
+
   /** Used together with the host for file name -> module name resolution. */
   options: ts.CompilerOptions;
 }

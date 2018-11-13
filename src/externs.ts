@@ -612,8 +612,8 @@ export function generateExterns(
             // file, so effectively this augments any existing module.
 
             const importName = (decl.name as ts.StringLiteral).text;
-            const importedModuleName = resolveModuleName(
-                {host: moduleResolutionHost, options}, sourceFile.fileName, importName);
+            const importedModuleName =
+                resolveModuleName({moduleResolutionHost, options}, sourceFile.fileName, importName);
             const mangled = moduleNameAsIdentifier(host, importedModuleName);
             emit(`// Derived from: declare module "${importName}"\n`);
             namespace = [mangled];

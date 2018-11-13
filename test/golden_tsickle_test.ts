@@ -161,7 +161,7 @@ testFn('golden tests with transformer', () => {
           return fileName.replace(/^\.\//, '');
         },
         options: tsCompilerOptions,
-        host: tsHost,
+        moduleResolutionHost: tsHost,
       };
 
       /**
