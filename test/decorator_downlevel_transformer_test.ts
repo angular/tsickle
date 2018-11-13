@@ -53,7 +53,7 @@ describe('decorator_downlevel_transformer', () => {
       es5Mode: false,
       untyped: false,
       options: testSupport.compilerOptions,
-      host,
+      moduleResolutionHost: host,
     };
 
     const files = new Map<string, string>();

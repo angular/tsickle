@@ -176,7 +176,7 @@ export function toClosureJS(
     untyped: false,
     logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
-    host: compilerHost,
+    moduleResolutionHost: compilerHost,
   };
   const diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length > 0) {

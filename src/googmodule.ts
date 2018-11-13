@@ -32,7 +32,7 @@ export interface GoogModuleProcessorHost {
   convertIndexImportShorthand?: boolean;
 
   options: ts.CompilerOptions;
-  host: ts.ModuleResolutionHost;
+  moduleResolutionHost: ts.ModuleResolutionHost;
 }
 
 /**
@@ -135,11 +135,13 @@ const TS_EXTENSIONS = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
  * before generating `goog.module` names.
  */
 export function resolveModuleName(
-    {options, host}: {options: ts.CompilerOptions, host: ts.ModuleResolutionHost},
+    {options, moduleResolutionHost}:
+        {options: ts.CompilerOptions, moduleResolutionHost: ts.ModuleResolutionHost},
     pathOfImportingFile: string, imported: string): string {
   // The strategy taken here is to use ts.resolveModuleName() to resolve the import to
   // a specific path, which resolves any /index and path mappings.
-  const resolved = ts.resolveModuleName(imported, pathOfImportingFile, options, host);
+  const resolved =
+      ts.resolveModuleName(imported, pathOfImportingFile, options, moduleResolutionHost);
   if (!resolved || !resolved.resolvedModule) return imported;
   const resolvedModule = resolved.resolvedModule.resolvedFileName;
 

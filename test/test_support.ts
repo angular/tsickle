@@ -405,7 +405,7 @@ export function compileWithTransfromer(
     es5Mode: false,
     untyped: false,
     options: compilerOptions,
-    host: tsHost,
+    moduleResolutionHost: tsHost,
   };
 
   const files = new Map<string, string>();

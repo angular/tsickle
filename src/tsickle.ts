@@ -168,8 +168,8 @@ export function emitWithTsickle(
       if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
         continue;
       }
-      const {output, diagnostics} = generateExterns(
-          typeChecker, sourceFile, host, /* moduleResolutionHost */ host.host, tsOptions);
+      const {output, diagnostics} =
+          generateExterns(typeChecker, sourceFile, host, host.moduleResolutionHost, tsOptions);
       if (output) {
         externs[sourceFile.fileName] = output;
       }

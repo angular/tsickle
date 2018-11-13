@@ -30,7 +30,7 @@ function processES5(fileName: string, content: string, {
         cliSupport.pathToModuleName(rootDir, context, fileName),
     es5Mode: isES5,
     options: testSupport.compilerOptions,
-    host: tsHost,
+    moduleResolutionHost: tsHost,
     isJsTranspilation,
   };
   const program = ts.createProgram([fileName], options, tsHost);
@@ -439,8 +439,8 @@ describe('resolveIndexShorthand', () => {
   });
 
   function expectResolve(context: string, target: string) {
-    const resolved =
-        googmodule.resolveModuleName({options: opts, host: resolutionHost}, context, target);
+    const resolved = googmodule.resolveModuleName(
+        {options: opts, moduleResolutionHost: resolutionHost}, context, target);
     return expect(resolved);
   }
 
