@@ -417,9 +417,10 @@ export function removeTypeAssertions(): ts.TransformerFactory<ts.SourceFile> {
  * JSDoc annotations.
  */
 export function jsdocTransformer(
-    host: AnnotatorHost, tsOptions: ts.CompilerOptions, tsHost: ts.CompilerHost,
-    typeChecker: ts.TypeChecker, diagnostics: ts.Diagnostic[]):
-    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
+    host: AnnotatorHost, tsOptions: ts.CompilerOptions,
+    moduleResolutionHost: ts.ModuleResolutionHost, typeChecker: ts.TypeChecker,
+    diagnostics: ts.Diagnostic[]): (context: ts.TransformationContext) =>
+    ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     return (sourceFile: ts.SourceFile) => {
       const moduleTypeTranslator = new ModuleTypeTranslator(
@@ -732,7 +733,7 @@ export function jsdocTransformer(
         // Write the export declaration here so that forward declares come after it, and
         // fileoverview comments do not get moved behind statements.
         const importPath = googmodule.resolveModuleName(
-            {options: tsOptions, moduleResolutionHost: tsHost}, sourceFile.fileName,
+            {options: tsOptions, moduleResolutionHost}, sourceFile.fileName,
             (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
         moduleTypeTranslator.forwardDeclare(
