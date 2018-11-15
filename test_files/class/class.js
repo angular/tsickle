@@ -1,7 +1,8 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
+// test_files/class/class.ts(98,1): warning TS0: omitting heritage of type alias: TypeAlias
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(126,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
-// test_files/class/class.ts(130,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
+// test_files/class/class.ts(130,1): warning TS0: omitting heritage of type alias: ZoneAlias
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -186,7 +187,7 @@ class AbstractClassExtendsClass extends Class {
 class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /**
- * @implements {Interface}
+ * @implements {InexpressibleType}
  * @extends {Class}
  */
 class ImplementsTypeAlias {

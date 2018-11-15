@@ -114,8 +114,8 @@ export function maybeAddHeritageClauses(
       isExtends: boolean, hasExtends: boolean,
       expr: ts.ExpressionWithTypeArguments): {tagName: string, parentName: string}|null {
     let tagName = isExtends ? 'extends' : 'implements';
-    let sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
-    if (!sym) {
+    const localSym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
+    if (!localSym) {
       // It's possible for a class declaration to extend an expression that
       // does not have have a symbol, for example when a mixin function is
       // used to build a base class, as in `declare MyClass extends
@@ -130,29 +130,30 @@ export function maybeAddHeritageClauses(
       return null;
     }
 
-    // Resolve any aliases to the underlying type.
-    if (sym.flags & ts.SymbolFlags.TypeAlias) {
-      // It's implementing a type alias.  Follow the type alias back
-      // to the original symbol to check whether it's a type or a value.
-      const type = mtt.typeChecker.getDeclaredTypeOfSymbol(sym);
-      if (!type.symbol) {
-        // It's not clear when this can happen.
-        mtt.debugWarn(decl, `could not get type of symbol: ${expr.getText()}`);
-        return null;
-      }
-      sym = type.symbol;
-    }
-    if (sym.flags & ts.SymbolFlags.Alias) {
-      sym = mtt.typeChecker.getAliasedSymbol(sym);
+    // localSym can be an alias (e.g. an imported symbol); dealias it before
+    // examining flags, like whether it's a type or a value.  But keep the
+    // original symbol around, because we want to only reference the local
+    // name in any emitted reference.
+    let trueSym = localSym;
+    if (trueSym.flags & ts.SymbolFlags.Alias) {
+      trueSym = mtt.typeChecker.getAliasedSymbol(trueSym);
     }
 
     const typeTranslator = mtt.newTypeTranslator(expr.expression);
-    if (typeTranslator.isBlackListed(sym)) {
+    if (typeTranslator.isBlackListed(trueSym)) {
       // Don't emit references to blacklisted types.
       return null;
     }
 
-    if (sym.flags & ts.SymbolFlags.Class) {
+    if (trueSym.flags & ts.SymbolFlags.TypeAlias) {
+      // It's implementing a type alias.  This is illegal in Closure.
+      // We cannot just dereference the type alias, because it might refer
+      // to a symbol that hasn't been imported.
+      mtt.debugWarn(decl, `omitting heritage of type alias: ${expr.getText()}`);
+      return null;
+    }
+
+    if (trueSym.flags & ts.SymbolFlags.Class) {
       if (!isClass) {
         // Closure interfaces cannot extend or implements classes.
         mtt.debugWarn(decl, `omitting interface deriving from class: ${expr.getText()}`);
@@ -173,14 +174,14 @@ export function maybeAddHeritageClauses(
           return null;
         }
       }
-    } else if (sym.flags & ts.SymbolFlags.Value) {
+    } else if (trueSym.flags & ts.SymbolFlags.Value) {
       // If it's something other than a class in the value namespace, then it will
       // not be a type in the Closure output (because Closure collapses
       // the type and value namespaces).
       mtt.debugWarn(
           decl, `omitting heritage reference to a type/value conflict: ${expr.getText()}`);
       return null;
-    } else if (sym.flags & ts.SymbolFlags.TypeLiteral) {
+    } else if (trueSym.flags & ts.SymbolFlags.TypeLiteral) {
       // A type literal is a type like `{foo: string}`.
       // These can come up as the output of a mapped type.
       mtt.debugWarn(decl, `omitting heritage reference to a type literal: ${expr.getText()}`);
@@ -188,7 +189,7 @@ export function maybeAddHeritageClauses(
     }
 
     // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-    const parentName = typeTranslator.symbolToString(sym);
+    const parentName = typeTranslator.symbolToString(localSym);
     if (!parentName) return null;
     return {tagName, parentName};
   }
