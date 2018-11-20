@@ -224,7 +224,7 @@ export class GoldenFileTest {
 export function getSourceRoot(): string {
   // The trick used here is to dereference a symlink for a file that is known to be present in
   // runfiles, then map the resulting path back the containing directory.
-  const pathInSourceTree = 'node_modules/tslib/tslib.d.ts';
+  const pathInSourceTree = 'src/closure_externs.js';
   const dereferencedPath = fs.readlinkSync(path.join(rootDir(), pathInSourceTree));
   return dereferencedPath.substr(0, dereferencedPath.length - pathInSourceTree.length - 1);
 }
@@ -381,6 +381,19 @@ export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
 }
 
 /**
+ * Test-friendly wrapper of cliSupport.pathToModuleName.
+ *
+ * This wrapper special-cases the handling of the 'tslib' import to ensure the
+ * test goldens always refer to it by its generic name (rather than some
+ * environment-specific path).
+ */
+export function pathToModuleName(
+    rootModulePath: string, context: string, fileName: string): string {
+  if (fileName === tslibPath) return 'tslib';
+  return cliSupport.pathToModuleName(rootModulePath, context, fileName);
+}
+
+/**
  * Compiles with the transformer 'emitWithTsickle()', performing both decorator
  * downleveling and closurization.
  */
@@ -395,7 +408,7 @@ export function compileWithTransfromer(
 
   const transformerHost: tsickle.TsickleHost = {
     shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
-    pathToModuleName: cliSupport.pathToModuleName.bind(null, rootModulePath),
+    pathToModuleName: pathToModuleName.bind(null, rootModulePath),
     shouldIgnoreWarningsForPath: (filePath) => false,
     fileNameToModuleId: (filePath) => filePath,
     transformDecorators: true,
