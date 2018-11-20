@@ -1,3 +1,4 @@
+// test_files/interface/implement_import.ts(7,1): warning TS0: omitting @implements of a class: User
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -27,9 +28,6 @@ if (false) {
     /** @type {number} */
     MyPoint.prototype.y;
 }
-/**
- * @extends {tsickle_forward_declare_1.User}
- */
 class ImplementsUser {
     /**
      * @param {number} shoeSize
@@ -41,6 +39,15 @@ class ImplementsUser {
 if (false) {
     /** @type {number} */
     ImplementsUser.prototype.shoeSize;
+}
+if (false) {
+    /**
+     * @param {!tsickle_forward_declare_1.User} superType
+     * @param {!ImplementsUser} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
 }
 class ExtendsUser extends interface_1.User {
     constructor() {

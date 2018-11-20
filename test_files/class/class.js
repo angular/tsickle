@@ -1,4 +1,9 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
+// test_files/class/class.ts(52,1): warning TS0: omitting @implements of a class: Class
+// test_files/class/class.ts(55,1): warning TS0: omitting @implements of a class: AbstractClass
+// test_files/class/class.ts(76,1): warning TS0: omitting @implements of a class: Class
+// test_files/class/class.ts(79,1): warning TS0: omitting @implements of a class: AbstractClass
+// test_files/class/class.ts(98,1): warning TS0: omitting @implements of a class: Class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(126,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
 // test_files/class/class.ts(130,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
@@ -92,18 +97,21 @@ class ClassImplementsInterface {
      */
     interfaceFunc() { }
 }
-/**
- * @extends {Class}
- */
 class ClassImplementsClass {
     /**
      * @return {void}
      */
     classFunc() { }
 }
-/**
- * @extends {AbstractClass}
- */
+if (false) {
+    /**
+     * @param {!Class} superType
+     * @param {!ClassImplementsClass} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
+}
 class ClassImplementsAbstractClass {
     /**
      * @return {void}
@@ -115,6 +123,15 @@ class ClassImplementsAbstractClass {
      * @return {void}
      */
     nonAbstractFunc() { }
+}
+if (false) {
+    /**
+     * @param {!AbstractClass} superType
+     * @param {!ClassImplementsAbstractClass} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
 }
 // Permutation 4: class extends.
 // Note: cannot "extends" an interface.
@@ -144,7 +161,6 @@ class AbstractClassImplementsInterface {
 }
 /**
  * @abstract
- * @extends {Class}
  */
 class AbstractClassImplementsClass {
     /**
@@ -152,9 +168,17 @@ class AbstractClassImplementsClass {
      */
     classFunc() { }
 }
+if (false) {
+    /**
+     * @param {!Class} superType
+     * @param {!AbstractClassImplementsClass} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
+}
 /**
  * @abstract
- * @extends {AbstractClass}
  */
 class AbstractClassImplementsAbstractClass {
     // Note: because this class *implements* AbstractClass, it must also implement
@@ -167,6 +191,15 @@ class AbstractClassImplementsAbstractClass {
      * @return {void}
      */
     nonAbstractFunc() { }
+}
+if (false) {
+    /**
+     * @param {!AbstractClass} superType
+     * @param {!AbstractClassImplementsAbstractClass} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
 }
 // Permutation 6: abstract class extends.
 // Note: cannot "extends" an interface.
@@ -187,7 +220,6 @@ class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /**
  * @implements {Interface}
- * @extends {Class}
  */
 class ImplementsTypeAlias {
     /**
@@ -198,6 +230,15 @@ class ImplementsTypeAlias {
      * @return {void}
      */
     classFunc() { }
+}
+if (false) {
+    /**
+     * @param {!Class} superType
+     * @param {!ImplementsTypeAlias} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
 }
 // Verify Closure accepts the various subtypes of Interface.
 /** @type {!Interface} */
