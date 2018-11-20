@@ -80,15 +80,7 @@ export function maybeAddHeritageClauses(
 
     // Otherwise, if we get here, we need to emit some jsdoc.
     for (const expr of heritage.types) {
-      const heritage = heritageName(isExtends, hasExtends, expr);
-      // heritageName may return null, indicating that the clause is something inexpressible
-      // in Closure, e.g. "class Foo implements Partial<Bar>".
-      if (heritage) {
-        docTags.push({
-          tagName: heritage.tagName,
-          type: heritage.parentName,
-        });
-      }
+      addHeritage(isExtends, expr);
     }
   }
 
@@ -100,11 +92,8 @@ export function maybeAddHeritageClauses(
    * already verified to be valid TypeScript.  See test_files/class/ for the full
    * cartesian product of test cases.
    * @param isExtends True if we're in an 'extends', false in an 'implements'.
-   * @param hasExtends True if there are any 'extends' clauses present at all.
    */
-  function heritageName(
-      isExtends: boolean, hasExtends: boolean,
-      expr: ts.ExpressionWithTypeArguments): {tagName: string, parentName: string}|null {
+  function addHeritage(isExtends: boolean, expr: ts.ExpressionWithTypeArguments): void {
     let tagName = isExtends ? 'extends' : 'implements';
     let sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
     if (!sym) {
@@ -119,7 +108,7 @@ export function maybeAddHeritageClauses(
       // probably need to generate an intermediate class declaration and
       // extend that.
       mtt.debugWarn(decl, `could not resolve supertype: ${expr.getText()}`);
-      return null;
+      return;
     }
 
     // Resolve any aliases to the underlying type.
@@ -130,10 +119,11 @@ export function maybeAddHeritageClauses(
       if (!type.symbol) {
         // It's not clear when this can happen.
         mtt.debugWarn(decl, `could not get type of symbol: ${expr.getText()}`);
-        return null;
+        return;
       }
       sym = type.symbol;
     }
+
     if (sym.flags & ts.SymbolFlags.Alias) {
       sym = mtt.typeChecker.getAliasedSymbol(sym);
     }
@@ -141,14 +131,14 @@ export function maybeAddHeritageClauses(
     const typeTranslator = mtt.newTypeTranslator(expr.expression);
     if (typeTranslator.isBlackListed(sym)) {
       // Don't emit references to blacklisted types.
-      return null;
+      return;
     }
 
     if (sym.flags & ts.SymbolFlags.Class) {
       if (!isClass) {
         // Closure interfaces cannot extend or implements classes.
         mtt.debugWarn(decl, `omitting interface deriving from class: ${expr.getText()}`);
-        return null;
+        return;
       }
       if (!isExtends) {
         if (!hasExtends) {
@@ -162,7 +152,7 @@ export function maybeAddHeritageClauses(
         } else {
           // Closure can only @implements an interface, not a class.
           mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
-          return null;
+          return;
         }
       }
     } else if (sym.flags & ts.SymbolFlags.Value) {
@@ -171,18 +161,21 @@ export function maybeAddHeritageClauses(
       // the type and value namespaces).
       mtt.debugWarn(
           decl, `omitting heritage reference to a type/value conflict: ${expr.getText()}`);
-      return null;
+      return;
     } else if (sym.flags & ts.SymbolFlags.TypeLiteral) {
       // A type literal is a type like `{foo: string}`.
       // These can come up as the output of a mapped type.
       mtt.debugWarn(decl, `omitting heritage reference to a type literal: ${expr.getText()}`);
-      return null;
+      return;
     }
 
     // typeToClosure includes nullability modifiers, so call symbolToString directly here.
     const parentName = typeTranslator.symbolToString(sym);
-    if (!parentName) return null;
-    return {tagName, parentName};
+    if (!parentName) return;
+    docTags.push({
+      tagName,
+      type: parentName,
+    });
   }
 }
 
