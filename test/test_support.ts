@@ -215,20 +215,6 @@ export class GoldenFileTest {
   }
 }
 
-/**
- * Compute the absolute path to the source tree, outside of any bazel sandbox redirection.
- *
- * To update test golden files (including deleting them when necessary), we need the real path to
- * the source tree.
- */
-export function getSourceRoot(): string {
-  // The trick used here is to dereference a symlink for a file that is known to be present in
-  // runfiles, then map the resulting path back the containing directory.
-  const pathInSourceTree = 'src/closure_externs.js';
-  const dereferencedPath = fs.readlinkSync(path.join(rootDir(), pathInSourceTree));
-  return dereferencedPath.substr(0, dereferencedPath.length - pathInSourceTree.length - 1);
-}
-
 export function goldenTests(): GoldenFileTest[] {
   const basePath = path.join(rootDir(), 'test_files');
   const testNames = fs.readdirSync(basePath);

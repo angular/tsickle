@@ -42,9 +42,7 @@ const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
  *     the file is expected to not exist.  (This subtlety is used for
  *     externs files, where the majority of tests are not expected to
  *     produce one.)
- * @param goldenPath The absolute path to the matching golden file.  Note that
- *     this must be the path to the true source directory, not some bazel sandbox
- *     path, if you want UPDATE_GOLDENS to work.
+ * @param goldenPath The absolute path to the matching golden file.
  */
 function compareAgainstGolden(
     output: string|null, goldenPath: string, test: testSupport.GoldenFileTest) {
@@ -65,6 +63,9 @@ function compareAgainstGolden(
   if (output != null) output = normalizeLineEndings(output);
 
   if (UPDATE_GOLDENS && output !== golden) {
+    // Ensure goldenPath refers to the path within the original source root, and not some
+    // testing environment symlink.
+    goldenPath = fs.readlinkSync(goldenPath);
     console.log('Updating golden file for', goldenPath);
     if (output !== null) {
       fs.writeFileSync(goldenPath, output, {encoding: 'utf-8'});
@@ -86,8 +87,6 @@ function compareAgainstGolden(
 const testFn = TEST_FILTER ? fdescribe : describe;
 
 testFn('golden tests with transformer', () => {
-  const sourceRoot = testSupport.getSourceRoot();
-
   beforeEach(() => {
     testSupport.addDiffMatchers();
   });
@@ -164,14 +163,6 @@ testFn('golden tests with transformer', () => {
         moduleResolutionHost: tsHost,
       };
 
-      /**
-       * Converts a runfiles path to the absolute path to the original source.
-       * Used for updating goldens.
-       */
-      function pathToSourcePath(fileName: string): string {
-        return path.join(sourceRoot, path.relative(tsCompilerOptions.rootDir!, fileName));
-      }
-
       const tscOutput = new Map<string, string>();
       let targetSource: ts.SourceFile|undefined = undefined;
       if (TEST_FILTER && TEST_FILTER.fileName) {
@@ -231,7 +222,7 @@ testFn('golden tests with transformer', () => {
           allExterns = getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
         }
       }
-      compareAgainstGolden(allExterns, pathToSourcePath(test.externsPath), test);
+      compareAgainstGolden(allExterns, test.externsPath, test);
       for (const [outputPath, output] of tscOutput) {
         const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
@@ -245,7 +236,7 @@ testFn('golden tests with transformer', () => {
                     .join('') +
               out;
         }
-        compareAgainstGolden(out, pathToSourcePath(outputPath), test);
+        compareAgainstGolden(out, outputPath, test);
       }
       const dtsDiags: ts.Diagnostic[] = [];
       if (diagnosticsByFile.size) {
@@ -260,8 +251,8 @@ testFn('golden tests with transformer', () => {
       }
       if (dtsDiags.length) {
         compareAgainstGolden(
-            testSupport.formatDiagnostics(dtsDiags),
-            pathToSourcePath(path.join(test.path, 'dtsdiagnostics.txt')), test);
+            testSupport.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'),
+            test);
       }
     });
   });
