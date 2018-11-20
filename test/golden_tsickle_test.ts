@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import {assertAbsolute, pathToModuleName} from '../src/cli_support';
+import {assertAbsolute} from '../src/cli_support';
 import {getGeneratedExterns} from '../src/externs';
 import {normalizeLineEndings} from '../src/jsdoc';
 import * as tsickle from '../src/tsickle';
@@ -153,7 +153,7 @@ testFn('golden tests with transformer', () => {
         shouldSkipTsickleProcessing: (fileName) => !tsSources.has(fileName),
         shouldIgnoreWarningsForPath: () => false,
         pathToModuleName: (context, importPath) => {
-          return pathToModuleName(tsCompilerOptions.rootDir!, context, importPath);
+          return testSupport.pathToModuleName(tsCompilerOptions.rootDir!, context, importPath);
         },
         fileNameToModuleId: (fileName) => {
           assertAbsolute(fileName);
