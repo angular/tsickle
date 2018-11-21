@@ -21,6 +21,7 @@ describe('emitWithTsickle', () => {
       customTransformers?: tsickle.EmitTransformers): {[fileName: string]: string} {
     const tsCompilerOptions:
         ts.CompilerOptions = {...testSupport.compilerOptions, ...tsConfigOverride};
+    tsCompilerOptions.outDir = path.join(tsCompilerOptions.rootDir!, 'out');
 
     const sources = new Map<string, string>();
     for (const fileName of Object.keys(tsSources)) {
@@ -55,7 +56,7 @@ describe('emitWithTsickle', () => {
     tsickle.emitWithTsickle(
         program, tsickleHost, tsHost, tsCompilerOptions, /* sourceFile */ undefined,
         (fileName: string, data: string) => {
-          jsSources[path.relative(tsCompilerOptions.rootDir!, fileName)] = data;
+          jsSources[path.relative(tsCompilerOptions.outDir!, fileName)] = data;
         },
         /* cancellationToken */ undefined, /* emitOnlyDtsFiles */ undefined, customTransformers);
     return jsSources;
@@ -102,6 +103,29 @@ describe('emitWithTsickle', () => {
         {es5Mode: false, googmodule: false});
 
     expect(jsSources['b.js']).toContain(`export { Foo } from './a';`);
+  });
+
+  it('should emit valid JSON when resolveJsonModule is true', () => {
+    const tsSources = {
+      'a.ts': `
+        import x from './b.json';
+        export { x };
+      `,
+      'b.json': '{"foo": "bar"}',
+    };
+
+    const jsSources = emitWithTsickle(
+        tsSources, {
+          moduleResolution: ts.ModuleResolutionKind.NodeJs,
+          module: ts.ModuleKind.ES2015,
+          resolveJsonModule: true,
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+        },
+        {es5Mode: false, googmodule: false});
+
+    const jsonContent = JSON.parse(jsSources['b.json']);
+    expect(jsonContent.foo).toBe('bar');
   });
 
   describe('regressions', () => {

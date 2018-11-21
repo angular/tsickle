@@ -84,6 +84,10 @@ export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]
     }
 
     return (sourceFile: ts.SourceFile) => {
+      if (sourceFile.fileName.toLowerCase().endsWith('.json')) {
+        return sourceFile;
+      }
+
       const text = sourceFile.getFullText();
 
       let fileComments: ts.SynthesizedComment[] = [];
