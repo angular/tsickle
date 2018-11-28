@@ -258,6 +258,13 @@ export function commonJsToGoogmoduleTransformer(
       // to remain compatible with earlier TS versions.
       // tslint:disable-next-line:no-any
       if ((sf as any).kind !== ts.SyntaxKind.SourceFile) return sf;
+
+      // JS scripts (as opposed to modules), must not be rewritten to
+      // goog.modules.
+      if (host.isJsTranspilation && !isModule(sf)) {
+        return sf;
+      }
+
       let moduleVarCounter = 1;
       /**
        * Creates a new unique variable to assign side effect imports into. This allows us to re-use
@@ -292,6 +299,19 @@ export function commonJsToGoogmoduleTransformer(
         } else {
           initializer = ident;
         }
+
+        // In JS modules it's recommended that users get a handle on the
+        // goog namespace via:
+        //
+        //    import * as goog from 'google3/javascript/closure/goog.js';
+        //
+        // In a goog.module we just want to access the global `goog` value,
+        // so we skip emitting that import as a goog.require.
+        // We check the goog module name so that we also catch relative imports.
+        if (newIdent.escapedText === 'goog' && imp.text === 'google3.javascript.closure.goog') {
+          return createNotEmittedStatementWithComments(sf, original);
+        }
+
         const varDecl = ts.createVariableDeclaration(newIdent, /* type */ undefined, initializer);
         const newStmt = ts.createVariableStatement(
             /* modifiers */ undefined,
@@ -303,19 +323,83 @@ export function commonJsToGoogmoduleTransformer(
       }
 
       /**
+       * Rewrite goog.declareModuleId to something that works in a goog.module.
+       *
+       * goog.declareModuleId exposes a JS module as a goog.module. After we
+       * convert the JS module to a goog.module, what we really want is to
+       * expose the current goog.module at two different module ids. This isn't
+       * possible with the public APIs, but we can make it work at runtime
+       * by writing a record to goog.loadedModules_.
+       *
+       * This only works at runtime, and would fail if compiled by closure
+       * compiler, but that's ok because we only transpile JS in development
+       * mode.
+       */
+      function maybeRewriteDeclareModuleId(
+          original: ts.Statement, call: ts.CallExpression): ts.Statement|null {
+        // Verify that the call is a call to goog.declareModuleId(...).
+        if (!ts.isPropertyAccessExpression(call.expression)) {
+          return null;
+        }
+        const propAccess = call.expression;
+        if (propAccess.name.escapedText !== 'declareModuleId') {
+          return null;
+        }
+        if (!ts.isIdentifier(propAccess.expression) ||
+            propAccess.expression.escapedText !== 'goog') {
+          return null;
+        }
+
+        // Verify the call takes a single string argument and grab it.
+        if (call.arguments.length !== 1) {
+          return null;
+        }
+        const arg = call.arguments[0];
+        if (!ts.isStringLiteral(arg)) {
+          return null;
+        }
+        const moduleId = arg.text;
+        // replace goog.declareModuleId['foo.bar'] with:
+        // goog.loadedModules_['foo.bar'] = {
+        //   exports: exports,
+        //   type: goog.ModuleType.GOOG,
+        //   moduleId: 'foo.bar'
+        // };
+        //
+        // For more info, see `goog.loadModule` in
+        // https://github.com/google/closure-library/blob/master/closure/goog/base.js
+        const newStmt = ts.createStatement(ts.createAssignment(
+            ts.createElementAccess(
+                ts.createPropertyAccess(
+                    ts.createIdentifier('goog'), ts.createIdentifier('loadedModules_')),
+                createSingleQuoteStringLiteral(moduleId)),
+            ts.createObjectLiteral([
+              ts.createPropertyAssignment('exports', ts.createIdentifier('exports')),
+              ts.createPropertyAssignment(
+                  'type',
+                  ts.createPropertyAccess(
+                      ts.createPropertyAccess(
+                          ts.createIdentifier('goog'), ts.createIdentifier('ModuleType')),
+                      ts.createIdentifier('GOOG'))),
+              ts.createPropertyAssignment('moduleId', createSingleQuoteStringLiteral(moduleId)),
+            ])));
+        return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
+      }
+
+      /**
        * maybeRewriteRequireTslib rewrites a require('tslib') calls to goog.require('tslib'). It
        * returns the input statement untouched if it does not match.
        */
-      function maybeRewriteRequireTslib(stmt: ts.Statement): ts.Statement {
-        if (!ts.isExpressionStatement(stmt)) return stmt;
-        if (!ts.isCallExpression(stmt.expression)) return stmt;
+      function maybeRewriteRequireTslib(stmt: ts.Statement): ts.Statement|null {
+        if (!ts.isExpressionStatement(stmt)) return null;
+        if (!ts.isCallExpression(stmt.expression)) return null;
         const callExpr = stmt.expression;
         if (!ts.isIdentifier(callExpr.expression) || callExpr.expression.text !== 'require') {
-          return stmt;
+          return null;
         }
         if (callExpr.arguments.length !== 1) return stmt;
         const arg = callExpr.arguments[0];
-        if (!ts.isStringLiteral(arg) || arg.text !== 'tslib') return stmt;
+        if (!ts.isStringLiteral(arg) || arg.text !== 'tslib') return null;
         return ts.setOriginalNode(
             ts.setTextRange(ts.createStatement(createGoogCall('require', arg)), stmt), stmt);
       }
@@ -336,6 +420,17 @@ export function commonJsToGoogmoduleTransformer(
           statements: ts.Statement[], sf: ts.SourceFile, node: ts.Statement): void {
         // Handle each particular case by adding node to statements, then return.
         // For unhandled cases, break to jump to the default handling below.
+
+        // In JS transpilation mode, always rewrite `require('tslib')` to
+        // goog.require('tslib'), ignoring normal module resolution.
+        if (host.isJsTranspilation) {
+          const rewrittenTsLib = maybeRewriteRequireTslib(node);
+          if (rewrittenTsLib) {
+            statements.push(rewrittenTsLib);
+            return;
+          }
+        }
+
         switch (node.kind) {
           case ts.SyntaxKind.ExpressionStatement: {
             const exprStmt = node as ts.ExpressionStatement;
@@ -356,6 +451,11 @@ export function commonJsToGoogmoduleTransformer(
             const expr = exprStmt.expression;
             if (!ts.isCallExpression(expr)) break;
             let callExpr = expr;
+            const declaredModuleId = maybeRewriteDeclareModuleId(exprStmt, callExpr);
+            if (declaredModuleId) {
+              statements.push(declaredModuleId);
+              return;
+            }
             // Handle export * in ES5 mode (in ES6 mode, export * is dereferenced already).
             // export * creates either a pure top-level '__export(require(...))' or the imported
             // version, 'tslib.__exportStar(require(...))'. The imported version is only substituted
@@ -404,16 +504,6 @@ export function commonJsToGoogmoduleTransformer(
       const moduleName = host.pathToModuleName('', sf.fileName);
       // Register the namespace this file provides.
       modulesManifest.addModule(sf.fileName, moduleName);
-
-      // In JS transpilation mode, keep all CommonJS code, and only rewrite `require('tslib')` to
-      // a goog.require().
-      if (host.isJsTranspilation) {
-        const stmts: ts.Statement[] = [];
-        for (const stmt of sf.statements) {
-          stmts.push(maybeRewriteRequireTslib(stmt));
-        }
-        return ts.updateSourceFileNode(sf, stmts);
-      }
 
       // Convert each top level statement to goog.module.
       const stmts: ts.Statement[] = [];
@@ -477,4 +567,13 @@ export function commonJsToGoogmoduleTransformer(
       return ts.updateSourceFileNode(sf, ts.setTextRange(ts.createNodeArray(stmts), sf.statements));
     };
   };
+}
+
+function isModule(sourceFile: ts.SourceFile): boolean {
+  interface InternalSourceFile extends ts.SourceFile {
+    // An internal property that we use here to check whether a file is
+    // syntactically a module or a script.
+    externalModuleIndicator?: ts.Node;
+  }
+  return Boolean((sourceFile as InternalSourceFile).externalModuleIndicator);
 }
