@@ -25,9 +25,6 @@ class ClassInExtends {
         return 'a';
     }
 }
-/**
- * @implements {InexpressibleType}
- */
 class ExtendsAndImplementsClass extends ClassInExtends {
 }
 if (false) {

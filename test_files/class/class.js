@@ -221,18 +221,12 @@ abstractClassVar = new ClassExtendsAbstractClass();
  * @return {void}
  */
 function Zone() { }
-/**
- * @implements {InexpressibleType}
- */
 class ZoneImplementsInterface {
 }
 if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
-/**
- * @implements {InexpressibleType}
- */
 class ZoneImplementsAlias {
 }
 if (false) {

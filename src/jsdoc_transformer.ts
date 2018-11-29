@@ -83,15 +83,7 @@ export function maybeAddHeritageClauses(
       const heritage = heritageName(isExtends, hasExtends, expr);
       // heritageName may return null, indicating that the clause is something inexpressible
       // in Closure, e.g. "class Foo implements Partial<Bar>".
-      if (!heritage) {
-        // For 'extends' clauses that means we cannot emit anything at all.
-        if (!isExtends) {
-          docTags.push({
-            tagName: isExtends ? 'extends' : 'implements',
-            type: 'InexpressibleType',
-          });
-        }
-      } else {
+      if (heritage) {
         docTags.push({
           tagName: heritage.tagName,
           type: heritage.parentName,

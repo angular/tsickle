@@ -15,9 +15,6 @@ if (false) {
     /** @type {string} */
     Base.prototype.foo;
 }
-/**
- * @implements {InexpressibleType}
- */
 class Derived {
     /**
      * @return {void}

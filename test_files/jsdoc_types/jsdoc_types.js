@@ -53,7 +53,6 @@ let useNeverTyped2;
 let useNeverTypedTemplated;
 /**
  * Note: JSDoc should not reference NeverTyped because the type is blacklisted.
- * @implements {InexpressibleType}
  */
 class ImplementsNeverTyped {
 }
@@ -63,7 +62,6 @@ if (false) {
 }
 /**
  * @template T
- * @implements {InexpressibleType}
  */
 class ImplementsNeverTypedTemplated {
 }
