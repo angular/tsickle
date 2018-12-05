@@ -499,7 +499,18 @@ export class TypeTranslator {
       this.warn(`EnumLiteralType without a symbol`);
       return '?';
     }
-    const name = this.symbolToString(enumLiteralBaseType.symbol);
+    let symbol = enumLiteralBaseType.symbol;
+    if (enumLiteralBaseType === type) {
+      // TypeScript's API will return the same EnumLiteral type if the enum only has a single member
+      // value. See https://github.com/Microsoft/TypeScript/issues/28869.
+      // In that case, take the parent symbol of the enum member, which should be the enum
+      // declaration.
+      // tslint:disable-next-line:no-any working around a TS API deficiency.
+      const parent: ts.Symbol|undefined = (symbol as any).parent;
+      if (!parent) return '?';
+      symbol = parent;
+    }
+    const name = this.symbolToString(symbol);
     if (!name) return '?';
     // In Closure, enum types are non-null by default, so we wouldn't need to emit the `!` here.
     // However that's confusing to users, to the point that style guides and linters require to
