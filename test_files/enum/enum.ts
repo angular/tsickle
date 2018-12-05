@@ -8,6 +8,7 @@ let enumTestValue: EnumTest1 = EnumTest1.XYZ;
 let enumTestValue2: EnumTest1 = EnumTest1['XYZ'];
 let enumNumIndex: string = EnumTest1[null as any as number];
 let enumStrIndex: number = EnumTest1[null as any as string];
+let nullableEnum: EnumTest1|null = null;
 
 function enumTestFunction(val: EnumTest1) {}
 enumTestFunction(enumTestValue);

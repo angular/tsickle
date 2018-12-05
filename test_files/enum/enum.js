@@ -18,26 +18,28 @@ EnumTest1[EnumTest1.XYZ] = 'XYZ';
 EnumTest1[EnumTest1.PI] = 'PI';
 // Verify that the resulting TypeScript still allows you to index into the enum with all the various
 // ways allowed of enums.
-/** @type {EnumTest1} */
+/** @type {!EnumTest1} */
 let enumTestValue = EnumTest1.XYZ;
-/** @type {EnumTest1} */
+/** @type {!EnumTest1} */
 let enumTestValue2 = EnumTest1['XYZ'];
 /** @type {string} */
 let enumNumIndex = EnumTest1[(/** @type {number} */ ((/** @type {?} */ (null))))];
 /** @type {number} */
 let enumStrIndex = EnumTest1[(/** @type {string} */ ((/** @type {?} */ (null))))];
+/** @type {(null|!EnumTest1)} */
+let nullableEnum = null;
 /**
- * @param {EnumTest1} val
+ * @param {!EnumTest1} val
  * @return {void}
  */
 function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
-/** @type {EnumTest1} */
+/** @type {!EnumTest1} */
 let enumTestLookup = EnumTest1["XYZ"];
 /** @type {?} */
 let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
-/** @type {(boolean|EnumTest1)} */
+/** @type {(boolean|!EnumTest1)} */
 let enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
 const EnumTest2 = {
@@ -46,7 +48,7 @@ const EnumTest2 = {
 exports.EnumTest2 = EnumTest2;
 EnumTest2[EnumTest2.XYZ] = 'XYZ';
 EnumTest2[EnumTest2.PI] = 'PI';
-/** @type {EnumTest2} */
+/** @type {!EnumTest2} */
 let variableUsingExportedEnum;
 /** @enum {number} */
 const ComponentIndex = {
@@ -65,7 +67,7 @@ const ConstEnum = {
     EMITTED_ENUM_VALUE_2: 1,
 };
 exports.ConstEnum = ConstEnum;
-/** @type {ConstEnum} */
+/** @type {!ConstEnum} */
 let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
 /**
  * @record
@@ -73,9 +75,9 @@ let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
 function InterfaceUsingConstEnum() { }
 exports.InterfaceUsingConstEnum = InterfaceUsingConstEnum;
 if (false) {
-    /** @type {ConstEnum} */
+    /** @type {!ConstEnum} */
     InterfaceUsingConstEnum.prototype.field;
-    /** @type {ConstEnum} */
+    /** @type {!ConstEnum} */
     InterfaceUsingConstEnum.prototype.field2;
 }
 /** @enum {number} */

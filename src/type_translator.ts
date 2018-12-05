@@ -499,7 +499,13 @@ export class TypeTranslator {
       this.warn(`EnumLiteralType without a symbol`);
       return '?';
     }
-    return this.symbolToString(enumLiteralBaseType.symbol) || '?';
+    const name = this.symbolToString(enumLiteralBaseType.symbol);
+    if (!name) return '?';
+    // In Closure, enum types are non-null by default, so we wouldn't need to emit the `!` here.
+    // However that's confusing to users, to the point that style guides and linters require to
+    // *always* specify the nullability modifier. To be consistent with that style, include it here
+    // as well.
+    return '!' + name;
   }
 
   // translateObject translates a ts.ObjectType, which is the type of all
