@@ -40,23 +40,3 @@ interface TrickyInterface {
    */
   hasSomeParamJsDoc: (a: string) => number;
 }
-enum TextureType {
-  DEFAULT,
-  // When using a standard RGBA-packed color image.
-  RGBA_COLOR
-}
-/** @hidden */
-export interface DataTypes {
-  float32: Float32Array;
-  int32: Int32Array;
-  bool: Uint8Array;
-}
-/** @hidden */
-export interface NDArrayData<T extends keyof DataTypes> {
-  values?: DataTypes[T];
-  texture?: WebGLTexture;
-  /** [rows, columns] shape of the texture. */
-  textureShapeRC?: [number, number];
-  textureType?: TextureType;
-  isDisposed?: boolean;
-}
