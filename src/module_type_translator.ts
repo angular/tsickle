@@ -465,9 +465,20 @@ export class ModuleTypeTranslator {
           // In TypeScript you write "...x: number[]", but in Closure
           // you don't write the array: "@param {...number} x".  Unwrap
           // the Array<> wrapper.
-          const typeRef = type as ts.TypeReference;
-          if (!typeRef.typeArguments) throw new Error('invalid rest param');
-          type = typeRef.typeArguments![0];
+          if ((type.flags & ts.TypeFlags.Object) === 0 && type.flags & ts.TypeFlags.TypeParameter) {
+            // function f<T extends string[]>(...ts: T) has the Array type on the type parameter
+            // constraint, not on the parameter itself. Resolve it.
+            const baseConstraint = typeChecker.getBaseConstraintOfType(type);
+            if (baseConstraint) type = baseConstraint;
+          }
+          if (type.flags & ts.TypeFlags.Object &&
+              (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
+            const typeRef = type as ts.TypeReference;
+            if (!typeRef.typeArguments) {
+              throw new Error('rest parameter does not resolve to a reference type');
+            }
+            type = typeRef.typeArguments![0];
+          }
         }
         newTag.type = this.typeToClosure(fnDecl, type);
 

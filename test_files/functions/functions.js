@@ -87,6 +87,34 @@ TestSplat3(1, 2);
  */
 function defaultBeforeRequired(x = 1, y, ...z) { }
 defaultBeforeRequired(undefined, 2, 'h', 3);
+// The array reference below happens on the template parameter constraint, not on the parameter
+// itself. Make sure tsickle unwraps the right type.
+/**
+ * @template T
+ * @param {...string} str
+ * @return {number}
+ */
+function templatedBoundRestArg(...str) {
+    return str.length;
+}
+// But only do so if the parameter is not an array reference type by itself.
+/**
+ * @template T
+ * @param {...T} str
+ * @return {number}
+ */
+function templatedBoundRestArg2(...str) {
+    return str.length;
+}
+// Also handle the case where it's both.
+/**
+ * @template T
+ * @param {...T} str
+ * @return {number}
+ */
+function templatedBoundRestArg3(...str) {
+    return str.length;
+}
 /**
  * @template T
  * @param {T} t
