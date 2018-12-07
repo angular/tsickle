@@ -9,7 +9,10 @@
 /**
  * @fileoverview Extern definitions for types missing in the Closure externs,
  * but used in TypeScript platform `.d.ts`.
+ * We suppress checkTypes to handle the scenario where a user doesn't use the
+ * Closure externs (e.g. in a service worker).
  * @externs
+ * @suppress {checkTypes}
  */
 
 /** @typedef {!IArrayLike} */
