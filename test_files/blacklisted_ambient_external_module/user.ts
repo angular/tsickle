@@ -1,0 +1,11 @@
+/** @fileoverview Regression test for type-blacklisted ambient modules. */
+
+// This import must not be emitted, not even as a goog.requireType/forwardDeclare.
+import {Ambient} from 'ambient-external-module-blacklisted';
+
+export class User {
+  // This field should be emitted with a ? type.
+  field: Ambient|null;
+
+  constructor() { this.field = null; }
+}

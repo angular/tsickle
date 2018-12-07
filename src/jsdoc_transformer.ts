@@ -722,8 +722,7 @@ export function jsdocTransformer(
         // forces any global declarations from the library to be visible, which is what users use
         // this for. No symbols from the script need forward declaration, so just return.
         if (!sym) return importDecl;
-        // Write the export declaration here so that forward declares come after it, and
-        // fileoverview comments do not get moved behind statements.
+
         const importPath = googmodule.resolveModuleName(
             {options: tsOptions, moduleResolutionHost}, sourceFile.fileName,
             (importDecl.moduleSpecifier as ts.StringLiteral).text);

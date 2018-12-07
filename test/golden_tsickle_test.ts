@@ -136,9 +136,14 @@ testFn('golden tests with transformer', () => {
       const transformerHost: tsickle.TsickleHost = {
         es5Mode: test.isEs5Target,
         googmodule: true,
-        // See test_files/jsdoc_types/nevertyped.ts.
-        typeBlackListPaths: new Set(
-            [path.join(tsCompilerOptions.rootDir!, 'test_files/jsdoc_types/nevertyped.ts')]),
+        // See test_files/jsdoc_types/nevertyped.ts and
+        // test_files/blacklisted_ambient_external_module/blacklisted.d.ts
+        typeBlackListPaths: new Set([
+          path.join(tsCompilerOptions.rootDir!, 'test_files/jsdoc_types/nevertyped.ts'),
+          path.join(
+              tsCompilerOptions.rootDir!,
+              'test_files/blacklisted_ambient_external_module/blacklisted.d.ts')
+        ]),
         convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,

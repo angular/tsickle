@@ -826,14 +826,7 @@ export class TypeTranslator {
 
   /** @return true if sym should always have type {?}. */
   isBlackListed(symbol: ts.Symbol): boolean {
-    if (this.pathBlackList === undefined) return false;
-    const pathBlackList = this.pathBlackList;
-    // Some builtin types, such as {}, get represented by a symbol that has no declarations.
-    if (symbol.declarations === undefined) return false;
-    return symbol.declarations.every(n => {
-      const fileName = path.normalize(n.getSourceFile().fileName);
-      return pathBlackList.has(fileName);
-    });
+    return isBlacklisted(this.pathBlackList, symbol);
   }
 
   /**
@@ -862,4 +855,15 @@ export class TypeTranslator {
       this.symbolsToAliasedNames.set(sym, '?');
     }
   }
+}
+
+/** @return true if sym should always have type {?}. */
+export function isBlacklisted(pathBlackList: Set<string>|undefined, symbol: ts.Symbol) {
+  if (pathBlackList === undefined) return false;
+  // Some builtin types, such as {}, get represented by a symbol that has no declarations.
+  if (symbol.declarations === undefined) return false;
+  return symbol.declarations.every(n => {
+    const fileName = path.normalize(n.getSourceFile().fileName);
+    return pathBlackList.has(fileName);
+  });
 }
