@@ -255,12 +255,6 @@ function addClutzAliases(
         `\t\texport {${symbol.name} as module$contents$${clutzModuleName}_${symbol.name}}\n`;
     nestedSymbols +=
         `\t\texport {module$contents$${clutzModuleName}_${symbol.name} as ${symbol.name}}\n`;
-    if (symbol.flags & ts.SymbolFlags.Class) {
-      globalSymbols += `\t\texport {${symbol.name} as module$contents$${clutzModuleName}_${
-          symbol.name}_Instance}\n`;
-      nestedSymbols += `\t\texport {module$contents$${clutzModuleName}_${symbol.name} as ${
-          symbol.name}_Instance}\n`;
-    }
   }
 
   dtsFileContent += 'declare global {\n';
