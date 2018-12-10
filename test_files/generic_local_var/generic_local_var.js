@@ -24,9 +24,10 @@ class Container {
     method(u) {
         /** @type {T} */
         const myT = this.tField;
-        // Closure Compiler's Old Type Inference does not support using generic
-        // method parameters as local symbols, so myU must be emitted as ?.
-        /** @type {?} */
+        // Closure Compiler previously did not accept local variables using generic
+        // types within a generic method's scope. This test now serves as a
+        // regression test for the inverse, i.e. that tsickle now emits the type.
+        /** @type {U} */
         const myU = u;
         console.log(myT, myU);
     }

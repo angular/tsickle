@@ -552,7 +552,6 @@ export function jsdocTransformer(
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(fnDecl);
         mjsdoc.tags = tags;
         mjsdoc.updateComment();
-        moduleTypeTranslator.blacklistTypeParameters(fnDecl, fnDecl.typeParameters);
 
         const contextThisTypeBackup = contextThisType;
         contextThisType = thisReturnType;

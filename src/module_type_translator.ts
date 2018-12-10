@@ -363,11 +363,6 @@ export class ModuleTypeTranslator {
     return [[], null];
   }
 
-  blacklistTypeParameters(
-      context: ts.Node, decls: ReadonlyArray<ts.TypeParameterDeclaration>|undefined) {
-    this.newTypeTranslator(context).blacklistTypeParameters(this.symbolsToAliasedNames, decls);
-  }
-
   /**
    * Creates the jsdoc for methods, including overloads.
    * If overloaded, merges the signatures in the list of SignatureDeclarations into a single jsdoc.
