@@ -29,7 +29,7 @@
     "clang-format": "^1.2.4",
     "diff-match-patch": "^1.0.1",
     "glob": "7.1.2",
-    "google-closure-compiler": "20180716.0.1",
+    "google-closure-compiler": "^20181125.0.1",
     "jasmine": "3.1.0",
     "prettier": "1.14.0",
     "source-map-support": "^0.5.6",

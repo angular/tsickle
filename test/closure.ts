@@ -9,10 +9,10 @@
 /**
  * @fileoverview Wrapper around shelling out to the Java Closure Compiler.
  *
- * This is the same functionality as the google-closure-compiler npm module,
- * but to make things easy to use in Google's internal environment where
- * the dependencies of that module are unavailable, we don't use any of that
- * module's JavaScript code but only for compiler.jar.
+ * This is the same functionality as the google-closure-compiler npm module, but
+ * to make things easy to use in Google's internal environment where the
+ * dependencies of that module are unavailable, we wrap that module's JavaScript
+ * code and use it only if no compiler.jar is being passed in.
  */
 
 import * as child_process from 'child_process';
@@ -21,8 +21,8 @@ import * as child_process from 'child_process';
 export interface Options {
   /**
    * Path to the Closure compiler .jar.
-   * Defaults to using the one found in the google-closure-compiler npm
-   * package.
+   * If unset, will resolve and use the 'google-closure-compiler' npm package
+   * entry point.
    */
   jarPath?: string;
 }
@@ -64,23 +64,33 @@ function flagsToArgs(flags: Flags): string[] {
 
 /** Run the compiler, asynchronously returning a Result. */
 export function compile(options: Options, flags: Flags): Promise<Result> {
-  const jarPath = options.jarPath || require.resolve('google-closure-compiler/compiler.jar');
-
-  const javaArgs = ['-jar', jarPath, ...flagsToArgs(flags)];
-  const proc = child_process.spawn('java', javaArgs);
+  let compilerProcess: child_process.ChildProcess;
+  if (options.jarPath) {
+    // If set, directly call into Java using the jar file.
+    const javaArgs = ['-jar', options.jarPath, ...flagsToArgs(flags)];
+    compilerProcess = child_process.spawn('java', javaArgs);
+  } else {
+    // Otherwise, use the standard npm entry point. Arguably it'd be nicer to
+    // also use a .jar file to be more similar to the case above, but on some
+    // platforms, Closure ships a compiled native binary, so there is no jar
+    // file this code could locate.
+    // tslint:disable-next-line:no-require-imports interacting with untyped .js.
+    const closureCompilerCtor = require('google-closure-compiler').compiler;
+    compilerProcess = new closureCompilerCtor(flags).run();
+  }
   return new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
-    proc.stdout.on('data', data => {
+    compilerProcess.stdout.on('data', data => {
       stdout += data;
     });
-    proc.stderr.on('data', data => {
+    compilerProcess.stderr.on('data', data => {
       stderr += data;
     });
-    proc.on('close', exitCode => {
+    compilerProcess.on('close', exitCode => {
       resolve({stdout, stderr, exitCode});
     });
-    proc.on('error', err => {
+    compilerProcess.on('error', err => {
       reject(err);
     });
   });
