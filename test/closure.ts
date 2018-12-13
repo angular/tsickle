@@ -21,7 +21,7 @@ import * as child_process from 'child_process';
 export interface Options {
   /**
    * Path to the Closure compiler .jar.
-   * Defaults to using the one found in the google-closure-compiler npm
+   * Defaults to using the one found in the google-closure-compiler-java npm
    * package.
    */
   jarPath?: string;
@@ -64,7 +64,8 @@ function flagsToArgs(flags: Flags): string[] {
 
 /** Run the compiler, asynchronously returning a Result. */
 export function compile(options: Options, flags: Flags): Promise<Result> {
-  const jarPath = options.jarPath || require.resolve('google-closure-compiler/compiler.jar');
+  // tslint:disable-next-line:no-require-imports
+  const jarPath = options.jarPath || require('google-closure-compiler-java');
 
   const javaArgs = ['-jar', jarPath, ...flagsToArgs(flags)];
   const proc = child_process.spawn('java', javaArgs);

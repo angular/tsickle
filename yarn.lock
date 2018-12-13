@@ -91,7 +91,7 @@ builtin-modules@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/builtin-modules/-/builtin-modules-1.1.1.tgz#270f076c5a72c02f5b65a47df94c5fe3a278892f"
 
-chalk@^1.0.0, chalk@^1.1.3:
+chalk@^1.1.3:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-1.1.3.tgz#a8115c55e4a702fe4d150abd3872822a7e09fc98"
   dependencies:
@@ -117,26 +117,6 @@ clang-format@^1.2.4:
     glob "^7.0.0"
     resolve "^1.1.6"
 
-clone-buffer@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/clone-buffer/-/clone-buffer-1.0.0.tgz#e3e25b207ac4e701af721e2cb5a16792cac3dc58"
-
-clone-stats@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/clone-stats/-/clone-stats-1.0.0.tgz#b3782dff8bb5474e18b9b6bf0fdfe782f8777680"
-
-clone@^2.1.1:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
-
-cloneable-readable@^1.0.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/cloneable-readable/-/cloneable-readable-1.1.2.tgz#d591dee4a8f8bc15da43ce97dceeba13d43e2a65"
-  dependencies:
-    inherits "^2.0.1"
-    process-nextick-args "^2.0.0"
-    readable-stream "^2.3.5"
-
 color-convert@^1.9.0:
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.2.tgz#49881b8fba67df12a96bdf3f56c0aab9e7913147"
@@ -154,10 +134,6 @@ commander@^2.12.1:
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
-
-core-util-is@~1.0.0:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
 
 diff-match-patch@^1.0.1:
   version "1.0.1"
@@ -194,24 +170,9 @@ glob@7.1.2, glob@^7.0.0, glob@^7.0.6, glob@^7.1.1:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-google-closure-compiler-linux@^20180716.0.0:
-  version "20180716.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler-linux/-/google-closure-compiler-linux-20180716.0.0.tgz#b0dc9aa4751085b46002d6a300146df73fa87d35"
-
-google-closure-compiler-osx@^20180716.0.0:
-  version "20180716.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler-osx/-/google-closure-compiler-osx-20180716.0.0.tgz#5691c07580578dfea3205e90a6a2968d23b85bd9"
-
-google-closure-compiler@20180716.0.1:
-  version "20180716.0.1"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler/-/google-closure-compiler-20180716.0.1.tgz#48deb2b1dfe4c118adcb70dd104cf4fa2b9508d7"
-  dependencies:
-    chalk "^1.0.0"
-    vinyl "^2.0.1"
-    vinyl-sourcemaps-apply "^0.2.0"
-  optionalDependencies:
-    google-closure-compiler-linux "^20180716.0.0"
-    google-closure-compiler-osx "^20180716.0.0"
+google-closure-compiler-java@^20181210.0.0:
+  version "20181210.0.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler-java/-/google-closure-compiler-java-20181210.0.0.tgz#de0a948aa1951d535c7ee50a529ff6cba00d6832"
 
 has-ansi@^2.0.0:
   version "2.0.0"
@@ -230,13 +191,9 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-inherits@2, inherits@^2.0.1, inherits@~2.0.3:
+inherits@2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
-
-isarray@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/isarray/-/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
 
 jasmine-core@~3.1.0:
   version "3.1.0"
@@ -298,39 +255,11 @@ prettier@1.14.0:
   version "1.14.0"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.14.0.tgz#847c235522035fd988100f1f43cf20a7d24f9372"
 
-process-nextick-args@^2.0.0, process-nextick-args@~2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.0.tgz#a37d732f4271b4ab1ad070d35508e8290788ffaa"
-
-readable-stream@^2.3.5:
-  version "2.3.6"
-  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
-  dependencies:
-    core-util-is "~1.0.0"
-    inherits "~2.0.3"
-    isarray "~1.0.0"
-    process-nextick-args "~2.0.0"
-    safe-buffer "~5.1.1"
-    string_decoder "~1.1.1"
-    util-deprecate "~1.0.1"
-
-remove-trailing-separator@^1.0.1:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/remove-trailing-separator/-/remove-trailing-separator-1.1.0.tgz#c24bce2a283adad5bc3f58e0d48249b92379d8ef"
-
-replace-ext@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.0.tgz#de63128373fcbf7c3ccfa4de5a480c45a67958eb"
-
 resolve@^1.1.6, resolve@^1.3.2:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.8.1.tgz#82f1ec19a423ac1fbd080b0bab06ba36e84a7a26"
   dependencies:
     path-parse "^1.0.5"
-
-safe-buffer@~5.1.0, safe-buffer@~5.1.1:
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
 
 semver@^5.3.0:
   version "5.5.0"
@@ -343,10 +272,6 @@ source-map-support@^0.5.6:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
 
-source-map@^0.5.1:
-  version "0.5.7"
-  resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
-
 source-map@^0.6.0:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
@@ -358,12 +283,6 @@ source-map@^0.7.3:
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
-
-string_decoder@~1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.1.1.tgz#9cf1611ba62685d7030ae9e4ba34149c3af03fc8"
-  dependencies:
-    safe-buffer "~5.1.0"
 
 strip-ansi@^3.0.0:
   version "3.0.1"
@@ -411,27 +330,6 @@ tsutils@^2.27.2:
 typescript@3.2.0-rc:
   version "3.2.0-rc"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.2.0-rc.tgz#7c3816f1c761b096f4f1712382e872f4da8f263e"
-
-util-deprecate@~1.0.1:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
-
-vinyl-sourcemaps-apply@^0.2.0:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/vinyl-sourcemaps-apply/-/vinyl-sourcemaps-apply-0.2.1.tgz#ab6549d61d172c2b1b87be5c508d239c8ef87705"
-  dependencies:
-    source-map "^0.5.1"
-
-vinyl@^2.0.1:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/vinyl/-/vinyl-2.2.0.tgz#d85b07da96e458d25b2ffe19fece9f2caa13ed86"
-  dependencies:
-    clone "^2.1.1"
-    clone-buffer "^1.0.0"
-    clone-stats "^1.0.0"
-    cloneable-readable "^1.0.0"
-    remove-trailing-separator "^1.0.1"
-    replace-ext "^1.0.0"
 
 wrappy@1:
   version "1.0.2"
