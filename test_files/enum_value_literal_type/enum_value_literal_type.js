@@ -11,7 +11,7 @@ var module = module || { id: 'test_files/enum_value_literal_type/enum_value_lite
 module = module;
 exports = {};
 /** @enum {number} */
-const ExportedEnum = {
+var ExportedEnum = {
     VALUE: 0,
     OTHERVALUE: 1,
 };

@@ -11,7 +11,7 @@ exports = {};
 /** @type {!Array<?>} */
 const EnumTestMissingSemi = [];
 /** @enum {number} */
-const EnumTest1 = {
+var EnumTest1 = {
     XYZ: 0, PI: 3.14159,
 };
 EnumTest1[EnumTest1.XYZ] = 'XYZ';
@@ -42,7 +42,7 @@ let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
 /** @type {(boolean|!EnumTest1)} */
 let enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
-const EnumTest2 = {
+var EnumTest2 = {
     XYZ: 0, PI: 3.14159,
 };
 exports.EnumTest2 = EnumTest2;
@@ -51,7 +51,7 @@ EnumTest2[EnumTest2.PI] = 'PI';
 /** @type {!EnumTest2} */
 let variableUsingExportedEnum;
 /** @enum {number} */
-const ComponentIndex = {
+var ComponentIndex = {
     Scheme: 1,
     UserInfo: 2,
     Domain: 0,
@@ -81,26 +81,26 @@ if (false) {
     InterfaceUsingConstEnum.prototype.field2;
 }
 /** @enum {number} */
-const EnumWithNonConstValues = {
+var EnumWithNonConstValues = {
     Scheme: (x => x + 1)(3),
     UserInfoRenamed: 2,
 };
 EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = 'Scheme';
 EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = 'UserInfoRenamed';
 /** @enum {string} */
-const StringEnum = {
+var StringEnum = {
     STR: 'abc',
     OTHER_STR: 'xyz',
 };
 /** @enum {number} */
-const StringKeyEnum = {
+var StringKeyEnum = {
     'string key': 1,
     'string key 2': 0,
 };
 StringKeyEnum[StringKeyEnum['string key']] = 'string key';
 StringKeyEnum[StringKeyEnum['string key 2']] = 'string key 2';
 /** @enum {?} */
-const MixedEnum = {
+var MixedEnum = {
     STR: 'abc',
     NUM: 3,
     'string key': 4,
@@ -108,7 +108,7 @@ const MixedEnum = {
 MixedEnum[MixedEnum.NUM] = 'NUM';
 MixedEnum[MixedEnum['string key']] = 'string key';
 /** @enum {number} */
-const EnumWithJSDoc = {
+var EnumWithJSDoc = {
     /** @export */ MEMBER_WITH_JSDOC: 0,
 };
 exports.EnumWithJSDoc = EnumWithJSDoc;

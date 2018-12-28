@@ -7,13 +7,13 @@ var module = module || { id: 'test_files/enum.untyped/enum.untyped.ts' };
 module = module;
 exports = {};
 /** @enum {number} */
-const EnumUntypedTest1 = {
+var EnumUntypedTest1 = {
     XYZ: 0, PI: 3.14159,
 };
 EnumUntypedTest1[EnumUntypedTest1.XYZ] = 'XYZ';
 EnumUntypedTest1[EnumUntypedTest1.PI] = 'PI';
 /** @enum {number} */
-const EnumUntypedTest2 = {
+var EnumUntypedTest2 = {
     XYZ: 0, PI: 3.14159,
 };
 exports.EnumUntypedTest2 = EnumUntypedTest2;
