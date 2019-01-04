@@ -554,7 +554,9 @@ export function jsdocTransformer(
         mjsdoc.updateComment();
 
         const contextThisTypeBackup = contextThisType;
-        contextThisType = thisReturnType;
+        // Arrow functions retain their context `this` type. All others reset the this type to
+        // either none (if not specified) or the type given in a fn(this: T, ...) declaration.
+        if (!ts.isArrowFunction(fnDecl)) contextThisType = thisReturnType;
         const result = ts.visitEachChild(fnDecl, visitor, context);
         contextThisType = contextThisTypeBackup;
         return result;

@@ -38,6 +38,15 @@ class MethodsReturnThis {
     return this;
   }
 
+  // Ensures that arrow functions inherit the parent's `this` type.
+  nestedArrowThis(): this {
+    const sameThis = () => {
+      this.b = 1;
+    };
+    sameThis();
+    return this;
+  }
+
   overloadedThis(a: number): this;
   overloadedThis<U extends string>(u: U): this;
   overloadedThis<T extends string>(u: T): this;

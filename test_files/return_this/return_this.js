@@ -85,6 +85,23 @@ class MethodsReturnThis {
         }
         return (/** @type {!MethodsReturnThis} */ (this));
     }
+    // Ensures that arrow functions inherit the parent's `this` type.
+    /**
+     * @template THIS
+     * @this {THIS}
+     * @return {THIS}
+     */
+    nestedArrowThis() {
+        /** @type {function(): void} */
+        const sameThis = (/**
+         * @return {void}
+         */
+        () => {
+            (/** @type {!MethodsReturnThis} */ (this)).b = 1;
+        });
+        sameThis();
+        return (/** @type {!MethodsReturnThis} */ (this));
+    }
     /**
      * @template THIS,T
      * @this {THIS}
