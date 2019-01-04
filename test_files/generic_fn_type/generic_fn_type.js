@@ -11,6 +11,10 @@ exports = {};
  * Closure, so tsickle should emit ?.
  * @type {function(?): ?}
  */
-let genericFnType = (x) => x;
+let genericFnType = (/**
+ * @param {T} x
+ * @return {T}
+ */
+(x) => x);
 /** @type {function(new: (?), ?): ?} */
 let genericCtorFnType;

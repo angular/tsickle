@@ -12,13 +12,23 @@ const tslib_1 = goog.require('tslib');
  * @return {function(?, (string|symbol)): void}
  */
 function exportingDecorator() {
-    return function (target, name) { };
+    return (/**
+     * @param {?} target
+     * @param {(string|symbol)} name
+     * @return {void}
+     */
+    function (target, name) { });
 }
 /**
  * @return {function(?, (string|symbol)): void}
  */
 function nonExportingDecorator() {
-    return function (target, name) { };
+    return (/**
+     * @param {?} target
+     * @param {(string|symbol)} name
+     * @return {void}
+     */
+    function (target, name) { });
 }
 class MyClass {
     /**

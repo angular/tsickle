@@ -14,5 +14,10 @@ exports = {};
  * @return {!Promise<void>}
  */
 function f(promiseCtor) {
-    return promiseCtor ? new promiseCtor((res, rej) => res()) : Promise.resolve();
+    return promiseCtor ? new promiseCtor((/**
+     * @param {function((undefined|void|!PromiseLike<void>)=): void} res
+     * @param {function(?=): void} rej
+     * @return {void}
+     */
+    (res, rej) => res())) : Promise.resolve();
 }

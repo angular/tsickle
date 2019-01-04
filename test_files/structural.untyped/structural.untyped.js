@@ -25,4 +25,7 @@ if (false) {
  * @return {?}
  */
 function expectsAStructuralTest(st) { }
-expectsAStructuralTest({ field1: 'hi', method: () => 'hi' });
+expectsAStructuralTest({ field1: 'hi', method: (/**
+     * @return {?}
+     */
+    () => 'hi') });

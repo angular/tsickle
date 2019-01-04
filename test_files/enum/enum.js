@@ -82,7 +82,11 @@ if (false) {
 }
 /** @enum {number} */
 const EnumWithNonConstValues = {
-    Scheme: (x => x + 1)(3),
+    Scheme: ((/**
+     * @param {number} x
+     * @return {number}
+     */
+    x => x + 1))(3),
     UserInfoRenamed: 2,
 };
 EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = 'Scheme';

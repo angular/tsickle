@@ -1,5 +1,7 @@
 // test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
 // test_files/type/type.ts(15,5): warning TS0: unhandled anonymous type
+// test_files/type/type.ts(46,21): warning TS0: anonymous type has no symbol
+// test_files/type/type.ts(46,21): warning TS0: anonymous type has no symbol
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -53,11 +55,24 @@ let typeOptionalField = {};
 /** @type {{optional: (undefined|string|boolean)}} */
 let typeOptionalUnion = {};
 /** @type {function(): void} */
-let typeFunc = function () { };
+let typeFunc = (/**
+ * @return {void}
+ */
+function () { });
 /** @type {function(number, ?): string} */
-let typeFunc2 = function (a, b) { return ''; };
+let typeFunc2 = (/**
+ * @param {number} a
+ * @param {?} b
+ * @return {string}
+ */
+function (a, b) { return ''; });
 /** @type {function(number, function(number): string): string} */
-let typeFunc3 = function (x, cb) { return ''; };
+let typeFunc3 = (/**
+ * @param {number} x
+ * @param {function(number): string} cb
+ * @return {string}
+ */
+function (x, cb) { return ''; });
 /** @type {function(number, (undefined|*)=): string} */
 let typeFuncOptionalArg;
 /** @type {function(number, ...number): void} */
@@ -67,11 +82,19 @@ let typeFuncVarArgs;
  * @return {void}
  */
 function typeCallback(callback) { }
-typeCallback(val => val + 1);
+typeCallback((/**
+ * @param {number} val
+ * @return {number}
+ */
+val => val + 1));
 /**
  * @template T
  * @param {function(T): T} callback
  * @return {void}
  */
 function typeGenericCallback(callback) { }
-typeGenericCallback(val => val);
+typeGenericCallback((/**
+ * @param {?} val
+ * @return {?}
+ */
+val => val));

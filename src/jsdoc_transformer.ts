@@ -537,7 +537,7 @@ export function jsdocTransformer(
       }
 
       /** Function declarations are emitted as they are, with only JSDoc added. */
-      function visitFunctionLikeDeclaration(fnDecl: ts.FunctionLikeDeclaration) {
+      function visitFunctionLikeDeclaration<T extends ts.FunctionLikeDeclaration>(fnDecl: T): T {
         if (!fnDecl.body) {
           // Two cases: abstract methods and overloaded methods/functions.
           // Abstract methods are handled in emitTypeAnnotationsHandler.
@@ -918,6 +918,13 @@ export function jsdocTransformer(
             return visitInterfaceDeclaration(node as ts.InterfaceDeclaration);
           case ts.SyntaxKind.HeritageClause:
             return visitHeritageClause(node as ts.HeritageClause);
+          case ts.SyntaxKind.ArrowFunction:
+          case ts.SyntaxKind.FunctionExpression:
+            // Inserting a comment before an expression can trigger automatic semicolon insertion,
+            // e.g. if the function below is the expression in a `return` statement. Parenthesizing
+            // prevents ASI, as long as the opening paren remains on the same line (which it does).
+            return ts.createParen(
+                visitFunctionLikeDeclaration(node as ts.ArrowFunction | ts.FunctionExpression));
           case ts.SyntaxKind.Constructor:
           case ts.SyntaxKind.FunctionDeclaration:
           case ts.SyntaxKind.MethodDeclaration:

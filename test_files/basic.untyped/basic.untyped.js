@@ -35,11 +35,17 @@ if (false) {
 }
 // These two declarations should not have a @type annotation,
 // regardless of untyped.
-(function () {
+((/**
+ * @return {?}
+ */
+function () {
     // With a type annotation:
     let { a, b } = { a: '', b: 0 };
-})();
-(function () {
+}))();
+((/**
+ * @return {?}
+ */
+function () {
     // Without a type annotation:
     let { a, b } = { a: null, b: null };
-})();
+}))();
