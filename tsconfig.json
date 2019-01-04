@@ -17,11 +17,7 @@
     ],
     "downlevelIteration": true,
     "target": "es2015",
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "strict": true,
   },
   "include": [
     "src/*.ts",

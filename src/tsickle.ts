@@ -138,10 +138,8 @@ export function emitWithTsickle(
   }
 
   const writeFileDelegate: ts.WriteFileCallback = writeFile || tsHost.writeFile.bind(tsHost);
-  const writeFileImpl =
-      (fileName: string, content: string, writeByteOrderMark: boolean,
-       onError: ((message: string) => void)|undefined,
-       sourceFiles: ReadonlyArray<ts.SourceFile>) => {
+  const writeFileImpl: ts.WriteFileCallback =
+      (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
         assertAbsolute(fileName);
         if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
           // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
