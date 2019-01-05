@@ -808,6 +808,16 @@ export class TypeTranslator {
       const varArgs = !!paramDecl.dotDotDotToken;
       let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
       if (varArgs) {
+        if ((paramType.flags & ts.TypeFlags.Object) === 0) {
+          this.warn('var args type is not an object type');
+          paramTypes.push('!Array<?>');
+          continue;
+        }
+        if (((paramType as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) === 0) {
+          this.warn('unsupported var args type (not an array reference)');
+          paramTypes.push('!Array<?>');
+          continue;
+        }
         const typeRef = paramType as ts.TypeReference;
         paramType = typeRef.typeArguments![0];
       }
