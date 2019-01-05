@@ -8,6 +8,7 @@ let typeAny: any;
 let typeArr: Array<any>;
 let typeArr2: any[];
 let typeNestedArr: {a:any}[][];
+let typeUnknown: unknown;
 
 let typeObject: {a:number, b:string} = {a:3, b:'b'};
 let typeObjectIndexable: {[key:string]: number};

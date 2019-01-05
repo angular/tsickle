@@ -1,5 +1,5 @@
 // test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
-// test_files/type/type.ts(14,5): warning TS0: unhandled anonymous type
+// test_files/type/type.ts(15,5): warning TS0: unhandled anonymous type
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -17,6 +17,8 @@ let typeArr;
 let typeArr2;
 /** @type {!Array<!Array<{a: ?}>>} */
 let typeNestedArr;
+/** @type {*} */
+let typeUnknown;
 /** @type {{a: number, b: string}} */
 let typeObject = { a: 3, b: 'b' };
 /** @type {!Object<string,number>} */

@@ -391,6 +391,8 @@ export class TypeTranslator {
     switch (type.flags & mask) {
       case ts.TypeFlags.Any:
         return '?';
+      case ts.TypeFlags.Unknown:
+        return '*';
       case ts.TypeFlags.String:
       case ts.TypeFlags.StringLiteral:
         return 'string';
