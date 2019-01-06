@@ -108,6 +108,7 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
 
       const name = node.name.getText();
       const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
+      const isConstEnum = hasModifierFlag(node, ts.ModifierFlags.Const);
       const enumType = getEnumType(typeChecker, node);
 
       const values: ts.PropertyAssignment[] = [];
@@ -154,7 +155,8 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
                   name, undefined,
                   ts.createObjectLiteral(
                       ts.setTextRange(ts.createNodeArray(values, true), node.members), true))],
-              /* create a const var */ ts.NodeFlags.Const));
+              /* create a const var if const enum else use basic var declaration */
+              isConstEnum ? ts.NodeFlags.Const : ts.NodeFlags.None));
       const comment: ts.SynthesizedComment = {
         kind: ts.SyntaxKind.MultiLineCommentTrivia,
         text: `* @enum {${enumType}} `,

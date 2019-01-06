@@ -12,7 +12,7 @@ var module = module || { id: 'test_files/single_value_enum/single_value_enum.ts'
 module = module;
 exports = {};
 /** @enum {number} */
-const FirstEnum = {
+var FirstEnum = {
     A: 0,
     B: 1,
 };
@@ -20,7 +20,7 @@ exports.FirstEnum = FirstEnum;
 FirstEnum[FirstEnum.A] = 'A';
 FirstEnum[FirstEnum.B] = 'B';
 /** @enum {number} */
-const SingleValuedEnum = {
+var SingleValuedEnum = {
     C: 0,
 };
 exports.SingleValuedEnum = SingleValuedEnum;
