@@ -1,6 +1,6 @@
 /**
  * @fileoverview Regression test for type-blacklisted ambient modules.
- * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.blacklisted_ambient_external_module.user');
 var module = module || { id: 'test_files/blacklisted_ambient_external_module/user.ts' };

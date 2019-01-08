@@ -5,7 +5,7 @@
  * @fileoverview Reproduces an issue where tsickle would emit a cast for the "extends" claus, and
  * Closure would report an error due to the extends expression not resolving to a plain identifier.
  *
- * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.cast_extends.cast_extends');
 var module = module || { id: 'test_files/cast_extends/cast_extends.ts' };

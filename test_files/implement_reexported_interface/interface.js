@@ -1,6 +1,6 @@
 /**
  * @fileoverview See user.ts for the actual test.
- * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.implement_reexported_interface.interface');
 var module = module || { id: 'test_files/implement_reexported_interface/interface.ts' };
