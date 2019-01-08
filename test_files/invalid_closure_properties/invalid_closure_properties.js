@@ -5,7 +5,7 @@
  * @fileoverview Check the type generated when using a builtin symbol as
  * a computed property.
  *
- * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test is verifying the type of this expression, which ultimately
 // refers to some TypeScript internal __@observeable thing.  Note that

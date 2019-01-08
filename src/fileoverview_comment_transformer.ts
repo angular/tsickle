@@ -53,13 +53,11 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
   // 3) Suppress uselessCode.  We emit an "if (false)" around type declarations,
   // which is flagged as unused code unless we suppress it.
   suppressions.add('uselessCode');
-  // 4) Suppress missingReturn.  If the TS compiler's exhaustiveness analysis
-  // concludes that all possible branches return a value, then we don't want
-  // Closure to second-guess this decision.
+  // 4) Suppress some checks for user errors that TS already checks.
   suppressions.add('missingReturn');
-  // 5) Suppress unusedPrivateMembers.  TS also captures this, so we don't
-  // want to check it a second time.
   suppressions.add('unusedPrivateMembers');
+  // 5) Suppress checking for @override, because TS doesn't model it.
+  suppressions.add('missingOverride');
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 
   return tags;
