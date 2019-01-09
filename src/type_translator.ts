@@ -820,6 +820,10 @@ export class TypeTranslator {
           paramTypes.push('!Array<?>');
           continue;
         }
+        if (paramType.flags === ts.TypeFlags.Any) {
+          paramTypes.push('?');
+          continue;
+        }
         const typeRef = paramType as ts.TypeReference;
         paramType = typeRef.typeArguments![0];
       }
