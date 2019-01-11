@@ -47,7 +47,7 @@ var RegExpExecArray;
 /**
  * @record
  * @template T
- * @extends {IArrayLike<T>}
+ * @extends {Array<T>}
  */
 function ReadonlyArray() {}
 
