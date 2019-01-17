@@ -451,6 +451,23 @@ export function generateExterns(
     }
   }
 
+  function writeExportDeclaration(
+      exportDeclaration: ts.ExportDeclaration, namespace: ReadonlyArray<string>) {
+    if (!exportDeclaration.exportClause) {
+      emit(`\n// TODO(tsickle): export * declaration in ${
+          debugLocationStr(exportDeclaration, namespace)}`);
+      return;
+    }
+    for (const exportSpecifier of exportDeclaration.exportClause.elements) {
+      // No need to do anything for properties exported under their original name.
+      if (!exportSpecifier.propertyName) continue;
+      emit('/** @const */\n');
+      writeVariableStatement(
+          exportSpecifier.name.text, namespace,
+          namespace.join('.') + '.' + exportSpecifier.propertyName.text);
+    }
+  }
+
   /**
    * Adds aliases for the symbols imported in the given declaration, so that their types get
    * printed as the fully qualified name, and not just as a reference to the local import alias.
@@ -580,6 +597,18 @@ export function generateExterns(
     return [];
   }
 
+  /**
+   * Returns a string representation for the location: either the namespace, or, if empty, the
+   * current source file name. This is intended to be included in the emit for warnings, so that
+   * users can more easily find where a problematic definition is from.
+   *
+   * The code below does not use diagnostics to avoid breaking the build for harmless unhandled
+   * cases.
+   */
+  function debugLocationStr(node: ts.Node, namespace: ReadonlyArray<string>) {
+    return namespace.join('.') || path.basename(node.getSourceFile().fileName);
+  }
+
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
     if (node.parent === sourceFile) {
       namespace = getNamespaceForTopLevelDeclaration(node as ts.DeclarationStatement, namespace);
@@ -690,9 +719,13 @@ export function generateExterns(
       case ts.SyntaxKind.ExportAssignment:
         // Handled on the file level.
         break;
+      case ts.SyntaxKind.ExportDeclaration:
+        const exportDeclaration = node as ts.ExportDeclaration;
+        writeExportDeclaration(exportDeclaration, namespace);
+        break;
       default:
-        const locationStr = namespace.join('.') || path.basename(node.getSourceFile().fileName);
-        emit(`\n// TODO(tsickle): ${ts.SyntaxKind[node.kind]} in ${locationStr}\n`);
+        emit(`\n// TODO(tsickle): ${ts.SyntaxKind[node.kind]} in ${
+            debugLocationStr(node, namespace)}\n`);
         break;
     }
   }

@@ -25,5 +25,3 @@ goog_closure$OtherModule.SymA = function() {};
  * @struct
  */
 goog_closure$OtherModule.SymB = function() {};
-
-// TODO(tsickle): ExportDeclaration in goog_closure$OtherModule

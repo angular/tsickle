@@ -240,7 +240,7 @@ export class TypeTranslator {
     }
 
     const name = this.typeChecker.symbolToEntityName(
-        sym, ts.SymbolFlags.None, this.node, ts.NodeBuilderFlags.UseFullyQualifiedType);
+        sym, ts.SymbolFlags.Type, this.node, ts.NodeBuilderFlags.UseFullyQualifiedType);
     // name might be undefined, e.g. for anonymous classes.
     if (!name) return undefined;
 
