@@ -11,10 +11,9 @@ http_archive(
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "node_repositories")
 
-# Force developers to use the same Bazel version as Travis,
-# to prevent different local behavior than CI.
-# See travis_install.sh
-check_bazel_version("0.14.0")
+# Force developers to use the same Bazel version as CircleCI, to prevent different
+# local behavior than CI.
+check_bazel_version("0.18.0")
 
 # NOTE: this rule installs nodejs, npm, and yarn, but does NOT install
 # your npm dependencies. You must still run the package manager.

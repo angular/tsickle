@@ -1,4 +1,4 @@
-# Tsickle - TypeScript to Closure Translator [![Linux build](https://travis-ci.org/angular/tsickle.svg?branch=master)](https://travis-ci.org/angular/tsickle) [![Windows build](https://ci.appveyor.com/api/projects/status/puxdblmlqbofqqt1/branch/master?svg=true)](https://ci.appveyor.com/project/alexeagle/tsickle/branch/master)
+# Tsickle - TypeScript to Closure Translator [![Build Status](https://circleci.com/gh/angular/tsickle.svg?style=svg)](https://circleci.com/gh/angular/tsickle) [![Windows build](https://ci.appveyor.com/api/projects/status/puxdblmlqbofqqt1/branch/master?svg=true)](https://ci.appveyor.com/project/alexeagle/tsickle/branch/master)
 
 Tsickle converts TypeScript code into a form acceptable to the [Closure
 Compiler]. This allows using TypeScript to transpile your sources, and then
