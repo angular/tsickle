@@ -9,3 +9,7 @@ test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test
 build:ci --local_resources=3072,2.0,1.0
 
 build:ci --noshow_progress
+
+# Save downloaded repositories in a location that can be cached by CircleCI. This helps us
+# speeding up the Bazel analysis time for CI jobs.
+build:ci --experimental_repository_cache=/home/circleci/bazel_repository_cache
