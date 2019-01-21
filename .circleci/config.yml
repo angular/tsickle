@@ -21,6 +21,8 @@ var_4: &save_cache
       - "node_modules"
       - "~/bazel_repository_cache"
 
+version: 2
+
 jobs:
   build:
     <<: *job_defaults
