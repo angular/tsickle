@@ -455,7 +455,7 @@ export function generateExterns(
       exportDeclaration: ts.ExportDeclaration, namespace: ReadonlyArray<string>) {
     if (!exportDeclaration.exportClause) {
       emit(`\n// TODO(tsickle): export * declaration in ${
-          debugLocationStr(exportDeclaration, namespace)}`);
+          debugLocationStr(exportDeclaration, namespace)}\n`);
       return;
     }
     for (const exportSpecifier of exportDeclaration.exportClause.elements) {
