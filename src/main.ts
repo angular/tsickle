@@ -31,6 +31,9 @@ export interface Settings {
 
   /** If true, log internal debug warnings to the console. */
   verbose?: boolean;
+
+  /** If true, warnings cause a non-zero exit code. */
+  fatalWarnings?: boolean;
 }
 
 function usage() {
@@ -43,6 +46,7 @@ tsickle flags are:
   --externs=PATH        save generated Closure externs.js to PATH
   --typed               [experimental] attempt to provide Closure types instead of {?}
   --enableAutoQuoting   automatically apply quotes to property accesses
+  --fatalWarnings       whether warnings should be fatal, and cause tsickle to return a non-zero exit code
 `);
 }
 
@@ -71,6 +75,9 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'enableAutoQuoting':
         settings.enableAutoQuoting = true;
+        break;
+      case 'fatalWarnings':
+        settings.fatalWarnings = true;
         break;
       case '_':
         // This is part of the minimist API, and holds args after the '--'.
@@ -163,7 +170,7 @@ export function toClosureJS(
     shouldSkipTsickleProcessing: (fileName: string) => {
       return !filesToProcess.has(path.resolve(fileName));
     },
-    shouldIgnoreWarningsForPath: (fileName: string) => false,
+    shouldIgnoreWarningsForPath: (fileName: string) => !settings.fatalWarnings,
     pathToModuleName: (context, fileName) =>
         cliSupport.pathToModuleName(rootModulePath, context, fileName),
     fileNameToModuleId: (fileName) => path.relative(rootModulePath, fileName),
