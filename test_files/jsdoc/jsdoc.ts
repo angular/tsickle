@@ -72,7 +72,7 @@ function BadInterface() {}
  * @madeUptag This tag will be escaped, because Closure disallows it.
  * @see This tag will be kept, because Closure allows it.
  */
-function x(){};
+function x() {};
 
 /**
  * This class has JSDoc, but some of it should be stripped.
@@ -115,4 +115,16 @@ const somePolymerBehavior = {};
  * if they are declared via the Polymer function.
  */
 let Polymer: any;
-Polymer({ behaviors: [ 'test' as any ] });
+Polymer({behaviors: ['test' as any]});
+
+/**
+ * This class has a 'template' tag, which we want to allow (because this is
+ * how to doc this) but not let Closure interpret (because we emit our own).
+ * The desired behavior is that the user-written @template comment (which
+ * talks about T) is dropped, but the tsickle-generated @template comment
+ * (which talks about T2) is preserved.
+ *
+ * @template T User-written comments on the template (typo of 'T1').
+ * @template T2 Another user comment.
+ */
+class Foo<T1, T2> {}
