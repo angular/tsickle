@@ -49,6 +49,22 @@ well.
 Run `tsickle --help` for the full syntax, but basically you provide any tsickle
 specific options and use it as a TypeScript compiler.
 
+### Output format
+
+Tsickle is designed to do whatever is necessary to make the code acceptable by
+Closure compiler. We view its output as a necessary intermediate form for
+communicating to the Closure compiler, and not something for humans. This means
+the tsickle output may be kind of ugly to read. Its only real use is to pass it
+on to the compiler.
+
+For one example, the syntax of types tsickle produces are specific to Closure.
+The type `{!Foo}` means "Foo, excluding null" and a type alias becomes a `var`
+statement that is tagged with `@typedef`.
+
+Tsickle emits modules using Closure's `goog.module` module system. This system
+is similar to but different from ES modules, and was supported by Closure before
+the ES module system was finalized.
+
 ### Differences from TypeScript
 
 Closure and TypeScript are not identical. Tsickle hides most of the
