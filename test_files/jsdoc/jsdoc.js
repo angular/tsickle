@@ -9,7 +9,6 @@
 // test_files/jsdoc/jsdoc.ts(43,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(46,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
 // test_files/jsdoc/jsdoc.ts(49,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(53,1): warning TS0: @template annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(56,1): warning TS0: use index signatures (`[k: string]: type`) instead of @dict
 // test_files/jsdoc/jsdoc.ts(59,1): warning TS0: @lends annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(65,1): warning TS0: @this annotations are redundant with TypeScript equivalents
@@ -156,3 +155,14 @@ const somePolymerBehavior = {};
  */
 let Polymer;
 Polymer({ behaviors: [(/** @type {?} */ ('test'))] });
+/**
+ * This class has a 'template' tag, which we want to allow (because this is
+ * how to doc this) but not let Closure interpret (because we emit our own).
+ * The desired behavior is that the user-written \@template comment (which
+ * talks about T) is dropped, but the tsickle-generated \@template comment
+ * (which talks about T2) is preserved.
+ *
+ * @template T1, T2
+ */
+class Foo {
+}

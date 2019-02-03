@@ -46,12 +46,18 @@ export interface Tag {
 
 /**
  * A list of all JSDoc tags allowed by the Closure compiler.
+ * All tags other than these are escaped before emitting.
+ *
+ * Note that some of these tags are also rejected by tsickle when seen in
+ * the user-provided source, but also that tsickle itself may generate some of these.
+ * This whitelist is just used for controlling the output.
+ *
  * The public Closure docs don't list all the tags it allows; this list comes
  * from the compiler source itself.
  * https://github.com/google/closure-compiler/blob/master/src/com/google/javascript/jscomp/parsing/Annotation.java
  * https://github.com/google/closure-compiler/blob/master/src/com/google/javascript/jscomp/parsing/ParserConfig.properties
  */
-const JSDOC_TAGS_WHITELIST = new Set([
+const JSDOC_TAGS_OUTPUT_WHITELIST = new Set([
   'abstract',
   'argument',
   'author',
@@ -136,8 +142,9 @@ const JSDOC_TAGS_WHITELIST = new Set([
  * A list of JSDoc @tags that are never allowed in TypeScript source. These are Closure tags that
  * can be expressed in the TypeScript surface syntax. As tsickle's emit will mangle type names,
  * these will cause Closure Compiler issues and should not be used.
+ * Note: 'template' is special-cased below; see where this set is queried.
  */
-const JSDOC_TAGS_BLACKLIST = new Set([
+const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
   'augments', 'class',      'constructs', 'constructor', 'enum',      'extends', 'field',
   'function', 'implements', 'interface',  'lends',       'namespace', 'private', 'public',
   'record',   'static',     'template',   'this',        'type',      'typedef',
@@ -213,9 +220,20 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
         tagName = 'return';
       }
       let type: string|undefined;
-      if (JSDOC_TAGS_BLACKLIST.has(tagName)) {
-        warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
-        continue;  // Drop the tag so Closure won't process it.
+      if (JSDOC_TAGS_INPUT_BLACKLIST.has(tagName)) {
+        if (tagName !== 'template') {
+          // Tell the user to not write blacklisted tags, because there is TS
+          // syntax available for them.
+          warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
+          continue;  // Drop the tag so Closure won't process it.
+        } else {
+          // But @template in particular is special: it's ok for the user to
+          // write it for documentation purposes, but we don't want the
+          // user-written one making it into the output because Closure interprets
+          // it as well.
+          // Drop it without any warning.  (We also don't ensure its correctness.)
+          continue;
+        }
       } else if (JSDOC_TAGS_WITH_TYPES.has(tagName) && text[0] === '{') {
         warnings.push(
             `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
@@ -269,7 +287,7 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
 function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
   let out = '';
   if (tag.tagName) {
-    if (!JSDOC_TAGS_WHITELIST.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
+    if (!JSDOC_TAGS_OUTPUT_WHITELIST.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
       // Escape tags we don't understand.  This is a subtle
       // compromise between multiple issues.
       // 1) If we pass through these non-Closure tags, the user will
