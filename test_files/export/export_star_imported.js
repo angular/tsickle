@@ -6,7 +6,7 @@ goog.module('test_files.export.export_star_imported');
 var module = module || { id: 'test_files/export/export_star_imported.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper");
+const tsickle_forward_declare_1 = goog.requireType("test_files.export.export_helper");
 const export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export1 = export_helper_1.export1;
 exports.export3 = export_helper_1.export3;

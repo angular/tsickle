@@ -6,11 +6,10 @@ goog.module('test_files.export.export');
 var module = module || { id: 'test_files/export/export.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.export.export_helper");
-const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.export.export_helper_2");
-const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.export.type_and_value");
-const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.export.export_helper_3");
-goog.require('test_files.export.export_helper_3'); // force type-only module to be loaded
+const tsickle_forward_declare_1 = goog.requireType("test_files.export.export_helper");
+const tsickle_forward_declare_2 = goog.requireType("test_files.export.export_helper_2");
+const tsickle_forward_declare_3 = goog.requireType("test_files.export.type_and_value");
+const tsickle_forward_declare_4 = goog.requireType("test_files.export.export_helper_3");
 const export_helper_1 = goog.require('test_files.export.export_helper');
 exports.export2 = export_helper_1.export2;
 exports.export5 = export_helper_1.export5;
