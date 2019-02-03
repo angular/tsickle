@@ -8,11 +8,10 @@ var module = module || { id: 'test_files/decorator/decorator.ts' };
 module = module;
 exports = {};
 const tslib_1 = goog.require('tslib');
-const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.decorator.default_export");
-const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.decorator.external");
-const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.decorator.external2");
-const tsickle_forward_declare_4 = goog.forwardDeclare("test_files.decorator.only_types");
-goog.require('test_files.decorator.only_types'); // force type-only module to be loaded
+const tsickle_forward_declare_1 = goog.requireType("test_files.decorator.default_export");
+const tsickle_forward_declare_2 = goog.requireType("test_files.decorator.external");
+const tsickle_forward_declare_3 = goog.requireType("test_files.decorator.external2");
+const tsickle_forward_declare_4 = goog.requireType("test_files.decorator.only_types");
 // OtherClass is reachable via the imports for './external' and './external2'.
 // Test that were using it from the right import, and not just the first
 // that allows access to the value. That is important when imports are elided.

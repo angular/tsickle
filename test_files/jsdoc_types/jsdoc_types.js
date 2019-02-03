@@ -6,9 +6,9 @@ goog.module('test_files.jsdoc_types.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types/jsdoc_types.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.forwardDeclare("test_files.jsdoc_types.default");
-const tsickle_forward_declare_2 = goog.forwardDeclare("test_files.jsdoc_types.module1");
-const tsickle_forward_declare_3 = goog.forwardDeclare("test_files.jsdoc_types.module2");
+const tsickle_forward_declare_1 = goog.requireType("test_files.jsdoc_types.default");
+const tsickle_forward_declare_2 = goog.requireType("test_files.jsdoc_types.module1");
+const tsickle_forward_declare_3 = goog.requireType("test_files.jsdoc_types.module2");
 /**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
