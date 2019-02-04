@@ -150,7 +150,7 @@ export function emitWithTsickle(
                 sourceFiles.map(sf => sf.fileName)}`);
           }
           const originalSource = sourceFiles[0];
-          content = addClutzAliases(fileName, content, originalSource, typeChecker, host);
+          content = addClutzAliases(content, originalSource, typeChecker, host);
         }
         writeFileDelegate(fileName, content, writeByteOrderMark, onError, sourceFiles);
       };
@@ -207,8 +207,8 @@ function stringCompare(a: string, b: string): number {
  * in the Clutz naming convention.
  */
 function addClutzAliases(
-    fileName: string, dtsFileContent: string, sourceFile: ts.SourceFile,
-    typeChecker: ts.TypeChecker, host: TsickleHost): string {
+    dtsFileContent: string, sourceFile: ts.SourceFile, typeChecker: ts.TypeChecker,
+    host: TsickleHost): string {
   const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile);
   const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
   if (!moduleExports) return dtsFileContent;
@@ -249,8 +249,17 @@ function addClutzAliases(
   // Case (2) from above.
   let nestedSymbols = '';
   for (const symbol of localExports) {
+    let localName = symbol.name;
+    const declaration = symbol.declarations.find(d => d.getSourceFile() === origSourceFile);
+    if (declaration && ts.isExportSpecifier(declaration) && declaration.propertyName) {
+      // If declared in an "export {X as Y};" export specifier, then X (stored in propertyName) is
+      // the local name that resolves within the module, whereas Y is only available on the exports,
+      // i.e. the name used to address the symbol from outside the module.
+      // Use the localName for the export then, but publish under the external name.
+      localName = declaration.propertyName.text;
+    }
     globalSymbols +=
-        `\t\texport {${symbol.name} as module$contents$${clutzModuleName}_${symbol.name}}\n`;
+        `\t\texport {${localName} as module$contents$${clutzModuleName}_${symbol.name}}\n`;
     nestedSymbols +=
         `\t\texport {module$contents$${clutzModuleName}_${symbol.name} as ${symbol.name}}\n`;
   }
