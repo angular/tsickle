@@ -80,3 +80,6 @@ var PromiseConstructorLike;
 
 /** @typedef {?} */
 var SymbolConstructor;
+
+/** @constructor */
+function bigint() {}

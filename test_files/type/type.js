@@ -1,7 +1,7 @@
 // test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
-// test_files/type/type.ts(15,5): warning TS0: unhandled anonymous type
-// test_files/type/type.ts(46,21): warning TS0: anonymous type has no symbol
-// test_files/type/type.ts(46,21): warning TS0: anonymous type has no symbol
+// test_files/type/type.ts(16,5): warning TS0: unhandled anonymous type
+// test_files/type/type.ts(47,21): warning TS0: anonymous type has no symbol
+// test_files/type/type.ts(47,21): warning TS0: anonymous type has no symbol
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -21,6 +21,8 @@ let typeArr2;
 let typeNestedArr;
 /** @type {*} */
 let typeUnknown;
+/** @type {bigint} */
+let typeBigInt;
 /** @type {{a: number, b: string}} */
 let typeObject = { a: 3, b: 'b' };
 /** @type {!Object<string,number>} */

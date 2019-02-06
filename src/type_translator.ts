@@ -419,6 +419,8 @@ export class TypeTranslator {
         return 'void';
       case ts.TypeFlags.Undefined:
         return 'undefined';
+      case ts.TypeFlags.BigInt:
+        return 'bigint';
       case ts.TypeFlags.Null:
         return 'null';
       case ts.TypeFlags.Never:
