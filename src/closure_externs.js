@@ -81,5 +81,8 @@ var PromiseConstructorLike;
 /** @typedef {?} */
 var SymbolConstructor;
 
-/** @constructor */
-function bigint() {}
+/**
+ * This is a placeholder for a Closure type to be determined.
+ * @constructor
+ */
+function bigintPlaceholder() {}

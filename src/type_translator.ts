@@ -420,7 +420,7 @@ export class TypeTranslator {
       case ts.TypeFlags.Undefined:
         return 'undefined';
       case ts.TypeFlags.BigInt:
-        return 'bigint';
+        return 'bigintPlaceholder';
       case ts.TypeFlags.Null:
         return 'null';
       case ts.TypeFlags.Never:

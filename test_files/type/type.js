@@ -21,7 +21,7 @@ let typeArr2;
 let typeNestedArr;
 /** @type {*} */
 let typeUnknown;
-/** @type {bigint} */
+/** @type {bigintPlaceholder} */
 let typeBigInt;
 /** @type {{a: number, b: string}} */
 let typeObject = { a: 3, b: 'b' };
