@@ -202,6 +202,11 @@ function stringCompare(a: string, b: string): number {
   return 0;
 }
 
+function dFileName(f: string) {
+  const arr = f.split('/');
+  return arr[arr.length - 1];
+}
+
 /**
  * A tsickle produced declaration file might be consumed be referenced by Clutz
  * produced .d.ts files, which use symbol names based on Closure's internal
@@ -217,18 +222,69 @@ function addClutzAliases(
 
   // .d.ts files can be transformed, too, so we need to compare the original node below.
   const origSourceFile = ts.getOriginalNode(sourceFile);
-  // The module exports might be re-exports, and in the case of "export *" might not even be
-  // available in the module scope, which makes them difficult to export. Avoid the problem by
-  // filtering out symbols who do not have a declaration in the local module.
+  // In order to write aliases, the exported symbols need to be available in the
+  // the module scope. That is not always the case:
+  //
+  // export
+  // 1) export const X;           // works
+  //
+  // reexport
+  // 2) export {X} from './foo';  // doesn't
+  //
+  // imported reexport
+  // 3) import {X} from './foo';  // works
+  //    export {X} from './foo';
+  //
+  // getExportsOfModule returns all three types, but we need to separate 2).
+  // For now we 'fix' 2) by simply not emitting a clutz alias, since clutz
+  // interop is used in minority of scenarios.
+  //
+  // TODO(radokirov): attempt to add appropriate imports for 2) so that
+  // currently finding out local appears even harder than fixing exports.
   const localExports = moduleExports.filter(e => {
-    // If there are no declarations, be conservative and emit the aliases.
-    if (!e.declarations) return true;
+    // If there are no declarations, be conservative and don't emit the aliases.
+    // I don't know how can this happen, we have no tests that excercise it.
+    if (!e.declarations) return false;
+
     // Skip default exports, they are not currently supported.
-    // default is a keyword in typescript, so the name of the export being default means that it's a
-    // default export.
+    // default is a keyword in typescript, so the name of the export being
+    // default means that it's a default export.
     if (e.name === 'default') return false;
-    // Otherwise check that some declaration is from the local module.
-    return e.declarations.some(d => d.getSourceFile() === origSourceFile);
+
+    // Use the declaration location to determine separate cases above.
+    for (const d of e.declarations) {
+      // This is a special case for export *. Technically, it is outside the
+      // three cases outlined, but at this point we have rewritten it to a
+      // reexport or an imported reexport. However, it appears that the
+      // rewriting also has made it behave different from explicit named export
+      // in the sense that the declaration appears to point at the original
+      // location not the reexport location.  Since we can't figure out whether
+      // there is a local import here, we err on the side of less emit.
+      if (d.getSourceFile() !== origSourceFile) {
+        return false;
+      }
+
+      if (!ts.isExportSpecifier(d)) {
+        // we have a pure export (case 1) thus safe to emit clutz alias.
+        return true;
+      }
+
+      // The declaration d is useless to separate reexport and import-reexport
+      // because they both point to the reexporting file and not to the original
+      // one.  However, there is another ts API that can do a deeper resolution.
+      const localSymbol = typeChecker.getExportSpecifierLocalTargetSymbol(d);
+      // I don't know how can this happen, but err on the side of less emit.
+      if (!localSymbol) return false;
+
+      // In case of no import we ended up in a declaration in foo.ts, while in
+      // case of having an import localD is still in the reexporing file.
+      for (const localD of localSymbol.declarations) {
+        if (localD.getSourceFile() !== origSourceFile) {
+          return false;
+        }
+      }
+    }
+    return true;
   });
   if (!localExports.length) return dtsFileContent;
 
