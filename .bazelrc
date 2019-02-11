@@ -1,6 +1,14 @@
 test --test_output=errors
 #TODO(alexeagle): enable worker mode
 
+# Opt-in to breaking change for runfiles layout, where Bazel will eventually stop providing
+# an external directory inside of our workspace like
+# `runfiles_root/my_proj/external/npm/node_modules`
+# This ensures we are forwards compatible.
+# See https://docs.bazel.build/versions/master/command-line-reference.html#flag--legacy_external_runfiles
+test --nolegacy_external_runfiles
+run --nolegacy_external_runfiles
+
 # Enable debugging tests with --config=debug
 test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
 

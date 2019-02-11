@@ -61,7 +61,9 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
   for (const er of emitResults) {
     diagnostics.push(...er.diagnostics);
     emitSkipped = emitSkipped || er.emitSkipped;
-    emittedFiles.push(...er.emittedFiles);
+    if (er.emittedFiles) {
+      emittedFiles.push(...er.emittedFiles);
+    }
     Object.assign(externs, er.externs);
     modulesManifest.addManifest(er.modulesManifest);
   }

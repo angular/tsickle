@@ -13,12 +13,12 @@ filegroup(
     srcs = glob([
         "test_files/**/*",
         "third_party/**/*",
+    ]) + [
         # The test suites run version-specific TypeScript compilers,
-        # but they all need the 'tslib' package to be available in
-        # a node_modules directory *above* the test/ directory.  So
-        # we must provide this extra directory as data to those tests.
-        "node_modules/tslib/*",
-    ]),
+        # but they all need the 'tslib' package to be available. So
+        # we must provide this extra filegroup as data to those tests.
+        "@npm//tslib:tslib__files",
+    ],
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
