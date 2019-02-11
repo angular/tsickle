@@ -12,8 +12,11 @@
     ],
     "jsx": "react",
     "types": [
+      // Note, we don't include `jasmine` here, as that's a test-only typing.
+      // To prevent accidental use of jasmine in production code, we instead
+      // bring the jasmine global typing with ///<reference/> pragmas in
+      // source files that use it.
       "node",
-      "jasmine"
     ],
     "downlevelIteration": true,
     "target": "es2015",

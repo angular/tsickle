@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+///<reference types="jasmine"/>
 // Install source-map-support so that stack traces are mapped back to TS code.
 import 'source-map-support';
 
@@ -37,7 +38,7 @@ function rootDir(): string {
  * tslib if we let it do its normal module resolution.  So instead we fix
  * the path here to the known path to the desired file.
  */
-const tslibPath = path.join(rootDir(), 'node_modules/tslib/tslib.d.ts');
+const tslibPath = path.join(rootDir(), '../npm/node_modules/tslib/tslib.d.ts');
 
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {

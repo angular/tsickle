@@ -25,5 +25,10 @@ ts_library(
     ],
     data = ["closure_externs.js"],
     tsconfig = "//:tsconfig.json",
-    deps = [],
+    deps = [
+        "@npm//@types/minimist",
+        "@npm//@types/mkdirp",
+        "@npm//@types/node",
+        "@npm//typescript",
+    ],
 )
