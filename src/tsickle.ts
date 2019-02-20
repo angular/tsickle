@@ -202,11 +202,6 @@ function stringCompare(a: string, b: string): number {
   return 0;
 }
 
-function dFileName(f: string) {
-  const arr = f.split('/');
-  return arr[arr.length - 1];
-}
-
 /**
  * A tsickle produced declaration file might be consumed be referenced by Clutz
  * produced .d.ts files, which use symbol names based on Closure's internal
