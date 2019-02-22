@@ -22,8 +22,8 @@ import * as testSupport from './test_support';
 // Set TEST_FILTER=foo to only run tests from the foo package.
 // Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
 const TEST_FILTER = (() => {
-  if (!process.env.TEST_FILTER) return null;
-  const [testName, fileName] = (process.env.TEST_FILTER as string).split('/', 2);
+  if (!process.env['TEST_FILTER']) return null;
+  const [testName, fileName] = (process.env['TEST_FILTER'] as string).split('/', 2);
   return {
     testName: new RegExp(testName + (fileName ? '$' : '')),
     fileName: fileName ? new RegExp('/' + fileName) : null
@@ -33,7 +33,7 @@ const TEST_FILTER = (() => {
 // If true, update all the golden .js files to be whatever tsickle
 // produces from the .ts source. Do not change this code but run as:
 //     UPDATE_GOLDENS=y bazel run test:golden_test
-const UPDATE_GOLDENS = !!process.env.UPDATE_GOLDENS;
+const UPDATE_GOLDENS = !!process.env['UPDATE_GOLDENS'];
 
 /**
  * compareAgainstGoldens compares a test output against the content in a golden
