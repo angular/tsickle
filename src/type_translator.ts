@@ -823,7 +823,13 @@ export class TypeTranslator {
           continue;
         }
         const typeRef = paramType as ts.TypeReference;
-        paramType = typeRef.typeArguments![0];
+        if (!typeRef.typeArguments) {
+          // When a rest argument resolves empty, i.e. the concrete instantiation does not take any
+          // arguments, the type arguments are empty. Emit a function type that takes no arg in this
+          // position then.
+          continue;
+        }
+        paramType = typeRef.typeArguments[0];
       }
       let typeStr = this.translate(paramType);
       if (varArgs) typeStr = '...' + typeStr;
