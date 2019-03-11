@@ -369,6 +369,7 @@ export class TypeTranslator {
     if (type.symbol) {
       for (const decl of type.symbol.declarations || []) {
         if (ts.isExternalModule(decl.getSourceFile())) isModule = true;
+        if (decl.getSourceFile().isDeclarationFile) isAmbient = true;
         let current: ts.Declaration|undefined = decl;
         while (current) {
           if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
