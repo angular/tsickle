@@ -411,11 +411,13 @@ export class ModuleTypeTranslator {
       if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
         throw new Error(`JSDoc signature ${fnDecl.name}`);
       }
+      let hasThisParam = false;
       for (let i = 0; i < sig.declaration.parameters.length; i++) {
         const paramNode = sig.declaration.parameters[i];
 
         const name = getParameterName(paramNode, i);
         const isThisParam = name === 'this';
+        if (isThisParam) hasThisParam = true;
 
         const newTag: jsdoc.Tag = {
           tagName: isThisParam ? 'this' : 'param',
@@ -462,8 +464,12 @@ export class ModuleTypeTranslator {
           tagName: 'return',
         };
         const retType = typeChecker.getReturnTypeOfSignature(sig);
+        // Generate a templated `@this` tag for TypeScript `foo(): this` return type specification.
+        // Make sure not to do that if the function already has used `@this` due to a this
+        // parameter. It's not clear how to resolve the two conflicting this types best, the current
+        // solution prefers the explicitly given `this` parameter.
         // tslint:disable-next-line:no-any accessing TS internal field.
-        if ((retType as any).isThisType) {
+        if ((retType as any).isThisType && !hasThisParam) {
           // foo(): this
           thisReturnType = retType;
           addTag({tagName: 'template', text: 'THIS'});
