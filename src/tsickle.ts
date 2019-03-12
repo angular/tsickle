@@ -270,6 +270,8 @@ function addClutzAliases(
       const localSymbol = typeChecker.getExportSpecifierLocalTargetSymbol(d);
       // I don't know how can this happen, but err on the side of less emit.
       if (!localSymbol) return false;
+      // `declarations` is undefined for builtin symbols, such as `unknown`.
+      if (!localSymbol.declarations) return false;
 
       // In case of no import we ended up in a declaration in foo.ts, while in
       // case of having an import localD is still in the reexporing file.
