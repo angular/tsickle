@@ -16,6 +16,7 @@
 // test_files/jsdoc/jsdoc.ts(77,1): warning TS0: @extends annotations are redundant with TypeScript equivalents
 // @implements annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(84,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(140,1): error TS0: incorrect type in @define: found 'boolean' required 'number'
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -169,4 +170,8 @@ class Foo {
 /**
  * @define {string}
  */
-const FOO = 'x';
+const GOOD_DEFINE = 'x';
+/**
+ * @define {boolean}
+ */
+const BAD_DEFINE = 42;

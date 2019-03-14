@@ -150,15 +150,23 @@ const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
   'record',   'static',     'template',   'this',        'type',      'typedef',
 ]);
 
+/** What to do with types found in JSDoc @tags. */
+enum TagWithTypePolicy {
+  FORBIDDEN,
+  REQUIRED,
+}
+
 /**
  * A list of JSDoc @tags that might include a {type} after them. Only banned when a type is passed.
  * Note that this does not include tags that carry a non-type system type, e.g. \@suppress.
  */
-const JSDOC_TAGS_WITH_TYPES = new Set([
-  'const',
-  'export',
-  'param',
-  'return',
+const JSDOC_TAGS_WITH_TYPES = new Map([
+  ['const', TagWithTypePolicy.FORBIDDEN],
+  ['define', TagWithTypePolicy.REQUIRED],
+  ['export', TagWithTypePolicy.FORBIDDEN],
+  ['param', TagWithTypePolicy.FORBIDDEN],
+  ['return', TagWithTypePolicy.FORBIDDEN],
+  ['suppress', TagWithTypePolicy.REQUIRED],
 ]);
 
 /**
@@ -234,17 +242,21 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
           // Drop it without any warning.  (We also don't ensure its correctness.)
           continue;
         }
-      } else if (JSDOC_TAGS_WITH_TYPES.has(tagName) && text[0] === '{') {
-        warnings.push(
-            `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
-            `remove the {...} part`);
-        continue;
-      } else if (tagName === 'suppress') {
-        const suppressMatch = text.match(/^\{(.*)\}(.*)$/);
-        if (!suppressMatch) {
-          warnings.push(`malformed @suppress tag: "${text}"`);
+      } else if (JSDOC_TAGS_WITH_TYPES.has(tagName)) {
+        const policy = JSDOC_TAGS_WITH_TYPES.get(tagName);
+        if (policy === TagWithTypePolicy.FORBIDDEN && text[0] === '{') {
+          warnings.push(
+              `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
+              `remove the {...} part`);
+          continue;
+        }
+        const typeMatch = text.match(/^\{(.*)\}(.*)$/);
+        if (!typeMatch) {
+          if (policy === TagWithTypePolicy.REQUIRED) {
+            warnings.push(`malformed @${tagName} tag: "${text}"`);
+          }
         } else {
-          [, type, text] = suppressMatch;
+          [, type, text] = typeMatch;
         }
       } else if (tagName === 'dict') {
         warnings.push('use index signatures (`[k: string]: type`) instead of @dict');

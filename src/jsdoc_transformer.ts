@@ -604,7 +604,7 @@ export function jsdocTransformer(
           // Add an @type for plain identifiers, but not for bindings patterns (i.e. object or array
           // destructuring - those do not have a syntax in Closure) or @defines, which already
           // declare their type.
-          if (ts.isIdentifier(decl.name) && localTags.every(({tagName}) => tagName !== 'define')) {
+          if (ts.isIdentifier(decl.name)) {
             // For variables that are initialized and use a blacklisted type, do not emit a type at
             // all. Closure Compiler might be able to infer a better type from the initializer than
             // the `?` the code below would emit.
@@ -616,7 +616,15 @@ export function jsdocTransformer(
               // getOriginalNode(decl) is required because the type checker cannot type check
               // synthesized nodes.
               const typeStr = moduleTypeTranslator.typeToClosure(ts.getOriginalNode(decl));
-              localTags.push({tagName: 'type', type: typeStr});
+              // If @define is present then do not add @type, but instead verify types are the same.
+              const defineTag = localTags.find(({tagName}) => tagName === 'define');
+              if (!defineTag) {
+                localTags.push({tagName: 'type', type: typeStr});
+              } else if (defineTag.type !== typeStr) {
+                moduleTypeTranslator.error(
+                    varStmt,
+                    `incorrect type in @define: found '${defineTag.type}' required '${typeStr}'`);
+              }
             }
           }
           const newStmt = ts.createVariableStatement(

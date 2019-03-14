@@ -132,4 +132,9 @@ class Foo<T1, T2> {}
 /**
  * @define {string}
  */
-const FOO = 'x';
+const GOOD_DEFINE = 'x';
+
+/**
+ * @define {boolean}
+ */
+const BAD_DEFINE = 42;
