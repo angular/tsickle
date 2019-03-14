@@ -602,8 +602,9 @@ export function jsdocTransformer(
             tags = null;
           }
           // Add an @type for plain identifiers, but not for bindings patterns (i.e. object or array
-          // destructuring) - those do not have a syntax in Closure.
-          if (ts.isIdentifier(decl.name)) {
+          // destructuring - those do not have a syntax in Closure) or @defines, which already
+          // declare their type.
+          if (ts.isIdentifier(decl.name) && localTags.every(({tagName}) => tagName !== 'define')) {
             // For variables that are initialized and use a blacklisted type, do not emit a type at
             // all. Closure Compiler might be able to infer a better type from the initializer than
             // the `?` the code below would emit.

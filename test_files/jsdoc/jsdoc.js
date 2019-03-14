@@ -166,3 +166,7 @@ Polymer({ behaviors: [(/** @type {?} */ ('test'))] });
  */
 class Foo {
 }
+/**
+ * @define {string}
+ */
+const FOO = 'x';

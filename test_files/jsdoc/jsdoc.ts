@@ -128,3 +128,8 @@ Polymer({behaviors: ['test' as any]});
  * @template T2 Another user comment.
  */
 class Foo<T1, T2> {}
+
+/**
+ * @define {string}
+ */
+const FOO = 'x';
