@@ -17,6 +17,8 @@
 // @implements annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(84,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(140,1): error TS0: incorrect type in @define: found 'boolean' required 'number'
+// test_files/jsdoc/jsdoc.ts(142,1): warning TS0: malformed @define tag: ""
+// test_files/jsdoc/jsdoc.ts(145,1): error TS0: incorrect type in @define: found 'undefined' required 'boolean'
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -172,6 +174,10 @@ class Foo {
  */
 const GOOD_DEFINE = 'x';
 /**
- * @define {boolean}
+ * @define {number}
  */
 const BAD_DEFINE = 42;
+/**
+ * @define {boolean}
+ */
+const MISSING_DEFINE = false;

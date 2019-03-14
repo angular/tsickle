@@ -138,3 +138,8 @@ const GOOD_DEFINE = 'x';
  * @define {boolean}
  */
 const BAD_DEFINE = 42;
+
+/**
+ * @define
+ */
+const MISSING_DEFINE = false;

@@ -624,6 +624,7 @@ export function jsdocTransformer(
                 moduleTypeTranslator.error(
                     varStmt,
                     `incorrect type in @define: found '${defineTag.type}' required '${typeStr}'`);
+                defineTag.type = typeStr;
               }
             }
           }
