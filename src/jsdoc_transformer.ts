@@ -616,14 +616,17 @@ export function jsdocTransformer(
               // getOriginalNode(decl) is required because the type checker cannot type check
               // synthesized nodes.
               const typeStr = moduleTypeTranslator.typeToClosure(ts.getOriginalNode(decl));
-              // If @define is present then do not add @type, but instead verify types are the same.
+              // If @define is present then do not add @type, but instead verify that any type is
+              // correct. Specifying any type at all here may become an error later.
               const defineTag = localTags.find(({tagName}) => tagName === 'define');
               if (!defineTag) {
                 localTags.push({tagName: 'type', type: typeStr});
               } else if (defineTag.type !== typeStr) {
-                moduleTypeTranslator.error(
-                    varStmt,
-                    `incorrect type in @define: found '${defineTag.type}' required '${typeStr}'`);
+                if (defineTag.type !== undefined) {
+                  moduleTypeTranslator.error(
+                      varStmt,
+                      `incorrect type in @define: found '${defineTag.type}' required '${typeStr}'`);
+                }
                 defineTag.type = typeStr;
               }
             }

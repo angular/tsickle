@@ -153,6 +153,7 @@ const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
 /** What to do with types found in JSDoc @tags. */
 enum TagWithTypePolicy {
   FORBIDDEN,
+  OPTIONAL,
   REQUIRED,
 }
 
@@ -162,7 +163,7 @@ enum TagWithTypePolicy {
  */
 const JSDOC_TAGS_WITH_TYPES = new Map([
   ['const', TagWithTypePolicy.FORBIDDEN],
-  ['define', TagWithTypePolicy.REQUIRED],
+  ['define', TagWithTypePolicy.OPTIONAL],  // NOTE: this could be made forbidden later.
   ['export', TagWithTypePolicy.FORBIDDEN],
   ['param', TagWithTypePolicy.FORBIDDEN],
   ['return', TagWithTypePolicy.FORBIDDEN],
