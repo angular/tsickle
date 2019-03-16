@@ -142,4 +142,9 @@ const BAD_DEFINE = 42;
 /**
  * @define
  */
-const MISSING_DEFINE = false;
+const TS_INFERRED_DEFINE = false;
+
+/**
+ * @define
+ */
+const TS_EXPLICIT_DEFINE: string = 'y';

@@ -16,7 +16,7 @@
 // test_files/jsdoc/jsdoc.ts(77,1): warning TS0: @extends annotations are redundant with TypeScript equivalents
 // @implements annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(84,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(140,1): error TS0: incorrect type in @define: found 'boolean' required 'number'
+// test_files/jsdoc/jsdoc.ts(140,1): error TS0: incorrect type in @define: written Closure type was 'boolean' but TypeScript inferred 'number'
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -178,4 +178,8 @@ const BAD_DEFINE = 42;
 /**
  * @define {boolean}
  */
-const MISSING_DEFINE = false;
+const TS_INFERRED_DEFINE = false;
+/**
+ * @define {string}
+ */
+const TS_EXPLICIT_DEFINE = 'y';

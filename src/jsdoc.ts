@@ -158,12 +158,13 @@ enum TagWithTypePolicy {
 }
 
 /**
- * A list of JSDoc @tags that might include a {type} after them. Only banned when a type is passed.
- * Note that this does not include tags that carry a non-type system type, e.g. \@suppress.
+ * JSDoc \@tags that might include a {type} after them. Specifying a type is forbidden except in the
+ * case of \@suppress, whose argument is a suppression type, rather than a type system type.
  */
 const JSDOC_TAGS_WITH_TYPES = new Map([
   ['const', TagWithTypePolicy.FORBIDDEN],
-  ['define', TagWithTypePolicy.OPTIONAL],  // NOTE: this could be made forbidden later.
+  // NOTE: passing a type to @define will soon be forbidden as well, after usages are migrated.
+  ['define', TagWithTypePolicy.OPTIONAL],
   ['export', TagWithTypePolicy.FORBIDDEN],
   ['param', TagWithTypePolicy.FORBIDDEN],
   ['return', TagWithTypePolicy.FORBIDDEN],

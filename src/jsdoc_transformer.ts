@@ -625,7 +625,8 @@ export function jsdocTransformer(
                 if (defineTag.type !== undefined) {
                   moduleTypeTranslator.error(
                       varStmt,
-                      `incorrect type in @define: found '${defineTag.type}' required '${typeStr}'`);
+                      `incorrect type in @define: written Closure type was '${
+                          defineTag.type}' but TypeScript inferred '${typeStr}'`);
                 }
                 defineTag.type = typeStr;
               }
