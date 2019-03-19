@@ -130,21 +130,16 @@ Polymer({behaviors: ['test' as any]});
 class Foo<T1, T2> {}
 
 /**
- * @define {string}
- */
-const GOOD_DEFINE = 'x';
-
-/**
  * @define {boolean}
  */
-const BAD_DEFINE = 42;
+const DEFINE_WITH_JSDOC_TYPE = 42;
 
 /**
  * @define
  */
-const TS_INFERRED_DEFINE = false;
+const DEFINE_WITH_INFERRED_TYPE = false;
 
 /**
  * @define
  */
-const TS_EXPLICIT_DEFINE: string = 'y';
+const DEFINE_WITH_DECLARED_TYPE: string = 'y';
