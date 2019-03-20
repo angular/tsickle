@@ -128,3 +128,18 @@ Polymer({behaviors: ['test' as any]});
  * @template T2 Another user comment.
  */
 class Foo<T1, T2> {}
+
+/**
+ * @define {boolean}
+ */
+const DEFINE_WITH_JSDOC_TYPE = 42;
+
+/**
+ * @define
+ */
+const DEFINE_WITH_INFERRED_TYPE = false;
+
+/**
+ * @define
+ */
+const DEFINE_WITH_DECLARED_TYPE: string = 'y';

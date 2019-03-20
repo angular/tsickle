@@ -151,11 +151,13 @@ const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
 ]);
 
 /**
- * A list of JSDoc @tags that might include a {type} after them. Only banned when a type is passed.
- * Note that this does not include tags that carry a non-type system type, e.g. \@suppress.
+ * JSDoc \@tags that might include a {type} after them. Specifying a type is forbidden, since it
+ * would collide with TypeScript's type information. If a type *is* given, the entire tag will be
+ * ignored.
  */
 const JSDOC_TAGS_WITH_TYPES = new Set([
   'const',
+  'define',
   'export',
   'param',
   'return',
@@ -234,17 +236,19 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
           // Drop it without any warning.  (We also don't ensure its correctness.)
           continue;
         }
-      } else if (JSDOC_TAGS_WITH_TYPES.has(tagName) && text[0] === '{') {
-        warnings.push(
-            `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
-            `remove the {...} part`);
-        continue;
+      } else if (JSDOC_TAGS_WITH_TYPES.has(tagName)) {
+        if (text[0] === '{') {
+          warnings.push(
+              `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
+              `remove the {...} part`);
+          continue;
+        }
       } else if (tagName === 'suppress') {
-        const suppressMatch = text.match(/^\{(.*)\}(.*)$/);
-        if (!suppressMatch) {
-          warnings.push(`malformed @suppress tag: "${text}"`);
+        const typeMatch = text.match(/^\{(.*)\}(.*)$/);
+        if (typeMatch) {
+          [, type, text] = typeMatch;
         } else {
-          [, type, text] = suppressMatch;
+          warnings.push(`malformed @${tagName} tag: "${text}"`);
         }
       } else if (tagName === 'dict') {
         warnings.push('use index signatures (`[k: string]: type`) instead of @dict');

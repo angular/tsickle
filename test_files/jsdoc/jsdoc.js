@@ -16,6 +16,7 @@
 // test_files/jsdoc/jsdoc.ts(77,1): warning TS0: @extends annotations are redundant with TypeScript equivalents
 // @implements annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(84,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(132,1): warning TS0: the type annotation on @define is redundant with its TypeScript type, remove the {...} part
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -166,3 +167,13 @@ Polymer({ behaviors: [(/** @type {?} */ ('test'))] });
  */
 class Foo {
 }
+/** @type {number} */
+const DEFINE_WITH_JSDOC_TYPE = 42;
+/**
+ * @define {boolean}
+ */
+const DEFINE_WITH_INFERRED_TYPE = false;
+/**
+ * @define {string}
+ */
+const DEFINE_WITH_DECLARED_TYPE = 'y';
