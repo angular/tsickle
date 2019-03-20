@@ -17,7 +17,6 @@ import {transformFileoverviewCommentFactory} from './fileoverview_comment_transf
 import * as googmodule from './googmodule';
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
-import {quotingTransformer} from './quoting_transformer';
 import {isDtsFileName} from './transformer_util';
 
 // Retained here for API compatibility.
@@ -108,9 +107,6 @@ export function emitWithTsickle(
     tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, tsHost, typeChecker, tsickleDiagnostics));
-    if (host.enableAutoQuoting) {
-      tsickleSourceTransformers.push(quotingTransformer(host, typeChecker, tsickleDiagnostics));
-    }
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   } else if (host.transformDecorators) {
