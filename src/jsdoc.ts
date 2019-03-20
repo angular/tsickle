@@ -150,24 +150,17 @@ const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
   'record',   'static',     'template',   'this',        'type',      'typedef',
 ]);
 
-/** What to do with types found in JSDoc @tags. */
-enum TagWithTypePolicy {
-  FORBIDDEN,
-  REQUIRED,
-}
-
 /**
- * JSDoc \@tags that might include a {type} after them. Specifying a type is forbidden except in the
- * case of \@suppress, whose argument is a suppression type, rather than a type system type.
+ * JSDoc \@tags that might include a {type} after them. Specifying a type is forbidden, since it
+ * would collide with TypeScript's type information. If a type *is* given, the entire tag will be
+ * ignored.
  */
-const JSDOC_TAGS_WITH_TYPES = new Map([
-  ['const', TagWithTypePolicy.FORBIDDEN],
-  // NOTE: passing a type to @define will soon be forbidden as well, after usages are migrated.
-  ['define', TagWithTypePolicy.FORBIDDEN],
-  ['export', TagWithTypePolicy.FORBIDDEN],
-  ['param', TagWithTypePolicy.FORBIDDEN],
-  ['return', TagWithTypePolicy.FORBIDDEN],
-  ['suppress', TagWithTypePolicy.REQUIRED],
+const JSDOC_TAGS_WITH_TYPES = new Set([
+  'const',
+  'define',
+  'export',
+  'param',
+  'return',
 ]);
 
 /**
@@ -244,20 +237,18 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
           continue;
         }
       } else if (JSDOC_TAGS_WITH_TYPES.has(tagName)) {
-        const policy = JSDOC_TAGS_WITH_TYPES.get(tagName);
-        if (policy === TagWithTypePolicy.FORBIDDEN && text[0] === '{') {
+        if (text[0] === '{') {
           warnings.push(
               `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
               `remove the {...} part`);
           continue;
         }
+      } else if (tagName === 'suppress') {
         const typeMatch = text.match(/^\{(.*)\}(.*)$/);
-        if (!typeMatch) {
-          if (policy === TagWithTypePolicy.REQUIRED) {
-            warnings.push(`malformed @${tagName} tag: "${text}"`);
-          }
-        } else {
+        if (typeMatch) {
           [, type, text] = typeMatch;
+        } else {
+          warnings.push(`malformed @${tagName} tag: "${text}"`);
         }
       } else if (tagName === 'dict') {
         warnings.push('use index signatures (`[k: string]: type`) instead of @dict');
