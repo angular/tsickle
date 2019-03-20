@@ -20,9 +20,6 @@ import {ModulesManifest} from './tsickle';
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
-  /** If provided, modify quoting of property accesses to match the type declaration. */
-  enableAutoQuoting?: boolean;
-
   /** If provided, path to save externs to. */
   externsPath?: string;
 
@@ -45,7 +42,6 @@ example:
 tsickle flags are:
   --externs=PATH        save generated Closure externs.js to PATH
   --typed               [experimental] attempt to provide Closure types instead of {?}
-  --enableAutoQuoting   automatically apply quotes to property accesses
   --fatalWarnings       whether warnings should be fatal, and cause tsickle to return a non-zero exit code
 `);
 }
@@ -72,9 +68,6 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'verbose':
         settings.verbose = true;
-        break;
-      case 'enableAutoQuoting':
-        settings.enableAutoQuoting = true;
         break;
       case 'fatalWarnings':
         settings.fatalWarnings = true;
@@ -179,7 +172,6 @@ export function toClosureJS(
     transformDecorators: true,
     transformTypesToClosure: true,
     typeBlackListPaths: new Set(),
-    enableAutoQuoting: settings.enableAutoQuoting,
     untyped: false,
     logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
