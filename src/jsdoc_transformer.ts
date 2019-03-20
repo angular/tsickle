@@ -60,13 +60,17 @@ export function maybeAddTemplateClause(docTags: jsdoc.Tag[], decl: HasTypeParame
 /**
  * Adds heritage clauses (\@extends, \@implements) to the given docTags for decl. Used by
  * jsdoc_transformer and externs generation.
+ * @return If there are any supertypes that we cannot construct an appropriate Closure
+ *      annotation for, their Closure names are returned.  The caller must emit appropriate
+ *      code to inform the compiler that the types are related in some way.  See the
+ *      various calls to debugWarn() below for cases where this can occur.
  */
 export function maybeAddHeritageClauses(
     docTags: jsdoc.Tag[], mtt: ModuleTypeTranslator,
-    decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration) {
-  if (!decl.heritageClauses) return;
+    decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration): string[] {
+  const relatedSuperTypes: string[] = [];
+  if (!decl.heritageClauses) return relatedSuperTypes;
   const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
-  const hasExtends = decl.heritageClauses.some(c => c.token === ts.SyntaxKind.ExtendsKeyword);
   for (const heritage of decl.heritageClauses) {
     const isExtends = heritage.token === ts.SyntaxKind.ExtendsKeyword;
     if (isClass && isExtends) {
@@ -80,17 +84,10 @@ export function maybeAddHeritageClauses(
 
     // Otherwise, if we get here, we need to emit some jsdoc.
     for (const expr of heritage.types) {
-      const heritage = heritageName(isExtends, hasExtends, expr);
-      // heritageName may return null, indicating that the clause is something inexpressible
-      // in Closure, e.g. "class Foo implements Partial<Bar>".
-      if (heritage) {
-        docTags.push({
-          tagName: heritage.tagName,
-          type: heritage.parentName,
-        });
-      }
+      addHeritage(isExtends, expr);
     }
   }
+  return relatedSuperTypes;
 
   /**
    * Computes the Closure name of an expression occurring in a heritage clause,
@@ -100,12 +97,8 @@ export function maybeAddHeritageClauses(
    * already verified to be valid TypeScript.  See test_files/class/ for the full
    * cartesian product of test cases.
    * @param isExtends True if we're in an 'extends', false in an 'implements'.
-   * @param hasExtends True if there are any 'extends' clauses present at all.
    */
-  function heritageName(
-      isExtends: boolean, hasExtends: boolean,
-      expr: ts.ExpressionWithTypeArguments): {tagName: string, parentName: string}|null {
-    let tagName = isExtends ? 'extends' : 'implements';
+  function addHeritage(isExtends: boolean, expr: ts.ExpressionWithTypeArguments): void {
     let sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
     if (!sym) {
       // It's possible for a class declaration to extend an expression that
@@ -119,7 +112,7 @@ export function maybeAddHeritageClauses(
       // probably need to generate an intermediate class declaration and
       // extend that.
       mtt.debugWarn(decl, `could not resolve supertype: ${expr.getText()}`);
-      return null;
+      return;
     }
 
     // Resolve any aliases to the underlying type.
@@ -130,10 +123,11 @@ export function maybeAddHeritageClauses(
       if (!type.symbol) {
         // It's not clear when this can happen.
         mtt.debugWarn(decl, `could not get type of symbol: ${expr.getText()}`);
-        return null;
+        return;
       }
       sym = type.symbol;
     }
+
     if (sym.flags & ts.SymbolFlags.Alias) {
       sym = mtt.typeChecker.getAliasedSymbol(sym);
     }
@@ -141,29 +135,24 @@ export function maybeAddHeritageClauses(
     const typeTranslator = mtt.newTypeTranslator(expr.expression);
     if (typeTranslator.isBlackListed(sym)) {
       // Don't emit references to blacklisted types.
-      return null;
+      return;
     }
+
+    // typeToClosure includes nullability modifiers, so call symbolToString directly here.
+    const parentName = typeTranslator.symbolToString(sym);
+    if (!parentName) return;
 
     if (sym.flags & ts.SymbolFlags.Class) {
       if (!isClass) {
         // Closure interfaces cannot extend or implements classes.
         mtt.debugWarn(decl, `omitting interface deriving from class: ${expr.getText()}`);
-        return null;
+        return;
       }
       if (!isExtends) {
-        if (!hasExtends) {
-          // A special case: for a class that has no existing 'extends' clause but does
-          // have an 'implements' clause that refers to another class, we change it to
-          // instead be an 'extends'.  This was a poorly-thought-out hack that may
-          // actually cause compiler bugs:
-          //   https://github.com/google/closure-compiler/issues/3126
-          // but we have code that now relies on it, ugh.
-          tagName = 'extends';
-        } else {
-          // Closure can only @implements an interface, not a class.
-          mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
-          return null;
-        }
+        // Closure can only @implements an interface, not a class.
+        mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
+        relatedSuperTypes.push(parentName);
+        return;
       }
     } else if (sym.flags & ts.SymbolFlags.Value) {
       // If it's something other than a class in the value namespace, then it will
@@ -171,18 +160,18 @@ export function maybeAddHeritageClauses(
       // the type and value namespaces).
       mtt.debugWarn(
           decl, `omitting heritage reference to a type/value conflict: ${expr.getText()}`);
-      return null;
+      return;
     } else if (sym.flags & ts.SymbolFlags.TypeLiteral) {
       // A type literal is a type like `{foo: string}`.
       // These can come up as the output of a mapped type.
       mtt.debugWarn(decl, `omitting heritage reference to a type literal: ${expr.getText()}`);
-      return null;
+      return;
     }
 
-    // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-    const parentName = typeTranslator.symbolToString(sym);
-    if (!parentName) return null;
-    return {tagName, parentName};
+    docTags.push({
+      tagName: isExtends ? 'extends' : 'implements',
+      type: parentName,
+    });
   }
 }
 
@@ -297,6 +286,59 @@ function createMemberTypeDeclaration(
 
   // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
   return ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
+}
+
+/**
+ * Declares to Closure the supertypes of a given type.
+ * Normally you'd do this with \@implements or \@extends, but this is used in
+ * cases where we cannot express the types using those tags.
+ */
+function createSuperTypeRelationship(subType: string, superTypes: string[]): ts.IfStatement {
+  // For each supertype-subtype relationship, we create an unused function that does:
+  //   /**
+  //    * @param {!Fruit} superType
+  //    * @param {!Apple} subType
+  //    */
+  //   function tsickleSuperTypeN(supertype, subtype) {
+  //     supertype = subtype;
+  //   }
+  // This is an illegal assignment because the types aren't known to be related,
+  // so it signals to the compiler that the types should be treated as if they were related.
+  const relationStatements: ts.Statement[] = [];
+  for (const superType of superTypes) {
+    const superParam = ts.createParameter(
+        /* decorators */ undefined, /* modifiers */ undefined,
+        /* dotDotDot */ undefined, 'supertype');
+    const subParam = ts.createParameter(
+        /* decorators */ undefined, /* modifiers */ undefined,
+        /* dotDotDot */ undefined, 'subtype');
+    const fn = ts.createFunctionDeclaration(
+        /* decorators */ undefined,
+        /* modifiers */ undefined,
+        /* asterisk */ undefined,
+        /* name */ `tsickleSuperType${relationStatements.length}`,
+        /* typeParameters */ undefined,
+        /* parameters */[superParam, subParam],
+        /* type */ undefined,
+        /* body */
+        ts.createBlock(
+            [
+              ts.createStatement(ts.createAssignment(
+                  ts.createIdentifier('supertype'),
+                  ts.createIdentifier('subtype'),
+                  )),
+            ],
+            /* multiline */ true),
+    );
+    ts.addSyntheticLeadingComment(
+        fn, ts.SyntaxKind.MultiLineCommentTrivia, `*
+ * @param {!${superType}} superType
+ * @param {!${subType}} subType
+`,
+        /* trailing newline */ true);
+    relationStatements.push(fn);
+  }
+  return ts.createIf(ts.createLiteral(false), ts.createBlock(relationStatements, true));
 }
 
 function propertyName(prop: ts.NamedDeclaration): string|null {
@@ -446,8 +488,9 @@ export function jsdocTransformer(
         }
 
         maybeAddTemplateClause(mjsdoc.tags, classDecl);
+        let relatedSuperTypes: string[] = [];
         if (!host.untyped) {
-          maybeAddHeritageClauses(mjsdoc.tags, moduleTypeTranslator, classDecl);
+          relatedSuperTypes = maybeAddHeritageClauses(mjsdoc.tags, moduleTypeTranslator, classDecl);
         }
         mjsdoc.updateComment();
         const decls: ts.Statement[] = [];
@@ -456,6 +499,9 @@ export function jsdocTransformer(
         // parameter property comments when visiting the constructor.
         decls.push(ts.visitEachChild(classDecl, visitor, context));
         if (memberDecl) decls.push(memberDecl);
+        if (classDecl.name && relatedSuperTypes.length > 0) {
+          decls.push(createSuperTypeRelationship(classDecl.name.text, relatedSuperTypes));
+        }
         contextThisType = contextThisTypeBackup;
         return decls;
       }

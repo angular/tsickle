@@ -31,3 +31,12 @@ if (false) {
     /** @type {string} */
     ExtendsAndImplementsClass.prototype.foo;
 }
+if (false) {
+    /**
+     * @param {!ClassInImplements} superType
+     * @param {!ExtendsAndImplementsClass} subType
+    */
+    function tsickleSuperType0(supertype, subtype) {
+        supertype = subtype;
+    }
+}
