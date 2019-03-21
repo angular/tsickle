@@ -18,7 +18,6 @@ ts_library(
         "main.ts",
         "module_type_translator.ts",
         "modules_manifest.ts",
-        "quoting_transformer.ts",
         "transformer_util.ts",
         "tsickle.ts",
         "type_translator.ts",
