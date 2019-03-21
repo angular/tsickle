@@ -9,12 +9,12 @@
  * @record
  * @struct
  */
-function Foobar() {}
+function Foo() {}
 
 /**
  * @template U
- * @this {!Array<!Array<!Array<U>>>|!Array<!Array<U>>|!Array<U>}
- * @param {number|(undefined|number)=} depth The maximum recursion depth
+ * @this {!Array<U>}
+ * @param {number|(undefined|number)=} x
  * @return {!Array<U>|!Array<?>}
  */
-Foobar.prototype.flat = function(depth) {};
+Foo.prototype.bar = function(x) {};
