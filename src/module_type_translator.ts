@@ -355,9 +355,6 @@ export class ModuleTypeTranslator {
     }
     for (const extraTag of extraTags) addTag(extraTag);
 
-    const lens = fnDecls.map(fnDecl => fnDecl.parameters.length);
-    const minArgsCount = Math.min(...lens);
-    const maxArgsCount = Math.max(...lens);
     const isConstructor = fnDecls.find(d => d.kind === ts.SyntaxKind.Constructor) !== undefined;
     // For each parameter index i, paramTags[i] is an array of parameters
     // that can be found at index i.  E.g.
@@ -368,6 +365,7 @@ export class ModuleTypeTranslator {
     const returnTags: jsdoc.Tag[] = [];
     const typeParameterNames = new Set<string>();
 
+    const argCounts = [];
     let thisReturnType: ts.Type|null = null;
     for (const fnDecl of fnDecls) {
       // Construct the JSDoc comment by reading the existing JSDoc, if
@@ -454,9 +452,15 @@ export class ModuleTypeTranslator {
             break;
           }
         }
-        if (!paramTags[i]) paramTags.push([]);
-        paramTags[i].push(newTag);
+        if (!isThisParam) {
+          const paramIdx = hasThisParam ? i - 1 : i;
+          if (!paramTags[paramIdx]) paramTags.push([]);
+          paramTags[paramIdx].push(newTag);
+        }
       }
+      argCounts.push(
+          hasThisParam ? sig.declaration.parameters.length - 1 :
+                         sig.declaration.parameters.length);
 
       // Return type.
       if (!isConstructor) {
@@ -493,6 +497,9 @@ export class ModuleTypeTranslator {
     }
 
     const newDoc = Array.from(tagsByName.values());
+
+    const minArgsCount = Math.min(...argCounts);
+    const maxArgsCount = Math.max(...argCounts);
 
     // Merge the JSDoc tags for each overloaded parameter.
     // Ensure each parameter has a unique name; the merging process can otherwise
