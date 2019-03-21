@@ -363,6 +363,7 @@ export class ModuleTypeTranslator {
     // then paramTags[0] = [info about x, info about y].
     const paramTags: jsdoc.Tag[][] = [];
     const returnTags: jsdoc.Tag[] = [];
+    const thisTags: jsdoc.Tag[] = [];
     const typeParameterNames = new Set<string>();
 
     const argCounts = [];
@@ -456,6 +457,8 @@ export class ModuleTypeTranslator {
           const paramIdx = hasThisParam ? i - 1 : i;
           if (!paramTags[paramIdx]) paramTags.push([]);
           paramTags[paramIdx].push(newTag);
+        } else {
+          thisTags.push(newTag);
         }
       }
       argCounts.push(
@@ -497,6 +500,10 @@ export class ModuleTypeTranslator {
     }
 
     const newDoc = Array.from(tagsByName.values());
+
+    if (thisTags.length > 0) {
+      newDoc.push(jsdoc.merge(thisTags));
+    }
 
     const minArgsCount = Math.min(...argCounts);
     const maxArgsCount = Math.max(...argCounts);
