@@ -17,7 +17,7 @@ import * as ts from 'typescript';
 import {AnnotatorHost} from './annotator_host';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
-import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
+import {getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
 import * as typeTranslator from './type_translator';
 
 /**
@@ -207,18 +207,25 @@ export class ModuleTypeTranslator {
   }
 
   /**
+   * Generates a somewhat human-readable module prefix for the given import context, to make
+   * debugging the emitted Closure types a bit easier.
+   */
+  private generateModulePrefix(importPath: string) {
+    const modulePrefix = importPath.replace(/(\/index)?(\.d)?\.[tj]sx?$/, '')
+                             .replace(/^.*[/.](.+?)/, '$1')
+                             .replace(/\W/g, '_');
+    return `tsickle_${modulePrefix || 'reqType'}_`;
+  }
+
+  /**
    * Records that we we want a `const x = goog.requireType...` import of the given `importPath`,
    * which will be inserted when we emit.
    * This also registers aliases for symbols from the module that map to this requireType.
    *
-   * @param isExplicitImport True if this comes from an underlying 'import' statement, false
-   *     if this reference is needed just because a symbol's type relies on it.
    * @param isDefaultImport True if the import statement is a default import, e.g.
    *     `import Foo from ...;`, which matters for adjusting whether we emit a `.default`.
    */
-  requireType(
-      importPath: string, moduleSymbol: ts.Symbol, isExplicitImport: boolean,
-      isDefaultImport = false) {
+  requireType(importPath: string, moduleSymbol: ts.Symbol, isDefaultImport = false) {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
@@ -226,7 +233,8 @@ export class ModuleTypeTranslator {
       return;  // Do not emit goog.requireType for blacklisted paths.
     }
     const nsImport = googmodule.extractGoogNamespaceImport(importPath);
-    const requireTypePrefix = `tsickle_forward_declare_${this.requireTypeModules.size + 1}`;
+    const requireTypePrefix =
+        this.generateModulePrefix(importPath) + String(this.requireTypeModules.size + 1);
     const moduleNamespace = nsImport !== null ?
         nsImport :
         this.host.pathToModuleName(this.sourceFile.fileName, importPath);
@@ -243,10 +251,8 @@ export class ModuleTypeTranslator {
             [ts.createVariableDeclaration(
                 requireTypePrefix, undefined,
                 ts.createCall(
-                    ts.createPropertyAccess(
-                        ts.createIdentifier('goog'),
-                        'requireType'),
-                    undefined, [ts.createLiteral(moduleNamespace)]))],
+                    ts.createPropertyAccess(ts.createIdentifier('goog'), 'requireType'), undefined,
+                    [ts.createLiteral(moduleNamespace)]))],
             ts.NodeFlags.Const)));
     this.requireTypeModules.add(moduleSymbol);
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
@@ -274,7 +280,7 @@ export class ModuleTypeTranslator {
     // A source file might not have a symbol if it's not a module (no ES6 im/exports).
     if (!moduleSymbol) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    this.requireType(sourceFile.fileName, moduleSymbol, /* isExplicitlyImported? */ false);
+    this.requireType(sourceFile.fileName, moduleSymbol);
   }
 
   insertAdditionalImports(sourceFile: ts.SourceFile) {
@@ -462,8 +468,7 @@ export class ModuleTypeTranslator {
         }
       }
       argCounts.push(
-          hasThisParam ? sig.declaration.parameters.length - 1 :
-                         sig.declaration.parameters.length);
+          hasThisParam ? sig.declaration.parameters.length - 1 : sig.declaration.parameters.length);
 
       // Return type.
       if (!isConstructor) {

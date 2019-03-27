@@ -211,8 +211,8 @@ export class TypeTranslator {
    *     any reference to symbols defined in these paths should by typed
    *     as {?}.
    * @param symbolsToAliasedNames a mapping from symbols (`Foo`) to a name in scope they should be
-   *     emitted as (e.g. `tsickle_forward_declare_1.Foo`). Can be augmented during type
-   *     translation, e.g. to blacklist a symbol.
+   *     emitted as (e.g. `tsickle_reqType_1.Foo`). Can be augmented during type translation, e.g.
+   *     to blacklist a symbol.
    */
   constructor(
       private readonly host: AnnotatorHost, private readonly typeChecker: ts.TypeChecker,

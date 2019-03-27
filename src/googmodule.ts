@@ -125,9 +125,6 @@ export function extractGoogNamespaceImport(tsImport: string): string|null {
   return null;
 }
 
-// Matches common extensions of TypeScript input filenames
-const TS_EXTENSIONS = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
-
 /**
  * Convert from implicit `import {} from 'pkg'` to a full resolved file name, including any `/index`
  * suffix and also resolving path mappings. TypeScript and many module loaders support the
