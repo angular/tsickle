@@ -6,15 +6,15 @@ goog.module('test_files.enum.enum_user');
 var module = module || { id: 'test_files/enum/enum_user.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.enum.enum");
+const tsickle_enum_1 = goog.requireType("test_files.enum.enum");
 /**
  * @record
  */
 function EnumUsingIf() { }
 exports.EnumUsingIf = EnumUsingIf;
 if (false) {
-    /** @type {!tsickle_forward_declare_1.ConstEnum} */
+    /** @type {!tsickle_enum_1.ConstEnum} */
     EnumUsingIf.prototype.field;
 }
-/** @type {!tsickle_forward_declare_1.ConstEnum} */
+/** @type {!tsickle_enum_1.ConstEnum} */
 const fieldUsingConstEnum = 0 /* EMITTED_ENUM_VALUE */;

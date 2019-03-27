@@ -10,7 +10,7 @@ goog.module('test_files.transitive_symbol_type_only.transitive_symbol_type_only'
 var module = module || { id: 'test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.transitive_symbol_type_only.reexporter");
-const tsickle_forward_declare_2 = goog.requireType("test_files.transitive_symbol_type_only.exporter");
-/** @type {(null|string|!tsickle_forward_declare_2.ExportedInterface)} */
+const tsickle_reexporter_1 = goog.requireType("test_files.transitive_symbol_type_only.reexporter");
+const tsickle_exporter_2 = goog.requireType("test_files.transitive_symbol_type_only.exporter");
+/** @type {(null|string|!tsickle_exporter_2.ExportedInterface)} */
 exports.val = 'val';

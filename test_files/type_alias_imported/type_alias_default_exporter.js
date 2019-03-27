@@ -9,7 +9,7 @@ goog.module('test_files.type_alias_imported.type_alias_default_exporter');
 var module = module || { id: 'test_files/type_alias_imported/type_alias_default_exporter.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.type_alias_imported.type_alias_declare");
+const tsickle_type_alias_declare_1 = goog.requireType("test_files.type_alias_imported.type_alias_declare");
 class Z {
 }
 exports.Z = Z;

@@ -9,7 +9,7 @@ goog.module('test_files.type_and_value.type_and_value');
 var module = module || { id: 'test_files/type_and_value/type_and_value.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.type_and_value.module");
+const tsickle_module_1 = goog.requireType("test_files.type_and_value.module");
 const conflict = goog.require('test_files.type_and_value.module');
 // This test deals with symbols that are simultaneously types and values.
 // Use a browser built-in as both a type and a value.
@@ -20,7 +20,7 @@ let useBuiltInAsType;
 // Use a user-defined class as both a type and a value.
 /** @type {?} */
 let useUserClassAsValue = conflict.Class;
-/** @type {!tsickle_forward_declare_1.Class} */
+/** @type {!tsickle_module_1.Class} */
 let useUserClassAsType;
 // Use a user-defined interface/value pair as both a type and a value.
 /** @type {number} */

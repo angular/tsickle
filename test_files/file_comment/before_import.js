@@ -10,6 +10,6 @@ goog.module('test_files.file_comment.before_import');
 var module = module || { id: 'test_files/file_comment/before_import.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.file_comment.comment_before_var");
+const tsickle_comment_before_var_1 = goog.requireType("test_files.file_comment.comment_before_var");
 const comment_before_var_1 = goog.require('test_files.file_comment.comment_before_var');
 console.log(comment_before_var_1.y);

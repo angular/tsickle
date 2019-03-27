@@ -6,9 +6,9 @@ goog.module('test_files.augment.user');
 var module = module || { id: 'test_files/augment/user.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.augment.angular.index");
+const tsickle_angular_1 = goog.requireType("test_files.augment.angular.index");
 const ng = goog.require('test_files.augment.angular.index');
-/** @type {!tsickle_forward_declare_1.Scope} */
+/** @type {!tsickle_angular_1.Scope} */
 const fakeScope = { name: ng.version };
-/** @type {!tsickle_forward_declare_1.sub.AugmentSubType} */
+/** @type {!tsickle_angular_1.sub.AugmentSubType} */
 const usingAugment = { prop: fakeScope.name };

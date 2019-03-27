@@ -11,10 +11,10 @@ goog.module('test_files.implement_reexported_interface.user');
 var module = module || { id: 'test_files/implement_reexported_interface/user.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.implement_reexported_interface.exporter");
-const tsickle_forward_declare_2 = goog.requireType("test_files.implement_reexported_interface.interface");
+const tsickle_exporter_1 = goog.requireType("test_files.implement_reexported_interface.exporter");
+const tsickle_interface_2 = goog.requireType("test_files.implement_reexported_interface.interface");
 /**
- * @implements {tsickle_forward_declare_2.ExportedInterface}
+ * @implements {tsickle_interface_2.ExportedInterface}
  */
 class Test {
     constructor() {

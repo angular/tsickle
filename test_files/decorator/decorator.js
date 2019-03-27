@@ -8,10 +8,10 @@ var module = module || { id: 'test_files/decorator/decorator.ts' };
 module = module;
 exports = {};
 const tslib_1 = goog.require('tslib');
-const tsickle_forward_declare_1 = goog.requireType("test_files.decorator.default_export");
-const tsickle_forward_declare_2 = goog.requireType("test_files.decorator.external");
-const tsickle_forward_declare_3 = goog.requireType("test_files.decorator.external2");
-const tsickle_forward_declare_4 = goog.requireType("test_files.decorator.only_types");
+const tsickle_default_export_1 = goog.requireType("test_files.decorator.default_export");
+const tsickle_external_2 = goog.requireType("test_files.decorator.external");
+const tsickle_external2_3 = goog.requireType("test_files.decorator.external2");
+const tsickle_only_types_4 = goog.requireType("test_files.decorator.only_types");
 // OtherClass is reachable via the imports for './external' and './external2'.
 // Test that were using it from the right import, and not just the first
 // that allows access to the value. That is important when imports are elided.
@@ -58,18 +58,18 @@ class DecoratorTest {
      * @param {boolean} b
      * @param {!Promise<string>} promise
      * @param {!Array<string>} arr
-     * @param {!tsickle_forward_declare_2.AClass} aClass
-     * @param {!tsickle_forward_declare_2.AClass} AClass
-     * @param {!tsickle_forward_declare_2.AClass} aRenamedClass
-     * @param {!tsickle_forward_declare_2.AClassWithGenerics<string>} aClassWithGenerics
-     * @param {!tsickle_forward_declare_2.AType} aType
-     * @param {!tsickle_forward_declare_1.default} defaultImport
+     * @param {!tsickle_external_2.AClass} aClass
+     * @param {!tsickle_external_2.AClass} AClass
+     * @param {!tsickle_external_2.AClass} aRenamedClass
+     * @param {!tsickle_external_2.AClassWithGenerics<string>} aClassWithGenerics
+     * @param {!tsickle_external_2.AType} aType
+     * @param {!tsickle_default_export_1.default} defaultImport
      * @param {!Map<string, number>} localTypeAlias
-     * @param {!tsickle_forward_declare_3.OtherClass} otherClass
-     * @param {!tsickle_forward_declare_3.OtherClass} anotherClass
-     * @param {!Array<!tsickle_forward_declare_4.AnotherType>} anotherType
-     * @param {!tsickle_forward_declare_4.AnotherType} anotherPrefixed
-     * @param {function(!tsickle_forward_declare_2.AType): string} fnUsingAType
+     * @param {!tsickle_external2_3.OtherClass} otherClass
+     * @param {!tsickle_external2_3.OtherClass} anotherClass
+     * @param {!Array<!tsickle_only_types_4.AnotherType>} anotherType
+     * @param {!tsickle_only_types_4.AnotherType} anotherPrefixed
+     * @param {function(!tsickle_external_2.AType): string} fnUsingAType
      * @param {{constructor: function(string): void}=} valueWithCtorSignature
      */
     constructor(a, anyDecorated, n, b, promise, arr, aClass, AClass, aRenamedClass, aClassWithGenerics, aType, defaultImport, localTypeAlias, otherClass, anotherClass, anotherType, anotherPrefixed, fnUsingAType, valueWithCtorSignature = { /**
@@ -134,7 +134,7 @@ if (false) {
      */
     DecoratorTest.prototype.y;
     /**
-     * @type {!tsickle_forward_declare_2.AClass}
+     * @type {!tsickle_external_2.AClass}
      * @private
      */
     DecoratorTest.prototype.z;

@@ -6,7 +6,7 @@ goog.module('test_files.type_alias_imported.type_alias_exporter');
 var module = module || { id: 'test_files/type_alias_imported/type_alias_exporter.ts' };
 module = module;
 exports = {};
-const tsickle_forward_declare_1 = goog.requireType("test_files.type_alias_imported.type_alias_declare");
+const tsickle_type_alias_declare_1 = goog.requireType("test_files.type_alias_imported.type_alias_declare");
 // Export a type alias that references types from this file that, in turn, are
 // not imported at the use site in type_alias_imported. This is a regression
 // test for a bug where tsickle would accidentally inline the union type "X|Y"
@@ -14,5 +14,5 @@ const tsickle_forward_declare_1 = goog.requireType("test_files.type_alias_import
 class Y {
 }
 exports.Y = Y;
-/** @typedef {(!tsickle_forward_declare_1.X|!Y)} */
+/** @typedef {(!tsickle_type_alias_declare_1.X|!Y)} */
 exports.XY;
