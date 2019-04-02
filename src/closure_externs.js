@@ -86,3 +86,9 @@ var SymbolConstructor;
  * @constructor
  */
 function bigintPlaceholder() {}
+
+/** @typedef {!Object} */
+var GlobalFetch;
+
+/** @typedef {!Window|WorkerGlobalScope} */
+var WindowOrWorkerGlobalScope;
