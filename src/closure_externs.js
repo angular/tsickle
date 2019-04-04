@@ -90,5 +90,9 @@ function bigintPlaceholder() {}
 /** @typedef {!Object} */
 var GlobalFetch;
 
-/** @typedef {!Window|WorkerGlobalScope} */
+/**
+ * @interface
+ * @extends{WorkerGlobalScope}
+ * @extends{Window}
+ */
 var WindowOrWorkerGlobalScope;
