@@ -1,7 +1,7 @@
 // test_files/enum/enum.ts(2,7): warning TS0: should not emit a 'never' type
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // Line with a missing semicolon should not break the following enum.
 goog.module('test_files.enum.enum');
