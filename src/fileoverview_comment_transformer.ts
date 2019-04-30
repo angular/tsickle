@@ -58,6 +58,10 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
   suppressions.add('unusedPrivateMembers');
   // 5) Suppress checking for @override, because TS doesn't model it.
   suppressions.add('missingOverride');
+  // 6) Suppress constantProperty checking, which errors when a namespace is
+  // reopened. Namespace reopening happens when one writes namespace foo {}
+  // or namespace foo.* {} more than once.
+  suppressions.add('constantProperty');
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 
   return tags;

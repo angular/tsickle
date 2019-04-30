@@ -3,7 +3,7 @@
 // test_files/type_and_value/type_and_value.ts(19,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_and_value.type_and_value');
 var module = module || { id: 'test_files/type_and_value/type_and_value.ts' };

@@ -4,7 +4,7 @@
  * scope would cause a duplicate exports assignment, once for the imported symbol and once for the
  * exported typedef.
  *
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.import_export_typedef_conflict.import_export_typedef_conflict');
 var module = module || { id: 'test_files/import_export_typedef_conflict/import_export_typedef_conflict.ts' };
