@@ -7,7 +7,7 @@ var module = module || { id: 'test_files/file_comment/fileoverview_and_jsdoc.ts'
 module = module;
 exports = {};
 /**
- * @noalias
+ * @deprecated Some Text
  * @type {number}
  */
 const aVariable = 1;
