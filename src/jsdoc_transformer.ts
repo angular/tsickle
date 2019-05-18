@@ -502,7 +502,7 @@ export function jsdocTransformer(
         }
         // If this symbol is both a type and a value, we cannot emit both into Closure's
         // single namespace.
-        if (sym.flags & ts.SymbolFlags.Value) {
+        if ((sym.flags & ts.SymbolFlags.Value) && (sym.valueDeclaration.pos < iface.pos)) {
           moduleTypeTranslator.debugWarn(
               iface, `type/symbol conflict for ${sym.name}, using {?} for now`);
           return [transformerUtil.createSingleLineComment(
@@ -534,6 +534,85 @@ export function jsdocTransformer(
         addCommentOn(decl, tags);
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, iface);
         return memberDecl ? [decl, memberDecl] : [decl];
+      }
+
+      function visitNamespaceDeclaration(ns: ts.ModuleDeclaration): ts.Statement[] {
+        const emit: ts.Statement[] = [];
+
+        // if (!emit.length) {
+        //   const out = ts.visitEachChild(ns, visitor, context) as any;
+        //   console.error('\x1b[1;31\x1b[m'); console.dir(out.body.statements[0]);
+        //   return out as ts.Statement[];;
+        // }
+
+        // If this is the first time the symbol is defined, then declare it as a constant object.
+        // This should remove the need to suppress const.
+        const sym = typeChecker.getSymbolAtLocation(ns.name);
+        if (!sym) {
+          moduleTypeTranslator.error(ns, 'namespace with no symbol');
+          return [];
+        } else if (ns.name.kind === ts.SyntaxKind.StringLiteral) {
+          moduleTypeTranslator.error(ns.name, 'string literal namespaces not supported');
+          return [];
+        }
+        const name = ns.name as ts.Identifier;
+        const needsDeclaration = !sym.valueDeclaration || sym.valueDeclaration.pos === ns.pos;
+        if (needsDeclaration) {
+          emit.push(ts.createVariableStatement(
+              ts.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
+              [ts.createVariableDeclaration(name, undefined, ts.createObjectLiteral())]));
+        }
+        const iife: ts.Node[] = [];
+        if (ns.body) {
+          //console.error('\x1b[1;31mmodule body\x1b[m'); console.dir(ns.body);
+          //const newBody = ts.visitEachChild(ns.body, (child: ts.Node): ts.Statement[] => {
+          ts.visitEachChild(ns.body, (child: ts.Node): undefined => {
+            // const exporteds = getExportDeclarationNames(child);
+            // console.error(`\x1b[1;34mexporteds\x1b[m: ${exporteds.map(x=>x.text).join(', ')}`);
+            // const result = ts.visitNode(child, visitor);
+            //console.error('\x1b[1;31mvisited child\x1b[m'); console.dir(child);
+            const result = visitor(child) as ts.Statement | ts.Statement[];
+            console.error('\x1b[1;31mresult\x1b[m');console.dir(result);
+            const stmts: ts.Statement[] = [];
+            function unexport(n: ts.Statement): ts.Statement {
+              if (!getExportDeclarationNames(n).length) return n;
+              n = ts.getMutableClone(n);
+              if (n.modifiers) n.modifiers = n.modifiers.slice(0, 0) as any;
+              return n;
+            }
+            stmts.push(...(Array.isArray(result) ? result : [result]).map(unexport));
+            for (const exported of getExportDeclarationNames(child)) {
+              const decl = ts.createExpressionStatement(
+                  ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
+              addCommentOn(decl, [{tagName: 'const'}]);
+              //console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
+              console.dir(decl);
+              stmts.push(decl);
+            }
+            iife.push(...stmts);
+            return undefined;
+            //return [];
+          //  return stmts;
+          }, context);
+          //console.error('\x1b[1;31mtransformed body\x1b[m');console.dir(newBody);
+          //newBody.forEachChild((child) => iife.push(child));
+        }
+        emit.push(ts.createExpressionStatement(ts.createImmediatelyInvokedFunctionExpression(
+            iife as ts.Statement[],
+            ts.createParameter(
+                /* decorators */ undefined,
+                /* modifiers */ undefined,
+                /* dotDotDot */ undefined, name),
+            name)));
+        if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
+          if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {
+            moduleTypeTranslator.error(ns, 'export default namespace not supported');
+          } else {
+            emit.push(ts.createExpressionStatement(ts.createAssignment(
+                ts.createPropertyAccess(ts.createIdentifier('exports'), name), name)));
+          }
+        }
+        return emit;
       }
 
       /** Function declarations are emitted as they are, with only JSDoc added. */
@@ -929,6 +1008,8 @@ export function jsdocTransformer(
             return visitClassDeclaration(node as ts.ClassDeclaration);
           case ts.SyntaxKind.InterfaceDeclaration:
             return visitInterfaceDeclaration(node as ts.InterfaceDeclaration);
+          case ts.SyntaxKind.ModuleDeclaration:
+            return visitNamespaceDeclaration(node as ts.ModuleDeclaration);
           case ts.SyntaxKind.HeritageClause:
             return visitHeritageClause(node as ts.HeritageClause);
           case ts.SyntaxKind.ArrowFunction:
