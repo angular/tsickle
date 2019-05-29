@@ -23,6 +23,21 @@ DeclareTestModule.Foo.prototype.field;
  * @return {number}
  */
 DeclareTestModule.Foo.prototype.method = function(a) {};
+/**
+ * @record
+ * @struct
+ */
+DeclareTestModule.FooConstructor = function() {};
+
+/* TODO: ConstructSignature: DeclareTestModule */
+
+/**
+ * @param {string} f
+ * @return {!DeclareTestModule.Foo}
+ */
+DeclareTestModule.makeFoo = function(f) {};
+/** @type {!DeclareTestModule.FooConstructor} */
+DeclareTestModule.fooMaker;
 
 /**
  * @constructor
@@ -30,6 +45,8 @@ DeclareTestModule.Foo.prototype.method = function(a) {};
  * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};
+/** @type {function(new:DeclareTestModule.Foo, string)} */
+DeclareTestModule.Clazz.prototype.makeFoo = function(_0) {};
 /** @type {number} */
 DeclareTestModule.Clazz.field;
 
