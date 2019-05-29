@@ -11,10 +11,20 @@ declare namespace DeclareTestModule {
     method(a: string): number;
   }
 
+  interface FooConstructor {
+    new (f: string): Foo;
+  }
+
+  function makeFoo(f: string): Foo;
+
+  var fooMaker: FooConstructor;
+
   class Clazz {
     constructor(a: number);
     /** Comment */
     method(a: string): number;
+    
+    makeFoo: {new(f: string): Foo};
 
     static staticMethod(a: string): number;
 
