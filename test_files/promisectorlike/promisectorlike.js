@@ -7,7 +7,7 @@ var module = module || { id: 'test_files/promisectorlike/promisectorlike.ts' };
 module = module;
 exports = {};
 /**
- * @param {function(new: (!PromiseLike<?>), function(function((undefined|?|!PromiseLike<?>)=): void, function(?=): void): void): ?} ctorLike
+ * @param {function(new:PromiseLike<?>, function(function((undefined|?|!PromiseLike<?>)=): void, function(?=): void): void)} ctorLike
  * @return {!Promise<string>}
  */
 function toPromise(ctorLike) {

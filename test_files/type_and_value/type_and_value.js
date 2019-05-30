@@ -13,7 +13,7 @@ const tsickle_module_1 = goog.requireType("test_files.type_and_value.module");
 const conflict = goog.require('test_files.type_and_value.module');
 // This test deals with symbols that are simultaneously types and values.
 // Use a browser built-in as both a type and a value.
-/** @type {function(new: (!Document)): ?} */
+/** @type {function(new:Document)} */
 let useBuiltInAsValue = Document;
 /** @type {!Document} */
 let useBuiltInAsType;
