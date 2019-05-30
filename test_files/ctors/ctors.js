@@ -6,7 +6,7 @@ goog.module('test_files.ctors.ctors');
 var module = module || { id: 'test_files/ctors/ctors.ts' };
 module = module;
 exports = {};
-/** @type {function(new: (!Document)): ?} */
+/** @type {function(new:Document)} */
 let x = Document;
 class X {
     /**
@@ -23,7 +23,7 @@ if (false) {
      */
     X.prototype.a;
 }
-/** @type {function(new: (!X), number): ?} */
+/** @type {function(new:X, number)} */
 let y = X;
 class OverloadedCtor {
     /**
