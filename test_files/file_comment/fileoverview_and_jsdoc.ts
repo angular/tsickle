@@ -1,6 +1,6 @@
 /** @fileoverview A file. */
 
 /**
- * @noalias
+ * @deprecated Some Text
  */
 const aVariable = 1;
