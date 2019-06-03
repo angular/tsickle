@@ -183,14 +183,20 @@ Instead, push the branch to master directly via:
 
 ```
 $ git push origin mybranch:master
-$ git push origin v0.32.0
 ```
 
 Note that Github will block non-fast-forward pushes to master, so if
 there have been other intervening commits you'll need to recreate the
-release. Once the versioned tag is pushed to Github the release (as
-found on https://github.com/angular/tsickle/releases) will be
-implicitly created.
+release.
+
+Also push the tag.
+
+```
+$ git push origin v0.32.0  # but use correct version
+```
+
+Once the versioned tag is pushed to Github the release (as found on
+https://github.com/angular/tsickle/releases) will be implicitly created.
 
 Run `bazel run :npm_package.publish` from the master branch
 (you must be logged into the `angular` shared npm account).
