@@ -96,3 +96,6 @@ var GlobalFetch;
  * @extends{Window}
  */
 var WindowOrWorkerGlobalScope;
+
+/** @record */
+function CanvasDrawImage() {}
