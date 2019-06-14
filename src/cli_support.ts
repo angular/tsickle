@@ -6,8 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as assert from 'assert';
-import * as path from 'path';
+import * as path from './path';
 
 /**
  * asserts that the given fileName is an absolute path.
@@ -16,7 +15,9 @@ import * as path from 'path';
  * paths before handing them over to TypeScript.
  */
 export function assertAbsolute(fileName: string) {
-  assert(path.isAbsolute(fileName), `expected ${JSON.stringify(fileName)} to be absolute`);
+  if (!path.isAbsolute(fileName)) {
+    throw new Error(`expected ${JSON.stringify(fileName)} to be absolute`);
+  }
 }
 
 /**

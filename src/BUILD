@@ -18,6 +18,7 @@ ts_library(
         "main.ts",
         "module_type_translator.ts",
         "modules_manifest.ts",
+        "path.ts",
         "transformer_util.ts",
         "tsickle.ts",
         "type_translator.ts",
