@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as path from 'path';
 import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
+import * as path from './path';
 import {getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
 
 /**
@@ -672,8 +672,8 @@ export class TypeTranslator {
       const params = this.convertParams(ctors[0], decl.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
-      const constructedTypeStr = constructedType[0] == '!' ?
-        constructedType.substring(1) : constructedType;
+      const constructedTypeStr =
+          constructedType[0] == '!' ? constructedType.substring(1) : constructedType;
       // In the specific case of the "new" in a function, the correct Closure
       // type is:
       //

@@ -65,7 +65,6 @@
  *   whatever third party library the .d.ts describes).
  */
 
-import * as path from 'path';
 import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
@@ -74,6 +73,7 @@ import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
+import * as path from './path';
 import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportDiagnostic} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
@@ -512,7 +512,7 @@ export function generateExterns(
       return;
     }
 
-    // Side effect import 'path'; declares no local aliases.
+    // Side effect import, like "import 'somepath';" declares no local aliases.
     if (!decl.importClause) return;
 
     if (decl.importClause.name) {
@@ -616,7 +616,9 @@ export function generateExterns(
    * cases.
    */
   function debugLocationStr(node: ts.Node, namespace: ReadonlyArray<string>) {
-    return namespace.join('.') || path.basename(node.getSourceFile().fileName);
+    // Use a regex to grab the filename without a path, to make the output stable
+    // under bazel where sandboxes use different paths.
+    return namespace.join('.') || node.getSourceFile().fileName.replace(/.*[/\\]/, '');
   }
 
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {

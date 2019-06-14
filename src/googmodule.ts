@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import * as path from 'path';
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
+import * as path from './path';
 import {createNotEmittedStatementWithComments, createSingleQuoteStringLiteral,} from './transformer_util';
 
 export interface GoogModuleProcessorHost {
