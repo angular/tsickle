@@ -54,3 +54,7 @@ function createFoo() {
 exports.createFoo = createFoo;
 /** @typedef {!tsickle_export_helper_3_4.Foo} */
 exports.Foo; // re-export typedef
+/** @typedef {string} */
+var LocalType;
+/** @typedef {!LocalType} */
+exports.LocalType; // re-export typedef

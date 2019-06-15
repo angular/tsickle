@@ -657,9 +657,6 @@ export function jsdocTransformer(
         // namespaces, the two emits would conflict if tsickle emitted both.
         const sym = moduleTypeTranslator.mustGetSymbolAtLocation(typeAlias.name);
         if (sym.flags & ts.SymbolFlags.Value) return [];
-        // Type aliases are always emitted as the resolved underlying type, so there is no need to
-        // emit anything, except for exported types.
-        if (!transformerUtil.hasModifierFlag(typeAlias, ts.ModifierFlags.Export)) return [];
         if (!shouldEmitExportsAssignments()) return [];
 
         const typeName = typeAlias.name.getText();
@@ -670,23 +667,36 @@ export function jsdocTransformer(
             moduleTypeTranslator.symbolsToAliasedNames, typeAlias.typeParameters);
         const typeStr =
             host.untyped ? '?' : moduleTypeTranslator.typeToClosure(typeAlias, undefined);
-        // In the case of an export, we cannot emit a `export var foo;` because TypeScript drops
-        // exports that are never assigned values, and Closure requires us to not assign values to
-        // typedef exports. Introducing a new local variable and exporting it can cause bugs due to
-        // name shadowing and confusing TypeScript's logic on what symbols and types vs values are
-        // exported. Mangling the name to avoid the conflicts would be reasonably clean, but would
-        // require a two pass emit to first find all type alias names, mangle them, and emit the use
-        // sites only later. With that, the fix here is to never emit type aliases, but always
-        // resolve the alias and emit the underlying type (fixing references in the local module,
-        // and also across modules). For downstream JavaScript code that imports the typedef, we
-        // emit an "export.Foo;" that declares and exports the type, and for TypeScript has no
-        // impact.
+
+        // We want to emit a @typedef.  They are a bit weird because they are 'var' statements
+        // that have no value.
         const tags = moduleTypeTranslator.getJSDoc(typeAlias, /* reportWarnings */ true);
         tags.push({tagName: 'typedef', type: typeStr});
-        const decl = ts.setSourceMapRange(
-            ts.createStatement(ts.createPropertyAccess(
-                ts.createIdentifier('exports'), ts.createIdentifier(typeName))),
-            typeAlias);
+        const isExported = transformerUtil.hasModifierFlag(typeAlias, ts.ModifierFlags.Export);
+        let decl: ts.Statement;
+        if (isExported) {
+          // Given: export type T = ...;
+          // We cannot emit `export var foo;` and let TS generate from there because TypeScript
+          // drops exports that are never assigned values, and Closure requires us to not assign
+          // values to typedef exports. Introducing a new local variable and exporting it can cause
+          // bugs due to name shadowing and confusing TypeScript's logic on what symbols and types
+          // vs values are exported. Mangling the name to avoid the conflicts would be reasonably
+          // clean, but would require a two pass emit to first find all type alias names, mangle
+          // them, and emit the use sites only later.
+          // So we produce: exports.T;
+          decl = ts.createStatement(ts.createPropertyAccess(
+              ts.createIdentifier('exports'), ts.createIdentifier(typeName)));
+        } else {
+          // Given: type T = ...;
+          // We produce: var T;
+          // Note: not const, because 'const Foo;' is illegal;
+          // not let, because we want hoisting behavior for types.
+          decl = ts.createVariableStatement(
+              /* modifiers */ undefined,
+              ts.createVariableDeclarationList(
+                  [ts.createVariableDeclaration(ts.createIdentifier(typeName))]));
+        }
+        decl = ts.setSourceMapRange(decl, typeAlias);
         addCommentOn(decl, tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
         return [decl];
       }

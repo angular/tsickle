@@ -50,6 +50,8 @@ function classDecorator(t) {
 function classAnnotation(t) {
     return t;
 }
+/** @typedef {!Map<string, number>} */
+var LocalTypeAlias;
 class DecoratorTest {
     /**
      * @param {!Array<?>} a

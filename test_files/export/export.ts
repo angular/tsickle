@@ -28,3 +28,8 @@ export function createFoo(): Foo {
 }
 
 export {Foo};
+
+// A type declaration that isn't immediately marked with 'export'
+// should still be possible to export.
+type LocalType = string;
+export {LocalType};

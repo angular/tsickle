@@ -13,3 +13,5 @@ const tsickle_type_alias_declare_1 = goog.requireType("test_files.type_alias_imp
 class Z {
 }
 exports.Z = Z;
+/** @typedef {(!tsickle_type_alias_declare_1.X|!Z)} */
+var DefaultExport;
