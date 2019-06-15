@@ -1,6 +1,7 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(126,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
+// test_files/class/class.ts(129,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(130,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
@@ -185,6 +186,8 @@ class AbstractClassExtendsClass extends Class {
  */
 class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
+/** @typedef {!Interface} */
+var TypeAlias;
 /**
  * @implements {Interface}
  * @extends {Class}
@@ -227,6 +230,8 @@ if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
+/** @typedef {?} */
+var ZoneAlias;
 class ZoneImplementsAlias {
 }
 if (false) {
