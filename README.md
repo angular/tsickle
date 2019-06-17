@@ -114,6 +114,12 @@ Example:
 
 ## Development
 
+### Bazel install
+
+We use [bazel](https://bazel.build/) to build, and are pinned to an old version
+of it in `package.json`. So unless you have that specific version of bazel installed,
+you should run run `yarn bazel` instead of `bazel` in any of the below commands.
+
 ### One-time setup
 
 Run `bazel run @nodejs//:yarn --script_path=yarn_install.sh && ./yarn_install.sh`

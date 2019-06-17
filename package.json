@@ -20,6 +20,7 @@
     "typescript": "~3.4.1"
   },
   "devDependencies": {
+    "@bazel/bazel": "^0.24.0",
     "@bazel/typescript": "^0.24.1",
     "@types/diff-match-patch": "^1.0.32",
     "@types/glob": "5.0.35",
