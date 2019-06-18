@@ -81,13 +81,13 @@ export interface EmitResult extends ts.EmitResult {
 
 export interface EmitTransformers {
   /** Custom transformers to evaluate before Tsickle .js transformations. */
-  beforeTsickle?: Array<ts.TransformerFactory<ts.SourceFile>>;
+  beforeTsickle?: ts.CustomTransformers['before'];
   /** Custom transformers to evaluate before built-in .js transformations. */
-  beforeTs?: Array<ts.TransformerFactory<ts.SourceFile>>;
+  beforeTs?: ts.CustomTransformers['before'];
   /** Custom transformers to evaluate after built-in .js transformations. */
-  afterTs?: Array<ts.TransformerFactory<ts.SourceFile>>;
+  afterTs?: ts.CustomTransformers['after'];
   /** Custom transformers to evaluate after built-in .d.ts transformations. */
-  afterDeclarations?: Array<ts.TransformerFactory<ts.Bundle|ts.SourceFile>>;
+  afterDeclarations?: ts.CustomTransformers['afterDeclarations'];
 }
 
 export function emitWithTsickle(
@@ -113,16 +113,14 @@ export function emitWithTsickle(
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
   const modulesManifest = new ModulesManifest();
-  const tsickleTransformers: ts.CustomTransformers = {before: tsickleSourceTransformers};
   const tsTransformers: ts.CustomTransformers = {
     before: [
       ...(customTransformers.beforeTsickle || []),
-      ...(tsickleTransformers.before || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
+      ...(tsickleSourceTransformers || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
       ...(customTransformers.beforeTs || []),
     ],
     after: [
       ...(customTransformers.afterTs || []),
-      ...(tsickleTransformers.after || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
     ],
     afterDeclarations: customTransformers.afterDeclarations,
   };
