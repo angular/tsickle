@@ -34,6 +34,7 @@ import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
+import {symbolIsValue} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
 function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>) {
@@ -502,7 +503,7 @@ export function jsdocTransformer(
         }
         // If this symbol is both a type and a value, we cannot emit both into Closure's
         // single namespace.
-        if (sym.flags & ts.SymbolFlags.Value) {
+        if (symbolIsValue(typeChecker, sym)) {
           moduleTypeTranslator.debugWarn(
               iface, `type/symbol conflict for ${sym.name}, using {?} for now`);
           return [transformerUtil.createSingleLineComment(
@@ -653,10 +654,10 @@ export function jsdocTransformer(
       }
 
       function visitTypeAliasDeclaration(typeAlias: ts.TypeAliasDeclaration): ts.Statement[] {
+        const sym = moduleTypeTranslator.mustGetSymbolAtLocation(typeAlias.name);
         // If the type is also defined as a value, skip emitting it. Closure collapses type & value
         // namespaces, the two emits would conflict if tsickle emitted both.
-        const sym = moduleTypeTranslator.mustGetSymbolAtLocation(typeAlias.name);
-        if (sym.flags & ts.SymbolFlags.Value) return [];
+        if (symbolIsValue(typeChecker, sym)) return [];
         if (!shouldEmitExportsAssignments()) return [];
 
         const typeName = typeAlias.name.getText();
@@ -889,7 +890,7 @@ export function jsdocTransformer(
       }
 
       /**
-       * Ambient declarations declare types for TypeScript's benefit, and will be removede by
+       * Ambient declarations declare types for TypeScript's benefit, and will be removed by
        * TypeScript during its emit phase. Downstream Closure code however might be importing
        * symbols from this module, so tsickle must emit a Closure-compatible exports declaration.
        */
@@ -900,14 +901,13 @@ export function jsdocTransformer(
         const result: ts.Node[] = [node];
         for (const decl of declNames) {
           const sym = typeChecker.getSymbolAtLocation(decl)!;
-          const isValue = sym.flags & ts.SymbolFlags.Value;
           // Non-value objects do not exist at runtime, so we cannot access the symbol (it only
           // exists in externs). Export them as a typedef, which forwards to the type in externs.
           // Note: TypeScript emits odd code for exported ambients (exports.x for variables, just x
           // for everything else). That seems buggy, and in either case this code should not attempt
           // to fix it.
           // See also https://github.com/Microsoft/TypeScript/issues/8015.
-          if (!isValue) {
+          if (!symbolIsValue(typeChecker, sym)) {
             // Do not emit re-exports for ModuleDeclarations.
             // Ambient ModuleDeclarations are always referenced as global symbols, so they don't
             // need to be exported.
