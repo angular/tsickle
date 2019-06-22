@@ -516,14 +516,16 @@ export class ModuleTypeTranslator {
     // Merge the JSDoc tags for each overloaded parameter.
     // Ensure each parameter has a unique name; the merging process can otherwise
     // accidentally generate the same parameter name twice.
-    const paramNames = new Set();
+    const paramNames = new Set<string>();
     let foundOptional = false;
     for (let i = 0; i < maxArgsCount; i++) {
       const paramTag = jsdoc.merge(paramTags[i]);
-      if (paramNames.has(paramTag.parameterName)) {
-        paramTag.parameterName += i.toString();
+      if (paramTag.parameterName) {
+        if (paramNames.has(paramTag.parameterName)) {
+          paramTag.parameterName += i.toString();
+        }
+        paramNames.add(paramTag.parameterName);
       }
-      paramNames.add(paramTag.parameterName);
       // If the tag is optional, mark parameters following optional as optional,
       // even if they are not, since Closure restricts this, see
       // https://github.com/google/closure-compiler/issues/2314

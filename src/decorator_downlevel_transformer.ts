@@ -30,7 +30,7 @@
 import * as ts from 'typescript';
 
 import {getDecoratorDeclarations} from './decorators';
-import {getAllLeadingComments, visitEachChild} from './transformer_util';
+import {getAllLeadingComments, symbolIsValue, visitEachChild} from './transformer_util';
 
 /**
  * Returns true if the given decorator should be downleveled.
@@ -368,11 +368,7 @@ export function decoratorDownlevelTransformer(
       if (!sym) return undefined;
       // Check if the entity name references a symbol that is an actual value. If it is not, it
       // cannot be referenced by an expression, so return undefined.
-      let symToCheck = sym;
-      if (symToCheck.flags & ts.SymbolFlags.Alias) {
-        symToCheck = typeChecker.getAliasedSymbol(symToCheck);
-      }
-      if (!(symToCheck.flags & ts.SymbolFlags.Value)) return undefined;
+      if (!symbolIsValue(typeChecker, sym)) return undefined;
 
       if (ts.isIdentifier(name)) {
         // If there's a known import name for this symbol, use it so that the import will be

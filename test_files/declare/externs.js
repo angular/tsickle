@@ -24,12 +24,27 @@ DeclareTestModule.Foo.prototype.field;
  */
 DeclareTestModule.Foo.prototype.method = function(a) {};
 
+/** @typedef {function(new:DeclareTestModule.Foo, string)} */
+DeclareTestModule.FooConstructor;
+
+/**
+ * @param {string} f
+ * @return {!DeclareTestModule.Foo}
+ */
+DeclareTestModule.makeFoo = function(f) {};
+/** @type {function(new:DeclareTestModule.Foo, string)} */
+DeclareTestModule.fooMaker;
+
 /**
  * @constructor
  * @struct
  * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};
+/** @type {function(new:DeclareTestModule.Foo, string)} */
+DeclareTestModule.Clazz.prototype.makeFoo;
+/** @type {function(new:DeclareTestModule.Foo, string)} */
+DeclareTestModule.Clazz.prototype.makeFoo2;
 /** @type {number} */
 DeclareTestModule.Clazz.field;
 

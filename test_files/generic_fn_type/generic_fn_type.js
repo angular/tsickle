@@ -16,5 +16,5 @@ let genericFnType = (/**
  * @return {T}
  */
 (x) => x);
-/** @type {function(new: (?), ?): ?} */
+/** @type {function(new:?, ?)} */
 let genericCtorFnType;

@@ -672,15 +672,16 @@ export class TypeTranslator {
       const params = this.convertParams(ctors[0], decl.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
-      // In the specific case of the "new" in a function, it appears that
-      //   function(new: !Bar)
-      // fails to parse, while
-      //   function(new: (!Bar))
-      // parses in the way you'd expect.
-      // It appears from testing that Closure ignores the ! anyway and just
-      // assumes the result will be non-null in either case.  (To be pedantic,
-      // it's possible to return null from a ctor it seems like a bad idea.)
-      return `function(new: (${constructedType})${paramsStr}): ?`;
+      const constructedTypeStr = constructedType[0] == '!' ?
+        constructedType.substring(1) : constructedType;
+      // In the specific case of the "new" in a function, the correct Closure
+      // type is:
+      //
+      //   function(new:Bar, ...args)
+      //
+      // Including the nullability annotation can cause the Closure compiler to
+      // no longer recognize the function as a constructor type in externs.
+      return `function(new:${constructedTypeStr}${paramsStr})`;
     }
 
     // members is an ES6 map, but the .d.ts defining it defined their own map

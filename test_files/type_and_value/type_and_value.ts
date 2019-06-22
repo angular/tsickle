@@ -17,3 +17,7 @@ let useAsType: conflict.TypeAndValue;
 
 // Use a templatized user-defined interface/value pair as a type.
 let useAsTypeTemplatized: conflict.TemplatizedTypeAndValue<string>;
+
+// Construct a conflict between the module import and a type.
+// We should not emit the type in that case.
+type conflict = string;

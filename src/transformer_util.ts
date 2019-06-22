@@ -37,6 +37,18 @@ export function getIdentifierText(identifier: ts.Identifier): string {
   return unescapeName(identifier.escapedText);
 }
 
+/**
+ * Returns true if the given symbol refers to a value (as distinct from a type).
+ *
+ * Expands aliases, which is important for the case where
+ *   import * as x from 'some-module';
+ * and x is now a value (the module object).
+ */
+export function symbolIsValue(tc: ts.TypeChecker, sym: ts.Symbol): boolean {
+  if (sym.flags & ts.SymbolFlags.Alias) sym = tc.getAliasedSymbol(sym);
+  return (sym.flags & ts.SymbolFlags.Value) !== 0;
+}
+
 /** Returns a dot-joined qualified name (foo.bar.Baz). */
 export function getEntityNameText(name: ts.EntityName): string {
   if (ts.isIdentifier(name)) {
