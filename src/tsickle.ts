@@ -90,7 +90,19 @@ export interface EmitTransformers {
   afterDeclarations?: ts.CustomTransformers['afterDeclarations'];
 }
 
+
+/** @deprecated Exposed for backward compat with Angular.  Use emit() instead. */
 export function emitWithTsickle(
+    program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions,
+    targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
+    cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
+    customTransformers: EmitTransformers = {}): EmitResult {
+  return emit(
+      program, host, tsHost, tsOptions, targetSourceFile, writeFile, cancellationToken,
+      emitOnlyDtsFiles, customTransformers);
+}
+
+export function emit(
     program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions,
     targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
