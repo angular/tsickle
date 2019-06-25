@@ -28,25 +28,30 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost, Annotat
    * Whether to downlevel decorators
    */
   transformDecorators?: boolean;
+
   /**
    * Whether to convers types to closure
    */
   transformTypesToClosure?: boolean;
+
   /**
    * Whether to add aliases to the .d.ts files to add the exports to the
    * ಠ_ಠ.clutz namespace.
    */
   addDtsClutzAliases?: boolean;
+
   /**
    * If true, tsickle and decorator downlevel processing will be skipped for
    * that file.
    */
   shouldSkipTsickleProcessing(fileName: string): boolean;
+
   /**
    * Tsickle treats warnings as errors, if true, ignore warnings.  This might be
    * useful for e.g. third party code.
    */
   shouldIgnoreWarningsForPath(filePath: string): boolean;
+
   /** Whether to convert CommonJS require() imports to goog.module() and goog.require() calls. */
   googmodule: boolean;
 }
@@ -98,12 +103,12 @@ export function emitWithTsickle(
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
     customTransformers: EmitTransformers = {}): EmitResult {
   return emit(
-      program, host, tsHost, tsOptions, targetSourceFile, writeFile, cancellationToken,
-      emitOnlyDtsFiles, customTransformers);
+      program, host, tsOptions, targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
+      customTransformers);
 }
 
 export function emit(
-    program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions,
+    program: ts.Program, host: TsickleHost, tsOptions: ts.CompilerOptions,
     targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
     customTransformers: EmitTransformers = {}): EmitResult {
@@ -145,23 +150,24 @@ export function emit(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
   }
 
-  const writeFileDelegate: ts.WriteFileCallback = writeFile || tsHost.writeFile.bind(tsHost);
-  const writeFileImpl: ts.WriteFileCallback =
-      (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
-        assertAbsolute(fileName);
-        if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
-          // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
-          // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
-          // way anyway.
-          if (!sourceFiles || sourceFiles.length > 1) {
-            throw new Error(`expected exactly one source file for .d.ts emit, got ${
-                sourceFiles.map(sf => sf.fileName)}`);
-          }
-          const originalSource = sourceFiles[0];
-          content = addClutzAliases(content, originalSource, typeChecker, host);
+  let writeFileImpl: ts.WriteFileCallback|undefined;
+  if (writeFile) {
+    writeFileImpl = (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
+      assertAbsolute(fileName);
+      if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
+        // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
+        // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
+        // way anyway.
+        if (!sourceFiles || sourceFiles.length > 1) {
+          throw new Error(`expected exactly one source file for .d.ts emit, got ${
+              sourceFiles.map(sf => sf.fileName)}`);
         }
-        writeFileDelegate(fileName, content, writeByteOrderMark, onError, sourceFiles);
-      };
+        const originalSource = sourceFiles[0];
+        content = addClutzAliases(content, originalSource, typeChecker, host);
+      }
+      writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
+    };
+  }
 
   const {diagnostics: tsDiagnostics, emitSkipped, emittedFiles} = program.emit(
       targetSourceFile, writeFileImpl, cancellationToken, emitOnlyDtsFiles, tsTransformers);
