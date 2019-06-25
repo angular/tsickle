@@ -60,8 +60,8 @@ describe('decorator_downlevel_transformer', () => {
 
     const files = new Map<string, string>();
     const {diagnostics} = tsickle.emit(
-        program, transformerHost, testSupport.compilerOptions, undefined, (path, contents) => {},
-        undefined, undefined, {beforeTs: [createAstPrintingTransform(files)]});
+        program, transformerHost, undefined, (path, contents) => {}, undefined, undefined,
+        {beforeTs: [createAstPrintingTransform(files)]});
 
     if (!allowErrors) {
       testSupport.expectDiagnosticsEmpty(diagnostics);
