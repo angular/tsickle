@@ -106,7 +106,7 @@ export function emitWithTsickle(
     // Only add @suppress {checkTypes} comments when also adding type annotations.
     tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
     tsickleSourceTransformers.push(
-        jsdocTransformer(host, tsOptions, tsHost, typeChecker, tsickleDiagnostics));
+        jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   } else if (host.transformDecorators) {
