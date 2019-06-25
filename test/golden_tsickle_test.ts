@@ -186,8 +186,8 @@ testFn('golden tests with transformer', () => {
               Array.from(tsSources.keys())}`);
         }
       }
-      const {diagnostics, externs} = tsickle.emitWithTsickle(
-          program, transformerHost, tsHost, tsCompilerOptions, targetSource,
+      const {diagnostics, externs} = tsickle.emit(
+          program, transformerHost, tsCompilerOptions, targetSource,
           (fileName: string, data: string) => {
             if (test.isDeclarationTest) {
               // Only compare .d.ts files for declaration tests.
