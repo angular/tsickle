@@ -187,7 +187,7 @@ export function toClosureJS(
       emittedFiles: [],
     };
   }
-  return tsickle.emit(program, transformerHost, options, undefined, writeFile);
+  return tsickle.emit(program, transformerHost, undefined, writeFile);
 }
 
 function main(args: string[]): number {

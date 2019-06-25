@@ -53,7 +53,7 @@ describe('emitWithTsickle', () => {
     };
     const jsSources: {[fileName: string]: string} = {};
     tsickle.emit(
-        program, tsickleHost, tsCompilerOptions, /* sourceFile */ undefined,
+        program, tsickleHost, /* sourceFile */ undefined,
         (fileName: string, data: string) => {
           jsSources[path.relative(tsCompilerOptions.rootDir!, fileName)] = data;
         },

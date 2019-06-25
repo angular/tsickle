@@ -103,15 +103,14 @@ export function emitWithTsickle(
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
     customTransformers: EmitTransformers = {}): EmitResult {
   return emit(
-      program, host, tsOptions, targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
+      program, host, targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
       customTransformers);
 }
 
 export function emit(
-    program: ts.Program, host: TsickleHost, tsOptions: ts.CompilerOptions,
-    targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
-    cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
-    customTransformers: EmitTransformers = {}): EmitResult {
+    program: ts.Program, host: TsickleHost, targetSourceFile?: ts.SourceFile,
+    writeFile?: ts.WriteFileCallback, cancellationToken?: ts.CancellationToken,
+    emitOnlyDtsFiles?: boolean, customTransformers: EmitTransformers = {}): EmitResult {
   for (const sf of program.getSourceFiles()) {
     assertAbsolute(sf.fileName);
   }
@@ -123,7 +122,7 @@ export function emit(
     // Only add @suppress {checkTypes} comments when also adding type annotations.
     tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
     tsickleSourceTransformers.push(
-        jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
+        jsdocTransformer(host, program.getCompilerOptions(), typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   } else if (host.transformDecorators) {
@@ -180,8 +179,8 @@ export function emit(
       if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
         continue;
       }
-      const {output, diagnostics} =
-          generateExterns(typeChecker, sourceFile, host, host.moduleResolutionHost, tsOptions);
+      const {output, diagnostics} = generateExterns(
+          typeChecker, sourceFile, host, host.moduleResolutionHost, program.getCompilerOptions());
       if (output) {
         externs[sourceFile.fileName] = output;
       }
