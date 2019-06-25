@@ -410,8 +410,7 @@ export function removeTypeAssertions(): ts.TransformerFactory<ts.SourceFile> {
  * JSDoc annotations.
  */
 export function jsdocTransformer(
-    host: AnnotatorHost, tsOptions: ts.CompilerOptions,
-    moduleResolutionHost: ts.ModuleResolutionHost, typeChecker: ts.TypeChecker,
+    host: AnnotatorHost, tsOptions: ts.CompilerOptions, typeChecker: ts.TypeChecker,
     diagnostics: ts.Diagnostic[]): (context: ts.TransformationContext) =>
     ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
@@ -747,8 +746,8 @@ export function jsdocTransformer(
         if (!sym) return importDecl;
 
         const importPath = googmodule.resolveModuleName(
-            {options: tsOptions, moduleResolutionHost}, sourceFile.fileName,
-            (importDecl.moduleSpecifier as ts.StringLiteral).text);
+            {options: tsOptions, moduleResolutionHost: host.moduleResolutionHost},
+            sourceFile.fileName, (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
         moduleTypeTranslator.requireType(
             importPath, sym,

@@ -52,8 +52,8 @@ describe('emitWithTsickle', () => {
       moduleResolutionHost: tsHost,
     };
     const jsSources: {[fileName: string]: string} = {};
-    tsickle.emitWithTsickle(
-        program, tsickleHost, tsHost, tsCompilerOptions, /* sourceFile */ undefined,
+    tsickle.emit(
+        program, tsickleHost, /* sourceFile */ undefined,
         (fileName: string, data: string) => {
           jsSources[path.relative(tsCompilerOptions.rootDir!, fileName)] = data;
         },
