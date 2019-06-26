@@ -199,7 +199,7 @@ export class TypeTranslator {
   private readonly seenAnonymousTypes = new Set<ts.Type>();
 
   /**
-   * Whether to write types suitable for an \@externs file. Externs types must not refer to
+   * Whether to write types suitable for an #externs file. Externs types must not refer to
    * non-externs types (i.e. non ambient types) and need to use fully qualified names.
    */
   isForExterns = false;

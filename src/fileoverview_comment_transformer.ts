@@ -137,7 +137,7 @@ export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]
         }
       }
 
-      // Closure Compiler considers the *last* comment with @fileoverview (or @externs or
+      // Closure Compiler considers the *last* comment with @fileoverview (or #externs or
       // @nocompile) that has not been attached to some other tree node to be the file overview
       // comment, and only applies @suppress tags from it. Google-internal tooling considers *any*
       // comment mentioning @fileoverview.
