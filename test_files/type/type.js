@@ -1,4 +1,3 @@
-// test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
 // test_files/type/type.ts(16,5): warning TS0: unhandled anonymous type
 // test_files/type/type.ts(47,21): warning TS0: anonymous type has no symbol
 // test_files/type/type.ts(47,21): warning TS0: anonymous type has no symbol
@@ -6,11 +5,19 @@
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-// WARNING: interface has both a type and a value, skipping emit
 goog.module('test_files.type.type');
 var module = module || { id: 'test_files/type/type.ts' };
 module = module;
 exports = {};
+/**
+ * @record
+ * @template T
+ */
+function Array() { }
+if (false) {
+    /** @type {boolean} */
+    Array.prototype.monkeyPatch;
+}
 /** @type {?} */
 let typeAny;
 /** @type {!Array<?>} */

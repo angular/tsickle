@@ -503,7 +503,9 @@ export function jsdocTransformer(
         }
         // If this symbol is both a type and a value, we cannot emit both into Closure's
         // single namespace.
-        if (symbolIsValue(typeChecker, sym) && (sym.valueDeclaration.pos < iface.pos)) {
+        if (symbolIsValue(typeChecker, sym) &&
+            (sym.valueDeclaration.pos < iface.pos ||
+             sym.valueDeclaration.kind != ts.SyntaxKind.ModuleDeclaration)) {
           moduleTypeTranslator.debugWarn(
               iface, `type/symbol conflict for ${sym.name}, using {?} for now`);
           return [transformerUtil.createSingleLineComment(
@@ -557,6 +559,8 @@ export function jsdocTransformer(
           return [];
         }
         const name = ns.name as ts.Identifier;
+        // TODO DO NOT SUBMIT - declaration depends on whether we're top-level or nested,
+        // as well as whether we're exported.
         const needsDeclaration = !sym.valueDeclaration || sym.valueDeclaration.pos === ns.pos;
         if (needsDeclaration) {
           emit.push(ts.createVariableStatement(
@@ -565,15 +569,16 @@ export function jsdocTransformer(
         }
         const iife: ts.Node[] = [];
         if (ns.body) {
-          //console.error('\x1b[1;31mmodule body\x1b[m'); console.dir(ns.body);
-          //const newBody = ts.visitEachChild(ns.body, (child: ts.Node): ts.Statement[] => {
+          // console.error('\x1b[1;31mmodule body\x1b[m'); console.dir(ns.body);
+          // const newBody = ts.visitEachChild(ns.body, (child: ts.Node): ts.Statement[] => {
           ts.visitEachChild(ns.body, (child: ts.Node): undefined => {
             // const exporteds = getExportDeclarationNames(child);
             // console.error(`\x1b[1;34mexporteds\x1b[m: ${exporteds.map(x=>x.text).join(', ')}`);
             // const result = ts.visitNode(child, visitor);
-            //console.error('\x1b[1;31mvisited child\x1b[m'); console.dir(child);
+            // console.error('\x1b[1;31mvisited child\x1b[m'); console.dir(child);
             const result = visitor(child) as ts.Statement | ts.Statement[];
-            console.error('\x1b[1;31mresult\x1b[m');console.dir(result);
+            console.error('\x1b[1;31mresult\x1b[m');
+            console.dir(result);
             const stmts: ts.Statement[] = [];
             function unexport(n: ts.Statement): ts.Statement {
               if (!getExportDeclarationNames(n).length) return n;
@@ -586,17 +591,17 @@ export function jsdocTransformer(
               const decl = ts.createExpressionStatement(
                   ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
               addCommentOn(decl, [{tagName: 'const'}]);
-              //console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
+              // console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
               console.dir(decl);
               stmts.push(decl);
             }
             iife.push(...stmts);
             return undefined;
-            //return [];
-          //  return stmts;
+            // return [];
+            //  return stmts;
           }, context);
-          //console.error('\x1b[1;31mtransformed body\x1b[m');console.dir(newBody);
-          //newBody.forEachChild((child) => iife.push(child));
+          // console.error('\x1b[1;31mtransformed body\x1b[m');console.dir(newBody);
+          // newBody.forEachChild((child) => iife.push(child));
         }
         emit.push(ts.createExpressionStatement(ts.createImmediatelyInvokedFunctionExpression(
             iife as ts.Statement[],
@@ -604,7 +609,7 @@ export function jsdocTransformer(
                 /* decorators */ undefined,
                 /* modifiers */ undefined,
                 /* dotDotDot */ undefined, name),
-            name)));
+            ts.createLogicalOr(name, ts.createAssignment(name, ts.createObjectLiteral())))));
         if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
           if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {
             moduleTypeTranslator.error(ns, 'export default namespace not supported');

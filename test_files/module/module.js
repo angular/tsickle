@@ -9,6 +9,11 @@ exports = {};
 // tslint:disable-next-line:no-namespace
 var Reflect;
 (function (Reflect) {
-    Reflect.x = 1;
+    /** @type {number} */
+    const x = 1;
+    /**
+     * @const
+     */
+    Reflect.x = x;
 })(Reflect || (Reflect = {}));
 console.log(Reflect.x);
