@@ -187,7 +187,7 @@ testFn('golden tests with transformer', () => {
         }
       }
       const {diagnostics, externs} =
-          tsickle.emit(program, transformerHost, targetSource, (fileName: string, data: string) => {
+          tsickle.emit(program, transformerHost, (fileName: string, data: string) => {
             if (test.isDeclarationTest) {
               // Only compare .d.ts files for declaration tests.
               if (!fileName.endsWith('.d.ts')) return;
@@ -199,7 +199,7 @@ testFn('golden tests with transformer', () => {
             // we don't throw when we generate them, but if we're in a .declaration test,
             // we only care about the .d.ts files
             tscOutput.set(fileName, data);
-          });
+          }, targetSource);
       for (const d of diagnostics) allDiagnostics.add(d);
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
       for (const d of allDiagnostics) {

@@ -150,7 +150,7 @@ function loadTscConfig(args: string[]):
  */
 export function toClosureJS(
     options: ts.CompilerOptions, fileNames: string[], settings: Settings,
-    writeFile?: ts.WriteFileCallback): tsickle.EmitResult {
+    writeFile: ts.WriteFileCallback): tsickle.EmitResult {
   // Use absolute paths to determine what files to process since files may be imported using
   // relative or absolute paths
   const absoluteFileNames = fileNames.map(i => path.resolve(i));
@@ -187,7 +187,7 @@ export function toClosureJS(
       emittedFiles: [],
     };
   }
-  return tsickle.emit(program, transformerHost, undefined, writeFile);
+  return tsickle.emit(program, transformerHost, writeFile);
 }
 
 function main(args: string[]): number {

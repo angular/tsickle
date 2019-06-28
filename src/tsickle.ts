@@ -103,13 +103,13 @@ export function emitWithTsickle(
     cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
     customTransformers: EmitTransformers = {}): EmitResult {
   return emit(
-      program, host, targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
-      customTransformers);
+      program, host, writeFile || tsHost.writeFile.bind(tsHost), targetSourceFile,
+      cancellationToken, emitOnlyDtsFiles, customTransformers);
 }
 
 export function emit(
-    program: ts.Program, host: TsickleHost, targetSourceFile?: ts.SourceFile,
-    writeFile?: ts.WriteFileCallback, cancellationToken?: ts.CancellationToken,
+    program: ts.Program, host: TsickleHost, writeFile: ts.WriteFileCallback,
+    targetSourceFile?: ts.SourceFile, cancellationToken?: ts.CancellationToken,
     emitOnlyDtsFiles?: boolean, customTransformers: EmitTransformers = {}): EmitResult {
   for (const sf of program.getSourceFiles()) {
     assertAbsolute(sf.fileName);
@@ -149,24 +149,23 @@ export function emit(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
   }
 
-  let writeFileImpl: ts.WriteFileCallback|undefined;
-  if (writeFile) {
-    writeFileImpl = (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
-      assertAbsolute(fileName);
-      if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
-        // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
-        // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
-        // way anyway.
-        if (!sourceFiles || sourceFiles.length > 1) {
-          throw new Error(`expected exactly one source file for .d.ts emit, got ${
-              sourceFiles.map(sf => sf.fileName)}`);
+  // Wrap the writeFile callback to hook writing of the dts file.
+  const writeFileImpl: ts.WriteFileCallback =
+      (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
+        assertAbsolute(fileName);
+        if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
+          // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
+          // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
+          // way anyway.
+          if (!sourceFiles || sourceFiles.length > 1) {
+            throw new Error(`expected exactly one source file for .d.ts emit, got ${
+                sourceFiles.map(sf => sf.fileName)}`);
+          }
+          const originalSource = sourceFiles[0];
+          content = addClutzAliases(content, originalSource, typeChecker, host);
         }
-        const originalSource = sourceFiles[0];
-        content = addClutzAliases(content, originalSource, typeChecker, host);
-      }
-      writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
-    };
-  }
+        writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
+      };
 
   const {diagnostics: tsDiagnostics, emitSkipped, emittedFiles} = program.emit(
       targetSourceFile, writeFileImpl, cancellationToken, emitOnlyDtsFiles, tsTransformers);
