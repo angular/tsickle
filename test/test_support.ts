@@ -409,10 +409,9 @@ export function compileWithTransfromer(
   };
 
   const files = new Map<string, string>();
-  const {diagnostics, externs} =
-      tsickle.emit(program, transformerHost, undefined, (path, contents) => {
-        files.set(path, contents);
-      });
+  const {diagnostics, externs} = tsickle.emit(program, transformerHost, (path, contents) => {
+    files.set(path, contents);
+  });
 
   expectDiagnosticsEmpty(diagnostics);
   return {files, externs};
