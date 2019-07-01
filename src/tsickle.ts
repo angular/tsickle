@@ -19,6 +19,8 @@ import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {isDtsFileName} from './transformer_util';
 
+// Exported for users as a default impl of pathToModuleName.
+export {pathToModuleName} from './cli_support';
 // Retained here for API compatibility.
 export {getGeneratedExterns} from './externs';
 export {FileMap, ModulesManifest} from './modules_manifest';
