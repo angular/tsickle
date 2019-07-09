@@ -540,6 +540,16 @@ export function jsdocTransformer(
       }
 
       function visitNamespaceDeclaration(ns: ts.ModuleDeclaration): ts.Statement[] {
+        // Basic strategy for namespaces: only transform them if everything is exported and const.
+        // Anything else is left as-is.  Transformed namespaces are rewritten in a way that Closure
+        // can understand.  Specifically:
+        //   /** @const */
+        //   var ns = ns || {};
+        //   (function(ns) {
+        //     // ... recursively transformed definition of exported ...
+        //     ns.exported = exported;
+        //   })(ns);
+
         const emit: ts.Statement[] = [];
 
         // if (!emit.length) {
@@ -551,16 +561,15 @@ export function jsdocTransformer(
         // If this is the first time the symbol is defined, then declare it as a constant object.
         // This should remove the need to suppress const.
 
-        const mutableExports = new Map<ts.Declaration, ts.Identifier>();
-
         const sym = typeChecker.getSymbolAtLocation(ns.name);
         if (!sym) {
           moduleTypeTranslator.error(ns, 'namespace with no symbol');
-          return [];
+          return [ns];
         } else if (ns.name.kind === ts.SyntaxKind.StringLiteral) {
           moduleTypeTranslator.error(ns.name, 'string literal namespaces not supported');
-          return [];
+          return [ns];
         }
+
         const name = ns.name as ts.Identifier;
         // TODO DO NOT SUBMIT - declaration depends on whether we're top-level or nested,
         // as well as whether we're exported.  Even if we don't need the declaration, we
@@ -569,35 +578,67 @@ export function jsdocTransformer(
         // will treat it as a namespace.  TypeScript does not allow clobbering a let/const
         // with a namespace, so this is okay.
 
-        const needsDeclaration = !sym.valueDeclaration || sym.valueDeclaration.pos === ns.pos;
+        // NOTE: if it's declared in a different source file, then it's harmless to declare it
+        // here too, but if the other source file is a .d.ts file then it might be necessary.
+        const needsDeclaration = !sym.valueDeclaration || sym.valueDeclaration.pos === ns.pos ||
+            sym.valueDeclaration.getSourceFile() !== ns.getSourceFile();
+
         // if (needsDeclaration) {
         //   emit.push(ts.createVariableStatement(
         //       ts.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
         //       [ts.createVariableDeclaration(name, undefined, ts.createObjectLiteral())]));
         // }
 
-        const nsDecl = ts.createVariableStatement(
-            ts.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
-            [ts.createVariableDeclaration(
-                name, undefined, ts.createLogicalOr(name, ts.createObjectLiteral()))]);
-        addCommentOn(nsDecl, [{tagName: 'const'}]);
-        emit.push(nsDecl);
+        if (needsDeclaration) {
+          const nsDecl = ts.createVariableStatement(
+              ts.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
+              [ts.createVariableDeclaration(
+                  name, undefined, ts.createLogicalOr(name, ts.createObjectLiteral()))]);
+          addCommentOn(nsDecl, [{tagName: 'const'}]);
+          emit.push(nsDecl);
 
-        // Only assign to exports once...?
-        if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
           if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {
             moduleTypeTranslator.error(ns, 'export default namespace not supported');
-          } else {
-            emit.push(ts.createExpressionStatement(ts.createAssignment(
-                ts.createPropertyAccess(ts.createIdentifier('exports'), name), name)));
+          }
+          if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
+            // Need to figure out whether we're in a namespace or top-level.
+            let owner;
+            if (ns.parent.kind === ts.SyntaxKind.ModuleBlock) {
+              owner = (ns.parent.parent as ts.ModuleDeclaration).name;
+            } else {
+              owner = ts.createIdentifier('exports');
+            }
+            emit.push(ts.createExpressionStatement(
+                ts.createAssignment(ts.createPropertyAccess(owner, name), name)));
           }
         }
 
         const iife: ts.Node[] = [];
+        // If anything sets this to false, give up transforming the namespace.
+        let transformed = true;
         if (ns.body) {
           // console.error('\x1b[1;31mmodule body\x1b[m'); console.dir(ns.body);
           // const newBody = ts.visitEachChild(ns.body, (child: ts.Node): ts.Statement[] => {
-          ts.visitEachChild(ns.body, (initialChild: ts.Node): undefined => {
+          ts.visitEachChild(ns.body, (child: ts.Node): undefined => {
+            if (!transformed) return;
+
+            const exportedNames = getExportDeclarationNames(child);
+            if (!exportedNames.length) {
+              // If this statement exports nothing, then don't transform the namespace.
+              transformed = false;
+              return;
+            }
+
+            for (const exported of exportedNames) {
+              // Identifier's parent is the Declaration; then decl.initializer MAY be something.
+              const decl = exported.parent as ts.Declaration;
+              if (decl.kind === ts.SyntaxKind.VariableDeclaration &&
+                  !transformerUtil.hasModifierFlag(decl, ts.ModifierFlags.Const)) {
+                transformed = false;
+                return;
+              }
+            }
+
             // const exporteds = getExportDeclarationNames(child);
             // console.error(`\x1b[1;34mexporteds\x1b[m: ${exporteds.map(x=>x.text).join(', ')}`);
             // const result = ts.visitNode(child, visitor);
@@ -608,11 +649,6 @@ export function jsdocTransformer(
 
             // TODO - how to rewrite mutable variables throughout as property accesses?!?
 
-            // Handle mutable exported variables specially: they must be rewritten throughout
-            // the entire namespace body to point to the property.  Since the refs can be
-            // anywhere (before or after the decl), we collect the decl nodes and do a separate
-            // transformation afterwards (if there are any, which should be rare).
-
             function wrapArray<T>(x: T|T[]): T[] {
               return Array.isArray(x) ? x : [x];
             }
@@ -622,57 +658,35 @@ export function jsdocTransformer(
               if (n.modifiers) n.modifiers = n.modifiers.slice(0, 0) as any;
               return n;
             }
-            let children = [initialChild];
 
-            // TODO - if child is `let a, b, ...` then break it up into separate lets.
-            //      - this allows massively simplifying things.
-            // Identifier's parent is the Declaration; then decl.initializer MAY be something.
+            const stmts = child.kind === ts.SyntaxKind.ModuleDeclaration ?
+                visitNamespaceDeclaration(child as ts.ModuleDeclaration) :
+                wrapArray(visitor(child) as ts.Statement | ts.Statement[]).map(unexport);
+            // console.error('\x1b[1;31mresult\x1b[m');
+            // console.dir(stmts);
+            const processedModule = child.kind === ts.SyntaxKind.ModuleDeclaration &&
+                stmts.length === 1 && stmts[0] === child;
 
-            const exportedNames = getExportDeclarationNames(child);
-            if (exportedNames.length > 1) {
-              children = exportedNames.map(exported => {
-                const decl = exported.parent;
-                const mutable = decl.kind === ts.SyntaxKind.VariableDeclaration &&
-                    !transformerUtil.hasModifierFlag(decl, ts.ModifierFlags.Const);
-                if (mutable) {
-                  console.error(`\x1b[1;31mMUTABLE\x1b[m: ${exported.text}`);
-                  mutableExports.set(decl, name);
-                }
-                const flags = decl.parent.flags;
-                const list = decl.parent;
-                const modifiers = initialChild.modifiers;
-                // instead of a variable statement, for mutable vars, just do it straightaway here?
-                return ts.createVariableStatement(
-                    modifiers, ts.createVariableDeclarationList([decl], flags));
-              })
-            }
-
-            for (const child of children) {
-              const stmts =
-                  wrapArray(visitor(child) as ts.Statement | ts.Statement[]).map(unexport);
-              console.error('\x1b[1;31mresult\x1b[m');
-              console.dir(stmts);
-
-              // TODO - should be at most one?!? assert this?
-              //    --- when to do the prop assignment?
-              for (const exported of getExportDeclarationNames(child)) {
-                if (!mutableExports.has(exported.parent)) {
-                  const decl = ts.createExpressionStatement(
-                      ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
-                  addCommentOn(decl, [{tagName: 'const'}]);
-                  // console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
-                  console.dir(decl);
-                  stmts.push(decl);
-                }
+            if (!processedModule) {  // Namespaces were exported earlier
+              for (const exported of exportedNames) {
+                const decl = ts.createExpressionStatement(
+                    ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
+                addCommentOn(decl, [{tagName: 'const'}]);
+                // console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
+                console.dir(decl);
+                stmts.push(decl);
               }
-              iife.push(...stmts);
             }
+            iife.push(...stmts);
             return undefined;
             // return [];
             //  return stmts;
           }, context);
           // console.error('\x1b[1;31mtransformed body\x1b[m');console.dir(newBody);
           // newBody.forEachChild((child) => iife.push(child));
+        }
+        if (!transformed) {
+          return [ns];
         }
         emit.push(ts.createExpressionStatement(ts.createImmediatelyInvokedFunctionExpression(
             iife as ts.Statement[],
@@ -681,6 +695,7 @@ export function jsdocTransformer(
                 /* modifiers */ undefined,
                 /* dotDotDot */ undefined, name),
             name)));
+
         // ts.createLogicalOr(name, ts.createAssignment(name, ts.createObjectLiteral())
         // if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
         //   if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {

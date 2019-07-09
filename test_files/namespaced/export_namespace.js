@@ -7,7 +7,11 @@ goog.module('test_files.namespaced.export_namespace');
 var module = module || { id: 'test_files/namespaced/export_namespace.ts' };
 module = module;
 exports = {};
-var valueNamespace = {};
+/**
+ * @const
+ */
+var valueNamespace = valueNamespace || {};
+exports.valueNamespace = valueNamespace;
 (function (valueNamespace) {
     class ValueClass {
     }
@@ -16,8 +20,11 @@ var valueNamespace = {};
      */
     valueNamespace.ValueClass = ValueClass;
 })(valueNamespace);
-exports.valueNamespace = valueNamespace;
-var typeNamespace = {};
+/**
+ * @const
+ */
+var typeNamespace = typeNamespace || {};
+exports.typeNamespace = typeNamespace;
 (function (typeNamespace) {
     /**
      * @record
@@ -28,4 +35,3 @@ var typeNamespace = {};
      */
     typeNamespace.Interface = Interface;
 })(typeNamespace);
-exports.typeNamespace = typeNamespace;

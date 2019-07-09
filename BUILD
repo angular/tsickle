@@ -12,7 +12,7 @@ filegroup(
     name = "test_files",
     srcs = glob([
         #"test_files/**/*",
-        "test_files/namespaced/mutable.*",
+        "test_files/namespaced/export_namespace.*",
         "third_party/**/*",
     ]) + [
         # The test suites run version-specific TypeScript compilers,
