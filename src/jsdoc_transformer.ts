@@ -600,17 +600,6 @@ export function jsdocTransformer(
           if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {
             moduleTypeTranslator.error(ns, 'export default namespace not supported');
           }
-          if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
-            // Need to figure out whether we're in a namespace or top-level.
-            let owner;
-            if (ns.parent.kind === ts.SyntaxKind.ModuleBlock) {
-              owner = (ns.parent.parent as ts.ModuleDeclaration).name;
-            } else {
-              owner = ts.createIdentifier('exports');
-            }
-            emit.push(ts.createExpressionStatement(
-                ts.createAssignment(ts.createPropertyAccess(owner, name), name)));
-          }
         }
 
         const iife: ts.Node[] = [];
@@ -622,18 +611,19 @@ export function jsdocTransformer(
           ts.visitEachChild(ns.body, (child: ts.Node): undefined => {
             if (!transformed) return;
 
-            const exportedNames = getExportDeclarationNames(child);
-            if (!exportedNames.length) {
+            if (!transformerUtil.hasModifierFlag(
+                    child as ts.Declaration, ts.ModifierFlags.Export)) {
               // If this statement exports nothing, then don't transform the namespace.
               transformed = false;
               return;
             }
+            const exportedNames = getExportDeclarationNames(child);
 
             for (const exported of exportedNames) {
               // Identifier's parent is the Declaration; then decl.initializer MAY be something.
               const decl = exported.parent as ts.Declaration;
               if (decl.kind === ts.SyntaxKind.VariableDeclaration &&
-                  !transformerUtil.hasModifierFlag(decl, ts.ModifierFlags.Const)) {
+                  !(decl.parent.flags & ts.NodeFlags.Const)) {
                 transformed = false;
                 return;
               }
@@ -664,19 +654,25 @@ export function jsdocTransformer(
                 wrapArray(visitor(child) as ts.Statement | ts.Statement[]).map(unexport);
             // console.error('\x1b[1;31mresult\x1b[m');
             // console.dir(stmts);
-            const processedModule = child.kind === ts.SyntaxKind.ModuleDeclaration &&
-                stmts.length === 1 && stmts[0] === child;
+            // const processedModule = child.kind === ts.SyntaxKind.ModuleDeclaration &&
+            //     stmts.length === 1 && stmts[0] === child;
 
-            if (!processedModule) {  // Namespaces were exported earlier
-              for (const exported of exportedNames) {
-                const decl = ts.createExpressionStatement(
-                    ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
-                addCommentOn(decl, [{tagName: 'const'}]);
-                // console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
-                console.dir(decl);
-                stmts.push(decl);
+            // if (!processedModule) {  // Namespaces were exported earlier
+            for (const exported of exportedNames) {
+              // Avoid redeclaring namespace
+              const exportedSymbol = typeChecker.getSymbolAtLocation(exported);
+              if (exportedSymbol && exportedSymbol.valueDeclaration &&
+                  exportedSymbol.valueDeclaration.pos !== exported.pos &&
+                  exportedSymbol.valueDeclaration.pos !== child.pos) {
+                continue;
               }
+              const decl = ts.createExpressionStatement(
+                  ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
+              addCommentOn(decl, [{tagName: 'const'}]);
+              // console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
+              stmts.push(decl);
             }
+            // }
             iife.push(...stmts);
             return undefined;
             // return [];
@@ -695,6 +691,15 @@ export function jsdocTransformer(
                 /* modifiers */ undefined,
                 /* dotDotDot */ undefined, name),
             name)));
+
+        if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export) &&
+            ns.parent.kind !== ts.SyntaxKind.ModuleBlock) {
+          // Top-level exported namespace.
+          const exportStatement = ts.createExpressionStatement(ts.createAssignment(
+              ts.createPropertyAccess(ts.createIdentifier('exports'), name), name));
+          addCommentOn(exportStatement, [{tagName: 'const'}]);
+          emit.push(exportStatement);
+        }
 
         // ts.createLogicalOr(name, ts.createAssignment(name, ts.createObjectLiteral())
         // if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {

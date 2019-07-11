@@ -11,7 +11,6 @@ exports = {};
  * @const
  */
 var valueNamespace = valueNamespace || {};
-exports.valueNamespace = valueNamespace;
 (function (valueNamespace) {
     class ValueClass {
     }
@@ -23,8 +22,11 @@ exports.valueNamespace = valueNamespace;
 /**
  * @const
  */
+exports.valueNamespace = valueNamespace;
+/**
+ * @const
+ */
 var typeNamespace = typeNamespace || {};
-exports.typeNamespace = typeNamespace;
 (function (typeNamespace) {
     /**
      * @record
@@ -35,3 +37,7 @@ exports.typeNamespace = typeNamespace;
      */
     typeNamespace.Interface = Interface;
 })(typeNamespace);
+/**
+ * @const
+ */
+exports.typeNamespace = typeNamespace;

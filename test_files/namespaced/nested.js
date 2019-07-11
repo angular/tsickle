@@ -7,25 +7,37 @@ goog.module('test_files.namespaced.nested');
 var module = module || { id: 'test_files/namespaced/nested.ts' };
 module = module;
 exports = {};
-var valueNamespace = {};
-(function (valueNamespace) {
-    class ValueClass {
-    }
+/**
+ * @const
+ */
+var outer = outer || {};
+(function (outer) {
     /**
      * @const
      */
-    valueNamespace.ValueClass = ValueClass;
-})(valueNamespace);
-exports.valueNamespace = valueNamespace;
-var typeNamespace = {};
-(function (typeNamespace) {
-    /**
-     * @record
-     */
-    function Interface() { }
+    var inner = inner || {};
+    (function (inner) {
+        /** @type {number} */
+        const x = 1;
+        /**
+         * @const
+         */
+        inner.x = x;
+    })(inner);
     /**
      * @const
      */
-    typeNamespace.Interface = Interface;
-})(typeNamespace);
-exports.typeNamespace = typeNamespace;
+    outer.inner = inner;
+    (function (inner) {
+        /** @type {number} */
+        const y = 2;
+        /**
+         * @const
+         */
+        inner.y = y;
+    })(inner);
+})(outer);
+/**
+ * @const
+ */
+exports.outer = outer;
