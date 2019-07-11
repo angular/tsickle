@@ -540,26 +540,20 @@ export function jsdocTransformer(
       }
 
       function visitNamespaceDeclaration(ns: ts.ModuleDeclaration): ts.Statement[] {
-        // Basic strategy for namespaces: only transform them if everything is exported and const.
-        // Anything else is left as-is.  Transformed namespaces are rewritten in a way that Closure
-        // can understand.  Specifically:
+        // Basic strategy for namespaces: only transform them if all exported symbols are const.
+        // Namespaces with mutable exports are left untouched.  Transformed namespaces are
+        // rewritten in a way that Closure can understand.  Specifically:
         //   /** @const */
         //   var ns = ns || {};
         //   (function(ns) {
         //     // ... recursively transformed definition of exported ...
+        //     /** @const */
         //     ns.exported = exported;
         //   })(ns);
+        //   /** @const */
+        //   exports.ns = ns;
 
         const emit: ts.Statement[] = [];
-
-        // if (!emit.length) {
-        //   const out = ts.visitEachChild(ns, visitor, context) as any;
-        //   console.error('\x1b[1;31\x1b[m'); console.dir(out.body.statements[0]);
-        //   return out as ts.Statement[];;
-        // }
-
-        // If this is the first time the symbol is defined, then declare it as a constant object.
-        // This should remove the need to suppress const.
 
         const sym = typeChecker.getSymbolAtLocation(ns.name);
         if (!sym) {
@@ -571,23 +565,14 @@ export function jsdocTransformer(
         }
 
         const name = ns.name as ts.Identifier;
-        // TODO DO NOT SUBMIT - declaration depends on whether we're top-level or nested,
-        // as well as whether we're exported.  Even if we don't need the declaration, we
-        // make one since we can localize the necessary suppressions
-        // (checkTypes,const,constantProperty), and the declaration ensures the jscompiler
-        // will treat it as a namespace.  TypeScript does not allow clobbering a let/const
-        // with a namespace, so this is okay.
 
-        // NOTE: if it's declared in a different source file, then it's harmless to declare it
-        // here too, but if the other source file is a .d.ts file then it might be necessary.
+        // Determine whether we need to declare the namespace.  Because the same namespace can
+        // be reopened, we want to avoid redeclarations that could run afoul of jscompiler's
+        // const or constantProperty checks.  If the previous declaration was in another source
+        // file, then it's harmless to redeclare here, and may be necessary if the other source
+        // was a .d.ts file.
         const needsDeclaration = !sym.valueDeclaration || sym.valueDeclaration.pos === ns.pos ||
             sym.valueDeclaration.getSourceFile() !== ns.getSourceFile();
-
-        // if (needsDeclaration) {
-        //   emit.push(ts.createVariableStatement(
-        //       ts.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
-        //       [ts.createVariableDeclaration(name, undefined, ts.createObjectLiteral())]));
-        // }
 
         if (needsDeclaration) {
           const nsDecl = ts.createVariableStatement(
@@ -606,18 +591,18 @@ export function jsdocTransformer(
         // If anything sets this to false, give up transforming the namespace.
         let transformed = true;
         if (ns.body) {
-          // console.error('\x1b[1;31mmodule body\x1b[m'); console.dir(ns.body);
-          // const newBody = ts.visitEachChild(ns.body, (child: ts.Node): ts.Statement[] => {
           ts.visitEachChild(ns.body, (child: ts.Node): undefined => {
             if (!transformed) return;
 
-            if (!transformerUtil.hasModifierFlag(
-                    child as ts.Declaration, ts.ModifierFlags.Export)) {
+            const isExport =
+                transformerUtil.hasModifierFlag(child as ts.Declaration, ts.ModifierFlags.Export);
+
+            if (child.kind !== ts.SyntaxKind.ExpressionStatement && !isExport) {
               // If this statement exports nothing, then don't transform the namespace.
               transformed = false;
               return;
             }
-            const exportedNames = getExportDeclarationNames(child);
+            const exportedNames = isExport ? getExportDeclarationNames(child) : [];
 
             for (const exported of exportedNames) {
               // Identifier's parent is the Declaration; then decl.initializer MAY be something.
@@ -629,35 +614,20 @@ export function jsdocTransformer(
               }
             }
 
-            // const exporteds = getExportDeclarationNames(child);
-            // console.error(`\x1b[1;34mexporteds\x1b[m: ${exporteds.map(x=>x.text).join(', ')}`);
-            // const result = ts.visitNode(child, visitor);
-            // console.error('\x1b[1;31mvisited child\x1b[m'); console.dir(child);
-
-
-            // TODO - handle namespaces separately?
-
-            // TODO - how to rewrite mutable variables throughout as property accesses?!?
-
+            // Run the visitor recursively, removing any export modifiers, which are no longer
+            // relevant since they're only allowed at top-level outside a namespace.
             function wrapArray<T>(x: T|T[]): T[] {
               return Array.isArray(x) ? x : [x];
             }
             function unexport(n: ts.Statement): ts.Statement {
-              if (!getExportDeclarationNames(n).length) return n;
+              if (!isExport || !getExportDeclarationNames(n).length) return n;
               n = ts.getMutableClone(n);
               if (n.modifiers) n.modifiers = n.modifiers.slice(0, 0) as any;
               return n;
             }
-
             const stmts = child.kind === ts.SyntaxKind.ModuleDeclaration ?
                 visitNamespaceDeclaration(child as ts.ModuleDeclaration) :
                 wrapArray(visitor(child) as ts.Statement | ts.Statement[]).map(unexport);
-            // console.error('\x1b[1;31mresult\x1b[m');
-            // console.dir(stmts);
-            // const processedModule = child.kind === ts.SyntaxKind.ModuleDeclaration &&
-            //     stmts.length === 1 && stmts[0] === child;
-
-            // if (!processedModule) {  // Namespaces were exported earlier
             for (const exported of exportedNames) {
               // Avoid redeclaring namespace
               const exportedSymbol = typeChecker.getSymbolAtLocation(exported);
@@ -669,19 +639,16 @@ export function jsdocTransformer(
               const decl = ts.createExpressionStatement(
                   ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
               addCommentOn(decl, [{tagName: 'const'}]);
-              // console.error(`\x1b[1;34mexported\x1b[m: ${exported.text}`);
               stmts.push(decl);
             }
-            // }
             iife.push(...stmts);
             return undefined;
-            // return [];
-            //  return stmts;
           }, context);
-          // console.error('\x1b[1;31mtransformed body\x1b[m');console.dir(newBody);
-          // newBody.forEachChild((child) => iife.push(child));
         }
         if (!transformed) {
+          // TODO(sdh): Rather than returning [ns] as-is, we may want to do some minor
+          // transformations: if it's top-level and exported, then remove the export and add it
+          // manually.  This may be required to remove the const and/or constProperty suppressions.
           return [ns];
         }
         emit.push(ts.createExpressionStatement(ts.createImmediatelyInvokedFunctionExpression(
@@ -700,16 +667,6 @@ export function jsdocTransformer(
           addCommentOn(exportStatement, [{tagName: 'const'}]);
           emit.push(exportStatement);
         }
-
-        // ts.createLogicalOr(name, ts.createAssignment(name, ts.createObjectLiteral())
-        // if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export)) {
-        //   if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {
-        //     moduleTypeTranslator.error(ns, 'export default namespace not supported');
-        //   } else {
-        //     emit.push(ts.createExpressionStatement(ts.createAssignment(
-        //         ts.createPropertyAccess(ts.createIdentifier('exports'), name), name)));
-        //   }
-        // }
         return emit;
       }
 

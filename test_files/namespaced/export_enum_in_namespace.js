@@ -10,12 +10,23 @@ goog.module('test_files.namespaced.export_enum_in_namespace');
 var module = module || { id: 'test_files/namespaced/export_enum_in_namespace.ts' };
 module = module;
 exports = {};
-var foo;
+/**
+ * @const
+ */
+var foo = foo || {};
 (function (foo) {
     let Bar;
     (function (Bar) {
         Bar[Bar["X"] = 0] = "X";
         Bar[Bar["Y"] = 1] = "Y";
-    })(Bar = foo.Bar || (foo.Bar = {}));
+    })(Bar || (Bar = {}));
+    /**
+     * @const
+     */
+    foo.Bar = Bar;
     console.log(Bar); // avoid an "unused assignment" error in Closure.
-})(foo = exports.foo || (exports.foo = {}));
+})(foo);
+/**
+ * @const
+ */
+exports.foo = foo;
