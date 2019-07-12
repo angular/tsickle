@@ -1,21 +1,21 @@
-workspace(name = "tsickle")
+workspace(
+  name = "tsickle",
+  managed_directories = {"@npm": ["node_modules"]},
+)
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.18.5/rules_nodejs-0.18.5.tar.gz"],
-    sha256 = "c8cd6a77433f7d3bb1f4ac87f15822aa102989f8e9eb1907ca0cad718573985b",
+    sha256 = "3b0116a8a91a75678a57ba676c246ac0fa9c90dc3d46daef305b11b54ed4467e",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.33.1/rules_nodejs-0.33.1.tar.gz"],
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "node_repositories", "yarn_install")
 
 # Force developers to use the same Bazel version as CircleCI, to prevent different
 # local behavior than CI.
-check_bazel_version("0.22.0")
-
-# Just installs nodejs and yarn, provides a `@nodejs//` workspace
-node_repositories()
+check_bazel_version("0.28.0")
 
 # Run yarn install to create a node_modules tree for Bazel's use
 # In a future release, this will install into the dev's node_modules folder
@@ -33,6 +33,6 @@ load("@npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
 
 install_bazel_dependencies()
 
-load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
+load("@npm_bazel_typescript//:defs.bzl", "ts_setup_workspace")
 
 ts_setup_workspace()
