@@ -502,7 +502,9 @@ export function jsdocTransformer(
         }
         // If this symbol is both a type and a value, we cannot emit both into Closure's
         // single namespace.
-        if (symbolIsValue(typeChecker, sym)) {
+        if (symbolIsValue(typeChecker, sym) &&
+            (sym.valueDeclaration.pos < iface.pos ||
+             sym.valueDeclaration.kind != ts.SyntaxKind.ModuleDeclaration)) {
           moduleTypeTranslator.debugWarn(
               iface, `type/symbol conflict for ${sym.name}, using {?} for now`);
           return [transformerUtil.createSingleLineComment(
@@ -534,6 +536,137 @@ export function jsdocTransformer(
         addCommentOn(decl, tags);
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, iface);
         return memberDecl ? [decl, memberDecl] : [decl];
+      }
+
+      function visitNamespaceDeclaration(ns: ts.ModuleDeclaration): ts.Statement[] {
+        // Basic strategy for namespaces: only transform them if all exported symbols are const.
+        // Namespaces with mutable exports are left untouched.  Transformed namespaces are
+        // rewritten in a way that Closure can understand.  Specifically:
+        //   /** @const */
+        //   var ns = ns || {};
+        //   (function(ns) {
+        //     // ... recursively transformed definition of exported ...
+        //     /** @const */
+        //     ns.exported = exported;
+        //   })(ns);
+        //   /** @const */
+        //   exports.ns = ns;
+
+        const emit: ts.Statement[] = [];
+
+        const sym = typeChecker.getSymbolAtLocation(ns.name);
+        if (!sym) {
+          moduleTypeTranslator.error(ns, 'namespace with no symbol');
+          return [ns];
+        } else if (ns.name.kind === ts.SyntaxKind.StringLiteral) {
+          moduleTypeTranslator.error(ns.name, 'string literal namespaces not supported');
+          return [ns];
+        }
+
+        const name = ns.name as ts.Identifier;
+
+        // Determine whether we need to declare the namespace.  Because the same namespace can
+        // be reopened, we want to avoid redeclarations that could run afoul of jscompiler's
+        // const or constantProperty checks.  If the previous declaration was in another source
+        // file, then it's harmless to redeclare here, and may be necessary if the other source
+        // was a .d.ts file.
+        const needsDeclaration = !sym.valueDeclaration || sym.valueDeclaration.pos === ns.pos ||
+            sym.valueDeclaration.getSourceFile() !== ns.getSourceFile();
+
+        if (needsDeclaration) {
+          const nsDecl = ts.createVariableStatement(
+              ts.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
+              [ts.createVariableDeclaration(
+                  name, undefined, ts.createLogicalOr(name, ts.createObjectLiteral()))]);
+          addCommentOn(nsDecl, [{tagName: 'const'}]);
+          emit.push(nsDecl);
+
+          if (transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Default)) {
+            moduleTypeTranslator.error(ns, 'export default namespace not supported');
+          }
+        }
+
+        const iife: ts.Node[] = [];
+        // If anything sets this to false, give up transforming the namespace.
+        let transformed = true;
+        if (ns.body) {
+          ts.visitEachChild(ns.body, (child: ts.Node): undefined => {
+            if (!transformed) return;
+
+            const isExport =
+                transformerUtil.hasModifierFlag(child as ts.Declaration, ts.ModifierFlags.Export);
+
+            if (child.kind !== ts.SyntaxKind.ExpressionStatement && !isExport) {
+              // If this statement exports nothing, then don't transform the namespace.
+              transformed = false;
+              return;
+            }
+            const exportedNames = isExport ? getExportDeclarationNames(child) : [];
+
+            for (const exported of exportedNames) {
+              // Identifier's parent is the Declaration; then decl.initializer MAY be something.
+              const decl = exported.parent as ts.Declaration;
+              if (decl.kind === ts.SyntaxKind.VariableDeclaration &&
+                  !(decl.parent.flags & ts.NodeFlags.Const)) {
+                transformed = false;
+                return;
+              }
+            }
+
+            // Run the visitor recursively, removing any export modifiers, which are no longer
+            // relevant since they're only allowed at top-level outside a namespace.
+            function wrapArray<T>(x: T|T[]): T[] {
+              return Array.isArray(x) ? x : [x];
+            }
+            function unexport(n: ts.Statement): ts.Statement {
+              if (!isExport || !getExportDeclarationNames(n).length) return n;
+              n = ts.getMutableClone(n);
+              if (n.modifiers) n.modifiers = n.modifiers.slice(0, 0) as any;
+              return n;
+            }
+            const stmts = child.kind === ts.SyntaxKind.ModuleDeclaration ?
+                visitNamespaceDeclaration(child as ts.ModuleDeclaration) :
+                wrapArray(visitor(child) as ts.Statement | ts.Statement[]).map(unexport);
+            for (const exported of exportedNames) {
+              // Avoid redeclaring namespace
+              const exportedSymbol = typeChecker.getSymbolAtLocation(exported);
+              if (exportedSymbol && exportedSymbol.valueDeclaration &&
+                  exportedSymbol.valueDeclaration.pos !== exported.pos &&
+                  exportedSymbol.valueDeclaration.pos !== child.pos) {
+                continue;
+              }
+              const decl = ts.createExpressionStatement(
+                  ts.createAssignment(ts.createPropertyAccess(name, exported), exported));
+              addCommentOn(decl, [{tagName: 'const'}]);
+              stmts.push(decl);
+            }
+            iife.push(...stmts);
+            return undefined;
+          }, context);
+        }
+        if (!transformed) {
+          // TODO(sdh): Rather than returning [ns] as-is, we may want to do some minor
+          // transformations: if it's top-level and exported, then remove the export and add it
+          // manually.  This may be required to remove the const and/or constProperty suppressions.
+          return [ns];
+        }
+        emit.push(ts.createExpressionStatement(ts.createImmediatelyInvokedFunctionExpression(
+            iife as ts.Statement[],
+            ts.createParameter(
+                /* decorators */ undefined,
+                /* modifiers */ undefined,
+                /* dotDotDot */ undefined, name),
+            name)));
+
+        if (needsDeclaration && transformerUtil.hasModifierFlag(ns, ts.ModifierFlags.Export) &&
+            ns.parent.kind !== ts.SyntaxKind.ModuleBlock) {
+          // Top-level exported namespace.
+          const exportStatement = ts.createExpressionStatement(ts.createAssignment(
+              ts.createPropertyAccess(ts.createIdentifier('exports'), name), name));
+          addCommentOn(exportStatement, [{tagName: 'const'}]);
+          emit.push(exportStatement);
+        }
+        return emit;
       }
 
       /** Function declarations are emitted as they are, with only JSDoc added. */
@@ -880,11 +1013,19 @@ export function jsdocTransformer(
           case ts.SyntaxKind.TypeAliasDeclaration:
             const typeAlias = node as ts.TypeAliasDeclaration;
             return [typeAlias.name];
+          case ts.SyntaxKind.NotEmittedStatement:
+            return [];
           default:
             break;
         }
-        moduleTypeTranslator.error(
-            node, `unsupported export declaration ${ts.SyntaxKind[node.kind]}: ${node.getText()}`);
+        try {
+          moduleTypeTranslator.error(
+              node,
+              `unsupported export declaration ${ts.SyntaxKind[node.kind]}: ${node.getText()}`);
+        } catch (err) {
+          console.error(`bad node ${ts.SyntaxKind[node.kind]}`);
+          console.dir(node);
+        }
         return [];
       }
 
@@ -938,6 +1079,8 @@ export function jsdocTransformer(
             return visitClassDeclaration(node as ts.ClassDeclaration);
           case ts.SyntaxKind.InterfaceDeclaration:
             return visitInterfaceDeclaration(node as ts.InterfaceDeclaration);
+          case ts.SyntaxKind.ModuleDeclaration:
+            return visitNamespaceDeclaration(node as ts.ModuleDeclaration);
           case ts.SyntaxKind.HeritageClause:
             return visitHeritageClause(node as ts.HeritageClause);
           case ts.SyntaxKind.ArrowFunction:

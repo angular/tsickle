@@ -6,11 +6,17 @@ goog.module('test_files.namespaced.local_namespace');
 var module = module || { id: 'test_files/namespaced/local_namespace.ts' };
 module = module;
 exports = {};
-var unexported;
+/**
+ * @const
+ */
+var unexported = unexported || {};
 (function (unexported) {
     class Unexported {
     }
+    /**
+     * @const
+     */
     unexported.Unexported = Unexported;
-})(unexported || (unexported = {}));
+})(unexported);
 /** @type {?} */
 let x;

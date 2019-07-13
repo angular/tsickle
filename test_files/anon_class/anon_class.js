@@ -12,17 +12,26 @@ exports = {};
 /** @type {?} */
 const anonClassInstance = new class {
 };
-// Verify the same thing in a namespace.
-// We don't rely on namespaces really but the logic around generating type
-// names has some logic near namespaces so we might as well verify the output
-// looks ok.
-var ns;
+/**
+ * @const
+ */
+var ns = ns || {};
 (function (ns) {
-    ns.anonInstance2 = new class {
+    /** @type {?} */
+    const anonInstance2 = new class {
     };
-    ns.anonClass = class {
+    /**
+     * @const
+     */
+    ns.anonInstance2 = anonInstance2;
+    /** @type {?} */
+    const anonClass = class {
     };
-})(ns || (ns = {}));
+    /**
+     * @const
+     */
+    ns.anonClass = anonClass;
+})(ns);
 /** @type {?} */
 const aliasToAnon = ns.anonInstance2;
 /** @type {?} */

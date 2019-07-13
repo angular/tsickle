@@ -6,9 +6,16 @@ goog.module('test_files.module.module');
 var module = module || { id: 'test_files/module/module.ts' };
 module = module;
 exports = {};
-// tslint:disable-next-line:no-namespace
-var Reflect;
+/**
+ * @const
+ */
+var Reflect = Reflect || {};
 (function (Reflect) {
-    Reflect.x = 1;
-})(Reflect || (Reflect = {}));
+    /** @type {number} */
+    const x = 1;
+    /**
+     * @const
+     */
+    Reflect.x = x;
+})(Reflect);
 console.log(Reflect.x);
