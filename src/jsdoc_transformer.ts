@@ -270,16 +270,22 @@ function createMemberTypeDeclaration(
           p, `Skipping unhandled member: ${escapeForComment(p.getText())}`)));
 
   for (const fnDecl of abstractMethods) {
-    const name = propertyName(fnDecl);
+    // If the function declaration is computed, its name is the computed expression; otherwise, its
+    // name can be resolved to a string.
+    const name = fnDecl.name && ts.isComputedPropertyName(fnDecl.name) ? fnDecl.name.expression :
+                                                                         propertyName(fnDecl);
     if (!name) {
       mtt.error(fnDecl, 'anonymous abstract function');
       continue;
     }
     const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
     if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
+    // Element access for computed names.
+    const lhs = typeof name === 'string' ? ts.createPropertyAccess(instancePropAccess, name) :
+                                           ts.createElementAccess(instancePropAccess, name);
     // memberNamespace because abstract methods cannot be static in TypeScript.
     const abstractFnDecl = ts.createStatement(ts.createAssignment(
-        ts.createPropertyAccess(instancePropAccess, name),
+        lhs,
         ts.createFunctionExpression(
             /* modifiers */ undefined,
             /* asterisk */ undefined,

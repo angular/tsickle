@@ -15,4 +15,14 @@ const uniqueSymbol = Symbol('my symbol');
 function usingSymbol(symbolTyped) {
     console.log(symbolTyped);
 }
+/**
+ * @record
+ */
+function ComputedSymbol() { }
+if (false) {
+    /**
+     * @return {number}
+     */
+    ComputedSymbol.prototype[uniqueSymbol] = function () { };
+}
 usingSymbol(uniqueSymbol);
