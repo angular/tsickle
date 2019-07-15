@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
+load("@npm_bazel_typescript//:index.bzl", "ts_library")
 
 ts_library(
     name = "test_support",
@@ -50,6 +50,7 @@ jasmine_node_test(
         "@npm//jasmine",
         "@npm//diff-match-patch",
         "@npm//source-map-support",
+        "@npm//tslib",
     ],
 )
 
