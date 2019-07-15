@@ -280,7 +280,7 @@ function createMemberTypeDeclaration(
     }
     const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
     if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
-    // Element access for computed names.
+    // Use element access instead of property access for compued names.
     const lhs = typeof name === 'string' ? ts.createPropertyAccess(instancePropAccess, name) :
                                            ts.createElementAccess(instancePropAccess, name);
     // memberNamespace because abstract methods cannot be static in TypeScript.
