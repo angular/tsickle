@@ -1,5 +1,4 @@
 test --test_output=errors
-#TODO(alexeagle): enable worker mode
 
 # Opt-in to breaking change for runfiles layout, where Bazel will eventually stop providing
 # an external directory inside of our workspace like
@@ -21,3 +20,12 @@ build:ci --noshow_progress
 # Save downloaded repositories in a location that can be cached by CircleCI. This helps us
 # speeding up the Bazel analysis time for CI jobs.
 build:ci --experimental_repository_cache=/home/circleci/bazel_repository_cache
+
+# Turn on managed directories feature in Bazel
+# This allows us to avoid installing a second copy of node_modules
+common --experimental_allow_incremental_repository_updates
+
+# Prevent TS worker from trying to expand the `includes` section in tsconfig.json.
+# It would find the "test/*.ts" reference when compiling //src:src, and the FileCache will then error
+# when TS attempts to read one of these files that doesn't belong in the compilation.
+build --worker_sandboxing
