@@ -175,7 +175,7 @@ On a new branch, run
 
 ```
 # tsickle releases are all minor releases for now, see npm help version.
-$ npm version minor -m 'rel: %s'
+$ npm version minor
 ```
 
 This will update the version in `package.json`, commit the changes, and
