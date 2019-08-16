@@ -1,7 +1,5 @@
 // test_files/type/type.ts(3,1): warning TS0: type/symbol conflict for Array, using {?} for now
 // test_files/type/type.ts(16,5): warning TS0: unhandled anonymous type
-// test_files/type/type.ts(47,21): warning TS0: anonymous type has no symbol
-// test_files/type/type.ts(47,21): warning TS0: anonymous type has no symbol
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -96,7 +94,7 @@ val => val + 1));
  */
 function typeGenericCallback(callback) { }
 typeGenericCallback((/**
- * @param {?} val
- * @return {?}
+ * @param {*} val
+ * @return {*}
  */
 val => val));
