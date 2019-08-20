@@ -198,6 +198,33 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
 }
 
 /**
+ * Convert a series of comma-separated expressions
+ *   x = foo, y(), z.bar();
+ * with statements
+ *   x = foo; y(); z.bar();
+ * This is for handling in particular the case where
+ *   exports.x = ..., exports.y = ...;
+ * which Closure rejects.
+ *
+ * @return An array of statements if it converted, or null otherwise.
+ */
+function rewriteCommaExpressions(expr: ts.ExpressionStatement): ts.Statement[]|null {
+  // Early exit if the outer statement isn't a comma statement.
+  if (!ts.isBinaryExpression(expr.expression)) return null;
+  if (expr.expression.operatorToken.kind !== ts.SyntaxKind.CommaToken) return null;
+
+  // Recursively visit comma-separated subexpressions, and collect them all as
+  // separate expression statements.
+  return visit(expr.expression);
+  function visit(expr: ts.Expression): ts.Statement[] {
+    if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken) {
+      return visit(expr.left).concat(visit(expr.right));
+    }
+    return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
+  }
+}
+
+/**
  * commonJsToGoogmoduleTransformer returns a transformer factory that converts TypeScript's CommonJS
  * module emit to Closure Compiler compatible goog.module and goog.require statements.
  */
@@ -441,6 +468,15 @@ export function commonJsToGoogmoduleTransformer(
             const modExports = rewriteModuleExportsAssignment(exprStmt);
             if (modExports) {
               stmts.push(modExports);
+              return;
+            }
+            // Check for use of the comma operator.
+            // This occurs in code like
+            //   exports.a = ..., exports.b = ...;
+            // which we want to change into multiple statements.
+            const commaExpanded = rewriteCommaExpressions(exprStmt);
+            if (commaExpanded) {
+              stmts.push(...commaExpanded);
               return;
             }
             // Check for:
