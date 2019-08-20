@@ -327,12 +327,14 @@ var foo = bar;
   it('deduplicates module imports', () => {
     expectCommonJs('a/b.ts', `import Foo from 'goog:foo';
 import Foo2 from 'goog:foo';
-Foo, Foo2;
+Foo;
+Foo2;
 `).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 var goog_foo_1 = goog.require('foo');
 var goog_foo_2 = goog_foo_1;
-goog_foo_1, goog_foo_2;
+goog_foo_1;
+goog_foo_2;
 `);
   });
 
