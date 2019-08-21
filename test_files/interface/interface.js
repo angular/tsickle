@@ -57,6 +57,8 @@ if (false) {
      * @type {function(string): number}
      */
     TrickyInterface.prototype.hasSomeParamJsDoc;
+    /* Skipping illegal member name:
+    prototype: string;*/
     /* Skipping unhandled member: [offset: number]: number;*/
     /* Skipping unhandled member: (x: number): __ yuck __
           number;*/

@@ -39,4 +39,7 @@ interface TrickyInterface {
    * @override
    */
   hasSomeParamJsDoc: (a: string) => number;
+
+  // You can't define a field named 'prototype' in Closure.
+  prototype: string;
 }
