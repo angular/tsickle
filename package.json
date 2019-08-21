@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
+    "@bazel/jasmine": "^0.36.1",
     "@bazel/typescript": "^0.33.1",
     "@types/diff-match-patch": "^1.0.32",
     "@types/glob": "5.0.35",
