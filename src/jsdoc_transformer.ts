@@ -339,6 +339,14 @@ function createClosurePropertyDeclaration(
         prop, `Skipping unnamed member:\n${escapeForComment(prop.getText())}`);
   }
 
+  if (name === 'prototype') {
+    // Code that declares a property named 'prototype' typically is doing something
+    // funny with the TS type system, and isn't actually interested in naming a
+    // a field 'prototype', as prototype has special meaning in JS.
+    return transformerUtil.createMultiLineComment(
+        prop, `Skipping illegal member name:\n${escapeForComment(prop.getText())}`);
+  }
+
   let type = mtt.typeToClosure(prop);
   // When a property is optional, e.g.
   //   foo?: string;
