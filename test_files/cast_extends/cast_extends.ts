@@ -11,7 +11,6 @@ interface MixedIn {
 
 export interface Ctor<T = {}> {
   new(...args: Array<{}>): T;
-  readonly prototype: T;
 }
 
 export function mix<T extends Someclass>(baseclazz: Ctor<T>): Ctor<T&MixedIn> {
