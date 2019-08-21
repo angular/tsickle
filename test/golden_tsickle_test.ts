@@ -88,7 +88,7 @@ function compareAgainstGolden(
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? fdescribe : describe;
 
-testFn('golden tests with transformer', () => {
+testFn('golden tests', () => {
   beforeEach(() => {
     testSupport.addDiffMatchers();
   });

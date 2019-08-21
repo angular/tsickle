@@ -198,10 +198,6 @@ export class GoldenFileTest {
     return /\.puretransform\b/.test(this.name);
   }
 
-  get isQuotingTest(): boolean {
-    return /^quote_/.test(this.name);
-  }
-
   /** True if the test is testing es5 output; es6 output otherwise. */
   get isEs5Target(): boolean {
     return /\.es5\b/.test(this.name);
