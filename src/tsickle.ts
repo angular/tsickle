@@ -9,6 +9,7 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
+import {awaitTransformer} from './await_transformer';
 import {assertAbsolute} from './cli_support';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
 import {enumTransformer} from './enum_transformer';
@@ -119,12 +120,14 @@ export function emit(
 
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
+  const tsOptions = program.getCompilerOptions();
+  const thisTypeByAsyncFunction = new Map<ts.FunctionLikeDeclaration, string>();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type annotations.
     tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
-    tsickleSourceTransformers.push(
-        jsdocTransformer(host, program.getCompilerOptions(), typeChecker, tsickleDiagnostics));
+    tsickleSourceTransformers.push(jsdocTransformer(
+        host, tsOptions, typeChecker, tsickleDiagnostics, thisTypeByAsyncFunction));
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   } else if (host.transformDecorators) {
@@ -149,6 +152,10 @@ export function emit(
   if (host.googmodule) {
     tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
+  }
+  if (host.transformTypesToClosure && tsOptions.target &&
+      tsOptions.target <= ts.ScriptTarget.ES2015) {
+    tsTransformers.after!.push(awaitTransformer(thisTypeByAsyncFunction));
   }
 
   // Wrap the writeFile callback to hook writing of the dts file.

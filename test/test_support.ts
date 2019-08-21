@@ -42,7 +42,9 @@ const tslibPath = path.join(rootDir(), '../npm/node_modules/tslib/tslib.d.ts');
 
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
-  target: ts.ScriptTarget.Latest,
+  // Down level to ES2015: Angular users must lower "await" statements so that zone can intercept
+  // them, so many users do down-level. This allows testing await_transformer.ts.
+  target: ts.ScriptTarget.ES2015,
   // Disable searching for @types typings. This prevents TS from looking
   // around for a node_modules directory.
   types: [],
