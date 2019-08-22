@@ -26,7 +26,7 @@ export function getContainingFunctionLikeDeclaration(node: ts.Node) {
  *
  * The generator function ("function* ...") needs the appropriate `\@this` annotation for Closure,
  * which this transformer inserts.
- * 
+ *
  * This transformer is only needed (and only run by tsickle) when down-leveling await statements.
  *
  * @param thisTypeByAsyncFunction A map containing the context `this` type for all async function
