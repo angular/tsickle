@@ -30,7 +30,7 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
-      - run: bazel run @nodejs//:yarn
-      - run: bazel build ...
-      - run: bazel test ...
+      - run: bazel run @nodejs//:bin/yarn
+      - run: bazel run @nodejs//:bin/yarn lint
+      - run: bazel test //...
       - *save_cache
