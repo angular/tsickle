@@ -41,7 +41,8 @@
   },
   "scripts": {
     "build": "bazel build //:npm_package",
-    "test": "node check_format.js && tslint -c tslint.json -p tsconfig.json && bazel test ..."
+    "lint": "node check_format.js && tslint -c tslint.json -p tsconfig.json",
+    "test": "npm run lint && bazel test ..."
   },
   "repository": {
     "type": "git",
