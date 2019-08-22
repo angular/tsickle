@@ -673,7 +673,7 @@ export class TypeTranslator {
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
       const constructedType = this.translate(ctors[0].getReturnType());
       const constructedTypeStr =
-          constructedType[0] == '!' ? constructedType.substring(1) : constructedType;
+          constructedType[0] === '!' ? constructedType.substring(1) : constructedType;
       // In the specific case of the "new" in a function, the correct Closure
       // type is:
       //
