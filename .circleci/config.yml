@@ -32,5 +32,5 @@ jobs:
           key: *cache_key
       - run: bazel run @nodejs//:yarn
       - run: bazel build ...
-      - run: npm test
+      - run: bazel-tsickle/external/nodejs_linux_amd64/bin/npm test
       - *save_cache
