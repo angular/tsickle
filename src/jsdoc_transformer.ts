@@ -425,8 +425,8 @@ export function removeTypeAssertions(): ts.TransformerFactory<ts.SourceFile> {
  */
 export function jsdocTransformer(
     host: AnnotatorHost, tsOptions: ts.CompilerOptions, typeChecker: ts.TypeChecker,
-    diagnostics: ts.Diagnostic[]): (context: ts.TransformationContext) =>
-    ts.Transformer<ts.SourceFile> {
+    diagnostics: ts.Diagnostic[], thisTypeByAsyncFunction: Map<ts.FunctionLikeDeclaration, string>):
+    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     return (sourceFile: ts.SourceFile) => {
       const moduleTypeTranslator = new ModuleTypeTranslator(
@@ -550,6 +550,26 @@ export function jsdocTransformer(
         return memberDecl ? [decl, memberDecl] : [decl];
       }
 
+      /** Returns the `this` type in this context, or undefined if none. */
+      function getContextThisType(node: ts.Node|undefined): ts.Type|undefined {
+        while (node) {
+          if (ts.isClassDeclaration(node) && node.name) {
+            return typeChecker.getTypeAtLocation(node.name);
+          }
+          if (ts.isFunctionDeclaration(node) && node.parameters.length > 0) {
+            const firstParam = node.parameters[0];
+            // ts.Signature does not expose a `this` type, so comparing identifier names to 'this'
+            // is the only way to find a this type declaration.
+            if (ts.isIdentifier(firstParam.name) &&
+                transformerUtil.getIdentifierText(firstParam.name) === 'this' && firstParam.type) {
+              return typeChecker.getTypeAtLocation(firstParam.type);
+            }
+          }
+          node = node.parent;
+        }
+        return undefined;
+      }
+
       /** Function declarations are emitted as they are, with only JSDoc added. */
       function visitFunctionLikeDeclaration<T extends ts.FunctionLikeDeclaration>(fnDecl: T): T {
         if (!fnDecl.body) {
@@ -563,6 +583,28 @@ export function jsdocTransformer(
 
         const {tags, thisReturnType} =
             moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl], extraTags);
+
+        if (transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Async)) {
+          // Store the this type for async functions, so that it can be added later on the result of
+          // TypeScript's await down-levelling. See await_transformer.ts.
+          const thisType = getContextThisType(ts.getOriginalNode(fnDecl));
+          if (thisType) {
+            const thisTypeString =
+                moduleTypeTranslator.newTypeTranslator(fnDecl).translate(thisType);
+            thisTypeByAsyncFunction.set(fnDecl, thisTypeString);
+          }
+        }
+
+        // top-level async functions when down-leveled access `this` to pass it to
+        // tslib.__awaiter. Closure requires a @this tag for that.
+        if ((tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015) &&
+            transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Async) &&
+            // Methods/getters/setters/ctors already have an implicit this.
+            fnDecl.kind === ts.SyntaxKind.FunctionDeclaration &&
+            // There might be an explicit `this: T` type.
+            !tags.some(t => t.tagName === 'this')) {
+          tags.push({tagName: 'this', type: '*'});
+        }
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(fnDecl);
         mjsdoc.tags = tags;
         mjsdoc.updateComment();

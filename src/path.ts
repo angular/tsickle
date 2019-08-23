@@ -24,7 +24,7 @@ declare module 'typescript' {
   function getDirectoryPath(path: string): string;
   function convertToRelativePath(
       absoluteOrRelativePath: string, basePath: string,
-      getCanonicalFileName: (path: string) => string): string
+      getCanonicalFileName: (path: string) => string): string;
 }
 
 export function isAbsolute(path: string): boolean {

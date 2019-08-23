@@ -1,6 +1,6 @@
 {
   "name": "tsickle",
-  "version": "0.36.0",
+  "version": "0.37.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "src/tsickle.js",
   "typings": "src/tsickle.d.ts",
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
+    "@bazel/jasmine": "^0.36.1",
     "@bazel/typescript": "^0.33.1",
     "@types/diff-match-patch": "^1.0.32",
     "@types/glob": "5.0.35",
@@ -40,7 +41,8 @@
   },
   "scripts": {
     "build": "bazel build //:npm_package",
-    "test": "node check_format.js && tslint -c tslint.json -p tsconfig.json && bazel test ..."
+    "lint": "node check_format.js && tslint -c tslint.json -p tsconfig.json",
+    "test": "yarn lint && bazel test ..."
   },
   "repository": {
     "type": "git",

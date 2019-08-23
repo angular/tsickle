@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
+load("@npm_bazel_jasmine//:index.bzl", "jasmine_node_test")
 load("@npm_bazel_typescript//:index.bzl", "ts_library")
 
 ts_library(
@@ -14,6 +14,7 @@ ts_library(
         "@npm//@types/node",
         "@npm//@types/jasmine",
         "@npm//@types/glob",
+        "@npm//glob",
         "@npm//typescript",
     ],
 )
@@ -139,8 +140,8 @@ jasmine_node_test(
     srcs = [":golden_test_lib"],
     data = ["//:test_files"],
     deps = [
-        "@npm//jasmine",
         "@npm//diff-match-patch",
+        "@npm//jasmine",
         "@npm//source-map-support",
     ],
 )
