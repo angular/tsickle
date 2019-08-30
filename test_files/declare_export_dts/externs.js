@@ -58,17 +58,22 @@ relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModul
 relative_ambient_external_module.user;
 // externs from test_files/declare_export_dts/declare_export_var.d.ts:
 /** @const */
-var test_files$declare_export_dts$declare_export_var = {};
+var test_files$declare_export_dts$declare_export_var_ = {};
 /** @type {!test_files$declare_export_dts$declare_export_var.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace} */
-test_files$declare_export_dts$declare_export_var.variableDeclaredInDtsModule;
+test_files$declare_export_dts$declare_export_var_.variableDeclaredInDtsModule;
 /** @type {!test_files$declare_export_dts$declare_export_var.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace} */
 var variableDeclaredInDtsModule;
 /** @const */
-test_files$declare_export_dts$declare_export_var.namespaceInDtsModule = {};
+test_files$declare_export_dts$declare_export_var_.namespaceInDtsModule = {};
 /**
  * @record
  * @struct
  */
-test_files$declare_export_dts$declare_export_var.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace = function() {};
+test_files$declare_export_dts$declare_export_var_.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace = function() {};
+/**
+ * export = variableDeclaredInDtsModule
+ * @const
+ */
+var test_files$declare_export_dts$declare_export_var = test_files$declare_export_dts$declare_export_var_.variableDeclaredInDtsModule;
 // export as namespace variableDeclaredInDtsModule
-var variableDeclaredInDtsModule = test_files$declare_export_dts$declare_export_var.variableDeclaredInDtsModule;
+var variableDeclaredInDtsModule = test_files$declare_export_dts$declare_export_var_.variableDeclaredInDtsModule;

@@ -160,18 +160,42 @@ export function generateExterns(
   const mtt =
       new ModuleTypeTranslator(sourceFile, typeChecker, host, diagnostics, /*isForExterns*/ true);
 
-  let rootNamespace = '';
+  // .d.ts files declare symbols. The code below translates these into a form understood by Closure
+  // Compiler, converting the type syntax, but also converting symbol names into a form accessible
+  // to Closure Compiler.
+
+  // Like regular .ts files, .d.ts can be either scripts or modules. Scripts declare symbols in the
+  // global namespace, which has the same semantics in Closure and TypeScript, so the code below
+  // emits those with the same name.
+
+  // Modules however declare symbols scoped to the module that can be exported. Closure has no
+  // concept of externs that are non-global, so tsickle needs to mangle the symbol names, both at
+  // their declaration and at their use site.
+
+  // This mangling happens by wrapping all declared symbols in a namespace based on the file name.
+  // This namespace is then essentially the exports object for the ambient module (externs in
+  // Closure terms). This namespace is called `moduleNamespace` below:
+  let moduleNamespace = '';
   if (isExternalModule) {
-    // .d.ts files that are modules do not declare global symbols - their symbols must be explicitly
-    // imported to be used. However Closure Compiler has no concept of externs that are modules and
-    // require imports. This code mangles the symbol names by wrapping them in a top level variable
-    // that's unique to this file. That allows emitting them for Closure as global symbols while
-    // avoiding collisions. This is necessary as symbols local to this module can (and will very
-    // commonly) conflict with the namespace used in "export as namespace", e.g. "angular", and also
-    // to avoid users accidentally using these symbols in .js files (and more collisions). The
-    // symbols that are "hidden" like that can be made accessible through an "export as namespace"
-    // declaration (see below).
-    rootNamespace = moduleNameAsIdentifier(host, sourceFile.fileName);
+    moduleNamespace = moduleNameAsIdentifier(host, sourceFile.fileName);
+  }
+
+  // Symbols are generated starting in rootNamespace. For script .d.ts with global symbols, this is
+  // the empty string. For most module `.d.ts` files, this is the mangled namespace object. The
+  // remaining special case are `.d.ts` files containing an `export = something;` statement. In
+  // these, the effective exports object, i.e. the object containing the symbols that importing code
+  // receives, is different from the main module scope.
+  // tsickle handles the `export =` case by generating symbols in a different namespace (escaped
+  // with a `_`) below, and then assigning whatever is actually exported into the `moduleNamespace`
+  // below.
+  let rootNamespace = moduleNamespace;
+  // There can only be one export =, and if there is one, there cannot be any other exports.
+  const exportAssignment = sourceFile.statements.find(ts.isExportAssignment);
+  const hasExportEquals = exportAssignment && exportAssignment.isExportEquals;
+  if (hasExportEquals) {
+    // If so, move all generated symbols into a different sub-namespace, so that later on we can
+    // control what exactly goes on the actual exported namespace.
+    rootNamespace = rootNamespace + '_';
   }
 
   for (const stmt of sourceFile.statements) {
@@ -215,10 +239,8 @@ export function generateExterns(
     // declaration for it.
     output = `/** @const */\nvar ${rootNamespace} = {};\n` + output;
 
-    // There can only be one export =.
-    const exportAssignment = sourceFile.statements.find(ts.isExportAssignment);
     let exportedNamespace = rootNamespace;
-    if (exportAssignment && exportAssignment.isExportEquals) {
+    if (exportAssignment && hasExportEquals) {
       if (ts.isIdentifier(exportAssignment.expression) ||
           ts.isQualifiedName(exportAssignment.expression)) {
         // E.g. export = someName;
@@ -231,6 +253,10 @@ export function generateExterns(
             `export = expression must be a qualified name, got ${
                 ts.SyntaxKind[exportAssignment.expression.kind]}.`);
       }
+      // Assign the actually exported namespace object (which lives somewhere under rootNamespace)
+      // into the module's namespace.
+      emit(`/**\n * export = ${exportAssignment.expression.getText()}\n * @const\n */\n`);
+      emit(`var ${moduleNamespace} = ${exportedNamespace};\n`);
     }
 
     if (isDts && host.provideExternalModuleDtsNamespace) {
@@ -522,14 +548,9 @@ export function generateExterns(
       return;
     }
 
-    const googNamespace = extractGoogNamespaceImport(moduleUri);
-    const moduleName = googNamespace ||
-        host.pathToModuleName(
-            sourceFile.fileName, resolveModuleName(host, sourceFile.fileName, moduleUri));
-
     if (ts.isImportEqualsDeclaration(decl)) {
       // import foo = require('./bar');
-      addImportAlias(decl.name, moduleName, false, undefined);
+      addImportAlias(decl.name, moduleUri, undefined);
       return;
     }
 
@@ -538,24 +559,20 @@ export function generateExterns(
 
     if (decl.importClause.name) {
       // import name from ... -> map to .default on the module.name.
-      if (googNamespace) {
-        addImportAlias(decl.importClause.name, googNamespace, true, undefined);
-      } else {
-        addImportAlias(decl.importClause.name, moduleName, false, 'default');
-      }
+      addImportAlias(decl.importClause.name, moduleUri, 'default');
     }
     const namedBindings = decl.importClause.namedBindings;
     if (!namedBindings) return;
 
     if (ts.isNamespaceImport(namedBindings)) {
       // import * as name -> map directly to the module.name.
-      addImportAlias(namedBindings.name, moduleName, false, undefined);
+      addImportAlias(namedBindings.name, moduleUri, undefined);
     }
 
     if (ts.isNamedImports(namedBindings)) {
       // import {A as B}, map to module.name.A
       for (const namedBinding of namedBindings.elements) {
-        addImportAlias(namedBinding.name, moduleName, false, namedBinding.name);
+        addImportAlias(namedBinding.name, moduleUri, namedBinding.name);
       }
     }
   }
@@ -564,9 +581,7 @@ export function generateExterns(
    * Adds an import alias for the symbol defined at the given node. Creates an alias name based on
    * the given moduleName and (optionally) the name.
    */
-  function addImportAlias(
-      node: ts.Node, moduleName: string, isGoogImport: boolean,
-      name: ts.Identifier|string|undefined) {
+  function addImportAlias(node: ts.Node, moduleUri: string, name: ts.Identifier|string|undefined) {
     let symbol = typeChecker.getSymbolAtLocation(node);
     if (!symbol) {
       reportDiagnostic(diagnostics, node, `named import has no symbol`);
@@ -575,21 +590,34 @@ export function generateExterns(
     if (symbol.flags & ts.SymbolFlags.Alias) {
       symbol = typeChecker.getAliasedSymbol(symbol);
     }
-    // While type_translator does add the mangled prefix for ambient declarations, it only does so
-    // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
-    // which will have a local symbol for the imported ambient symbol. However within an externs
-    // file, there are no imports, so we need to make sure the alias already contains the correct
-    // module name, which means the mangled module name in case of imports symbols.
-    // This only applies to non-Closure ('goog:') imports.
-    if (symbol.declarations && !isGoogImport && symbol.declarations.some(d => isAmbient(d))) {
-      moduleName = moduleNameAsIdentifier(host, moduleName);
+
+    const googNamespace = extractGoogNamespaceImport(moduleUri);
+    let aliasName: string;
+    if (googNamespace) {
+      aliasName = googNamespace;
+    } else {
+      // While type_translator does add the mangled prefix for ambient declarations, it only does so
+      // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
+      // which will have a local symbol for the imported ambient symbol. However within an externs
+      // file, there are no imports, so we need to make sure the alias already contains the correct
+      // module name, which means the mangled module name in case of imports symbols.
+      // This only applies to non-Closure ('goog:') imports.
+      const isAmbientModuleDeclaration =
+          symbol.declarations && symbol.declarations.some(d => isAmbient(d));
+      const fullUri = resolveModuleName(host, sourceFile.fileName, moduleUri);
+      if (isAmbientModuleDeclaration) {
+        aliasName = moduleNameAsIdentifier(host, fullUri);
+      } else {
+        aliasName = host.pathToModuleName(
+            sourceFile.fileName, resolveModuleName(host, sourceFile.fileName, fullUri));
+      }
+      if (typeof name === 'string') {
+        aliasName += '.' + name;
+      } else if (name) {
+        aliasName += '.' + getIdentifierText(name);
+      }
     }
-    let aliasName = moduleName;
-    if (typeof name === 'string') {
-      aliasName += '.' + name;
-    } else if (name) {
-      aliasName += '.' + getIdentifierText(name);
-    }
+
     mtt.symbolsToAliasedNames.set(symbol, aliasName);
   }
 

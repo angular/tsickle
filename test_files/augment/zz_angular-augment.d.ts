@@ -26,7 +26,6 @@ declare module './angular' {
    */
   namespace local {
     type LocalType = string;
-    // TODO: the type below should not be emitted using localAlias.
     type UsingSymbolFromAugmentedModule = localAlias.Scope;
   }
 }

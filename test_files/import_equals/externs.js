@@ -26,25 +26,30 @@ importEquals.React = __React;
 var React = __React;
 // externs from test_files/import_equals/import_equals_module.d.ts:
 /** @const */
-var test_files$import_equals$import_equals_module = {};
+var test_files$import_equals$import_equals_module_ = {};
 /** @const */
-test_files$import_equals$import_equals_module.alias = test_files$import_equals$import_equals_module.namespaceInModule;
+test_files$import_equals$import_equals_module_.alias = test_files$import_equals$import_equals_module_.namespaceInModule;
 /** @const */
-test_files$import_equals$import_equals_module.namespaceInModule = {};
+test_files$import_equals$import_equals_module_.namespaceInModule = {};
 /**
  * @constructor
  * @struct
  */
-test_files$import_equals$import_equals_module.namespaceInModule.InNamespace = function() {};
+test_files$import_equals$import_equals_module_.namespaceInModule.InNamespace = function() {};
 /** @type {!test_files$import_equals$import_equals_module.alias.InNamespace} */
-test_files$import_equals$import_equals_module.namespaceInModule.myVar;
+test_files$import_equals$import_equals_module_.namespaceInModule.myVar;
 /** @const */
 var globalNamespaceInModule = {};
 /** @type {number} */
 globalNamespaceInModule.globalSymbolInModule;
 /** @const */
-test_files$import_equals$import_equals_module.globalNamespaceRenamedInModule = globalNamespaceInModule;
+test_files$import_equals$import_equals_module_.globalNamespaceRenamedInModule = globalNamespaceInModule;
 /** @const */
-test_files$import_equals$import_equals_module.globalNamespaceFromOtherFileAliasedInModule = React;
+test_files$import_equals$import_equals_module_.globalNamespaceFromOtherFileAliasedInModule = React;
 /** @const */
-test_files$import_equals$import_equals_module.aliasForImportedSymbol = test_files$import_equals$exporter.exportedSymbol;
+test_files$import_equals$import_equals_module_.aliasForImportedSymbol = test_files$import_equals$exporter.exportedSymbol;
+/**
+ * export = namespaceInModule
+ * @const
+ */
+var test_files$import_equals$import_equals_module = test_files$import_equals$import_equals_module_.namespaceInModule;
