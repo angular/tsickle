@@ -54,5 +54,5 @@ test_files$augment$angular$index.local = {};
 /** @typedef {string} */
 test_files$augment$angular$index.local.LocalType;
 
-/** @typedef {!test_files.augment.angular.index.Scope} */
+/** @typedef {!test_files$augment$angular$index.Scope} */
 test_files$augment$angular$index.local.UsingSymbolFromAugmentedModule;

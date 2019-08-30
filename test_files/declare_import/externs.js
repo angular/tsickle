@@ -42,7 +42,7 @@ test_files$declare_import$declare_import.ExtendsLocalClosureClassName = function
  * @struct
  */
 test_files$declare_import$declare_import.ExtendsImportEquals = function() {};
-/** @type {!Array<!test_files.declare_import.exporting.ExportedFromDts>} */
+/** @type {!Array<!test_files$declare_import$exporting.ExportedFromDts>} */
 test_files$declare_import$declare_import.arrayWithImported;
 // externs from test_files/declare_import/exporting.d.ts:
 /** @const */

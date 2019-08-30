@@ -74,7 +74,7 @@ import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as path from './path';
-import {getEntityNameText, getIdentifierText, hasModifierFlag, isDtsFileName, reportDiagnostic} from './transformer_util';
+import {getEntityNameText, getIdentifierText, hasModifierFlag, isAmbient, isDtsFileName, reportDiagnostic} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
 /**
@@ -181,6 +181,35 @@ export function generateExterns(
     visitor(stmt, []);
   }
 
+  /**
+   * Convert a qualified name from a .d.ts file or declaration context into a mangled identifier.
+   * E.g. for a qualified name in `export = someName;` or `import = someName;`.
+   * If `someName` is `declare global { namespace someName {...} }`, tsickle must not qualify access
+   * to it with the mangled module namespace as it is emitted in the global namespace. Similarly, if
+   * the symbol is declared in a non-module context, it must not be mangled.
+   */
+  function qualifiedNameToMangledIdentifier(name: ts.Identifier|ts.QualifiedName) {
+    const entityName = getEntityNameText(name);
+    let symbol = typeChecker.getSymbolAtLocation(name);
+    if (symbol) {
+      // If this is an aliased name (e.g. from an import), use the alias to refer to it.
+      if (symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = typeChecker.getAliasedSymbol(symbol);
+      }
+      const alias = mtt.symbolsToAliasedNames.get(symbol);
+      if (alias) return alias;
+      const isGlobalSymbol = symbol && symbol.declarations && symbol.declarations.some(d => {
+        if (isInGlobalAugmentation(d)) return true;
+        // If the declaration's source file is not a module, it must be global.
+        // If it is a module, the identifier must be local to this file, or handled above via the
+        // alias.
+        return !ts.isExternalModule(d.getSourceFile());
+      });
+      if (isGlobalSymbol) return entityName;
+    }
+    return rootNamespace + '.' + entityName;
+  }
+
   if (output && isExternalModule) {
     // If tsickle generated any externs and this is an external module, prepend the namespace
     // declaration for it.
@@ -195,15 +224,7 @@ export function generateExterns(
         // E.g. export = someName;
         // If someName is "declare global { namespace someName {...} }", tsickle must not qualify
         // access to it with module namespace as it is emitted in the global namespace.
-        const symbol = typeChecker.getSymbolAtLocation(exportAssignment.expression);
-        const isGlobalSymbol = symbol && symbol.declarations &&
-            symbol.declarations.some(d => isInGlobalAugmentation(d));
-        const entityName = getEntityNameText(exportAssignment.expression);
-        if (isGlobalSymbol) {
-          exportedNamespace = entityName;
-        } else {
-          exportedNamespace = rootNamespace + '.' + entityName;
-        }
+        exportedNamespace = qualifiedNameToMangledIdentifier(exportAssignment.expression);
       } else {
         reportDiagnostic(
             diagnostics, exportAssignment.expression,
@@ -497,7 +518,7 @@ export function generateExterns(
       moduleUri = (decl.moduleReference.expression as ts.StringLiteral).text;
     } else {
       // import foo = bar.baz.bam;
-      // unsupported.
+      // handled at call site.
       return;
     }
 
@@ -508,7 +529,7 @@ export function generateExterns(
 
     if (ts.isImportEqualsDeclaration(decl)) {
       // import foo = require('./bar');
-      addImportAlias(decl.name, moduleName, undefined);
+      addImportAlias(decl.name, moduleName, false, undefined);
       return;
     }
 
@@ -518,9 +539,9 @@ export function generateExterns(
     if (decl.importClause.name) {
       // import name from ... -> map to .default on the module.name.
       if (googNamespace) {
-        addImportAlias(decl.importClause.name, googNamespace, undefined);
+        addImportAlias(decl.importClause.name, googNamespace, true, undefined);
       } else {
-        addImportAlias(decl.importClause.name, moduleName, 'default');
+        addImportAlias(decl.importClause.name, moduleName, false, 'default');
       }
     }
     const namedBindings = decl.importClause.namedBindings;
@@ -528,13 +549,13 @@ export function generateExterns(
 
     if (ts.isNamespaceImport(namedBindings)) {
       // import * as name -> map directly to the module.name.
-      addImportAlias(namedBindings.name, moduleName, undefined);
+      addImportAlias(namedBindings.name, moduleName, false, undefined);
     }
 
     if (ts.isNamedImports(namedBindings)) {
       // import {A as B}, map to module.name.A
       for (const namedBinding of namedBindings.elements) {
-        addImportAlias(namedBinding.name, moduleName, namedBinding.name);
+        addImportAlias(namedBinding.name, moduleName, false, namedBinding.name);
       }
     }
   }
@@ -543,20 +564,31 @@ export function generateExterns(
    * Adds an import alias for the symbol defined at the given node. Creates an alias name based on
    * the given moduleName and (optionally) the name.
    */
-  function addImportAlias(node: ts.Node, moduleName: string, name: ts.Identifier|string|undefined) {
+  function addImportAlias(
+      node: ts.Node, moduleName: string, isGoogImport: boolean,
+      name: ts.Identifier|string|undefined) {
     let symbol = typeChecker.getSymbolAtLocation(node);
     if (!symbol) {
       reportDiagnostic(diagnostics, node, `named import has no symbol`);
       return;
+    }
+    if (symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = typeChecker.getAliasedSymbol(symbol);
+    }
+    // While type_translator does add the mangled prefix for ambient declarations, it only does so
+    // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
+    // which will have a local symbol for the imported ambient symbol. However within an externs
+    // file, there are no imports, so we need to make sure the alias already contains the correct
+    // module name, which means the mangled module name in case of imports symbols.
+    // This only applies to non-Closure ('goog:') imports.
+    if (symbol.declarations && !isGoogImport && symbol.declarations.some(d => isAmbient(d))) {
+      moduleName = moduleNameAsIdentifier(host, moduleName);
     }
     let aliasName = moduleName;
     if (typeof name === 'string') {
       aliasName += '.' + name;
     } else if (name) {
       aliasName += '.' + getIdentifierText(name);
-    }
-    if (symbol.flags & ts.SymbolFlags.Alias) {
-      symbol = typeChecker.getAliasedSymbol(symbol);
     }
     mtt.symbolsToAliasedNames.set(symbol, aliasName);
   }
@@ -681,17 +713,13 @@ export function generateExterns(
       case ts.SyntaxKind.ImportEqualsDeclaration:
         const importEquals = node as ts.ImportEqualsDeclaration;
         const localName = getIdentifierText(importEquals.name);
-        if (localName === 'ng') {
-          emit(`\n/* Skipping problematic import ng = ...; */\n`);
-          break;
-        }
         if (importEquals.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference) {
           addImportAliases(importEquals);
           break;
         }
-        const qn = getEntityNameText(importEquals.moduleReference);
+        const qn = qualifiedNameToMangledIdentifier(importEquals.moduleReference);
         // @const so that Closure Compiler understands this is an alias.
-        if (namespace.length === 0) emit('/** @const */\n');
+        emit('/** @const */\n');
         writeVariableStatement(localName, namespace, qn);
         break;
       case ts.SyntaxKind.ClassDeclaration:
