@@ -53,6 +53,7 @@ function asyncTopLevelFunctionWithThisType(param) {
 const asyncTopLevelArrowFunction = (/**
  * @param {string} param
  * @return {!Promise<string>}
+ * @this {*}
  */
 (param) => tslib_1.__awaiter(this, void 0, void 0, function* () {
     /** @type {!Promise<string>} */
@@ -90,6 +91,7 @@ class Container {
         const asyncArrowFunctionInMethod = (/**
          * @param {string} param
          * @return {!Promise<string>}
+         * @this {*}
          */
         (param) => tslib_1.__awaiter(this, void 0, void 0, function* () {
             /** @type {!Promise<string>} */
@@ -127,8 +129,36 @@ class Container {
             });
         }
     }
+    /**
+     * @return {!Promise<string>}
+     * @this {*}
+     */
+    static asyncStaticMethod() {
+        return tslib_1.__awaiter(this, void 0, void 0, /** @this {!Container} */ function* () {
+            /** @type {string} */
+            const s = yield asyncTopLevelFunction('x');
+            return s + this.staticField;
+        });
+    }
 }
+Container.staticField = 's';
 if (false) {
+    /** @type {string} */
+    Container.staticField;
     /** @type {string} */
     Container.prototype.field;
 }
+/** @type {function(): !Promise<void>} */
+const asyncFnExpression = (/**
+ * @return {!Promise<void>}
+ * @this {*}
+ */
+function f() {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () { });
+});
+/** @type {function(): !Promise<void>} */
+const asyncArrowFn = (/**
+ * @return {!Promise<void>}
+ * @this {*}
+ */
+() => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
