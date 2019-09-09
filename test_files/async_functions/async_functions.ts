@@ -48,4 +48,14 @@ class Container {
       return s + this.field;
     }
   }
+
+  static staticField = 's';
+
+  static async asyncStaticMethod() {
+    const s = await asyncTopLevelFunction('x');
+    return s + this.staticField;
+  }
 }
+
+const asyncFnExpression = async function f() {};
+const asyncArrowFn = async () => {};
