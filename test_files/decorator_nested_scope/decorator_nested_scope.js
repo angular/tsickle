@@ -16,7 +16,8 @@ function main() {
         /**
          * @param {!SomeService} service
          */
-        constructor(service) { }
+        constructor(service) {
+        }
     }
     TestComp3.decorators = [
         { type: Component },

@@ -13,7 +13,7 @@ function Type() {}
 /* TODO: PropertySignature: ['computedProp'] */
 
 /**
- * @return {!Iterator<string>}
+ * @return {!Iterator<string, ?, undefined>}
  */
 Type.prototype[Symbol.iterator] = function() {};
 
