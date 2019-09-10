@@ -595,24 +595,12 @@ export function jsdocTransformer(
           }
         }
 
-        // All async functions when down-leveled access `this` to pass it to
-        // tslib.__awaiter. Closure requires a @this tag for that in some
-        // situations.
-        const fnDeclNeedsExplicitThis =
-            // Instance methods already have an implicit this. So we only care
-            // for function declarations/expressions and arrow fns.
-            fnDecl.kind === ts.SyntaxKind.FunctionDeclaration ||
-            fnDecl.kind === ts.SyntaxKind.FunctionExpression ||
-            fnDecl.kind === ts.SyntaxKind.ArrowFunction ||
-            // static methods also need explicit this
-            // TODO(rado): The correct emit for static methods would be
-            // {typeof C} where C is the enclosing class.
-            (fnDecl.kind === ts.SyntaxKind.MethodDeclaration &&
-             transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Static));
-
-        if (transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Async) &&
-            (tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015) &&
-            fnDeclNeedsExplicitThis &&
+        // top-level async functions when down-leveled access `this` to pass it to
+        // tslib.__awaiter. Closure requires a @this tag for that.
+        if ((tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015) &&
+            transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Async) &&
+            // Methods/getters/setters/ctors already have an implicit this.
+            fnDecl.kind === ts.SyntaxKind.FunctionDeclaration &&
             // There might be an explicit `this: T` type.
             !tags.some(t => t.tagName === 'this')) {
           tags.push({tagName: 'this', type: '*'});
