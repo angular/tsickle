@@ -129,8 +129,8 @@ export function emit(
     tsickleSourceTransformers.push(jsdocTransformer(
         host, tsOptions, typeChecker, tsickleDiagnostics, thisTypeByAsyncFunction));
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
-    tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
-  } else if (host.transformDecorators) {
+  }
+  if (host.transformDecorators) {
     tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
   const modulesManifest = new ModulesManifest();
