@@ -1,8 +1,4 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
-// test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(128,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
-// test_files/class/class.ts(131,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(132,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -216,25 +212,6 @@ classVar = new ImplementsTypeAlias();
 let abstractClassVar;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
-// WARNING: interface has both a type and a value, skipping emit
-/**
- * @return {void}
- */
-function Zone() { }
-class ZoneImplementsInterface {
-}
-if (false) {
-    /** @type {string} */
-    ZoneImplementsInterface.prototype.zone;
-}
-/** @typedef {?} */
-var ZoneAlias;
-class ZoneImplementsAlias {
-}
-if (false) {
-    /** @type {string} */
-    ZoneImplementsAlias.prototype.zone;
-}
 class WithOptionalField {
     constructor() {
         this.optionalField = 'a';

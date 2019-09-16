@@ -1,4 +1,3 @@
-// test_files/class.untyped/class.ts(43,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -62,25 +61,6 @@ let superVar;
 superVar = new Implements();
 superVar = new Extends();
 superVar = new ImplementsTypeAlias();
-// WARNING: interface has both a type and a value, skipping emit
-/**
- * @return {?}
- */
-function Zone() { }
-class ZoneImplementsInterface {
-}
-if (false) {
-    /** @type {?} */
-    ZoneImplementsInterface.prototype.zone;
-}
-/** @typedef {?} */
-var ZoneAlias;
-class ZoneImplementsAlias {
-}
-if (false) {
-    /** @type {?} */
-    ZoneImplementsAlias.prototype.zone;
-}
 class WithOptionalField {
     constructor() {
         this.optionalField = 'a';

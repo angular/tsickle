@@ -117,22 +117,6 @@ let abstractClassVar: AbstractClass;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
 
-// Reproduce issue #333: type/value namespace collision.
-// Because Zone is both a type and a value, the interface will be dropped
-// when converting to Closure, so the "implements" should be ignored for
-// both the direct use and the use via a typedef.
-interface Zone {
-  zone: string;
-}
-function Zone() {}
-class ZoneImplementsInterface implements Zone {
-  zone: string;
-}
-type ZoneAlias = Zone;
-class ZoneImplementsAlias implements ZoneAlias {
-  zone: string;
-}
-
 class WithOptionalField {
   optionalField?: string = 'a';
 }

@@ -90,6 +90,10 @@ export function maybeAddHeritageClauses(
           type: heritage.parentName,
         });
       }
+      // In the heritage==null case, we silently have dropped an @implements.
+      // In issue 1072 I advocate that we should never drop an @implements here,
+      // and instead maybe consider rejecting the user code if we cannot handle
+      // what they wrote.
     }
   }
 
@@ -166,13 +170,6 @@ export function maybeAddHeritageClauses(
           return null;
         }
       }
-    } else if (sym.flags & ts.SymbolFlags.Value) {
-      // If it's something other than a class in the value namespace, then it will
-      // not be a type in the Closure output (because Closure collapses
-      // the type and value namespaces).
-      mtt.debugWarn(
-          decl, `omitting heritage reference to a type/value conflict: ${expr.getText()}`);
-      return null;
     } else if (sym.flags & ts.SymbolFlags.TypeLiteral) {
       // A type literal is a type like `{foo: string}`.
       // These can come up as the output of a mapped type.
