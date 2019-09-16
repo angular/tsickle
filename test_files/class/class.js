@@ -1,8 +1,8 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(126,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
-// test_files/class/class.ts(129,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(130,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
+// test_files/class/class.ts(128,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
+// test_files/class/class.ts(131,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(132,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -63,16 +63,13 @@ if (false) {
     InterfaceExtendsInterface.prototype.interfaceFunc2 = function () { };
 }
 /** @type {!InterfaceExtendsInterface} */
-let interfaceExtendsInterface = {
-    /**
+let interfaceExtendsInterface = { /**
      * @return {void}
      */
-    interfaceFunc() { },
-    /**
+    interfaceFunc() { }, /**
      * @return {void}
      */
-    interfaceFunc2() { }
-};
+    interfaceFunc2() { } };
 /**
  * @record
  */

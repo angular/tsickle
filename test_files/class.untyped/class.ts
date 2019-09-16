@@ -1,3 +1,5 @@
+export {};
+
 interface Interface {
   interfaceFunc(): void;
 }
@@ -38,7 +40,9 @@ superVar = new ImplementsTypeAlias();
 // Because Zone is both a type and a value, the interface will be dropped
 // when converting to Closure, so the "implements" should be ignored for
 // both the direct use and the use via a typedef.
-interface Zone { zone: string; }
+interface Zone {
+  zone: string;
+}
 function Zone() {}
 class ZoneImplementsInterface implements Zone {
   zone: string;
