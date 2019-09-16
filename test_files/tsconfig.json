@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "lib": [
+      "es5",
+      "es6",
+      "es2015.collection",
+      "es2015.iterable",
+      "es2015.core",
+      "dom"
+    ],
+    "jsx": "react",
+    "target": "es2015",
+    "strict": true
+  },
+  "include": [
+    "**/*.ts"
+  ]
+}

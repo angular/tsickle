@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
     "module": "commonjs",
     "lib": [
       "es5",
@@ -10,17 +9,15 @@
       "es2015.core",
       "dom"
     ],
-    "jsx": "react",
     "types": [
       // Note, we don't include `jasmine` here, as that's a test-only typing.
       // To prevent accidental use of jasmine in production code, we instead
       // bring the jasmine global typing with ///<reference/> pragmas in
       // source files that use it.
-      "node",
+      "node"
     ],
-    "downlevelIteration": true,
     "target": "es2015",
-    "strict": true,
+    "strict": true
   },
   "include": [
     "src/*.ts",
