@@ -7,6 +7,8 @@
 // for example, you can "implements" a class though it's more rare than the
 // other options.
 
+export {};
+
 // Three declarations, one for each type of thing.
 interface Interface {
   interfaceFunc(): void;
@@ -16,7 +18,7 @@ class Class {
 }
 abstract class AbstractClass {
   abstract abstractFunc(): void;
-  nonAbstractFunc(): void { }
+  nonAbstractFunc(): void {}
 }
 
 // Write out all permutations:
@@ -35,10 +37,8 @@ interface InterfaceExtendsInterface extends Interface {
   interfaceFunc2(): void;
 }
 
-let interfaceExtendsInterface: InterfaceExtendsInterface = {
-  interfaceFunc() {},
-  interfaceFunc2() {}
-};
+let interfaceExtendsInterface:
+    InterfaceExtendsInterface = {interfaceFunc() {}, interfaceFunc2() {}};
 
 // Permutation 2: interface extends class.
 interface InterfaceExtendsClass extends Class {
@@ -121,7 +121,9 @@ abstractClassVar = new ClassExtendsAbstractClass();
 // Because Zone is both a type and a value, the interface will be dropped
 // when converting to Closure, so the "implements" should be ignored for
 // both the direct use and the use via a typedef.
-interface Zone { zone: string; }
+interface Zone {
+  zone: string;
+}
 function Zone() {}
 class ZoneImplementsInterface implements Zone {
   zone: string;
