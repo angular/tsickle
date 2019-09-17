@@ -196,9 +196,11 @@ export function maybeAddHeritageClauses(
  * null if no declarations could or needed to be generated (e.g. no members, or an unnamed type).
  * The if statement is used to make sure the code is not executed, otherwise property accesses could
  * trigger getters on a superclass. See test_files/fields/fields.ts:BaseThatThrows.
+ *
+ * @param name The Closure name of the containing object; may be a mangled form of the TS name.
  */
 function createMemberTypeDeclaration(
-    mtt: ModuleTypeTranslator,
+    mtt: ModuleTypeTranslator, name: string,
     typeDecl: ts.ClassDeclaration|ts.InterfaceDeclaration): ts.IfStatement|null {
   // Gather parameter properties from the constructor, if it exists.
   const ctors: ts.ConstructorDeclaration[] = [];
@@ -247,13 +249,7 @@ function createMemberTypeDeclaration(
     return null;
   }
 
-  if (!typeDecl.name) {
-    mtt.debugWarn(typeDecl, 'cannot add types on unnamed declarations');
-    return null;
-  }
-
-  const className = transformerUtil.getIdentifierText(typeDecl.name);
-  const staticPropAccess = ts.createIdentifier(className);
+  const staticPropAccess = ts.createIdentifier(name);
   const instancePropAccess = ts.createPropertyAccess(staticPropAccess, 'prototype');
   // Closure Compiler will report conformance errors about this being unknown type when emitting
   // class properties as {?|undefined}, instead of just {?}. So make sure to only emit {?|undefined}
@@ -465,9 +461,14 @@ export function jsdocTransformer(
         }
         mjsdoc.updateComment();
         const decls: ts.Statement[] = [];
-        const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, classDecl);
+        let memberDecl: ts.IfStatement|null = null;
         // WARNING: order is significant; we must create the member decl before transforming away
-        // parameter property comments when visiting the constructor.
+        // parameter property comments when visiting the constructor, but then we want the member
+        // decl to come last in the decls list.
+        if (classDecl.name) {
+          memberDecl = createMemberTypeDeclaration(
+              moduleTypeTranslator, transformerUtil.getIdentifierText(classDecl.name), classDecl);
+        }
         decls.push(ts.visitEachChild(classDecl, visitor, context));
         if (memberDecl) decls.push(memberDecl);
         contextThisType = contextThisTypeBackup;
@@ -514,14 +515,6 @@ export function jsdocTransformer(
           moduleTypeTranslator.error(iface, 'interface with no symbol');
           return [];
         }
-        // If this symbol is both a type and a value, we cannot emit both into Closure's
-        // single namespace.
-        if (symbolIsValue(typeChecker, sym)) {
-          moduleTypeTranslator.debugWarn(
-              iface, `type/symbol conflict for ${sym.name}, using {?} for now`);
-          return [transformerUtil.createSingleLineComment(
-              iface, 'WARNING: interface has both a type and a value, skipping emit')];
-        }
 
         const tags = moduleTypeTranslator.getJSDoc(iface, /* reportWarnings */ true) || [];
         tags.push({tagName: 'record'});
@@ -529,7 +522,14 @@ export function jsdocTransformer(
         if (!host.untyped) {
           maybeAddHeritageClauses(tags, moduleTypeTranslator, iface);
         }
-        const name = transformerUtil.getIdentifierText(iface.name);
+        let name = transformerUtil.getIdentifierText(iface.name);
+        // If this symbol is both a type and a value, we cannot emit both into Closure's
+        // single namespace.
+        if (symbolIsValue(typeChecker, sym)) {
+          tags.push({tagName: '', text: 'tsickle: symbol renamed to avoid type/value conflict'});
+          name += '$$TSType';
+        }
+
         const modifiers = transformerUtil.hasModifierFlag(iface, ts.ModifierFlags.Export) ?
             [ts.createToken(ts.SyntaxKind.ExportKeyword)] :
             undefined;
@@ -546,7 +546,7 @@ export function jsdocTransformer(
                 ),
             iface);
         addCommentOn(decl, tags);
-        const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, iface);
+        const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, name, iface);
         return memberDecl ? [decl, memberDecl] : [decl];
       }
 
