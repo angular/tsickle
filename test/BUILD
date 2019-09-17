@@ -27,7 +27,6 @@ ts_library(
         "googmodule_test.ts",
         "jsdoc_test.ts",
         "tsickle_test.ts",
-        "type_translator_test.ts",
     ],
     # Unit tests run the TS compiler, which attempts to module-resolve 'tslib'
     # when configured with --importHelpers.  So the tests must have tslib.d.ts
