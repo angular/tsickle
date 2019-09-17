@@ -1,7 +1,11 @@
+export {};
+
 // Ensure we still understand what Array is, even when it has been
 // monkeypatched -- issue #170.
-interface Array<T> {
-  monkeyPatch: boolean;
+declare global {
+  interface Array<T> {
+    monkeyPatch: boolean;
+  }
 }
 
 let typeAny: any;
