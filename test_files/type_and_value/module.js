@@ -21,3 +21,9 @@ if (false) {
     /** @type {number} */
     Class.prototype.z;
 }
+/** @enum {number} */
+const Enum = {
+    A: 0,
+};
+exports.Enum = Enum;
+Enum[Enum.A] = 'A';
