@@ -1,3 +1,4 @@
+//! tsickle generated output
 import { NUM_CONSTANT } from './export';
 export { NUM_CONSTANT };
 declare global {

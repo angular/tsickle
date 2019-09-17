@@ -12,6 +12,8 @@ import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import * as path from './path';
 import {getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
 
+export const TSICKLE_HEADER_COMMENT = '//! tsickle generated output\n';
+
 /**
  * TypeScript allows you to write identifiers quoted, like:
  *   interface Foo {

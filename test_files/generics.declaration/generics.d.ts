@@ -1,3 +1,4 @@
+//! tsickle generated output
 export declare function identity<T, U>(arg: T): U;
 export interface HasThing<T> {
     thing: T;

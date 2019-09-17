@@ -1,3 +1,4 @@
+//! tsickle generated output
 export declare const x = 1;
 export declare function incr(n: any): number;
 export declare const y = 1;

@@ -1,3 +1,4 @@
+//! tsickle generated output
 export interface Foo {
 }
 export declare type Bar = {};

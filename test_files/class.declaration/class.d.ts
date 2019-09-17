@@ -1,3 +1,4 @@
+//! tsickle generated output
 export declare class Foo {
 }
 declare global {

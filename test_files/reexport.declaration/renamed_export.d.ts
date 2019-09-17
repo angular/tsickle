@@ -1,3 +1,4 @@
+//! tsickle generated output
 import { OTHER } from './export';
 export { OTHER as MOTHER };
 declare global {
