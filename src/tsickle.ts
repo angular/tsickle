@@ -19,6 +19,7 @@ import * as googmodule from './googmodule';
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {isDtsFileName} from './transformer_util';
+import {TSICKLE_HEADER_COMMENT} from './type_translator';
 
 // Exported for users as a default impl of pathToModuleName.
 export {pathToModuleName} from './cli_support';
@@ -162,16 +163,23 @@ export function emit(
   const writeFileImpl: ts.WriteFileCallback =
       (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
         assertAbsolute(fileName);
-        if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
-          // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
-          // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
-          // way anyway.
-          if (!sourceFiles || sourceFiles.length > 1) {
-            throw new Error(`expected exactly one source file for .d.ts emit, got ${
-                sourceFiles.map(sf => sf.fileName)}`);
+        if (isDtsFileName(fileName)) {
+          // Tag emitted d.ts files as coming from tsickle.
+          // This is read by type_translator.  See other usage of TSICKLE_HEADER_COMMENT.
+          content = TSICKLE_HEADER_COMMENT + content;
+
+          // Add clutz aliases if requested.
+          if (host.addDtsClutzAliases && sourceFiles) {
+            // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits
+            // however are not supported by tsickle, as we cannot annotate them for Closure in any
+            // meaningful way anyway.
+            if (!sourceFiles || sourceFiles.length > 1) {
+              throw new Error(`expected exactly one source file for .d.ts emit, got ${
+                  sourceFiles.map(sf => sf.fileName)}`);
+            }
+            const originalSource = sourceFiles[0];
+            content = addClutzAliases(content, originalSource, typeChecker, host);
           }
-          const originalSource = sourceFiles[0];
-          content = addClutzAliases(content, originalSource, typeChecker, host);
         }
         writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
       };

@@ -1,17 +1,34 @@
-// test_files/type_and_value/module.ts(3,1): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/module.ts(6,1): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-// WARNING: interface has both a type and a value, skipping emit
 goog.module('test_files.type_and_value.module');
 var module = module || { id: 'test_files/type_and_value/module.ts' };
 module = module;
 exports = {};
+/**
+ * @record
+ * tsickle: symbol renamed to avoid type/value conflict
+ */
+function TypeAndValue$$TSType() { }
+exports.TypeAndValue$$TSType = TypeAndValue$$TSType;
+if (false) {
+    /** @type {number} */
+    TypeAndValue$$TSType.prototype.z;
+}
 /** @type {number} */
 exports.TypeAndValue = 3;
-// WARNING: interface has both a type and a value, skipping emit
+/**
+ * @record
+ * @template T
+ * tsickle: symbol renamed to avoid type/value conflict
+ */
+function TemplatizedTypeAndValue$$TSType() { }
+exports.TemplatizedTypeAndValue$$TSType = TemplatizedTypeAndValue$$TSType;
+if (false) {
+    /** @type {T} */
+    TemplatizedTypeAndValue$$TSType.prototype.z;
+}
 /** @type {number} */
 exports.TemplatizedTypeAndValue = 1;
 class Class {
@@ -21,3 +38,9 @@ if (false) {
     /** @type {number} */
     Class.prototype.z;
 }
+/** @enum {number} */
+const Enum = {
+    A: 0,
+};
+exports.Enum = Enum;
+Enum[Enum.A] = 'A';

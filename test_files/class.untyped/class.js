@@ -1,4 +1,3 @@
-// test_files/class.untyped/class.ts(43,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -62,7 +61,15 @@ let superVar;
 superVar = new Implements();
 superVar = new Extends();
 superVar = new ImplementsTypeAlias();
-// WARNING: interface has both a type and a value, skipping emit
+/**
+ * @record
+ * tsickle: symbol renamed to avoid type/value conflict
+ */
+function Zone$$TSType() { }
+if (false) {
+    /** @type {?} */
+    Zone$$TSType.prototype.zone;
+}
 /**
  * @return {?}
  */

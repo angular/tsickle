@@ -1,7 +1,5 @@
 // test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
-// test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(128,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
-// test_files/class/class.ts(131,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(132,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
@@ -216,7 +214,15 @@ classVar = new ImplementsTypeAlias();
 let abstractClassVar;
 abstractClassVar = new ClassImplementsAbstractClass();
 abstractClassVar = new ClassExtendsAbstractClass();
-// WARNING: interface has both a type and a value, skipping emit
+/**
+ * @record
+ * tsickle: symbol renamed to avoid type/value conflict
+ */
+function Zone$$TSType() { }
+if (false) {
+    /** @type {string} */
+    Zone$$TSType.prototype.zone;
+}
 /**
  * @return {void}
  */
@@ -227,7 +233,7 @@ if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
-/** @typedef {?} */
+/** @typedef {!Zone$$TSType} */
 var ZoneAlias;
 class ZoneImplementsAlias {
 }

@@ -1,3 +1,4 @@
+//! tsickle generated output
 export declare const NUM_CONSTANT = 3;
 export declare const OTHER = 1;
 declare const NON_DIRECT = 0;

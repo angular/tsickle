@@ -1,3 +1,4 @@
+//! tsickle generated output
 export declare const x = 1;
 declare global {
 	namespace ಠ_ಠ.clutz {

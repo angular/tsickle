@@ -119,7 +119,8 @@ describe('emitWithTsickle', () => {
              },
              {es5Mode: false, googmodule: false});
 
-         expect(jsSources['b.d.ts']).toEqual(`export * from './a';\n`);
+         expect(jsSources['b.d.ts']).toEqual(`//! tsickle generated output
+export * from './a';\n`);
        });
   });
 });
