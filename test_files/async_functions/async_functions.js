@@ -71,6 +71,12 @@ const asyncTopLevelArrowFunction = (/**
 class Container {
     constructor() {
         this.field = 'y';
+        this.toBeOverridenFn = (/**
+         * @return {!Promise<void>}
+         */
+        function () {
+            return tslib_1.__awaiter(this, void 0, void 0, function* () { });
+        });
     }
     /**
      * @return {!Promise<string>}
@@ -127,8 +133,44 @@ class Container {
             });
         }
     }
+    /**
+     * @return {!Promise<string>}
+     */
+    static staticMethod() {
+        return tslib_1.__awaiter(this, void 0, void 0, /** @this {!Container} */ function* () {
+            /** @type {string} */
+            const s = yield asyncTopLevelFunction('x');
+            return s;
+        });
+    }
 }
 if (false) {
     /** @type {string} */
     Container.prototype.field;
+    /** @type {function(): !Promise<void>} */
+    Container.prototype.toBeOverridenFn;
+}
+Container.prototype.toBeOverridenFn = (/**
+ * @return {!Promise<void>}
+ */
+function () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () { });
+});
+/**
+ * @this {*}
+ * @return {void}
+ */
+function topLevelFunctionWithInnerAsync() {
+    /** @type {function(): !Promise<void>} */
+    const arrow = (/**
+     * @return {!Promise<void>}
+     */
+    () => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
+    /** @type {function(): !Promise<void>} */
+    const fnExpr = (/**
+     * @return {!Promise<void>}
+     */
+    function () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () { });
+    });
 }

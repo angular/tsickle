@@ -48,4 +48,18 @@ class Container {
       return s + this.field;
     }
   }
+  
+  static async staticMethod() {
+    const s = await asyncTopLevelFunction('x');
+    return s;
+  }
+
+  toBeOverridenFn = async function() {};
+}
+
+Container.prototype.toBeOverridenFn = async function() {};
+
+function topLevelFunctionWithInnerAsync() {
+  const arrow = async () => {};
+  const fnExpr = async function() {};
 }
