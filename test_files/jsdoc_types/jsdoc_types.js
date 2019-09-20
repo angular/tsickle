@@ -1,3 +1,5 @@
+// test_files/jsdoc_types/jsdoc_types.ts(36,1): warning TS0: dropped implements of blacklisted type: NeverTyped
+// test_files/jsdoc_types/jsdoc_types.ts(39,1): warning TS0: dropped implements of blacklisted type: NeverTypedTemplated<T>
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -53,6 +55,7 @@ let useNeverTyped2;
 let useNeverTypedTemplated;
 /**
  * Note: JSDoc should not reference NeverTyped because the type is blacklisted.
+ * tsickle: dropped implements of blacklisted type: NeverTyped
  */
 class ImplementsNeverTyped {
 }
@@ -62,6 +65,7 @@ if (false) {
 }
 /**
  * @template T
+ * tsickle: dropped implements of blacklisted type: NeverTypedTemplated<T>
  */
 class ImplementsNeverTypedTemplated {
 }

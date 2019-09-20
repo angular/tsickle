@@ -1,8 +1,8 @@
-// test_files/class/class.ts(44,1): warning TS0: omitting interface deriving from class: Class
+// test_files/class/class.ts(44,1): warning TS0: dropped interface extends class: Class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(128,1): warning TS0: omitting heritage reference to a type/value conflict: Zone
+// test_files/class/class.ts(128,1): warning TS0: dropped implements of a type/value conflict: Zone
 // test_files/class/class.ts(131,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(132,1): warning TS0: omitting heritage reference to a type/value conflict: ZoneAlias
+// test_files/class/class.ts(132,1): warning TS0: dropped implements of a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -72,6 +72,7 @@ let interfaceExtendsInterface = { /**
     interfaceFunc2() { } };
 /**
  * @record
+ * tsickle: dropped interface extends class: Class
  */
 function InterfaceExtendsClass() { }
 if (false) {
@@ -221,6 +222,9 @@ abstractClassVar = new ClassExtendsAbstractClass();
  * @return {void}
  */
 function Zone() { }
+/**
+ * tsickle: dropped implements of a type/value conflict: Zone
+ */
 class ZoneImplementsInterface {
 }
 if (false) {
@@ -229,6 +233,9 @@ if (false) {
 }
 /** @typedef {?} */
 var ZoneAlias;
+/**
+ * tsickle: dropped implements of a type/value conflict: ZoneAlias
+ */
 class ZoneImplementsAlias {
 }
 if (false) {

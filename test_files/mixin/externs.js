@@ -21,6 +21,7 @@ function MixinConstructor() {}
 /** @type {string} */
 MyMixin.prototype.mixinProp;
 /**
+ * tsickle: dropped extends of non-symbol supertype: MyMixin(HTMLElement)
  * @constructor
  * @struct
  */

@@ -1,4 +1,4 @@
-// test_files/partial/partial.ts(7,1): warning TS0: omitting heritage reference to a type literal: Partial<Base>
+// test_files/partial/partial.ts(7,1): warning TS0: dropped implements of a type literal: Partial<Base>
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -15,6 +15,9 @@ if (false) {
     /** @type {string} */
     Base.prototype.foo;
 }
+/**
+ * tsickle: dropped implements of a type literal: Partial<Base>
+ */
 class Derived {
     /**
      * @return {void}
