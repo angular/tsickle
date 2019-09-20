@@ -81,32 +81,26 @@ export function maybeAddHeritageClauses(
 
     // Otherwise, if we get here, we need to emit some jsdoc.
     for (const expr of heritage.types) {
-      const heritage = heritageName(isExtends, hasExtends, expr);
-      // heritageName may return null, indicating that the clause is something inexpressible
-      // in Closure, e.g. "class Foo implements Partial<Bar>".
-      if (heritage) {
-        docTags.push({
-          tagName: heritage.tagName,
-          type: heritage.parentName,
-        });
-      }
+      addHeritage(isExtends ? 'extends' : 'implements', hasExtends, expr);
     }
   }
 
   /**
-   * Computes the Closure name of an expression occurring in a heritage clause,
-   * e.g. "implements FooBar".  Will return null if the expression is inexpressible
-   * in Closure semantics.  Note that we don't need to consider all possible
-   * combinations of types/values and extends/implements because our input is
-   * already verified to be valid TypeScript.  See test_files/class/ for the full
-   * cartesian product of test cases.
-   * @param isExtends True if we're in an 'extends', false in an 'implements'.
-   * @param hasExtends True if there are any 'extends' clauses present at all.
+   * Adds the relevant Closure JSdoc tags for an expression occurring in a heritage clause,
+   * e.g. "implements FooBar" => "@implements {FooBar}".
+   *
+   * Will return null if the expression is inexpressible in Closure semantics.
+   *
+   * Note that we don't need to consider all possible combinations of types/values and
+   * extends/implements because our input is already verified to be valid TypeScript.  See
+   * test_files/class/ for the full cartesian product of test cases.
+   *
+   * @param hasAnyExtends True if there are any 'extends' clauses present at all.
    */
-  function heritageName(
-      isExtends: boolean, hasExtends: boolean,
-      expr: ts.ExpressionWithTypeArguments): {tagName: string, parentName: string}|null {
-    let tagName = isExtends ? 'extends' : 'implements';
+  function addHeritage(
+      relation: 'extends'|'implements', hasAnyExtends: boolean,
+      expr: ts.ExpressionWithTypeArguments): void {
+    let tagName = relation;
     let sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
     if (!sym) {
       // It's possible for a class declaration to extend an expression that
@@ -119,8 +113,8 @@ export function maybeAddHeritageClauses(
       // https://github.com/google/closure-compiler/issues/2182). We would
       // probably need to generate an intermediate class declaration and
       // extend that.
-      mtt.debugWarn(decl, `could not resolve supertype: ${expr.getText()}`);
-      return null;
+      warn(expr, `dropped ${relation} of non-symbol supertype: ${expr.getText()}`);
+      return;
     }
 
     // Resolve any aliases to the underlying type.
@@ -130,8 +124,8 @@ export function maybeAddHeritageClauses(
       const type = mtt.typeChecker.getDeclaredTypeOfSymbol(sym);
       if (!type.symbol) {
         // It's not clear when this can happen.
-        mtt.debugWarn(decl, `could not get type of symbol: ${expr.getText()}`);
-        return null;
+        warn(decl, `could not get type of symbol: ${expr.getText()}`);
+        return;
       }
       sym = type.symbol;
     }
@@ -142,17 +136,18 @@ export function maybeAddHeritageClauses(
     const typeTranslator = mtt.newTypeTranslator(expr.expression);
     if (typeTranslator.isBlackListed(sym)) {
       // Don't emit references to blacklisted types.
-      return null;
+      warn(decl, `dropped ${relation} of blacklisted type: ${expr.getText()}`);
+      return;
     }
 
     if (sym.flags & ts.SymbolFlags.Class) {
       if (!isClass) {
         // Closure interfaces cannot extend or implements classes.
-        mtt.debugWarn(decl, `omitting interface deriving from class: ${expr.getText()}`);
-        return null;
+        warn(decl, `dropped interface ${relation} class: ${expr.getText()}`);
+        return;
       }
-      if (!isExtends) {
-        if (!hasExtends) {
+      if (relation !== 'extends') {
+        if (!hasAnyExtends) {
           // A special case: for a class that has no existing 'extends' clause but does
           // have an 'implements' clause that refers to another class, we change it to
           // instead be an 'extends'.  This was a poorly-thought-out hack that may
@@ -162,28 +157,39 @@ export function maybeAddHeritageClauses(
           tagName = 'extends';
         } else {
           // Closure can only @implements an interface, not a class.
-          mtt.debugWarn(decl, `omitting @implements of a class: ${expr.getText()}`);
-          return null;
+          warn(decl, `dropped implements of class: ${expr.getText()}`);
+          return;
         }
       }
     } else if (sym.flags & ts.SymbolFlags.Value) {
       // If it's something other than a class in the value namespace, then it will
       // not be a type in the Closure output (because Closure collapses
       // the type and value namespaces).
-      mtt.debugWarn(
-          decl, `omitting heritage reference to a type/value conflict: ${expr.getText()}`);
-      return null;
+      warn(decl, `dropped ${relation} of a type/value conflict: ${expr.getText()}`);
+      return;
     } else if (sym.flags & ts.SymbolFlags.TypeLiteral) {
       // A type literal is a type like `{foo: string}`.
       // These can come up as the output of a mapped type.
-      mtt.debugWarn(decl, `omitting heritage reference to a type literal: ${expr.getText()}`);
-      return null;
+      warn(decl, `dropped ${relation} of a type literal: ${expr.getText()}`);
+      return;
     }
 
     // typeToClosure includes nullability modifiers, so call symbolToString directly here.
     const parentName = typeTranslator.symbolToString(sym);
-    if (!parentName) return null;
-    return {tagName, parentName};
+    if (!parentName) {
+      warn(decl, `dropped ${relation} of unnameable type: ${expr.getText()}`);
+      return;
+    }
+    docTags.push({
+      tagName,
+      type: parentName,
+    });
+  }
+
+  /** Records a warning, both in the source text and in the emit host. */
+  function warn(context: ts.Node, message: string) {
+    docTags.push({tagName: '', text: `tsickle: ${message}`});
+    mtt.debugWarn(context, message);
   }
 }
 
