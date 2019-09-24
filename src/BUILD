@@ -16,7 +16,6 @@ ts_library(
         "googmodule.ts",
         "jsdoc.ts",
         "jsdoc_transformer.ts",
-        "main.ts",
         "module_type_translator.ts",
         "modules_manifest.ts",
         "path.ts",
@@ -27,8 +26,6 @@ ts_library(
     data = ["closure_externs.js"],
     tsconfig = "//:tsconfig.json",
     deps = [
-        "@npm//@types/minimist",
-        "@npm//@types/mkdirp",
         "@npm//@types/node",
         "@npm//typescript",
     ],

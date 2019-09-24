@@ -40,7 +40,7 @@ function checkFile(path) {
 function main(args) {
   const fix = args[0] === '--fix';
 
-  const sourceFiles = glob.sync('{*.md,*.js,src/**/*.[jt]s,test/**/*.[jt]s}');
+  const sourceFiles = glob.sync('{*.md,*.js,src/**/*.[jt]s,test/**/*.[jt]s,demo/*.md,demo/*.ts}');
   for (const path of sourceFiles) {
     const newText = checkFile(path);
     if (newText != null) {

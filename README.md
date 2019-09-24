@@ -33,21 +33,21 @@ to try it you should expect to spend some time debugging and reporting bugs.
 
 ## Usage
 
-### Project Setup
+Tsickle is a library, designed to be used by a program that knows how
+to interact within a larger program that interacts with TypeScript and
+the Closure compiler.
 
-Tsickle works by wrapping `tsc`. To use it, you must set up your project such
-that it builds correctly when you run `tsc` from the command line, by
-configuring the settings in `tsconfig.json`.
+Some known clients are:
 
-If you have complicated tsc command lines and flags in a build file (like a
-gulpfile etc.) Tsickle won't know about it. Another reason it's nice to put
-everything in `tsconfig.json` is so your editor inherits all these settings as
-well.
+1. Within Google we use tsickle inside the [Bazel build
+   system](https://bazel.build/). That code is published as
+   open source as part of [Bazel's nodejs/TypeScript
+   build rules](https://bazelbuild.github.io/rules_nodejs/).
+1. [tscc](https://github.com/theseanl/tscc) wraps tsickle and
+   interops with rollup etc.
+1. We publish a simple demo program in the `demo/` subdirectory.
 
-### Invocation
-
-Run `tsickle --help` for the full syntax, but basically you provide any tsickle
-specific options and use it as a TypeScript compiler.
+## Design details
 
 ### Output format
 

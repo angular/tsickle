@@ -59,7 +59,6 @@ ts_library(
     name = "e2e_test_lib",
     srcs = [
         "e2e_clutz_dts_test.ts",
-        "e2e_main_test.ts",
     ],
     testonly = True,
     tsconfig = "//:tsconfig.json",
@@ -79,8 +78,6 @@ jasmine_node_test(
     deps = [
         "@npm//jasmine",
         "@npm//diff-match-patch",
-        "@npm//minimist",
-        "@npm//mkdirp",
         "@npm//source-map-support",
     ],
 )
