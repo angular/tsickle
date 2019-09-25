@@ -254,7 +254,7 @@ exports.__read = function(o, n) {
 };
 
 /**
- * @return {!Array}
+ * @type {function(...?):!Array}
  */
 exports.__spread = function() {
   for (var ar = [], i = 0; i < arguments.length; i++)
@@ -263,7 +263,7 @@ exports.__spread = function() {
 };
 
 /**
- * @return {!Array}
+ * @type {function(...!Array):!Array}
  */
 exports.__spreadArrays = function() {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
