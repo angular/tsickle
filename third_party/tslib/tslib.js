@@ -58,7 +58,7 @@ exports.__rest = function (s, e) {
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
         t[p] = s[p];
     if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0 && (/** @type {function((string|symbol)):boolean} */ (Object.prototype.propertyIsEnumerable)).call(s, p[i]))
             t[p[i]] = s[p[i]];
     return t;
 };
@@ -254,12 +254,23 @@ exports.__read = function(o, n) {
 };
 
 /**
- * @return {!Array}
+ * @type {function(...?):!Array}
  */
 exports.__spread = function() {
   for (var ar = [], i = 0; i < arguments.length; i++)
     ar = ar.concat(exports.__read(arguments[i]));
   return ar;
+};
+
+/**
+ * @type {function(...!Array):!Array}
+ */
+exports.__spreadArrays = function() {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
 };
 
 /**
