@@ -99,7 +99,7 @@ export class ModuleTypeTranslator {
 
   /**
    * A cache for expensive symbol lookups, see TypeTranslator.symbolToString. Maps symbols to their
-   * Closure name in the current file scope.
+   * Closure name in this file scope.
    */
   private symbolToNameCache = new Map<ts.Symbol, string>();
 

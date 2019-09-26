@@ -661,8 +661,7 @@ export function jsdocTransformer(
           stmts.push(commentHolder);
         }
 
-        const declList = ts.visitNode(varStmt.declarationList, visitor);
-        for (const decl of declList.declarations) {
+        for (const decl of varStmt.declarationList.declarations) {
           const localTags: jsdoc.Tag[] = [];
           if (tags) {
             // Add any tags and docs preceding the entire statement to the first variable.
@@ -693,8 +692,9 @@ export function jsdocTransformer(
               }
             }
           }
+          const newDecl = ts.visitNode(decl, visitor);
           const newStmt = ts.createVariableStatement(
-              varStmt.modifiers, ts.createVariableDeclarationList([decl], flags));
+              varStmt.modifiers, ts.createVariableDeclarationList([newDecl], flags));
           if (localTags.length) addCommentOn(newStmt, localTags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
           stmts.push(newStmt);
         }
