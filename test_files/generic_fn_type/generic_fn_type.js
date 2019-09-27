@@ -12,8 +12,8 @@ exports = {};
  * @type {function(?): ?}
  */
 let genericFnType = (/**
- * @param {T} x
- * @return {T}
+ * @param {?} x
+ * @return {?}
  */
 (x) => x);
 /** @type {function(new:?, ?)} */

@@ -98,6 +98,12 @@ export class ModuleTypeTranslator {
   symbolsToAliasedNames = new Map<ts.Symbol, string>();
 
   /**
+   * A cache for expensive symbol lookups, see TypeTranslator.symbolToString. Maps symbols to their
+   * Closure name in this file scope.
+   */
+  private symbolToNameCache = new Map<ts.Symbol, string>();
+
+  /**
    * The set of module symbols requireTyped in the local namespace.  This tracks which imported
    * modules we've already added to additionalImports below.
    */
@@ -151,8 +157,9 @@ export class ModuleTypeTranslator {
     const translationContext = this.isForExterns ? this.sourceFile : context;
 
     const translator = new typeTranslator.TypeTranslator(
-        this.host, this.typeChecker, translationContext, this.host.typeBlackListPaths,
-        this.symbolsToAliasedNames, (sym: ts.Symbol) => this.ensureSymbolDeclared(sym));
+        this.host, this.typeChecker, translationContext, this.host.typeBlackListPaths || new Set(),
+        this.symbolsToAliasedNames, this.symbolToNameCache,
+        (sym: ts.Symbol) => this.ensureSymbolDeclared(sym));
     translator.isForExterns = this.isForExterns;
     translator.warn = msg => this.debugWarn(context, msg);
     return translator;

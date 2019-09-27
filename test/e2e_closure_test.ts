@@ -41,7 +41,13 @@ describe('golden file tests', () => {
     if (!total) throw new Error('No JS files in ' + JSON.stringify(goldenJs));
 
     const CLOSURE_FLAGS: closure.Flags = {
-      'checks_only': true,
+      // JSC_UNKNOWN_THIS runs during the CollapseProperties pass, so
+      // it only fires if you have both:
+      // - compilation_level=ADVANCED
+      // - checks_only=false (the default)
+      // with the latter setting, the compiler output is printed to stdout,
+      // but we swallow the stdout below.
+      'compilation_level': 'ADVANCED',
       'warning_level': 'VERBOSE',
       'js': goldenJs,
       'externs': externs,
@@ -106,12 +112,14 @@ describe('golden file tests', () => {
         .then(({exitCode, stdout, stderr}) => {
           const durationMs = Date.now() - startTime;
           console.error('Closure compilation of', total, 'files done after', durationMs, 'ms');
-          if (exitCode !== 0) {
+          // Some problems only print as warnings, without a way to promote them to errors.
+          // So treat any stderr output as a reason to fail the test.
+          if (exitCode !== 0 || stderr.length > 0) {
             // expect() with a message abbreviates the text, so just emit
             // everything here.
             console.error(stderr);
+            fail('Closure Compiler warned or errored');
           }
-          expect(exitCode).toBe(0, 'Closure Compiler exit code');
         })
         .catch(err => {
           expect(err).toBe(null);
