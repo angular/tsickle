@@ -13,10 +13,7 @@ import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
 import * as ts from 'typescript';
-
-import * as cliSupport from './cli_support';
-import * as tsickle from './tsickle';
-import {ModulesManifest} from './tsickle';
+import * as tsickle from 'tsickle';
 
 /** Tsickle settings passed on the command line. */
 export interface Settings {
@@ -165,7 +162,7 @@ export function toClosureJS(
     },
     shouldIgnoreWarningsForPath: (fileName: string) => !settings.fatalWarnings,
     pathToModuleName: (context, fileName) =>
-        cliSupport.pathToModuleName(rootModulePath, context, fileName),
+        tsickle.pathToModuleName(rootModulePath, context, fileName),
     fileNameToModuleId: (fileName) => path.relative(rootModulePath, fileName),
     es5Mode: true,
     googmodule: true,
@@ -181,7 +178,7 @@ export function toClosureJS(
   if (diagnostics.length > 0) {
     return {
       diagnostics,
-      modulesManifest: new ModulesManifest(),
+      modulesManifest: new tsickle.ModulesManifest(),
       externs: {},
       emitSkipped: true,
       emittedFiles: [],
