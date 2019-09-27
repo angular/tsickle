@@ -206,7 +206,10 @@ function isDeclaredInSameFile(a: ts.Node, b: ts.Node) {
   return ts.getOriginalNode(a).getSourceFile() === ts.getOriginalNode(b).getSourceFile();
 }
 
-/** TypeTranslator translates TypeScript types to Closure types. */
+/**
+ * TypeTranslator translates TypeScript types to Closure types. It keeps state per type, so each
+ * translation operation has to create a new instance.
+ */
 export class TypeTranslator {
   /**
    * A list of type literals we've encountered while emitting; used to avoid getting stuck in
@@ -232,14 +235,13 @@ export class TypeTranslator {
    */
   constructor(
       private readonly host: AnnotatorHost, private readonly typeChecker: ts.TypeChecker,
-      private readonly node: ts.Node, private readonly pathBlackList?: Set<string>,
-      private readonly symbolsToAliasedNames = new Map<ts.Symbol, string>(),
+      private readonly node: ts.Node, private readonly pathBlackList: Set<string>,
+      private readonly symbolsToAliasedNames: Map<ts.Symbol, string>,
+      private readonly symbolToNameCache: Map<ts.Symbol, string>,
       private readonly ensureSymbolDeclared: (sym: ts.Symbol) => void = () => {}) {
     // Normalize paths to not break checks on Windows.
-    if (this.pathBlackList != null) {
-      this.pathBlackList =
-          new Set<string>(Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
-    }
+    this.pathBlackList =
+        new Set<string>(Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
   }
 
   /**
@@ -248,6 +250,12 @@ export class TypeTranslator {
    *     the type cannot be expressed (e.g. for anonymous types).
    */
   symbolToString(sym: ts.Symbol): string|undefined {
+    // symbolToEntityName can be relatively expensive (40 ms calls with symbols in large namespaces
+    // with many declarations, i.e. Clutz). symbolToString is idempotent per symbol and file, thus
+    // we cache the entire operation to avoid the hit.
+    const cachedName = this.symbolToNameCache.get(sym);
+    if (cachedName) return cachedName;
+
     // TypeScript resolves e.g. union types to their members, which can include symbols not declared
     // in the current scope. Ensure that all symbols found this way are actually declared.
     // This must happen before the alias check below, it might introduce a new alias for the symbol.
@@ -298,7 +306,9 @@ export class TypeTranslator {
       str += text;
     };
     writeEntityWithSymbols(name);
-    return this.stripClutzNamespace(str);
+    str = this.stripClutzNamespace(str);
+    this.symbolToNameCache.set(sym, str);
+    return str;
   }
 
   /**
@@ -497,12 +507,13 @@ export class TypeTranslator {
   }
 
   private translateUnion(type: ts.UnionType): string {
-    let parts = type.types.map(t => this.translate(t));
     // Union types that include literals (e.g. boolean, enum) can end up repeating the same Closure
     // type. For example: true | boolean will be translated to boolean | boolean.
     // Remove duplicates to produce types that read better.
-    parts = parts.filter((el, idx) => parts.indexOf(el) === idx);
-    return parts.length === 1 ? parts[0] : `(${parts.join('|')})`;
+    const parts = new Set(type.types.map(t => this.translate(t)));
+    // If it's a single element set, return the single member.
+    if (parts.size === 1) return parts.values().next().value;
+    return `(${Array.from(parts.values()).join('|')})`;
   }
 
   private translateEnumLiteral(type: ts.Type): string {
