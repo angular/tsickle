@@ -6,7 +6,6 @@ ts_library(
     name = "src",
     srcs = [
         "annotator_host.ts",
-        "await_transformer.ts",
         "cli_support.ts",
         "decorator_downlevel_transformer.ts",
         "decorators.ts",

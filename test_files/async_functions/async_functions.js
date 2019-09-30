@@ -32,7 +32,7 @@ exports.asyncTopLevelFunction = asyncTopLevelFunction;
  * @return {!Promise<string>}
  */
 function asyncTopLevelFunctionWithThisType(param) {
-    return tslib_1.__awaiter(this, void 0, void 0, /** @this {!Container} */ function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         /** @type {number} */
         const s = yield 3;
         return s + this.field;
@@ -57,7 +57,7 @@ class Container {
      * @return {!Promise<string>}
      */
     asyncMethod() {
-        return tslib_1.__awaiter(this, void 0, void 0, /** @this {!Container} */ function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             /** @type {string} */
             const s = yield asyncTopLevelFunction('x');
             return s + this.field;
@@ -83,7 +83,7 @@ class Container {
          * @this {*}
          */
         function asyncFunctionInMethod(param) {
-            return tslib_1.__awaiter(this, void 0, void 0, /** @this {!Container} */ function* () {
+            return tslib_1.__awaiter(this, void 0, void 0, function* () {
                 /** @type {number} */
                 const s = yield 3;
                 return s + this.field;
@@ -94,7 +94,7 @@ class Container {
      * @return {!Promise<string>}
      */
     static asyncStaticMethod() {
-        return tslib_1.__awaiter(this, void 0, void 0, /** @this {!Container} */ function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             /** @type {string} */
             const s = yield asyncTopLevelFunction('x');
             return s + this.staticField;
