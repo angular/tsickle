@@ -437,8 +437,8 @@ export function removeTypeAssertions(): ts.TransformerFactory<ts.SourceFile> {
  */
 export function jsdocTransformer(
     host: AnnotatorHost, tsOptions: ts.CompilerOptions, typeChecker: ts.TypeChecker,
-    diagnostics: ts.Diagnostic[], thisTypeByAsyncFunction: Map<ts.FunctionLikeDeclaration, string>):
-    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
+    diagnostics: ts.Diagnostic[]): (context: ts.TransformationContext) =>
+    ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     return (sourceFile: ts.SourceFile) => {
       const moduleTypeTranslator = new ModuleTypeTranslator(
@@ -595,17 +595,6 @@ export function jsdocTransformer(
 
         const {tags, thisReturnType} =
             moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl], extraTags);
-
-        if (transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Async)) {
-          // Store the this type for async functions, so that it can be added later on the result of
-          // TypeScript's await down-levelling. See await_transformer.ts.
-          const thisType = getContextThisType(ts.getOriginalNode(fnDecl));
-          if (thisType) {
-            const thisTypeString =
-                moduleTypeTranslator.newTypeTranslator(fnDecl).translate(thisType);
-            thisTypeByAsyncFunction.set(fnDecl, thisTypeString);
-          }
-        }
 
         // top-level async functions when down-leveled access `this` to pass it to
         // tslib.__awaiter. Closure requires a @this tag for that.
