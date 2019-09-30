@@ -432,6 +432,16 @@ export function removeTypeAssertions(): ts.TransformerFactory<ts.SourceFile> {
 }
 
 /**
+ * Returns true if node lexically (recursively) contains an 'async' function.
+ */
+function containsAsync(node: ts.Node): boolean {
+  if (ts.isFunctionLike(node) && transformerUtil.hasModifierFlag(node, ts.ModifierFlags.Async)) {
+    return true;
+  }
+  return ts.forEachChild(node, containsAsync) || false;
+}
+
+/**
  * jsdocTransformer returns a transformer factory that converts TypeScript types into the equivalent
  * JSDoc annotations.
  */
@@ -596,14 +606,20 @@ export function jsdocTransformer(
         const {tags, thisReturnType} =
             moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl], extraTags);
 
-        // top-level async functions when down-leveled access `this` to pass it to
-        // tslib.__awaiter. Closure requires a @this tag for that.
-        if ((tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015) &&
-            transformerUtil.hasModifierFlag(fnDecl, ts.ModifierFlags.Async) &&
-            // Methods/getters/setters/ctors already have an implicit this.
-            fnDecl.kind === ts.SyntaxKind.FunctionDeclaration &&
-            // There might be an explicit `this: T` type.
-            !tags.some(t => t.tagName === 'this')) {
+        // async functions when down-leveled access `this` to pass it to
+        // tslib.__awaiter.  Closure wants to know the type of 'this' for that.
+        // The type is known in many contexts (e.g. methods, arrow functions)
+        // per the normal rules (e.g. looking at parent nodes and @this tags)
+        // but if the search bottoms out at a function scope, then Closure
+        // warns that 'this' is unknown.
+        // Because we have already checked the type of 'this', we are ok to just
+        // suppress in that case.  We do so by stuffing a @this on any function
+        // where it might be needed; it's harmless to overapproximate.
+        const isDownlevellingAsync =
+            tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015;
+        const isFunction = fnDecl.kind === ts.SyntaxKind.FunctionDeclaration;
+        const hasExistingThisTag = tags.some(t => t.tagName === 'this');
+        if (isDownlevellingAsync && isFunction && !hasExistingThisTag && containsAsync(fnDecl)) {
           tags.push({tagName: 'this', type: '*'});
         }
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(fnDecl);

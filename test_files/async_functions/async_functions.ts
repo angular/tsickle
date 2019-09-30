@@ -56,7 +56,12 @@ class Container {
 
 const asyncArrowFn = async () => {};
 
-// TODO(#1099): remove 'this: unknown' after the async emit is fixed.
-export function toplevelContainingAsync(this: unknown) {
+export const exportedAsyncArrowFn = async () => {};
+
+export function toplevelContainingAsync() {
+  return async () => 3;
+}
+
+export function toplevelWithThisType(this: string) {
   return async () => 3;
 }

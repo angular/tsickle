@@ -115,10 +115,14 @@ const asyncArrowFn = (/**
  * @return {!Promise<void>}
  */
 () => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
-// TODO(#1099): remove 'this: unknown' after the async emit is fixed.
+/** @type {function(): !Promise<void>} */
+exports.exportedAsyncArrowFn = (/**
+ * @return {!Promise<void>}
+ */
+() => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
 /**
- * @this {*}
  * @return {function(): !Promise<number>}
+ * @this {*}
  */
 function toplevelContainingAsync() {
     return (/**
@@ -127,3 +131,14 @@ function toplevelContainingAsync() {
     () => tslib_1.__awaiter(this, void 0, void 0, function* () { return 3; }));
 }
 exports.toplevelContainingAsync = toplevelContainingAsync;
+/**
+ * @this {string}
+ * @return {function(): !Promise<number>}
+ */
+function toplevelWithThisType() {
+    return (/**
+     * @return {!Promise<number>}
+     */
+    () => tslib_1.__awaiter(this, void 0, void 0, function* () { return 3; }));
+}
+exports.toplevelWithThisType = toplevelWithThisType;
