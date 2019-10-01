@@ -8,10 +8,10 @@ jobs:
   build:
     working_directory: ~/tsickle
     # Default docker image for CircleCI jobs with Bazel installed. The version of Bazel is controlled
-    # by the docker image version. e.g "google/bazel:0.22.0" installs Bazel v0.22.0. When updating this
+    # by the docker image version. e.g "google/bazel:0.29.0" installs Bazel v0.29.0. When updating this
     # version, consider updating the minimum required Bazel version in the "WORKSPACE" file.
     docker:
-      - image: l.gcr.io/google/bazel:0.28.0
+      - image: l.gcr.io/google/bazel:0.29.0
     steps:
       - checkout
       - restore_cache:
