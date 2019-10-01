@@ -33,9 +33,8 @@ to try it you should expect to spend some time debugging and reporting bugs.
 
 ## Usage
 
-Tsickle is a library, designed to be used by a program that knows how
-to interact within a larger program that interacts with TypeScript and
-the Closure compiler.
+Tsickle is a library, designed to be used by a larger program that interacts
+with TypeScript and the Closure compiler.
 
 Some known clients are:
 
