@@ -119,6 +119,13 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
           if (typeof enumConstValue === 'number') {
             enumIndex = enumConstValue + 1;
             enumValue = ts.createLiteral(enumConstValue);
+          } else if (typeof enumConstValue === 'string') {
+            // tsickle does not care about string enum values. However TypeScript expects compile
+            // time constant enum values to be replaced with their constant expression, and e.g.
+            // doesn't emit imports for modules referenced in them. Because tsickle replaces the
+            // enum with an object literal, i.e. handles the enum transform, it must thus also do
+            // the const value substitution for strings.
+            enumValue = ts.createLiteral(enumConstValue);
           } else {
             // Non-numeric enum value (string or an expression).
             // Emit this initializer expression as-is.

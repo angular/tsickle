@@ -12,9 +12,9 @@ var _a;
  */
 /** @enum {string} */
 const Fruit = {
-    APPLE: 'apple',
-    PEAR: 'pear',
-    ORANGE: 'orange',
+    APPLE: "apple",
+    PEAR: "pear",
+    ORANGE: "orange",
 };
 exports.APPLE = Fruit.APPLE;
 exports.PEAR = Fruit.PEAR;

@@ -93,8 +93,8 @@ EnumWithNonConstValues[EnumWithNonConstValues.Scheme] = 'Scheme';
 EnumWithNonConstValues[EnumWithNonConstValues.UserInfoRenamed] = 'UserInfoRenamed';
 /** @enum {string} */
 const StringEnum = {
-    STR: 'abc',
-    OTHER_STR: 'xyz',
+    STR: "abc",
+    OTHER_STR: "xyz",
 };
 /** @enum {number} */
 const StringKeyEnum = {
@@ -105,7 +105,7 @@ StringKeyEnum[StringKeyEnum['string key']] = 'string key';
 StringKeyEnum[StringKeyEnum['string key 2']] = 'string key 2';
 /** @enum {?} */
 const MixedEnum = {
-    STR: 'abc',
+    STR: "abc",
     NUM: 3,
     'string key': 4,
 };
