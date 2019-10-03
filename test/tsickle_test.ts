@@ -104,6 +104,23 @@ describe('emitWithTsickle', () => {
     expect(jsSources['b.js']).toContain(`export { Foo } from './a';`);
   });
 
+  it('should not go into an infinite loop with a self-referential type', () => {
+    const tsSources = {
+      'a.ts': `export function f() : typeof f { return f; }`,
+    };
+
+    const jsSources = emitWithTsickle(tsSources, {
+      module: ts.ModuleKind.ES2015,
+    });
+
+    expect(jsSources['a.js']).toContain(`
+/**
+ * @return {function(): ?}
+ */
+export function f() { return f; }
+`);
+  });
+
   describe('regressions', () => {
     it('should produce correct .d.ts files when expanding `export *` with es2015 module syntax',
        () => {
