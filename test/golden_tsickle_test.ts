@@ -150,7 +150,6 @@ testFn('golden tests', () => {
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,
         addDtsClutzAliases: test.isDeclarationTest,
-        untyped: test.isUntypedTest,
         provideExternalModuleDtsNamespace: !test.hasShim,
         logWarning: (diag: ts.Diagnostic) => {
           allDiagnostics.add(diag);

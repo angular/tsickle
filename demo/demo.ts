@@ -20,9 +20,6 @@ export interface Settings {
   /** If provided, path to save externs to. */
   externsPath?: string;
 
-  /** If provided, attempt to provide types rather than {?}. */
-  isTyped?: boolean;
-
   /** If true, log internal debug warnings to the console. */
   verbose?: boolean;
 
@@ -38,7 +35,6 @@ example:
 
 tsickle flags are:
   --externs=PATH        save generated Closure externs.js to PATH
-  --typed               [experimental] attempt to provide Closure types instead of {?}
   --fatalWarnings       whether warnings should be fatal, and cause tsickle to return a non-zero exit code
 `);
 }
@@ -59,9 +55,6 @@ function loadSettingsFromArgs(args: string[]): {settings: Settings, tscArgs: str
         break;
       case 'externs':
         settings.externsPath = parsedArgs[flag];
-        break;
-      case 'typed':
-        settings.isTyped = true;
         break;
       case 'verbose':
         settings.verbose = true;
@@ -169,7 +162,6 @@ export function toClosureJS(
     transformDecorators: true,
     transformTypesToClosure: true,
     typeBlackListPaths: new Set(),
-    untyped: false,
     logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
     moduleResolutionHost: compilerHost,

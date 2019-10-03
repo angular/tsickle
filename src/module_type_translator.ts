@@ -141,10 +141,6 @@ export class ModuleTypeTranslator {
    *     type underlying the alias. This should be true only when emitting the typedef itself.
    */
   typeToClosure(context: ts.Node, type?: ts.Type): string {
-    if (this.host.untyped) {
-      return '?';
-    }
-
     const typeChecker = this.typeChecker;
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
@@ -233,7 +229,6 @@ export class ModuleTypeTranslator {
    *     `import Foo from ...;`, which matters for adjusting whether we emit a `.default`.
    */
   requireType(importPath: string, moduleSymbol: ts.Symbol, isDefaultImport = false) {
-    if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
     if (typeTranslator.isBlacklisted(this.host.typeBlackListPaths, moduleSymbol)) {

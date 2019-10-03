@@ -192,10 +192,6 @@ export class GoldenFileTest {
     return /\.declaration\b/.test(this.name);
   }
 
-  get isUntypedTest(): boolean {
-    return /\.untyped\b/.test(this.name);
-  }
-
   get isPureTransformerTest(): boolean {
     return /\.puretransform\b/.test(this.name);
   }
@@ -401,7 +397,6 @@ export function compileWithTransfromer(
     addDtsClutzAliases: true,
     googmodule: true,
     es5Mode: false,
-    untyped: false,
     options: compilerOptions,
     moduleResolutionHost: tsHost,
   };
