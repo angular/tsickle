@@ -624,26 +624,7 @@ export class TypeTranslator {
       }
       return typeStr;
     } else if (type.objectFlags & ts.ObjectFlags.Anonymous) {
-      if (!type.symbol) {
-        // This comes up when generating code for an arrow function as passed
-        // to a generic function.  The passed-in type is tagged as anonymous
-        // and has no properties so it's hard to figure out what to generate.
-        // Just avoid it for now so we don't crash.
-        this.warn('anonymous type has no symbol');
-        return '?';
-      }
-
-      if (type.symbol.flags & ts.SymbolFlags.Function ||
-          type.symbol.flags & ts.SymbolFlags.Method) {
-        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
-        if (sigs.length === 1) {
-          return this.signatureToClosure(sigs[0]);
-        }
-        this.warn('unhandled anonymous type with multiple call signatures');
-        return '?';
-      } else {
-        return this.translateAnonymousType(type);
-      }
+      return this.translateAnonymousType(type);
     }
 
     /*
@@ -669,11 +650,29 @@ export class TypeTranslator {
    */
   private translateAnonymousType(type: ts.Type): string {
     this.seenAnonymousTypes.add(type);
+    if (!type.symbol) {
+      // This comes up when generating code for an arrow function as passed
+      // to a generic function.  The passed-in type is tagged as anonymous
+      // and has no properties so it's hard to figure out what to generate.
+      // Just avoid it for now so we don't crash.
+      this.warn('anonymous type has no symbol');
+      return '?';
+    }
+
+    if (type.symbol.flags & ts.SymbolFlags.Function || type.symbol.flags & ts.SymbolFlags.Method) {
+      const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+      if (sigs.length === 1) {
+        return this.signatureToClosure(sigs[0]);
+      }
+      this.warn('unhandled anonymous type with multiple call signatures');
+      return '?';
+    }
+
     // Gather up all the named fields and whether the object is also callable.
     let callable = false;
     let indexable = false;
     const fields: string[] = [];
-    if (!type.symbol || !type.symbol.members) {
+    if (!type.symbol.members) {
       this.warn('anonymous type has no symbol');
       return '?';
     }
