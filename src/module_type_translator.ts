@@ -368,10 +368,11 @@ export class ModuleTypeTranslator {
     if ((type.flags & ts.TypeFlags.Object) !== 0 &&
         (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
       const typeRef = type as ts.TypeReference;
-      if (!typeRef.typeArguments) {
+      const typeArgs = this.typeChecker.getTypeArguments(typeRef);
+      if (!typeArgs) {
         throw new Error('rest parameter does not resolve to a reference type');
       }
-      newTag.type = this.typeToClosure(fnDecl, typeRef.typeArguments![0]);
+      newTag.type = this.typeToClosure(fnDecl, typeArgs[0]);
       return;
     }
     // If we fail to unwrap the Array<> type, emit an unknown type.
