@@ -106,7 +106,6 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
       // below from producing runtime values for an ambient structure.
       if (isAmbient(node)) return ts.visitEachChild(node, visitor, context);
 
-      const name = node.name.getText();
       const isExported = hasModifierFlag(node, ts.ModifierFlags.Export);
       const enumType = getEnumType(typeChecker, node);
 
@@ -149,19 +148,23 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
           enumValue = ts.createLiteral(enumIndex);
           enumIndex++;
         }
-        const memberName = member.name.getText();
         values.push(ts.setOriginalNode(
-            ts.setTextRange(ts.createPropertyAssignment(memberName, enumValue), member), member));
+            ts.setTextRange(ts.createPropertyAssignment(member.name, enumValue), member), member));
       }
 
-      const varDecl = ts.createVariableStatement(
-          /* modifiers */ undefined,
-          ts.createVariableDeclarationList(
-              [ts.createVariableDeclaration(
-                  name, undefined,
-                  ts.createObjectLiteral(
-                      ts.setTextRange(ts.createNodeArray(values, true), node.members), true))],
-              /* create a const var */ ts.NodeFlags.Const));
+      const varDecl = ts.createVariableDeclaration(
+          node.name, /* type */ undefined,
+          ts.createObjectLiteral(
+              ts.setTextRange(ts.createNodeArray(values, true), node.members), true));
+      const varDeclStmt = ts.setOriginalNode(
+          ts.setTextRange(
+              ts.createVariableStatement(
+                  /* modifiers */ undefined,
+                  ts.createVariableDeclarationList(
+                      [varDecl],
+                      /* create a const var */ ts.NodeFlags.Const)),
+              node),
+          node);
       const comment: ts.SynthesizedComment = {
         kind: ts.SyntaxKind.MultiLineCommentTrivia,
         text: `* @enum {${enumType}} `,
@@ -169,9 +172,10 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
         pos: -1,
         end: -1
       };
-      ts.setSyntheticLeadingComments(varDecl, [comment]);
+      ts.setSyntheticLeadingComments(varDeclStmt, [comment]);
 
-      const resultNodes: ts.Node[] = [varDecl];
+      const name = node.name.getText();
+      const resultNodes: ts.Node[] = [varDeclStmt];
       if (isExported) {
         // Create a separate export {...} statement, so that the enum name can be used in local
         // type annotations within the file.
