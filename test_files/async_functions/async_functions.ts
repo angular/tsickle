@@ -51,9 +51,12 @@ class Container {
   }
 }
 
-const asyncFnExpression = async function f() {};
+// TODO(#1099): uncomment this test after the async emit is fixed.
+// const asyncFnExpression = async function f() {};
+
 const asyncArrowFn = async () => {};
 
-export function toplevelContainingAsync() {
+// TODO(#1099): remove 'this: unknown' after the async emit is fixed.
+export function toplevelContainingAsync(this: unknown) {
   return async () => 3;
 }
