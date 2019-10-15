@@ -1,0 +1,15 @@
+# Conformance configuration for tsickle tests.
+#
+# This attempts to reproduce failures we've seen in the Google-internal
+# JS compilations.
+#
+# See
+#   https://github.com/google/closure-compiler/wiki/JS-Conformance-Framework
+# for more about conformance.
+
+requirement: {
+  rule_id: 'closure:unknownThis'
+  type: CUSTOM
+  java_class: 'com.google.javascript.jscomp.ConformanceRules$BanUnknownThis'
+  error_message: 'References to "this" that are typed as "unknown" are not allowed. See https://google.github.io/closure-library/develop/conformance_rules.html#unknownThis'
+}

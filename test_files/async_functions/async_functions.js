@@ -107,19 +107,16 @@ if (false) {
     /** @type {string} */
     Container.prototype.field;
 }
-/** @type {function(): !Promise<void>} */
-const asyncFnExpression = (/**
- * @return {!Promise<void>}
- */
-function f() {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () { });
-});
+// TODO(#1099): uncomment this test after the async emit is fixed.
+// const asyncFnExpression = async function f() {};
 /** @type {function(): !Promise<void>} */
 const asyncArrowFn = (/**
  * @return {!Promise<void>}
  */
 () => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
+// TODO(#1099): remove 'this: unknown' after the async emit is fixed.
 /**
+ * @this {*}
  * @return {function(): !Promise<number>}
  */
 function toplevelContainingAsync() {

@@ -101,7 +101,8 @@ describe('golden file tests', () => {
         'useOfGoogBase',
         'underscore',
         'visibility',
-      ]
+      ],
+      'conformance_configs': 'test_files/conformance.proto',
     };
 
     // Note: cannot use an async function here because tsetse crashes
