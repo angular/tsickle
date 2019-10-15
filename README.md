@@ -113,26 +113,31 @@ Example:
 
 ## Development
 
-### Bazel install
+### Dependencies
 
-We use [bazel](https://bazel.build/) to build, and are pinned to an old version
-of it in `package.json`. So unless you have that specific version of bazel installed,
-you should run run `yarn bazel` instead of `bazel` in any of the below commands.
+- nodejs. Install from your operating system's package manger, by following
+  instructions on https://nodejs.org/en/, or by using
+  [NVM](https://github.com/nvm-sh/nvm)
+- yarn. Install from your operating system's package manager or by following
+  [instructions on yarnpkg.com](https://yarnpkg.com/en/docs/install).
+- bazel. Install from your operating system's package manager or by [following
+  instructions here](https://docs.bazel.build/versions/master/install.html).
 
 ### One-time setup
 
-Run `bazel run @nodejs//:yarn --script_path=yarn_install.sh && ./yarn_install.sh`
-to install the dependencies.
+Run `bazel run @nodejs//:yarn` to install dependencies.
 
-> This avoids occupying the `bazel` server, so that `yarn` can call `bazel`
-> again.
-> Ideally we should just use `bazel-run.sh @nodejs//:yarn`, see
-> https://stackoverflow.com/questions/47082298/how-can-users-get-bazel-run-sh
+### Bazel install
+
+We use [bazel](https://bazel.build/) to build, and are pinned to a specific
+version of it in `package.json` for reproducible builds. The build rules check
+for a compatible version of bazel, so it is generally safe to use your local
+installed version. If in doubt, you can run `yarn bazel` instead of `bazel` in
+any of the below commands to make sure you are using the right version.
 
 ### Test commands
 
-- `ibazel test test:unit_test` executes the unit tests in watch mode (use `bazel test test:unit_test` for a
-  single run),
+- `ibazel test test:unit_test` executes the unit tests in watch mode (use `bazel test test:unit_test` for a single run),
 - `bazel test test:e2e_test` executes the e2e tests,
 - `bazel test test:golden_test` executes the golden tests,
 - `node check-format.js` checks the source code formatting using
@@ -141,21 +146,25 @@ to install the dependencies.
 
 ### Debugging
 
-You can debug tests by using `bazel run` and passing `--node_options=--inspect`. For example, to
-debug a specific golden test:
+You can debug tests by using `bazel run` and passing `--node_options=--inspect`
+or `--node_options=--inspect-brk` (to suspend execution directly after startup).
+
+For example, to debug a specific golden test:
 
 ```shell
-TEST_FILTER=my_golden_test ibazel run //test:golden_test -- --node_options=--inspect
+TEST_FILTER=my_golden_test ibazel run //test:golden_test -- --node_options=--inspect-brk
 ```
 
-Then open [about:inspect] in Chrome and choose "about:inspect". Chrome will launch a debugging
-session on any node process that starts with a debugger listening on one of the listed ports. The
-tsickle tests and Chrome both default to `localhost:9229`, so things should work out of the box.
+Then open [about:inspect] in Chrome and choose "about:inspect". Chrome will
+launch a debugging session on any node process that starts with a debugger
+listening on one of the listed ports. The tsickle tests and Chrome both default
+to `localhost:9229`, so things should work out of the box.
 
-VS Code can also connect using the inspect protocol. It doesn't support automatically reconnecting
-or any way to re-run the test suite though, so it is a less convenient. You can start the node
-process passing an extra `--node_options=--debug-brk` (in addition to the parameters above) to have
-Node wait before program execution, so you have time to attach VS Code.
+The break in specific code locations you can add `debugger;` statements in the
+source code.
+
+Note: IDEs such as VS Code have support for the inspect protocol, but the
+integration does not work due to bazel's complex directory layout.
 
 ### Updating Goldens
 
