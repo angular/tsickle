@@ -11,13 +11,15 @@
  */
 /**
  * @fileoverview The last fileoverview actually takes effect.
- * @suppress {globalThis}
+ * @suppress {const}
  */
 /** Here's another trailing comment */
 
 function f() {
-  // Make sure the globalThis suppression above is maintained.
-  return this.x;
+  // Make sure the {const} suppression above is maintained.
+  /** @const */
+  let x = 3;
+  x = 4;
 }
 
 export {};

@@ -13,7 +13,7 @@
 /**
  *
  * @fileoverview The last fileoverview actually takes effect.
- * @suppress {checkTypes,constantProperty,extraRequire,globalThis,missingOverride,missingReturn,unusedPrivateMembers,uselessCode}
+ * @suppress {checkTypes,const,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode}
  *
  */
 /** Here's another trailing comment */
@@ -22,9 +22,14 @@ var module = module || { id: 'test_files/file_comment/multiple_comments.ts' };
 module = module;
 exports = {};
 /**
- * @return {?}
+ * @return {void}
  */
 function f() {
-    // Make sure the globalThis suppression above is maintained.
-    return this.x;
+    // Make sure the {const} suppression above is maintained.
+    /**
+     * @const
+     * @type {number}
+     */
+    let x = 3;
+    x = 4;
 }
