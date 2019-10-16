@@ -220,16 +220,16 @@ function rewriteCommaExpressions(expr: ts.ExpressionStatement): ts.Statement[]|n
   // 2) a tree of  "binary expressions" whose contents are comma operators
   if (ts.isBinaryExpression(expr.expression) &&
       expr.expression.operatorToken.kind === ts.SyntaxKind.CommaToken) {
-    return visit(expr.expression)
+    return visitBinaryCommas(expr.expression)
+  }
 
-    // Recursively visit comma-separated subexpressions, and collect them all as
-    // separate expression statements.
-    function visit(expr: ts.Expression): ts.Statement[] {
-      if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken) {
-        return visit(expr.left).concat(visit(expr.right));
-      }
-      return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
+  // Recursively visit comma-separated subexpressions, and collect them all as
+  // separate expression statements.
+  function visitBinaryCommas(expr: ts.Expression): ts.Statement[] {
+    if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken) {
+      return visitBinaryCommas(expr.left).concat(visitBinaryCommas(expr.right));
     }
+    return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
   }
 
   return null;
