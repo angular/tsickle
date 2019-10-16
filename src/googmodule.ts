@@ -209,19 +209,30 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
  * @return An array of statements if it converted, or null otherwise.
  */
 function rewriteCommaExpressions(expr: ts.ExpressionStatement): ts.Statement[]|null {
-  // Early exit if the outer statement isn't a comma statement.
-  if (!ts.isBinaryExpression(expr.expression)) return null;
-  if (expr.expression.operatorToken.kind !== ts.SyntaxKind.CommaToken) return null;
-
-  // Recursively visit comma-separated subexpressions, and collect them all as
-  // separate expression statements.
-  return visit(expr.expression);
-  function visit(expr: ts.Expression): ts.Statement[] {
-    if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken) {
-      return visit(expr.left).concat(visit(expr.right));
-    }
-    return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
+  // There are two representation for comma expressions:
+  // 1) A "comma list" expression, where the subexpressions are in one array
+  if (expr.expression.kind === ts.SyntaxKind.CommaListExpression) {
+    const commaList = expr.expression as ts.CommaListExpression;
+    return commaList.elements.map(x => ts.setOriginalNode(ts.createExpressionStatement(x), x));
   }
+
+  // or,
+  // 2) a tree of  "binary expressions" whose contents are comma operators
+  if (ts.isBinaryExpression(expr.expression) &&
+      expr.expression.operatorToken.kind === ts.SyntaxKind.CommaToken) {
+    return visit(expr.expression)
+
+    // Recursively visit comma-separated subexpressions, and collect them all as
+    // separate expression statements.
+    function visit(expr: ts.Expression): ts.Statement[] {
+      if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken) {
+        return visit(expr.left).concat(visit(expr.right));
+      }
+      return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
+    }
+  }
+
+  return null;
 }
 
 /**
