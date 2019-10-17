@@ -208,31 +208,34 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
  *
  * @return An array of statements if it converted, or null otherwise.
  */
-function rewriteCommaExpressions(expr: ts.ExpressionStatement): ts.Statement[]|null {
+function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
   // There are two representation for comma expressions:
-  // 1) A "comma list" expression, where the subexpressions are in one array
-  if (expr.expression.kind === ts.SyntaxKind.CommaListExpression) {
-    const commaList = expr.expression as ts.CommaListExpression;
-    return commaList.elements.map(x => ts.setOriginalNode(ts.createExpressionStatement(x), x));
-  }
-
+  // 1) a tree of "binary expressions" whose contents are comma operators
+  const isBinaryCommaExpression = (expr: ts.Expression): expr is ts.BinaryExpression =>
+      ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken;
   // or,
-  // 2) a tree of  "binary expressions" whose contents are comma operators
-  if (ts.isBinaryExpression(expr.expression) &&
-      expr.expression.operatorToken.kind === ts.SyntaxKind.CommaToken) {
-    return visitBinaryCommas(expr.expression)
+  // 2) a "comma list" expression, where the subexpressions are in one array
+  const isCommaList = (expr: ts.Expression): expr is ts.CommaListExpression =>
+      expr.kind === ts.SyntaxKind.CommaListExpression;
+
+  if (!isBinaryCommaExpression(expr) && !isCommaList(expr)) {
+    return null;
   }
 
   // Recursively visit comma-separated subexpressions, and collect them all as
   // separate expression statements.
-  function visitBinaryCommas(expr: ts.Expression): ts.Statement[] {
-    if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.CommaToken) {
-      return visitBinaryCommas(expr.left).concat(visitBinaryCommas(expr.right));
+  return visit(expr);
+
+  function visit(expr: ts.Expression): ts.Statement[] {
+    if (isBinaryCommaExpression(expr)) {
+      return visit(expr.left).concat(visit(expr.right));
+    }
+    if (isCommaList(expr)) {
+      // TODO(blickly): Simplify using flatMap once node 11 available
+      return expr.elements.reduce((acc: ts.Statement[], x) => acc.concat(visit(x)), []);
     }
     return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
   }
-
-  return null;
 }
 
 /**
@@ -485,7 +488,7 @@ export function commonJsToGoogmoduleTransformer(
             // This occurs in code like
             //   exports.a = ..., exports.b = ...;
             // which we want to change into multiple statements.
-            const commaExpanded = rewriteCommaExpressions(exprStmt);
+            const commaExpanded = rewriteCommaExpressions(exprStmt.expression);
             if (commaExpanded) {
               stmts.push(...commaExpanded);
               return;

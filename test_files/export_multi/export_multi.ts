@@ -15,15 +15,13 @@ export const {
   ORANGE,
 } = Fruit;
 
-export const {a, b, c, d, e, f, g, h, i, j} = {
+export const {a, b} = {
   a: 1,
   b: 2,
-  c: 3,
-  d: 4,
-  e: 5,
-  f: 6,
-  g: 7,
-  h: 8,
-  i: 9,
-  j: 10
 };
+
+function foo():any{}
+// Comma expressions with more than 10 elements get represented in the
+// TypeScript AST as a unique CommaListExpression node, so we need an export
+// with at least 10 names in order to cover that case in tsickle.
+export const {A, B, C, D, E, F, G, H, I, J} = foo();

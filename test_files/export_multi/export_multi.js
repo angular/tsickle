@@ -2,7 +2,7 @@ goog.module('test_files.export_multi.export_multi');
 var module = module || { id: 'test_files/export_multi/export_multi.ts' };
 module = module;
 exports = {};
-var _a;
+var _a, _b;
 /**
  *
  * @fileoverview Some export forms that create multi-expression 'export'
@@ -22,22 +22,24 @@ exports.ORANGE = Fruit.ORANGE;
 _a = {
     a: 1,
     b: 2,
-    c: 3,
-    d: 4,
-    e: 5,
-    f: 6,
-    g: 7,
-    h: 8,
-    i: 9,
-    j: 10
 };
 exports.a = _a.a;
 exports.b = _a.b;
-exports.c = _a.c;
-exports.d = _a.d;
-exports.e = _a.e;
-exports.f = _a.f;
-exports.g = _a.g;
-exports.h = _a.h;
-exports.i = _a.i;
-exports.j = _a.j;
+/**
+ * @return {?}
+ */
+function foo() { }
+// Comma expressions with more than 10 elements get represented in the
+// TypeScript AST as a unique CommaListExpression node, so we need an export
+// with at least 10 names in order to cover that case in tsickle.
+_b = foo();
+exports.A = _b.A;
+exports.B = _b.B;
+exports.C = _b.C;
+exports.D = _b.D;
+exports.E = _b.E;
+exports.F = _b.F;
+exports.G = _b.G;
+exports.H = _b.H;
+exports.I = _b.I;
+exports.J = _b.J;
