@@ -232,7 +232,7 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
     }
     if (isCommaList(expr)) {
       // TODO(blickly): Simplify using flatMap once node 11 available
-      return expr.elements.reduce((acc: ts.Statement[], x) => acc.concat(visit(x)), []);
+      return ([] as ts.Statement[]).concat(...expr.elements.map(visit));
     }
     return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
   }
