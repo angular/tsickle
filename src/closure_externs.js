@@ -18,6 +18,9 @@
 /** @typedef {!IArrayLike} */
 var ArrayLike;
 
+/** @typedef {!IteratorIterable} */
+var IterableIterator;
+
 /** @typedef {!HTMLCollection} */
 var HTMLCollectionOf;
 
