@@ -8,8 +8,11 @@ declare global {
 		export {y as module$contents$test_files$basic$declaration$basic_y}
 	}
 	namespace ಠ_ಠ.clutz.module$exports$test_files$basic$declaration$basic {
-		export {module$contents$test_files$basic$declaration$basic_incr as incr}
-		export {module$contents$test_files$basic$declaration$basic_x as x}
-		export {module$contents$test_files$basic$declaration$basic_y as y}
+		import incr$clutz = ಠ_ಠ.clutz.module$contents$test_files$basic$declaration$basic_incr;
+		export {incr$clutz as incr};
+		import x$clutz = ಠ_ಠ.clutz.module$contents$test_files$basic$declaration$basic_x;
+		export {x$clutz as x};
+		import y$clutz = ಠ_ಠ.clutz.module$contents$test_files$basic$declaration$basic_y;
+		export {y$clutz as y};
 	}
 }

@@ -335,10 +335,14 @@ function addClutzAliases(
       // Use the localName for the export then, but publish under the external name.
       localName = declaration.propertyName.text;
     }
-    globalSymbols +=
-        `\t\texport {${localName} as module$contents$${clutzModuleName}_${symbol.name}}\n`;
-    nestedSymbols +=
-        `\t\texport {module$contents$${clutzModuleName}_${symbol.name} as ${symbol.name}}\n`;
+    const mangledName = `module$contents$${clutzModuleName}_${symbol.name}`;
+    globalSymbols += `\t\texport {${localName} as ${mangledName}}\n`;
+    // TODO(mprobst): Once tsickle is on TS3.7, the two lines below can be replaced with
+    // "export {localName};". However in TS3.5, localName resolves within the module, so
+    // exporting {localName} causes a circular definition error. The workaround is to import the
+    // mangled name.
+    nestedSymbols += `\t\timport ${localName}$clutz = ಠ_ಠ.clutz.${mangledName};\n`;
+    nestedSymbols += `\t\texport {${localName}$clutz as ${symbol.name}};\n`;
   }
 
   dtsFileContent += 'declare global {\n';
