@@ -171,7 +171,7 @@ export function emit(
                 sourceFiles.map(sf => sf.fileName)}`);
           }
           const originalSource = sourceFiles[0];
-          content = addClutzAliases(content, originalSource, typeChecker, host);
+          content = addClutzAliases(content, originalSource, typeChecker, host, tsOptions);
         }
         writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
       };
@@ -229,7 +229,7 @@ function stringCompare(a: string, b: string): number {
  */
 function addClutzAliases(
     dtsFileContent: string, sourceFile: ts.SourceFile, typeChecker: ts.TypeChecker,
-    host: TsickleHost): string {
+    host: TsickleHost, options: ts.CompilerOptions): string {
   const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile);
   const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
   if (!moduleExports) return dtsFileContent;
@@ -275,6 +275,14 @@ function addClutzAliases(
       // location not the reexport location.  Since we can't figure out whether
       // there is a local import here, we err on the side of less emit.
       if (d.getSourceFile() !== origSourceFile) {
+        return false;
+      }
+
+      // @internal marked APIs are not exported, so must not get aliases.
+      // This uses an internal TS API, assuming that accessing this will be more stable compared to
+      // implementing our own version.
+      // tslint:disable-next-line: no-any
+      if (options.stripInternal && (ts as any).isInternalDeclaration(d, origSourceFile)) {
         return false;
       }
 

@@ -56,6 +56,7 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   allowJs: false,
   importHelpers: true,
   noEmitHelpers: true,
+  stripInternal: true,
   baseUrl: '.',
   paths: {
     // The compiler builtin 'tslib' library is looked up by name,
