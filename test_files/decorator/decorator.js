@@ -1,6 +1,7 @@
 // test_files/decorator/decorator.ts(13,66): warning TS0: should not emit a 'never' type
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/decorator/decorator.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.decorator.decorator');

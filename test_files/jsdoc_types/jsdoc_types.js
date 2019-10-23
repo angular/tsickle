@@ -2,6 +2,7 @@
 // test_files/jsdoc_types/jsdoc_types.ts(39,1): warning TS0: dropped implements of blacklisted type: NeverTypedTemplated<T>
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/jsdoc_types/jsdoc_types.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc_types.jsdoc_types');

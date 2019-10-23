@@ -5,6 +5,7 @@
 // test_files/class/class.ts(132,1): warning TS0: dropped implements of a type/value conflict: ZoneAlias
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/class/class.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test exercises the various ways classes and interfaces can interact.

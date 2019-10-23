@@ -5,6 +5,7 @@
  * @fileoverview Check the type generated when using a builtin symbol as
  * a computed property.
  *
+ * Generated from: test_files/invalid_closure_properties/invalid_closure_properties.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test is verifying the type of this expression, which ultimately

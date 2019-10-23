@@ -1,5 +1,6 @@
 /**
  * @fileoverview Tests using a default imported class for in a decorated ctor.
+ * Generated from: test_files/decorator/default_export.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.decorator.default_export');

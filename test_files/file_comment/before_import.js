@@ -4,6 +4,7 @@
  * special logic to handle comments before import/require() calls. This file
  * tests the regular import case.
  *
+ * Generated from: test_files/file_comment/before_import.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.before_import');

@@ -1,5 +1,6 @@
 /**
  * @fileoverview Make sure imports are inserted *after* the fileoverview.
+ * Generated from: test_files/type_alias_imported/type_alias_imported.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_alias_imported.type_alias_imported');

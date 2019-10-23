@@ -1,6 +1,7 @@
 // test_files/file_comment/latecomment.ts(3,1): warning TS0: file comments must be at the top of the file, separated from the file body by an empty line.
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/file_comment/latecomment.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.latecomment');

@@ -4,6 +4,7 @@
  * special logic to handle comments before import/require() calls. This file
  * tests the export * case.
  *
+ * Generated from: test_files/file_comment/export_star.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.export_star');

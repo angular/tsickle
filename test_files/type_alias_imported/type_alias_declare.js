@@ -3,6 +3,7 @@
  * @fileoverview Declares the symbols used in union types in type_alias_exporter. These symbols
  * must ultimately be imported by type_alias_imported.
  *
+ * Generated from: test_files/type_alias_imported/type_alias_declare.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_alias_imported.type_alias_declare');

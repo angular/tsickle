@@ -1,5 +1,6 @@
 /**
  * @fileoverview See enum_ref_import.ts.
+ * Generated from: test_files/enum_ref_import/exporter.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.enum_ref_import.exporter');

@@ -125,7 +125,8 @@ export function emit(
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type annotations.
-    tsickleSourceTransformers.push(transformFileoverviewCommentFactory(tsickleDiagnostics));
+    tsickleSourceTransformers.push(
+        transformFileoverviewCommentFactory(tsOptions, tsickleDiagnostics));
     tsickleSourceTransformers.push(jsdocTransformer(
         host, tsOptions, typeChecker, tsickleDiagnostics, thisTypeByAsyncFunction));
     tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));

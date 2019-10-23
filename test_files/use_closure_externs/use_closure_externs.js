@@ -3,6 +3,7 @@
  * @fileoverview A source file that uses types that are used in .d.ts files, but
  * that are not available or use different names in Closure's externs.
  *
+ * Generated from: test_files/use_closure_externs/use_closure_externs.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.use_closure_externs.use_closure_externs');

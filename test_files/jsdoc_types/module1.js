@@ -2,6 +2,7 @@
 // "quoted-bad-name": string;
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/jsdoc_types/module1.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc_types.module1');

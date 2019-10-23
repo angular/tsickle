@@ -3,6 +3,7 @@
  * @fileoverview Tests that mere mentions of file overview tags in comment bodies don't get
  * reported as errors.
  *
+ * Generated from: test_files/file_comment/fileoverview_in_comment_text.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.fileoverview_in_comment_text');
