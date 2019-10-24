@@ -53,7 +53,6 @@ describe('decorator_downlevel_transformer', () => {
       transformTypesToClosure: false,
       googmodule: true,
       es5Mode: false,
-      untyped: false,
       options: testSupport.compilerOptions,
       moduleResolutionHost: host,
     };

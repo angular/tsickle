@@ -27,11 +27,6 @@ export interface AnnotatorHost {
    */
   logWarning?: (warning: ts.Diagnostic) => void;
   pathToModuleName: (context: string, importPath: string) => string;
-  /**
-   * If true, convert every type to the Closure {?} type, which means
-   * "don't check types".
-   */
-  untyped?: boolean;
   /** If provided, a set of paths whose types should always generate as {?}. */
   typeBlackListPaths?: Set<string>;
   /**

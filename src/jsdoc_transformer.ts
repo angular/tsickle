@@ -472,9 +472,7 @@ export function jsdocTransformer(
         }
 
         maybeAddTemplateClause(mjsdoc.tags, classDecl);
-        if (!host.untyped) {
-          maybeAddHeritageClauses(mjsdoc.tags, moduleTypeTranslator, classDecl);
-        }
+        maybeAddHeritageClauses(mjsdoc.tags, moduleTypeTranslator, classDecl);
         mjsdoc.updateComment();
         const decls: ts.Statement[] = [];
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, classDecl);
@@ -538,9 +536,7 @@ export function jsdocTransformer(
         const tags = moduleTypeTranslator.getJSDoc(iface, /* reportWarnings */ true) || [];
         tags.push({tagName: 'record'});
         maybeAddTemplateClause(tags, iface);
-        if (!host.untyped) {
-          maybeAddHeritageClauses(tags, moduleTypeTranslator, iface);
-        }
+        maybeAddHeritageClauses(tags, moduleTypeTranslator, iface);
         const name = transformerUtil.getIdentifierText(iface.name);
         const modifiers = transformerUtil.hasModifierFlag(iface, ts.ModifierFlags.Export) ?
             [ts.createToken(ts.SyntaxKind.ExportKeyword)] :
@@ -733,8 +729,7 @@ export function jsdocTransformer(
         // parameters.
         moduleTypeTranslator.newTypeTranslator(typeAlias).blacklistTypeParameters(
             moduleTypeTranslator.symbolsToAliasedNames, typeAlias.typeParameters);
-        const typeStr =
-            host.untyped ? '?' : moduleTypeTranslator.typeToClosure(typeAlias, undefined);
+        const typeStr = moduleTypeTranslator.typeToClosure(typeAlias, undefined);
 
         // We want to emit a @typedef.  They are a bit weird because they are 'var' statements
         // that have no value.
@@ -901,8 +896,6 @@ export function jsdocTransformer(
                 [exportedName, moduleTypeTranslator.mustGetSymbolAtLocation(exp.name)]);
           }
         }
-        // Do not emit typedef re-exports in untyped mode.
-        if (host.untyped) return exportDecl;
 
         const result: ts.Node[] = [exportDecl];
         for (const [exportedName, sym] of typesToExport) {
@@ -962,7 +955,7 @@ export function jsdocTransformer(
        * symbols from this module, so tsickle must emit a Closure-compatible exports declaration.
        */
       function visitExportedAmbient(node: ts.Node): ts.Node[] {
-        if (host.untyped || !shouldEmitExportsAssignments()) return [node];
+        if (!shouldEmitExportsAssignments()) return [node];
 
         const declNames = getExportDeclarationNames(node);
         const result: ts.Node[] = [node];
