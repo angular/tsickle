@@ -1,5 +1,6 @@
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/declare_class_ns/declare_class_ns.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.declare_class_ns.declare_class_ns');

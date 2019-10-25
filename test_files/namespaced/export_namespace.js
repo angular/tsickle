@@ -1,5 +1,6 @@
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/namespaced/export_namespace.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // tslint:disable:no-namespace

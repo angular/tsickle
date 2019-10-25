@@ -1,5 +1,6 @@
 /**
  * @fileoverview See user.ts for the actual test.
+ * Generated from: test_files/implement_reexported_interface/exporter.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.implement_reexported_interface.exporter');

@@ -1,6 +1,7 @@
 // test_files/partial/partial.ts(7,1): warning TS0: dropped implements of a type literal: Partial<Base>
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/partial/partial.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.partial.partial');

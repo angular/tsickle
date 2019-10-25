@@ -4,6 +4,7 @@
  * test makes sure there is no hard goog.require for the transitive file, as that breaks strict
  * dependency checking in some systems.
  *
+ * Generated from: test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.transitive_symbol_type_only.transitive_symbol_type_only');

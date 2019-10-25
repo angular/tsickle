@@ -9,6 +9,7 @@
 import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
+import * as path from './path';
 import {createNotEmittedStatement, reportDiagnostic, synthesizeCommentRanges, updateSourceFileNode} from './transformer_util';
 
 /**
@@ -22,12 +23,21 @@ const FILEOVERVIEW_COMMENT_MARKERS: ReadonlySet<string> =
  * Given a parsed \@fileoverview comment, ensures it has all the attributes we need.
  * This function can be called to modify an existing comment or to make a new one.
  *
+ * @param source Original TS source file. Its path is added in \@fileoverview.
  * @param tags Comment as parsed list of tags; modified in-place.
  */
-function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
+function augmentFileoverviewComments(
+    options: ts.CompilerOptions, source: ts.SourceFile, tags: jsdoc.Tag[]) {
   // Ensure we start with a @fileoverview.
-  if (!tags.find(t => t.tagName === 'fileoverview')) {
-    tags.splice(0, 0, {tagName: 'fileoverview', text: 'added by tsickle'});
+  let fileOverview = tags.find(t => t.tagName === 'fileoverview');
+  if (!fileOverview) {
+    fileOverview = {tagName: 'fileoverview', text: 'added by tsickle'};
+    tags.splice(0, 0, fileOverview);
+  }
+  if (options.rootDir != null) {
+    // This comment is read by other tools so it's important that its format
+    // doesn't change.
+    fileOverview.text += `\nGenerated from: ${path.relative(options.rootDir, source.fileName)}`;
   }
 
   // Find or create a @suppress tag.
@@ -71,7 +81,8 @@ function augmentFileoverviewComments(tags: jsdoc.Tag[]) {
  * A transformer that ensures the emitted JS file has an \@fileoverview comment that contains an
  * \@suppress {checkTypes} annotation by either adding or updating an existing comment.
  */
-export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]) {
+export function transformFileoverviewCommentFactory(
+    options: ts.CompilerOptions, diagnostics: ts.Diagnostic[]) {
   return (): (sourceFile: ts.SourceFile) => ts.SourceFile => {
     function checkNoFileoverviewComments(
         context: ts.Node, comments: jsdoc.SynthesizedCommentWithOriginal[], message: string) {
@@ -158,7 +169,7 @@ export function transformFileoverviewCommentFactory(diagnostics: ts.Diagnostic[]
             `duplicate file level comment`);
       }
 
-      augmentFileoverviewComments(tags);
+      augmentFileoverviewComments(options, sourceFile, tags);
       const commentText = jsdoc.toStringWithoutStartEnd(tags);
 
       if (fileoverviewIdx < 0) {

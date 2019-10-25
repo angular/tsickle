@@ -5,6 +5,7 @@
  * Previously, tsickle would then emit the type as `SingleValuedEnum.C`, which is illegal in
  * Closure.
  *
+ * Generated from: test_files/single_value_enum/single_value_enum.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.single_value_enum.single_value_enum');

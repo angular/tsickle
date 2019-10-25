@@ -1,5 +1,6 @@
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/fields_no_ctor/fields_no_ctor.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.fields_no_ctor.fields_no_ctor');

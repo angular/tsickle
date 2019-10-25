@@ -3,6 +3,7 @@
 // test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(4,3): warning TS0: emitting ? for conditional/substitution type
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.conditional_rest_tuple_type.conditional_rest_tuple_type');

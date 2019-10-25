@@ -1,5 +1,6 @@
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/file_comment/comment_no_tag.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** A comment without any tags. */

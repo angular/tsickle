@@ -5,6 +5,7 @@
  * would then crash Closure Compiler as it creates a union type, which is unexpected for super
  * interfaces.
  *
+ * Generated from: test_files/implement_reexported_interface/user.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.implement_reexported_interface.user');

@@ -6,6 +6,7 @@
 // test_files/type_and_value/type_and_value.ts(39,5): warning TS0: anonymous type has no symbol
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/type_and_value/type_and_value.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_and_value.type_and_value');

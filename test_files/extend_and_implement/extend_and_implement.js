@@ -5,6 +5,7 @@
  * {ClassInImplements}", conflicting the ES6 extends syntax, leading to
  * incorrect optimization results.
  *
+ * Generated from: test_files/extend_and_implement/extend_and_implement.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.extend_and_implement.extend_and_implement');

@@ -1,6 +1,7 @@
 // test_files/rest_parameters_any/rest_parameters_any.ts(26,7): warning TS0: var args type is not an object type
 /**
  * @fileoverview added by tsickle
+ * Generated from: test_files/rest_parameters_any/rest_parameters_any.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test covers the rest parameter of function
