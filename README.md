@@ -43,7 +43,7 @@ Some known clients are:
    open source as part of [Bazel's nodejs/TypeScript
    build rules](https://bazelbuild.github.io/rules_nodejs/).
 1. [tscc](https://github.com/theseanl/tscc) wraps tsickle and
-   interops with rollup etc.
+   closure compiler, and interops with rollup.
 1. We publish a simple demo program in the `demo/` subdirectory.
 
 ## Design details
