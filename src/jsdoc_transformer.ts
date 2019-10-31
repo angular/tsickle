@@ -618,8 +618,13 @@ export function jsdocTransformer(
         const isDownlevellingAsync =
             tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015;
         const isFunction = fnDecl.kind === ts.SyntaxKind.FunctionDeclaration;
+        // Closure knows the type of class-level statics, but forbids using
+        // 'this' within them when language_out=ES2017.
+        const isClassStatic = ts.isMethodDeclaration(fnDecl) &&
+            ((ts.getCombinedModifierFlags(fnDecl) & ts.ModifierFlags.Static) !== 0);
         const hasExistingThisTag = tags.some(t => t.tagName === 'this');
-        if (isDownlevellingAsync && isFunction && !hasExistingThisTag && containsAsync(fnDecl)) {
+        if (isDownlevellingAsync && (isFunction || isClassStatic) && !hasExistingThisTag &&
+            containsAsync(fnDecl)) {
           tags.push({tagName: 'this', type: '*'});
         }
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(fnDecl);
