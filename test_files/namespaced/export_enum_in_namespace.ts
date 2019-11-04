@@ -5,10 +5,12 @@
 
 // tslint:disable:no-namespace
 
-export namespace foo {
+namespace foo {
   export enum Bar {
     X,
     Y,
   }
   console.log(Bar);  // avoid an "unused assignment" error in Closure.
 }
+
+export {foo};
