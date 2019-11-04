@@ -6,7 +6,6 @@
 goog.module('test_files.arrow_fn.arrow_fn');
 var module = module || { id: 'test_files/arrow_fn/arrow_fn.ts' };
 module = module;
-exports = {};
 /** @type {function(number): number} */
 var fn3 = (/**
  * @param {number} a

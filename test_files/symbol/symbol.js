@@ -6,7 +6,6 @@
 goog.module('test_files.symbol.symbol');
 var module = module || { id: 'test_files/symbol/symbol.ts' };
 module = module;
-exports = {};
 /** @type {symbol} */
 const uniqueSymbol = Symbol('my symbol');
 /**

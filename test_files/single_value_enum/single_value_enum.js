@@ -11,7 +11,6 @@
 goog.module('test_files.single_value_enum.single_value_enum');
 var module = module || { id: 'test_files/single_value_enum/single_value_enum.ts' };
 module = module;
-exports = {};
 /** @enum {number} */
 const FirstEnum = {
     A: 0,

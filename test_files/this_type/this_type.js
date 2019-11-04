@@ -6,7 +6,6 @@
 goog.module('test_files.this_type.this_type');
 var module = module || { id: 'test_files/this_type/this_type.ts' };
 module = module;
-exports = {};
 class SomeClass {
 }
 if (false) {

@@ -8,7 +8,6 @@
 goog.module('test_files.jsdoc_types.untyped.module1');
 var module = module || { id: 'test_files/jsdoc_types.untyped/module1.ts' };
 module = module;
-exports = {};
 class Class {
 }
 exports.Class = Class;

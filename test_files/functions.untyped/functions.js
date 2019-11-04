@@ -6,7 +6,6 @@
 goog.module('test_files.functions.untyped.functions');
 var module = module || { id: 'test_files/functions.untyped/functions.ts' };
 module = module;
-exports = {};
 /**
  * @param {?} a
  * @return {?}

@@ -6,7 +6,6 @@
 goog.module('test_files.functions.functions');
 var module = module || { id: 'test_files/functions/functions.ts' };
 module = module;
-exports = {};
 /**
  * @param {number} a
  * @return {number}

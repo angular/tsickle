@@ -9,7 +9,6 @@
 goog.module('test_files.use_closure_externs.use_closure_externs');
 var module = module || { id: 'test_files/use_closure_externs/use_closure_externs.ts' };
 module = module;
-exports = {};
 /** @type {!NodeListOf<!HTMLElement>} */
 let x = document.getElementsByName('p');
 console.log(x);

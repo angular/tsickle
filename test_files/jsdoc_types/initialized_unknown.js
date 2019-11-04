@@ -10,7 +10,6 @@
 goog.module('test_files.jsdoc_types.initialized_unknown');
 var module = module || { id: 'test_files/jsdoc_types/initialized_unknown.ts' };
 module = module;
-exports = {};
 const initializedUntyped = {
     foo: 1
 };

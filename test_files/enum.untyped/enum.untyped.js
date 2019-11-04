@@ -6,7 +6,6 @@
 goog.module('test_files.enum.untyped.enum.untyped');
 var module = module || { id: 'test_files/enum.untyped/enum.untyped.ts' };
 module = module;
-exports = {};
 /** @enum {number} */
 const EnumUntypedTest1 = {
     XYZ: 0, PI: 3.14159,

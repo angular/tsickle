@@ -1,7 +1,6 @@
 goog.module('test_files.export_multi.export_multi');
 var module = module || { id: 'test_files/export_multi/export_multi.ts' };
 module = module;
-exports = {};
 var _a, _b;
 /**
  *

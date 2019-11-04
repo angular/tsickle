@@ -6,7 +6,6 @@
 goog.module('test_files.basic.untyped.basic.untyped');
 var module = module || { id: 'test_files/basic.untyped/basic.untyped.ts' };
 module = module;
-exports = {};
 // This test is just a random collection of typed code, to
 // ensure the output is all with {?} annotations.
 /**

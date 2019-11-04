@@ -7,7 +7,6 @@
 goog.module('test_files.fields.fields');
 var module = module || { id: 'test_files/fields/fields.ts' };
 module = module;
-exports = {};
 class FieldsTest {
     /**
      * @param {number} field3

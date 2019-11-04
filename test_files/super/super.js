@@ -6,7 +6,6 @@
 goog.module('test_files.super.super');
 var module = module || { id: 'test_files/super/super.ts' };
 module = module;
-exports = {};
 class SuperTestBaseNoArg {
     constructor() { }
 }

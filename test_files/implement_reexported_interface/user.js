@@ -11,7 +11,6 @@
 goog.module('test_files.implement_reexported_interface.user');
 var module = module || { id: 'test_files/implement_reexported_interface/user.ts' };
 module = module;
-exports = {};
 const tsickle_exporter_1 = goog.requireType("test_files.implement_reexported_interface.exporter");
 const tsickle_interface_2 = goog.requireType("test_files.implement_reexported_interface.interface");
 /**

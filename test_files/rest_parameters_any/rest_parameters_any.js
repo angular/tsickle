@@ -12,7 +12,6 @@
 goog.module('test_files.rest_parameters_any.rest_parameters_any');
 var module = module || { id: 'test_files/rest_parameters_any/rest_parameters_any.ts' };
 module = module;
-exports = {};
 /**
  * @record
  */

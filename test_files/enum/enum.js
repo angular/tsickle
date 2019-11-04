@@ -8,7 +8,6 @@
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
 module = module;
-exports = {};
 /** @type {!Array<?>} */
 const EnumTestMissingSemi = [];
 /** @enum {number} */

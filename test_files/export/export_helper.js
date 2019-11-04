@@ -6,7 +6,6 @@
 goog.module('test_files.export.export_helper');
 var module = module || { id: 'test_files/export/export_helper.ts' };
 module = module;
-exports = {};
 const tsickle_export_helper_2_1 = goog.requireType("test_files.export.export_helper_2");
 // This file isn't itself a test case, but it is imported by the
 // export.in.ts test case.

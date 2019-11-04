@@ -14,6 +14,5 @@
 goog.module('test_files.invalid_closure_properties.invalid_closure_properties');
 var module = module || { id: 'test_files/invalid_closure_properties/invalid_closure_properties.ts' };
 module = module;
-exports = {};
 /** @type {(null|{otherField: string})} */
 exports.x = null;

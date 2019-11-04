@@ -6,7 +6,6 @@
 goog.module('test_files.jsx.jsx.tsx');
 var module = module || { id: 'test_files/jsx/jsx.tsx' };
 module = module;
-exports = {};
 /** @type {!JSX.Element} */
 let simple = React.createElement("div", null);
 /** @type {string} */
