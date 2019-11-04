@@ -1,8 +1,10 @@
 // tslint:disable:no-namespace
 
-export namespace valueNamespace {
+namespace valueNamespace {
   export class ValueClass {}
 }
-export namespace typeNamespace {
+export {valueNamespace};
+namespace typeNamespace {
   export interface Interface {}
 }
+export {typeNamespace};

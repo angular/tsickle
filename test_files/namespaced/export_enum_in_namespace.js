@@ -19,4 +19,5 @@ var foo;
         Bar[Bar["Y"] = 1] = "Y";
     })(Bar = foo.Bar || (foo.Bar = {}));
     console.log(Bar); // avoid an "unused assignment" error in Closure.
-})(foo = exports.foo || (exports.foo = {}));
+})(foo || (foo = {}));
+exports.foo = foo;

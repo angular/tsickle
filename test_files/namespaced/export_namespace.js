@@ -13,7 +13,8 @@ var valueNamespace;
     class ValueClass {
     }
     valueNamespace.ValueClass = ValueClass;
-})(valueNamespace = exports.valueNamespace || (exports.valueNamespace = {}));
+})(valueNamespace || (valueNamespace = {}));
+exports.valueNamespace = valueNamespace;
 var typeNamespace;
 (function (typeNamespace) {
     /**
@@ -21,4 +22,4 @@ var typeNamespace;
      */
     function Interface() { }
     typeNamespace.Interface = Interface;
-})(typeNamespace = typeNamespace || (typeNamespace = {}));
+})(typeNamespace || (typeNamespace = {}));
