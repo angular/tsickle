@@ -8,7 +8,6 @@
 goog.module('test_files.rest_parameters_generic_empty.rest_parameters_generic_empty');
 var module = module || { id: 'test_files/rest_parameters_generic_empty/rest_parameters_generic_empty.ts' };
 module = module;
-exports = {};
 /**
  * @template A
  * @param {function(!Array<?>): void} fn

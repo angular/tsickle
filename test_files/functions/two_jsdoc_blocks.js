@@ -8,7 +8,6 @@
 goog.module('test_files.functions.two_jsdoc_blocks');
 var module = module || { id: 'test_files/functions/two_jsdoc_blocks.ts' };
 module = module;
-exports = {};
 /**
  * A comment.
  * @return {boolean}

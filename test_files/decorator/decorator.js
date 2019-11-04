@@ -7,7 +7,6 @@
 goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
 module = module;
-exports = {};
 const tslib_1 = goog.require('tslib');
 const tsickle_default_export_1 = goog.requireType("test_files.decorator.default_export");
 const tsickle_external_2 = goog.requireType("test_files.decorator.external");

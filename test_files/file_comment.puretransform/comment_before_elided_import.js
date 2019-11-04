@@ -5,6 +5,5 @@
 goog.module('test_files.file_comment.puretransform.comment_before_elided_import');
 var module = module || { id: 'test_files/file_comment.puretransform/comment_before_elided_import.ts' };
 module = module;
-exports = {};
 const x = null;
 console.log(x);

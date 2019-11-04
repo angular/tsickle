@@ -6,7 +6,6 @@
 goog.module('test_files.typedef.untyped.typedef');
 var module = module || { id: 'test_files/typedef.untyped/typedef.ts' };
 module = module;
-exports = {};
 /** @typedef {?} */
 var MyType;
 /** @type {?} */

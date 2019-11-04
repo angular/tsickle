@@ -8,7 +8,6 @@
 goog.module('test_files.jsdoc_types.untyped.nevertyped');
 var module = module || { id: 'test_files/jsdoc_types.untyped/nevertyped.ts' };
 module = module;
-exports = {};
 /**
  * @record
  */

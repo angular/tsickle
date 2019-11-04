@@ -9,7 +9,6 @@
 goog.module('test_files.file_comment.fileoverview_in_comment_text');
 var module = module || { id: 'test_files/file_comment/fileoverview_in_comment_text.ts' };
 module = module;
-exports = {};
 /**
  * This is a function comment that talks about \@fileoverview, but isn't such a comment.
  * @return {void}

@@ -44,20 +44,6 @@ function isPropertyAccess(node: ts.Node, parent: string, child: string): boolean
       node.name.escapedText === child;
 }
 
-/** Returns true if expr is "module.exports = ...;". */
-function isModuleExportsAssignment(expr: ts.ExpressionStatement): boolean {
-  if (!ts.isBinaryExpression(expr.expression)) return false;
-  if (expr.expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return false;
-  return isPropertyAccess(expr.expression.left, 'module', 'exports');
-}
-
-/** Returns true if expr is "exports = ...;". */
-function isExportsAssignment(expr: ts.ExpressionStatement): boolean {
-  if (!ts.isBinaryExpression(expr.expression)) return false;
-  if (expr.expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return false;
-  return ts.isIdentifier(expr.expression.left) && expr.expression.left.text === 'exports';
-}
-
 /** isUseStrict returns true if node is a "use strict"; statement. */
 function isUseStrict(node: ts.Node): boolean {
   if (node.kind !== ts.SyntaxKind.ExpressionStatement) return false;
@@ -585,21 +571,6 @@ export function commonJsToGoogmoduleTransformer(
         // depending on the project's compilation flags.
         headerStmts.push(ts.createStatement(
             ts.createAssignment(ts.createIdentifier('module'), ts.createIdentifier('module'))));
-
-        // The `exports = {}` serves as a default export to disable Closure Compiler's error
-        // checking
-        // for mutable exports. That's OK because TS compiler makes sure that consuming code always
-        // accesses exports through the module object, so mutable exports work.
-        // It is only inserted in ES6 because we strip `.default` accesses in ES5 mode, which breaks
-        // when assigning an `exports = {}` object and then later accessing it.
-        // However Closure bails if code later on assigns into exports directly, as we do if we have
-        // an "exports = " block, so skip emit if that's the case.
-        if (!sf.statements.find(
-                s => ts.isExpressionStatement(s) &&
-                    (isModuleExportsAssignment(s) || isExportsAssignment(s)))) {
-          headerStmts.push(ts.createStatement(
-              ts.createAssignment(ts.createIdentifier('exports'), ts.createObjectLiteral())));
-        }
       }
 
       // Insert goog.module() etc after any leading comments in the source file. The comments have

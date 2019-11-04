@@ -7,7 +7,6 @@
 goog.module('test_files.file_comment.run_in_comment');
 var module = module || { id: 'test_files/file_comment/run_in_comment.ts' };
 module = module;
-exports = {};
 /**
  * @pintomodule Comment is not separated from file body as it should be.
  * @type {number}

@@ -6,7 +6,6 @@
 goog.module('test_files.async_functions.async_functions');
 var module = module || { id: 'test_files/async_functions/async_functions.ts' };
 module = module;
-exports = {};
 const tslib_1 = goog.require('tslib');
 /**
  * Exercises various forms of async functions.  When TypeScript downlevels these functions, it

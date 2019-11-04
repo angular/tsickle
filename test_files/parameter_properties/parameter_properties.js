@@ -6,7 +6,6 @@
 goog.module('test_files.parameter_properties.parameter_properties');
 var module = module || { id: 'test_files/parameter_properties/parameter_properties.ts' };
 module = module;
-exports = {};
 class ParamProps {
     // The @export below should not show up in the output ctor.
     /**

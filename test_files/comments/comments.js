@@ -6,7 +6,6 @@
 goog.module('test_files.comments.comments');
 var module = module || { id: 'test_files/comments/comments.ts' };
 module = module;
-exports = {};
 class Comments {
 }
 if (false) {

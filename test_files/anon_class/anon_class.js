@@ -9,7 +9,6 @@
 goog.module('test_files.anon_class.anon_class');
 var module = module || { id: 'test_files/anon_class/anon_class.ts' };
 module = module;
-exports = {};
 /** @type {?} */
 const anonClassInstance = new class {
 };

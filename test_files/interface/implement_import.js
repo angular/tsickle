@@ -6,7 +6,6 @@
 goog.module('test_files.interface.implement_import');
 var module = module || { id: 'test_files/interface/implement_import.ts' };
 module = module;
-exports = {};
 const tsickle_interface_1 = goog.requireType("test_files.interface.interface");
 const interface_1 = goog.require('test_files.interface.interface');
 /**

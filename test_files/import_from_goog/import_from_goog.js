@@ -6,7 +6,6 @@
 goog.module('test_files.import_from_goog.import_from_goog');
 var module = module || { id: 'test_files/import_from_goog/import_from_goog.ts' };
 module = module;
-exports = {};
 const tsickle_Module_1 = goog.requireType("closure.Module");
 const tsickle_OtherModule_2 = goog.requireType("closure.OtherModule");
 const goog_closure_Module_1 = goog.require('closure.Module');

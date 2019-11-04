@@ -6,7 +6,6 @@
 goog.module('test_files.declare.user');
 var module = module || { id: 'test_files/declare/user.ts' };
 module = module;
-exports = {};
 const tsickle_declare_module_1 = goog.requireType("test_files.declare.declare_module");
 const declare_module_1 = goog.require('test_files.declare.declare_module');
 /** @type {!ModuleGlobalClass} */
