@@ -6,6 +6,11 @@
 goog.module('test_files.namespaced.reopen_ns');
 var module = module || { id: 'test_files/namespaced/reopen_ns.ts' };
 module = module;
+// TODO(#132): 'export namespace' currently don't emit properly.
+// This workaround at least makes them compile.
+// It's useful to keep at least one instance of this workaround
+// in the test suite to ensure it also continues working.
+// @ts-ignore
 exports = {};
 var ns;
 (function (ns) {
