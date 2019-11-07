@@ -123,10 +123,13 @@ const EXTERNS_HEADER = `/**
  * @param rootDir Project root.  Emitted comments will reference paths relative to this root.
  *    This param is effectively required, but made optional here until Angular is fixed.
  */
-export function getGeneratedExterns(externs: {[fileName: string]: string}, rootDir = ''): string {
+export function getGeneratedExterns(
+    externs: {[fileName: string]: string}, rootDir?: string): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
-    allExterns += `// externs from ${path.relative(rootDir, fileName)}:\n`;
+    const srcPath = rootDir ? path.relative(rootDir, fileName) :
+                              'ERROR: getGeneratedExterns called without rootDir';
+    allExterns += `// externs from ${srcPath}:\n`;
     allExterns += externs[fileName];
   }
   return allExterns;
