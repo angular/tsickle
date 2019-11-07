@@ -37,6 +37,9 @@
     "lint": "node check_format.js && tslint -c tslint.json -p tsconfig.json",
     "test": "yarn lint && bazel test ..."
   },
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/angular/tsickle.git"

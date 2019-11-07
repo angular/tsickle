@@ -212,5 +212,10 @@ $ git push origin v0.32.0  # but use correct version
 Once the versioned tag is pushed to Github the release (as found on
 https://github.com/angular/tsickle/releases) will be implicitly created.
 
-Run `bazel run :npm_package.publish` from the master branch
-(you must be logged into the `angular` shared npm account).
+Run `bazel run :npm_package.publish` from the master branch. This uses the
+google-wombot publishing registry, which relies on your github repository access
+permissions to authenticate publishing (and thus means we have fewer permissions
+to worry about).
+
+You might need to run `npm login --registry https://wombat-dressing-room.appspot.com` to login into the publishing registry
+once for this to work.
