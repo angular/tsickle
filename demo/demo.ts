@@ -10,7 +10,6 @@
 
 import * as fs from 'fs';
 import * as minimist from 'minimist';
-import * as mkdirp from 'mkdirp';
 import * as path from 'path';
 import * as ts from 'typescript';
 import * as tsickle from 'tsickle';
@@ -207,7 +206,7 @@ function main(args: string[]): number {
   // Run tsickle+TSC to convert inputs to Closure JS files.
   const result = toClosureJS(
       config.options, config.fileNames, settings, (filePath: string, contents: string) => {
-        mkdirp.sync(path.dirname(filePath));
+        fs.mkdirSync(path.dirname(filePath), {recursive: true});
         fs.writeFileSync(filePath, contents, {encoding: 'utf-8'});
       });
   if (result.diagnostics.length) {
@@ -216,7 +215,7 @@ function main(args: string[]): number {
   }
 
   if (settings.externsPath) {
-    mkdirp.sync(path.dirname(settings.externsPath));
+    fs.mkdirSync(path.dirname(settings.externsPath), {recursive: true});
     fs.writeFileSync(
         settings.externsPath,
         tsickle.getGeneratedExterns(result.externs, config.options.rootDir || ''));
