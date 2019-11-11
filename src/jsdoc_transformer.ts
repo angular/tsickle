@@ -995,6 +995,16 @@ export function jsdocTransformer(
         return result;
       }
 
+      /**
+       * Visits enum declarations to check for validity of JSDoc comments without transforming the
+       * node at all.
+       */
+      function visitEnumDeclaration(node: ts.EnumDeclaration) {
+        // Calling `getJSDoc` will validate and report any errors, but this code
+        // doesn't really care about the return value.
+        moduleTypeTranslator.getJSDoc(node, /* reportWarnings */ true);
+      }
+
       function visitor(node: ts.Node): ts.Node|ts.Node[] {
         if (transformerUtil.isAmbient(node)) {
           if (!transformerUtil.hasModifierFlag(node as ts.Declaration, ts.ModifierFlags.Export)) {
@@ -1053,6 +1063,9 @@ export function jsdocTransformer(
             return visitAssertionExpression(node as ts.TypeAssertion);
           case ts.SyntaxKind.NonNullExpression:
             return visitNonNullExpression(node as ts.NonNullExpression);
+          case ts.SyntaxKind.EnumDeclaration:
+            visitEnumDeclaration(node as ts.EnumDeclaration);
+            break;
           default:
             break;
         }
