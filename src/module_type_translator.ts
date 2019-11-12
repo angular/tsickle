@@ -263,12 +263,17 @@ export class ModuleTypeTranslator {
             ts.NodeFlags.Const)));
     this.requireTypeModules.add(moduleSymbol);
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
+      // Some users import {default as SomeAlias} from 'goog:...';
+      // The code below must recognize this as a default import to alias the symbol to just the
+      // blank module name.
+      const namedDefaultImport = sym.name === 'default';
       if (sym.flags & ts.SymbolFlags.Alias) {
         sym = this.typeChecker.getAliasedSymbol(sym);
       }
       // goog: imports don't actually use the .default property that TS thinks they have.
-      const qualifiedName =
-          nsImport && isDefaultImport ? requireTypePrefix : requireTypePrefix + '.' + sym.name;
+      const qualifiedName = nsImport && (isDefaultImport || namedDefaultImport) ?
+          requireTypePrefix :
+          requireTypePrefix + '.' + sym.name;
       this.symbolsToAliasedNames.set(sym, qualifiedName);
     }
   }

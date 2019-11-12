@@ -18,3 +18,12 @@ declare module 'goog:some.other' {
   import alias = ಠ_ಠ.clutz.some.other;
   export = alias;
 }
+
+declare namespace ಠ_ಠ.clutz.default_export {
+  class AliasedDefaultExport {}
+}
+
+declare module 'goog:default_export' {
+  import AliasedDefaultExport = ಠ_ಠ.clutz.default_export.AliasedDefaultExport;
+  export default AliasedDefaultExport;
+}

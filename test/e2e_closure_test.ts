@@ -26,6 +26,7 @@ describe('golden file tests', () => {
     goldenJs.push('third_party/tslib/externs.js');
     goldenJs.push('third_party/tslib/tslib.js');
     goldenJs.push('test_files/augment/shim.js');
+    goldenJs.push('test_files/clutz.no_externs/default_export.js');
     goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
     goldenJs.push('test_files/clutz.no_externs/some_other.js');
     goldenJs.push('test_files/clutz_type_value.no_externs/type_value.js');
