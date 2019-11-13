@@ -21,21 +21,27 @@ describe('golden file tests', () => {
   it('compile with Closure', (done) => {
     // Declaration tests do not produce .js files.
     const tests = goldenTests().filter(t => !t.isDeclarationTest);
+    // Collect all JavaScript outputs generated from .ts files.
     const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
-    goldenJs.push('src/closure_externs.js');
-    goldenJs.push('third_party/tslib/externs.js');
-    goldenJs.push('third_party/tslib/tslib.js');
-    goldenJs.push('test_files/augment/shim.js');
-    goldenJs.push('test_files/clutz.no_externs/default_export.js');
-    goldenJs.push('test_files/clutz.no_externs/some_name_space.js');
-    goldenJs.push('test_files/clutz.no_externs/some_other.js');
-    goldenJs.push('test_files/clutz_type_value.no_externs/type_value.js');
-    goldenJs.push('test_files/declare/shim.js');
-    goldenJs.push('test_files/declare_export_dts/shim.js');
-    goldenJs.push('test_files/import_from_goog/closure_Module.js');
-    goldenJs.push('test_files/import_from_goog/closure_OtherModule.js');
-    goldenJs.push('test_files/export_equals.shim/shim.js');
-    goldenJs.push('test_files/type_propaccess.no_externs/nested_clazz.js');
+    // Manually add extra .js files that are not generated from .ts. Several tests include `.d.ts`
+    // files describing symbols defined in JavaScript, e.g. for `goog:...` style Clutz imports.
+    // These definitions must be included here so that Closure Compiler sees all definitions.
+    goldenJs.push(
+        'src/closure_externs.js',
+        'third_party/tslib/externs.js',
+        'third_party/tslib/tslib.js',
+        'test_files/augment/shim.js',
+        'test_files/clutz.no_externs/default_export.js',
+        'test_files/clutz.no_externs/some_name_space.js',
+        'test_files/clutz.no_externs/some_other.js',
+        'test_files/clutz_type_value.no_externs/type_value.js',
+        'test_files/declare/shim.js',
+        'test_files/declare_export_dts/shim.js',
+        'test_files/import_from_goog/closure_Module.js',
+        'test_files/import_from_goog/closure_OtherModule.js',
+        'test_files/export_equals.shim/shim.js',
+        'test_files/type_propaccess.no_externs/nested_clazz.js',
+    );
     const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
     const startTime = Date.now();
     const total = goldenJs.length;
