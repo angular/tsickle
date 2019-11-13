@@ -15,6 +15,11 @@ let typeNestedArr: {a:any}[][];
 let typeUnknown: unknown;
 let typeBigInt: bigint;
 
+let typeBooleanLiteral: false;
+let typeNumberLiteral: 0;
+let typeStringLiteral: '';
+let typeBigIntLiteral: 0n;
+
 let typeObject: {a:number, b:string} = {a:3, b:'b'};
 let typeObjectIndexable: {[key:string]: number};
 let typeObjectMixedIndexProperty: {a:number, [key:string]: number};

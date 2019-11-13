@@ -48,6 +48,10 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   // Disable searching for @types typings. This prevents TS from looking
   // around for a node_modules directory.
   types: [],
+  // Setting the target to ES2015 sets the lib field to ['lib.es6.d.ts'] by
+  // default. Override this value to also provide type declarations for BigInt
+  // literals.
+  lib: ['lib.es6.d.ts', 'lib.esnext.bigint.d.ts'],
   skipDefaultLibCheck: true,
   experimentalDecorators: true,
   module: ts.ModuleKind.CommonJS,
