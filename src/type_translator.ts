@@ -81,11 +81,11 @@ export function typeToDebugString(type: ts.Type): string {
     ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
     ts.TypeFlags.Boolean,       ts.TypeFlags.Enum,           ts.TypeFlags.StringLiteral,
     ts.TypeFlags.NumberLiteral, ts.TypeFlags.BooleanLiteral, ts.TypeFlags.EnumLiteral,
-    ts.TypeFlags.ESSymbol,      ts.TypeFlags.UniqueESSymbol, ts.TypeFlags.Void,
-    ts.TypeFlags.Undefined,     ts.TypeFlags.Null,           ts.TypeFlags.Never,
-    ts.TypeFlags.TypeParameter, ts.TypeFlags.Object,         ts.TypeFlags.Union,
-    ts.TypeFlags.Intersection,  ts.TypeFlags.Index,          ts.TypeFlags.IndexedAccess,
-    ts.TypeFlags.Conditional,   ts.TypeFlags.Substitution,
+    ts.TypeFlags.BigIntLiteral, ts.TypeFlags.ESSymbol,       ts.TypeFlags.UniqueESSymbol,
+    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,      ts.TypeFlags.Null,
+    ts.TypeFlags.Never,         ts.TypeFlags.TypeParameter,  ts.TypeFlags.Object,
+    ts.TypeFlags.Union,         ts.TypeFlags.Intersection,   ts.TypeFlags.Index,
+    ts.TypeFlags.IndexedAccess, ts.TypeFlags.Conditional,    ts.TypeFlags.Substitution,
   ];
   for (const flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
@@ -447,6 +447,7 @@ export class TypeTranslator {
       case ts.TypeFlags.Undefined:
         return 'undefined';
       case ts.TypeFlags.BigInt:
+      case ts.TypeFlags.BigIntLiteral:
         return 'bigintPlaceholder';
       case ts.TypeFlags.Null:
         return 'null';

@@ -1,4 +1,4 @@
-// test_files/type/type.ts(20,5): warning TS0: unhandled anonymous type
+// test_files/type/type.ts(25,5): warning TS0: unhandled anonymous type
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/type/type.ts
@@ -19,6 +19,14 @@ let typeNestedArr;
 let typeUnknown;
 /** @type {bigintPlaceholder} */
 let typeBigInt;
+/** @type {boolean} */
+let typeBooleanLiteral;
+/** @type {number} */
+let typeNumberLiteral;
+/** @type {string} */
+let typeStringLiteral;
+/** @type {bigintPlaceholder} */
+let typeBigIntLiteral;
 /** @type {{a: number, b: string}} */
 let typeObject = { a: 3, b: 'b' };
 /** @type {!Object<string,number>} */
