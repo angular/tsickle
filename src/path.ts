@@ -25,6 +25,7 @@ declare module 'typescript' {
   function convertToRelativePath(
       absoluteOrRelativePath: string, basePath: string,
       getCanonicalFileName: (path: string) => string): string;
+  function resolvePath(path: string, ...paths: Array<string|undefined>): string;
 }
 
 export function isAbsolute(path: string): boolean {
@@ -44,5 +45,5 @@ export function relative(base: string, rel: string): string {
 }
 
 export function normalize(path: string): string {
-  return ts.sys.resolvePath(path);
+  return ts.resolvePath(path);
 }
