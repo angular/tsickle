@@ -351,6 +351,35 @@ export class ModuleTypeTranslator {
   }
 
   /**
+   * resolveRestParameterType resolves the array member type for a rest parameter ("...").
+   * In TypeScript you write "...x: number[]", but in Closure you don't write the array:
+   * `@param {...number} x`. The code below unwraps the Array<> wrapper.
+   */
+  private resolveRestParameterType(
+      newTag: jsdoc.Tag, fnDecl: ts.SignatureDeclaration, paramNode: ts.ParameterDeclaration) {
+    let type = this.typeChecker.getTypeAtLocation(paramNode);
+    newTag.restParam = true;
+    if ((type.flags & ts.TypeFlags.Object) === 0 && type.flags & ts.TypeFlags.TypeParameter) {
+      // function f<T extends string[]>(...ts: T) has the Array type on the type parameter
+      // constraint, not on the parameter itself. Resolve it.
+      const baseConstraint = this.typeChecker.getBaseConstraintOfType(type);
+      if (baseConstraint) type = baseConstraint;
+    }
+    if ((type.flags & ts.TypeFlags.Object) !== 0 &&
+        (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
+      const typeRef = type as ts.TypeReference;
+      if (!typeRef.typeArguments) {
+        throw new Error('rest parameter does not resolve to a reference type');
+      }
+      newTag.type = this.typeToClosure(fnDecl, typeRef.typeArguments![0]);
+      return;
+    }
+    // If we fail to unwrap the Array<> type, emit an unknown type.
+    this.debugWarn(paramNode, 'failed to resolve rest parameter type, emitting ?');
+    newTag.type = '?';
+  }
+
+  /**
    * Creates the jsdoc for methods, including overloads.
    * If overloaded, merges the signatures in the list of SignatureDeclarations into a single jsdoc.
    * - Total number of parameters will be the maximum count found across all variants.
@@ -442,28 +471,13 @@ export class ModuleTypeTranslator {
           parameterName: isThisParam ? undefined : name,
         };
 
-        let type = typeChecker.getTypeAtLocation(paramNode);
-        if (paramNode.dotDotDotToken !== undefined) {
-          newTag.restParam = true;
-          // In TypeScript you write "...x: number[]", but in Closure
-          // you don't write the array: "@param {...number} x".  Unwrap
-          // the Array<> wrapper.
-          if ((type.flags & ts.TypeFlags.Object) === 0 && type.flags & ts.TypeFlags.TypeParameter) {
-            // function f<T extends string[]>(...ts: T) has the Array type on the type parameter
-            // constraint, not on the parameter itself. Resolve it.
-            const baseConstraint = typeChecker.getBaseConstraintOfType(type);
-            if (baseConstraint) type = baseConstraint;
-          }
-          if (type.flags & ts.TypeFlags.Object &&
-              (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
-            const typeRef = type as ts.TypeReference;
-            if (!typeRef.typeArguments) {
-              throw new Error('rest parameter does not resolve to a reference type');
-            }
-            type = typeRef.typeArguments![0];
-          }
+        if (paramNode.dotDotDotToken === undefined) {
+          // The simple case: a plain parameter type.
+          newTag.type = this.typeToClosure(fnDecl, this.typeChecker.getTypeAtLocation(paramNode));
+        } else {
+          // The complex case: resolve the array member type in ...foo[].
+          this.resolveRestParameterType(newTag, fnDecl, paramNode);
         }
-        newTag.type = this.typeToClosure(fnDecl, type);
 
         for (const {tagName, parameterName, text} of tags) {
           if (tagName === 'param' && parameterName === newTag.parameterName) {
