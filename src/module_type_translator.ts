@@ -15,6 +15,7 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
+import {hasExportingDecorator} from './decorators';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
@@ -435,11 +436,10 @@ export class ModuleTypeTranslator {
       if (flags & ts.ModifierFlags.Abstract) {
         addTag({tagName: 'abstract'});
       }
-      // Add @protected/@private if present.
-      if (flags & ts.ModifierFlags.Protected) {
-        addTag({tagName: 'protected'});
-      } else if (flags & ts.ModifierFlags.Private) {
-        addTag({tagName: 'private'});
+      // Add visibility.
+      const visibility = getVisibility(fnDecl, typeChecker);
+      if (visibility !== 'public') {
+        addTag({tagName: visibility});
       }
 
       // Add any @template tags.
@@ -578,4 +578,23 @@ export class ModuleTypeTranslator {
       thisReturnType,
     };
   }
+}
+
+/** Mutually exclusive visibility jsdoc tags. */
+export type Visibility = 'public'|'private'|'protected'|'export';
+
+/** Returns the visibility jsdoc tag for the given declaration. */
+export function getVisibility(decl: ts.Declaration, typeChecker: ts.TypeChecker): Visibility {
+  if (hasExportingDecorator(decl, typeChecker)) {
+    // Overrides any other visibility.
+    return 'export';
+  }
+  const flags = ts.getCombinedModifierFlags(decl);
+  if (flags & ts.ModifierFlags.Protected) {
+    return 'protected';
+  }
+  if (flags & ts.ModifierFlags.Private) {
+    return 'private';
+  }
+  return 'public';
 }

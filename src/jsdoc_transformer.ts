@@ -29,10 +29,9 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
-import {hasExportingDecorator} from './decorators';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
-import {ModuleTypeTranslator} from './module_type_translator';
+import {getVisibility, ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {symbolIsValue} from './transformer_util';
 import {isClutzType, isValidClosurePropertyName} from './type_translator';
@@ -291,7 +290,6 @@ function createMemberTypeDeclaration(
       continue;
     }
     const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
-    if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
     // Use element access instead of property access for compued names.
     const lhs = typeof name === 'string' ? ts.createPropertyAccess(instancePropAccess, name) :
                                            ts.createElementAccess(instancePropAccess, name);
@@ -377,13 +375,10 @@ function createClosurePropertyDeclaration(
   const tags = mtt.getJSDoc(prop, /* reportWarnings */ true);
   tags.push({tagName: 'type', type});
   const flags = ts.getCombinedModifierFlags(prop);
-  if (flags & ts.ModifierFlags.Protected) {
-    tags.push({tagName: 'protected'});
-  } else if (flags & ts.ModifierFlags.Private) {
-    tags.push({tagName: 'private'});
-  }
-  if (hasExportingDecorator(prop, mtt.typeChecker)) {
-    tags.push({tagName: 'export'});
+  const visibility = getVisibility(prop, mtt.typeChecker);
+  if (visibility !== 'public') {
+    // Public is the default, otherwise emit a jsdoc tag.
+    tags.push({tagName: visibility});
   }
   const declStmt =
       ts.setSourceMapRange(ts.createStatement(ts.createPropertyAccess(expr, name)), prop);
@@ -600,11 +595,8 @@ export function jsdocTransformer(
           // Overloads are union-ized into the shared type in FunctionType.
           return ts.visitEachChild(fnDecl, visitor, context);
         }
-        const extraTags = [];
-        if (hasExportingDecorator(fnDecl, typeChecker)) extraTags.push({tagName: 'export'});
 
-        const {tags, thisReturnType} =
-            moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl], extraTags);
+        const {tags, thisReturnType} = moduleTypeTranslator.getFunctionTypeJSDoc([fnDecl]);
 
         // async functions when down-leveled access `this` to pass it to
         // tslib.__awaiter.  Closure wants to know the type of 'this' for that.
