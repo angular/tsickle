@@ -15,6 +15,7 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
+import {hasExportingDecorator} from './decorators';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
@@ -119,7 +120,7 @@ export class ModuleTypeTranslator {
       public sourceFile: ts.SourceFile,
       public typeChecker: ts.TypeChecker,
       private host: AnnotatorHost,
-      private diagnostics: ts.Diagnostic[],
+      public diagnostics: ts.Diagnostic[],
       private isForExterns: boolean,
   ) {}
 
@@ -435,11 +436,10 @@ export class ModuleTypeTranslator {
       if (flags & ts.ModifierFlags.Abstract) {
         addTag({tagName: 'abstract'});
       }
-      // Add @protected/@private if present.
-      if (flags & ts.ModifierFlags.Protected) {
-        addTag({tagName: 'protected'});
-      } else if (flags & ts.ModifierFlags.Private) {
-        addTag({tagName: 'private'});
+      // Add visibility.
+      const visibility = getClosureVisibility(fnDecl, typeChecker, this.diagnostics);
+      if (visibility !== 'public') {
+        addTag({tagName: visibility});
       }
 
       // Add any @template tags.
@@ -578,4 +578,51 @@ export class ModuleTypeTranslator {
       thisReturnType,
     };
   }
+}
+
+/**
+ * Mutually exclusive closure compiler visibility jsdoc tags.
+ */
+export type ClosureVisibility =
+    /** Like TypeScript public. */
+    'public'|
+    /** Like TypeScript private. */
+    'private'|
+    /** Like TypeScript protected. */
+    'protected'|
+    /**
+     * The export jsdoc tag is an extension of the public visibility, with
+     * the additional semantics that Closure Compiler will not renamed
+     * the documented name.
+     *
+     * It is mutually exclusive with the other visibility tags.
+     */
+    'export';
+
+/**
+ * Returns the Closure visibility jsdoc tag that should apply to the given
+ * declaration.
+ */
+export function getClosureVisibility(
+    decl: ts.Declaration, typeChecker: ts.TypeChecker,
+    diagnostics: ts.Diagnostic[]): ClosureVisibility {
+  let visibility: ClosureVisibility = 'public';
+  const exportedByDecorator = hasExportingDecorator(decl, typeChecker);
+  const flags = ts.getCombinedModifierFlags(decl);
+  if (flags & ts.ModifierFlags.Protected) {
+    visibility = 'protected';
+  }
+  if (flags & ts.ModifierFlags.Private) {
+    visibility = 'private';
+  }
+  if (exportedByDecorator) {
+    if (visibility !== 'public') {
+      reportDiagnostic(
+          diagnostics, decl,
+          `A field may not be ${
+              visibility} and use a decorator annotated with @ExportsDecoratedItems.`);
+    }
+    visibility = 'export';
+  }
+  return visibility;
 }
