@@ -31,7 +31,7 @@ import * as ts from 'typescript';
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
-import {getVisibility, ModuleTypeTranslator} from './module_type_translator';
+import {getClosureVisibility, ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {symbolIsValue} from './transformer_util';
 import {isClutzType, isValidClosurePropertyName} from './type_translator';
@@ -375,7 +375,7 @@ function createClosurePropertyDeclaration(
   const tags = mtt.getJSDoc(prop, /* reportWarnings */ true);
   tags.push({tagName: 'type', type});
   const flags = ts.getCombinedModifierFlags(prop);
-  const visibility = getVisibility(prop, mtt.typeChecker);
+  const visibility = getClosureVisibility(prop, mtt.typeChecker);
   if (visibility !== 'public') {
     // Public is the default, otherwise emit a jsdoc tag.
     tags.push({tagName: visibility});

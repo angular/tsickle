@@ -437,7 +437,7 @@ export class ModuleTypeTranslator {
         addTag({tagName: 'abstract'});
       }
       // Add visibility.
-      const visibility = getVisibility(fnDecl, typeChecker);
+      const visibility = getClosureVisibility(fnDecl, typeChecker);
       if (visibility !== 'public') {
         addTag({tagName: visibility});
       }
@@ -580,11 +580,30 @@ export class ModuleTypeTranslator {
   }
 }
 
-/** Mutually exclusive visibility jsdoc tags. */
-export type Visibility = 'public'|'private'|'protected'|'export';
+/**
+ * Mutually exclusive closure compiler visibility jsdoc tags.
+ */
+export type ClosureVisibility =
+  /** Like TypeScript public. */
+  'public'|
+  /** Like TypeScript private. */
+  'private'|
+  /** Like TypeScript protected. */
+  'protected'|
+  /**
+   * The export jsdoc tag is an extension of the public visibility, with
+   * the additional semantics that Closure Compiler will not renamed
+   * the documented name.
+   *
+   * It is mutually exclusive with the other visibility tags.
+   */
+  'export';
 
-/** Returns the visibility jsdoc tag for the given declaration. */
-export function getVisibility(decl: ts.Declaration, typeChecker: ts.TypeChecker): Visibility {
+/**
+ * Returns the Closure visibility jsdoc tag that should apply to the given
+ * declaration.
+ */
+export function getClosureVisibility(decl: ts.Declaration, typeChecker: ts.TypeChecker): ClosureVisibility {
   if (hasExportingDecorator(decl, typeChecker)) {
     // Overrides any other visibility.
     return 'export';
