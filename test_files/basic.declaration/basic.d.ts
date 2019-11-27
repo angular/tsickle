@@ -8,6 +8,7 @@ declare global {
 		export {y as module$contents$test_files$basic$declaration$basic_y}
 	}
 	namespace ಠ_ಠ.clutz.module$exports$test_files$basic$declaration$basic {
+		const clutz$workaround$tissue$35385: number;
 		import incr$clutz = ಠ_ಠ.clutz.module$contents$test_files$basic$declaration$basic_incr;
 		export {incr$clutz as incr};
 		import x$clutz = ಠ_ಠ.clutz.module$contents$test_files$basic$declaration$basic_x;

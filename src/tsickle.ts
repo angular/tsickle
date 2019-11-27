@@ -350,6 +350,8 @@ function addClutzAliases(
   dtsFileContent += globalSymbols;
   dtsFileContent += `\t}\n`;
   dtsFileContent += `\tnamespace ಠ_ಠ.clutz.module$exports$${clutzModuleName} {\n`;
+  // TODO(martinprobst): See https://github.com/Microsoft/TypeScript/issues/35385, remove once fixed
+  dtsFileContent += `\t\tconst clutz$workaround$tissue$35385: number;\n`;
   dtsFileContent += nestedSymbols;
   dtsFileContent += `\t}\n`;
   dtsFileContent += '}\n';

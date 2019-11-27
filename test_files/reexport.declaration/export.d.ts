@@ -12,6 +12,7 @@ declare global {
 		export {OTHER as module$contents$test_files$reexport$declaration$export_OTHER}
 	}
 	namespace ಠ_ಠ.clutz.module$exports$test_files$reexport$declaration$export {
+		const clutz$workaround$tissue$35385: number;
 		import NON_DIRECT_TO_BE_RENAMED$clutz = ಠ_ಠ.clutz.module$contents$test_files$reexport$declaration$export_NEW_NAME;
 		export {NON_DIRECT_TO_BE_RENAMED$clutz as NEW_NAME};
 		import NON_DIRECT$clutz = ಠ_ಠ.clutz.module$contents$test_files$reexport$declaration$export_NON_DIRECT;

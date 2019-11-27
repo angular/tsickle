@@ -28,6 +28,7 @@ declare global {
 		export {loggingIdentity as module$contents$test_files$generics$declaration$generics_loggingIdentity}
 	}
 	namespace ಠ_ಠ.clutz.module$exports$test_files$generics$declaration$generics {
+		const clutz$workaround$tissue$35385: number;
 		import DefaultGeneric$clutz = ಠ_ಠ.clutz.module$contents$test_files$generics$declaration$generics_DefaultGeneric;
 		export {DefaultGeneric$clutz as DefaultGeneric};
 		import GenericNumber$clutz = ಠ_ಠ.clutz.module$contents$test_files$generics$declaration$generics_GenericNumber;
