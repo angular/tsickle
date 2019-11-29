@@ -6,6 +6,7 @@
 goog.module('test_files.exporting_decorator.exporting');
 var module = module || { id: 'test_files/exporting_decorator/exporting.ts' };
 module = module;
+const __googReflect = goog.require("goog.reflect");
 const tslib_1 = goog.require('tslib');
 /**
  * \@ExportDecoratedItems
@@ -76,43 +77,43 @@ class MyClass {
 tslib_1.__decorate([
     exportingDecorator(),
     tslib_1.__metadata("design:type", Boolean)
-], MyClass.prototype, "exportMe", void 0);
+], MyClass.prototype, __googReflect.objectProperty("exportMe", MyClass.prototype), void 0);
 tslib_1.__decorate([
     nonExportingDecorator(),
     tslib_1.__metadata("design:type", Number)
-], MyClass.prototype, "doNotExportMe", void 0);
+], MyClass.prototype, __googReflect.objectProperty("doNotExportMe", MyClass.prototype), void 0);
 tslib_1.__decorate([
     exportingDecorator(),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", []),
     tslib_1.__metadata("design:returntype", void 0)
-], MyClass.prototype, "exportThisOneToo", null);
+], MyClass.prototype, __googReflect.objectProperty("exportThisOneToo", MyClass.prototype), null);
 tslib_1.__decorate([
     nonExportingDecorator(),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", []),
     tslib_1.__metadata("design:returntype", void 0)
-], MyClass.prototype, "doNotExportThisOneEither", null);
+], MyClass.prototype, __googReflect.objectProperty("doNotExportThisOneEither", MyClass.prototype), null);
 tslib_1.__decorate([
     exportingDecorator(),
     tslib_1.__metadata("design:type", Object),
     tslib_1.__metadata("design:paramtypes", [])
-], MyClass.prototype, "exportThisGetter", null);
+], MyClass.prototype, __googReflect.objectProperty("exportThisGetter", MyClass.prototype), null);
 tslib_1.__decorate([
     exportingDecorator(),
     tslib_1.__metadata("design:type", Number),
     tslib_1.__metadata("design:paramtypes", [Number])
-], MyClass.prototype, "exportThisSetter", null);
+], MyClass.prototype, __googReflect.objectProperty("exportThisSetter", MyClass.prototype), null);
 tslib_1.__decorate([
     nonExportingDecorator(),
     tslib_1.__metadata("design:type", Object),
     tslib_1.__metadata("design:paramtypes", [])
-], MyClass.prototype, "doNotExportThisGetter", null);
+], MyClass.prototype, __googReflect.objectProperty("doNotExportThisGetter", MyClass.prototype), null);
 tslib_1.__decorate([
     nonExportingDecorator(),
     tslib_1.__metadata("design:type", Number),
     tslib_1.__metadata("design:paramtypes", [Number])
-], MyClass.prototype, "doNotExportThisSetter", null);
+], MyClass.prototype, __googReflect.objectProperty("doNotExportThisSetter", MyClass.prototype), null);
 if (false) {
     /**
      * @type {boolean}
