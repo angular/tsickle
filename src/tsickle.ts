@@ -11,6 +11,7 @@ import * as ts from 'typescript';
 import {AnnotatorHost} from './annotator_host';
 import {assertAbsolute} from './cli_support';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
+import {transformDecoratorsOutputForClosurePropertyRenaming} from './decorators';
 import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
 import {transformFileoverviewCommentFactory} from './fileoverview_comment_transformer';
@@ -151,6 +152,7 @@ export function emit(
   if (host.googmodule) {
     tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
+    tsTransformers.after!.push(transformDecoratorsOutputForClosurePropertyRenaming);
   }
 
   // Wrap the writeFile callback to hook writing of the dts file.

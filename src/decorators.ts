@@ -60,3 +60,99 @@ function isExportingDecorator(decorator: ts.Decorator, typeChecker: ts.TypeCheck
     return false;
   });
 }
+
+/**
+ * A transform pass that adds JSCompiler_renameProperty calls to the property
+ * name string literals that are emitted as part of TypeScript's default
+ * decorator output.
+ *
+ * JSCompiler_renameProperty is a special function that is recognized by
+ * Closure Compiler. It is called like JSCompiler_renameProperty('prop', obj)
+ * and it is compiled to a string literal that's the property named 'prop' on
+ * the obj value.
+ *
+ * This way, runtime decorators can use the property names (e.g. to register
+ * the property as a getter/setter pair) while still being compatible with
+ * Closure Compiler's property renaming.
+ */
+export function transformDecoratorsOutputForClosurePropertyRenaming(
+    context: ts.TransformationContext) {
+  const result: ts.Transformer<ts.SourceFile> = (sourceFile: ts.SourceFile) => {
+    let needsImportOfGoogReflect = false;
+    const visitor: ts.Visitor = (node) => {
+      const replacementNode = rewriteDecorator(node, context);
+      if (replacementNode) {
+        needsImportOfGoogReflect = true;
+        return replacementNode;
+      }
+      return ts.visitEachChild(node, visitor, context);
+    };
+    const updatedSourceFile = ts.visitNode(sourceFile, visitor);
+    if (needsImportOfGoogReflect) {
+      const statements = [...updatedSourceFile.statements];
+      const googModuleIndex = statements.findIndex(isGoogModuleStatement);
+      const googRequireReflectObjectProeprty = ts.createVariableStatement(
+          undefined,
+          ts.createVariableDeclarationList(
+              [ts.createVariableDeclaration(
+                  '__googReflect', undefined,
+
+                  ts.createCall(
+                      ts.createPropertyAccess(ts.createIdentifier('goog'), 'require'), undefined,
+                      [ts.createStringLiteral('goog.reflect')]))],
+              ts.NodeFlags.Const));
+      if (googModuleIndex !== -1) {
+        statements.splice(googModuleIndex + 3, 0, googRequireReflectObjectProeprty);
+      }
+      updatedSourceFile.statements = ts.createNodeArray(statements);
+    }
+    return updatedSourceFile;
+  };
+  return result;
+}
+
+function rewriteDecorator(node: ts.Node, context: ts.TransformationContext): ts.Node|undefined {
+  if (!ts.isCallExpression(node)) {
+    return;
+  }
+  const identifier = node.expression;
+  if (!ts.isIdentifier(identifier) || identifier.text !== '__decorate') {
+    return;
+  }
+  const args = node.arguments;
+  if (args.length !== 4) {
+    return;
+  }
+  const untypedFieldNameLiteral = args[2];
+  if (!ts.isStringLiteral(untypedFieldNameLiteral)) {
+    return;
+  }
+  const fieldNameLiteral = untypedFieldNameLiteral;
+  function replaceFieldName(node: ts.Node): ts.Node {
+    if (node !== untypedFieldNameLiteral) {
+      return ts.visitEachChild(node, replaceFieldName, context);
+    }
+    return ts.createCall(
+        ts.createPropertyAccess(ts.createIdentifier('__googReflect'), 'objectProperty'), undefined,
+        [ts.createStringLiteral(fieldNameLiteral.text), ts.getMutableClone(args[1])]);
+  }
+  return ts.visitNode(node, replaceFieldName);
+}
+
+function isGoogModuleStatement(statement: ts.Node) {
+  if (!ts.isExpressionStatement(statement)) {
+    return false;
+  }
+  const expr = statement.expression;
+  if (!ts.isCallExpression(expr)) {
+    return false;
+  }
+  if (!ts.isPropertyAccessExpression(expr.expression)) {
+    return false;
+  }
+  const goog = expr.expression.expression;
+  if (!ts.isIdentifier(goog)) {
+    return false;
+  }
+  return goog.text === 'goog' && expr.expression.name.text === 'module';
+}

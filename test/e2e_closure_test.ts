@@ -30,6 +30,7 @@ describe('golden file tests', () => {
         'src/closure_externs.js',
         'third_party/tslib/externs.js',
         'third_party/tslib/tslib.js',
+        'test_files/fake_goog_reflect.js',
         'test_files/augment/shim.js',
         'test_files/clutz.no_externs/default_export.js',
         'test_files/clutz.no_externs/some_name_space.js',
@@ -58,7 +59,7 @@ describe('golden file tests', () => {
       'warning_level': 'VERBOSE',
       'js': goldenJs,
       'externs': externs,
-      'language_in': 'ECMASCRIPT6_STRICT',
+      'language_in': 'STABLE',
       'language_out': 'ECMASCRIPT5',
       'jscomp_off': ['lintChecks'],
       'jscomp_error': [

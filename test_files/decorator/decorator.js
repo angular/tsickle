@@ -7,6 +7,7 @@
 goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
 module = module;
+const __googReflect = goog.require("goog.reflect");
 const tslib_1 = goog.require('tslib');
 const tsickle_default_export_1 = goog.requireType("test_files.decorator.default_export");
 const tsickle_external_2 = goog.requireType("test_files.decorator.external");
@@ -119,11 +120,11 @@ DecoratorTest.propDecorators = {
 tslib_1.__decorate([
     decorator,
     tslib_1.__metadata("design:type", Number)
-], DecoratorTest.prototype, "x", void 0);
+], DecoratorTest.prototype, __googReflect.objectProperty("x", DecoratorTest.prototype), void 0);
 tslib_1.__decorate([
     decorator,
     tslib_1.__metadata("design:type", external_1.AClass)
-], DecoratorTest.prototype, "z", void 0);
+], DecoratorTest.prototype, __googReflect.objectProperty("z", DecoratorTest.prototype), void 0);
 if (false) {
     /**
      * Some comment
