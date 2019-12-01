@@ -617,10 +617,12 @@ export function getClosureVisibility(
   }
   if (exportedByDecorator) {
     if (visibility !== 'public') {
-      reportDiagnostic(
-          diagnostics, decl,
-          `A field may not be ${
-              visibility} and use a decorator annotated with @ExportsDecoratedItems.`);
+      // TODO(rictic): Make this fail, once decorator output is renaming safe.
+      // reportDiagnostic(
+      //     diagnostics, decl,
+      //     `A field may not be ${
+      //     visibility} and use a decorator annotated with ` +
+      //     `@ExportsDecoratedItems.`);
     }
     visibility = 'export';
   }

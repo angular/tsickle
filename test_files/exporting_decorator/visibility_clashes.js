@@ -1,7 +1,3 @@
-// test_files/exporting_decorator/visibility_clashes.ts(11,3): error TS0: A field may not be protected and use a decorator annotated with @ExportsDecoratedItems.
-// test_files/exporting_decorator/visibility_clashes.ts(12,3): error TS0: A field may not be private and use a decorator annotated with @ExportsDecoratedItems.
-// test_files/exporting_decorator/visibility_clashes.ts(20,3): error TS0: A field may not be protected and use a decorator annotated with @ExportsDecoratedItems.
-// test_files/exporting_decorator/visibility_clashes.ts(23,3): error TS0: A field may not be private and use a decorator annotated with @ExportsDecoratedItems.
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/exporting_decorator/visibility_clashes.ts
