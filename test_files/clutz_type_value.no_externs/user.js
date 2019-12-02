@@ -23,3 +23,6 @@ if (false) {
     /** @type {string} */
     C.prototype.field;
 }
+// We expect IFace to show up in the @type of usingTypeValueConflictType below.
+/** @type {(null|!tsickle_goog_type_value_1)} */
+const usingTypeValueConflictType = null;

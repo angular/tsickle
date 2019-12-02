@@ -9,3 +9,6 @@ import IFace from 'goog:type_value';
 class C implements IFace {
   field = 'abc';
 }
+
+// We expect IFace to show up in the @type of usingTypeValueConflictType below.
+const usingTypeValueConflictType: IFace|null = null;

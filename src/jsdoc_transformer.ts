@@ -35,7 +35,7 @@ import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {symbolIsValue} from './transformer_util';
-import {isClutzType, isValidClosurePropertyName} from './type_translator';
+import {isValidClosurePropertyName, typeValueConflictHandled} from './type_translator';
 
 function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>) {
   const comment = jsdoc.toSynthesizedComment(tags, escapeExtraTags);
@@ -164,12 +164,7 @@ export function maybeAddHeritageClauses(
     } else if (sym.flags & ts.SymbolFlags.Value) {
       // If the symbol came from tsickle emit and it's something other than a class in the value
       // namespace, then tsickle may not have emitted the type.
-      // TODO(#1072): some other symbols we ought to be worrying about here:
-      // - if the symbol is a TS builtin? we can emit it;
-      // - if the symbol comes from a tsickle-transpiled file, either .ts or
-      //   .d.ts with externs generation? then maybe we can emit it with
-      //   name mangling.
-      if (!isClutzType(sym)) {
+      if (!typeValueConflictHandled(sym)) {
         warn(decl, `dropped ${relation} of a type/value conflict: ${expr.getText()}`);
         return;
       }
