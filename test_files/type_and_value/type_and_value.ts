@@ -8,7 +8,9 @@ let useBuiltInAsType: Document;
 
 // Augment a browser built-in, then do the same again.
 declare global {
-  interface Node { extra: string }
+  interface Node {
+    extra: string
+  }
 }
 let useAugmentAsValue = Node;
 let useAugmentAsType: Node;
@@ -38,3 +40,19 @@ let extUseAsValue = ExtTypeAndValue;
 
 let extUseEnumAsValue = ExtEnum;
 let extUseEnumAsType: ExtEnum;
+
+// ImplementsTypeAndValue implements a symbol that resolves to both a type and a
+// value, and thus the @implements clause is dropped by tsickle.
+class ImplementsTypeAndValue implements conflict.TypeAndValue {
+  z = 1;
+}
+/**
+ * ImplementsTypeAndValueBuiltin implements Boolean, which is both a type and a
+ * value in the lib.d.ts. However we special case lib.d.ts builtins, and thus do
+ * emit the implements clause.
+ */
+export class ImplementsTypeAndValueBuiltin implements Boolean {
+  valueOf(): boolean {
+    return false;  // grumpycat
+  }
+}

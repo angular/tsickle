@@ -1,9 +1,10 @@
-// test_files/type_and_value/type_and_value.ts(17,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
-// test_files/type_and_value/type_and_value.ts(20,5): warning TS0: anonymous type has no symbol
-// test_files/type_and_value/type_and_value.ts(26,5): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(29,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(36,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(39,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(19,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
+// test_files/type_and_value/type_and_value.ts(22,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(28,5): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(31,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(38,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(41,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(46,1): warning TS0: dropped implements of a type/value conflict: conflict.TypeAndValue
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/type_and_value/type_and_value.ts
@@ -51,3 +52,32 @@ let extUseAsValue = ExtTypeAndValue;
 let extUseEnumAsValue = ExtEnum;
 /** @type {ExtEnum} */
 let extUseEnumAsType;
+// ImplementsTypeAndValue implements a symbol that resolves to both a type and a
+// value, and thus the @implements clause is dropped by tsickle.
+/**
+ * tsickle: dropped implements of a type/value conflict: conflict.TypeAndValue
+ */
+class ImplementsTypeAndValue {
+    constructor() {
+        this.z = 1;
+    }
+}
+if (false) {
+    /** @type {number} */
+    ImplementsTypeAndValue.prototype.z;
+}
+/**
+ * ImplementsTypeAndValueBuiltin implements Boolean, which is both a type and a
+ * value in the lib.d.ts. However we special case lib.d.ts builtins, and thus do
+ * emit the implements clause.
+ * @implements {Boolean}
+ */
+class ImplementsTypeAndValueBuiltin {
+    /**
+     * @return {boolean}
+     */
+    valueOf() {
+        return false; // grumpycat
+    }
+}
+exports.ImplementsTypeAndValueBuiltin = ImplementsTypeAndValueBuiltin;
