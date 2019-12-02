@@ -152,7 +152,8 @@ export function emit(
   if (host.googmodule) {
     tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
         host, modulesManifest, typeChecker, tsickleDiagnostics));
-    tsTransformers.after!.push(transformDecoratorsOutputForClosurePropertyRenaming);
+    tsTransformers.after!.push(
+        transformDecoratorsOutputForClosurePropertyRenaming(tsickleDiagnostics));
   }
 
   // Wrap the writeFile callback to hook writing of the dts file.

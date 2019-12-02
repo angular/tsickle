@@ -59,7 +59,7 @@ describe('golden file tests', () => {
       'warning_level': 'VERBOSE',
       'js': goldenJs,
       'externs': externs,
-      'language_in': 'STABLE',
+      'language_in': 'ECMASCRIPT6_STRICT',
       'language_out': 'ECMASCRIPT5',
       'jscomp_off': ['lintChecks'],
       'jscomp_error': [
