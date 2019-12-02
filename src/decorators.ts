@@ -106,6 +106,12 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
       if (nodeNeedingGoogReflect !== undefined) {
         const statements = [...updatedSourceFile.statements];
         const googModuleIndex = statements.findIndex(isGoogModuleStatement);
+        if (googModuleIndex === -1) {
+          reportDiagnostic(
+              diagnostics, nodeNeedingGoogReflect,
+              'Internal tsickle error: could not find goog.module statement to import __tsickle_googReflect for decorator compilation.');
+          return sourceFile;
+        }
         const googRequireReflectObjectProperty = ts.createVariableStatement(
             undefined,
             ts.createVariableDeclarationList(
@@ -116,12 +122,10 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
                         ts.createPropertyAccess(ts.createIdentifier('goog'), 'require'), undefined,
                         [ts.createStringLiteral('goog.reflect')]))],
                 ts.NodeFlags.Const));
-        if (googModuleIndex === -1) {
-          reportDiagnostic(
-              diagnostics, nodeNeedingGoogReflect,
-              'Internal tsickle error: could not find goog.module statement to import __tsickle_googReflect for decorator compilation.');
-          return sourceFile;
-        }
+        // The boilerplate we produce has a goog.module line, then two related
+        // lines dealing with the `module` variable. Insert our goog.require
+        // after that to avoid visually breaking up the module info, and to be
+        // with the rest of the goog.require statements.
         statements.splice(googModuleIndex + 3, 0, googRequireReflectObjectProperty);
         updatedSourceFile.statements =
             ts.setTextRange(ts.createNodeArray(statements), updatedSourceFile.statements);
@@ -139,9 +143,7 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
  *
  * Returns undefined if no modification is necessary.
  */
-function rewriteDecorator(
-    node: ts.Node, context: ts.TransformationContext): ts.Node|
-    undefined {
+function rewriteDecorator(node: ts.Node, context: ts.TransformationContext): ts.Node|undefined {
   if (!ts.isCallExpression(node)) {
     return;
   }
@@ -169,8 +171,8 @@ function rewriteDecorator(
   }
   const fieldNameLiteral = untypedFieldNameLiteral;
   args[2] = ts.createCall(
-    ts.createPropertyAccess(ts.createIdentifier('__tsickle_googReflect'), 'objectProperty'),
-    undefined, [ts.createStringLiteral(fieldNameLiteral.text), ts.getMutableClone(args[1])]);
+      ts.createPropertyAccess(ts.createIdentifier('__tsickle_googReflect'), 'objectProperty'),
+      undefined, [ts.createStringLiteral(fieldNameLiteral.text), ts.getMutableClone(args[1])]);
   return ts.updateCall(node, node.expression, node.typeArguments, args);
 }
 
