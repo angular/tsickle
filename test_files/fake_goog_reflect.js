@@ -10,8 +10,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-var goog = goog || {};
-goog.provide('goog.reflect');
+goog.module('goog.reflect');
 
 /**
  * A fake goog.reflect.objectProperty
@@ -21,6 +20,6 @@ goog.provide('goog.reflect');
  *     for renaming
  * @return {string} The renamed property.
  */
-goog.reflect.objectProperty = function(prop, object) {
+exports.objectProperty = function(prop, object) {
   return prop;
 };
