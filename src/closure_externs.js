@@ -92,10 +92,15 @@ var GlobalFetch;
 
 /**
  * @interface
- * @extends{WorkerGlobalScope}
- * @extends{Window}
+ * @extends {WorkerGlobalScope}
+ * @extends {Window}
  */
 var WindowOrWorkerGlobalScope;
 
 /** @record */
 function CanvasDrawImage() {}
+
+/** @constructor */
+function CryptoKey() {};
+/** @constructor */
+function CryptoKeyPair() {};
