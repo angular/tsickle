@@ -21,6 +21,11 @@ var ArrayLike;
 /** @typedef {!IteratorIterable} */
 var IterableIterator;
 
+/** @typedef {!IIterableResult} */
+var IteratorYieldResult;
+/** @typedef {!IIterableResult} */
+var IteratorReturnResult;
+
 /** @typedef {!HTMLCollection} */
 var HTMLCollectionOf;
 
