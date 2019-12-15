@@ -15,6 +15,7 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
+import {hasExportingDecorator, hasExportingIfPublicDecorator} from './decorators';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
@@ -435,11 +436,10 @@ export class ModuleTypeTranslator {
       if (flags & ts.ModifierFlags.Abstract) {
         addTag({tagName: 'abstract'});
       }
-      // Add @protected/@private if present.
-      if (flags & ts.ModifierFlags.Protected) {
-        addTag({tagName: 'protected'});
-      } else if (flags & ts.ModifierFlags.Private) {
-        addTag({tagName: 'private'});
+      // Add visibility.
+      const visibility = getClosureVisibility(fnDecl, typeChecker);
+      if (visibility !== 'public') {
+        addTag({tagName: visibility});
       }
 
       // Add any @template tags.
@@ -578,4 +578,43 @@ export class ModuleTypeTranslator {
       thisReturnType,
     };
   }
+}
+
+/**
+ * Mutually exclusive closure compiler visibility jsdoc tags.
+ */
+export type ClosureVisibility =
+    /** Like TypeScript public. */
+    'public'|
+    /** Like TypeScript private. */
+    'private'|
+    /** Like TypeScript protected. */
+    'protected'|
+    /**
+     * The export jsdoc tag is an extension of the public visibility, with
+     * the additional semantics that Closure Compiler will not rename or dead-
+     * code eliminate the documented item.
+     *
+     * It is mutually exclusive with the other visibility tags.
+     */
+    'export';
+
+/**
+ * Returns the Closure visibility jsdoc tag that should apply to the given
+ * declaration.
+ */
+export function getClosureVisibility(
+    decl: ts.Declaration, typeChecker: ts.TypeChecker): ClosureVisibility {
+  const flags = ts.getCombinedModifierFlags(decl);
+  let visibility: ClosureVisibility = 'public';
+  if (flags & ts.ModifierFlags.Protected) {
+    visibility = 'protected';
+  }
+  if (flags & ts.ModifierFlags.Private) {
+    visibility = 'private';
+  }
+  if (hasExportingIfPublicDecorator(decl, typeChecker) && visibility === 'public') {
+    visibility = 'export';
+  }
+  return visibility;
 }

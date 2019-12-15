@@ -29,10 +29,10 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
-import {hasExportingDecorator} from './decorators';
+import {hasExportingDecorator, hasExportingIfPublicDecorator} from './decorators';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
-import {ModuleTypeTranslator} from './module_type_translator';
+import {getClosureVisibility, ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {symbolIsValue} from './transformer_util';
 import {isValidClosurePropertyName, typeValueConflictHandled} from './type_translator';
@@ -372,10 +372,10 @@ function createClosurePropertyDeclaration(
   const tags = mtt.getJSDoc(prop, /* reportWarnings */ true);
   tags.push({tagName: 'type', type});
   const flags = ts.getCombinedModifierFlags(prop);
-  if (flags & ts.ModifierFlags.Protected) {
-    tags.push({tagName: 'protected'});
-  } else if (flags & ts.ModifierFlags.Private) {
-    tags.push({tagName: 'private'});
+  const visibility = getClosureVisibility(prop, mtt.typeChecker);
+  if (visibility !== 'public') {
+    // Public is the default, otherwise emit a jsdoc tag.
+    tags.push({tagName: visibility});
   }
   if (hasExportingDecorator(prop, mtt.typeChecker)) {
     tags.push({tagName: 'export'});

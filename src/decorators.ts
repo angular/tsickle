@@ -35,25 +35,37 @@ export function getDecoratorDeclarations(
 }
 
 /**
- * Returns true if node has an exporting decorator  (i.e., a decorator with @ExportDecoratedItems
- * in its JSDoc).
+ * Returns true if node has an exporting decorator  (i.e., a decorator
+ * with @ExportDecoratedItems in its JSDoc).
  */
 export function hasExportingDecorator(node: ts.Node, typeChecker: ts.TypeChecker) {
   return node.decorators &&
-      node.decorators.some(decorator => isExportingDecorator(decorator, typeChecker));
+      node.decorators.some(
+          decorator => hasDocsMatching(decorator, /@ExportDecoratedItems\b/, typeChecker));
 }
 
 /**
- * Returns true if the given decorator has an @ExportDecoratedItems directive in its JSDoc.
+ * Returns true if node has an exporting if public decorator (i.e., a decorator
+ * with @ExportDecoratedItemsIfPublic in its JSDoc).
  */
-function isExportingDecorator(decorator: ts.Decorator, typeChecker: ts.TypeChecker) {
+export function hasExportingIfPublicDecorator(node: ts.Node, typeChecker: ts.TypeChecker) {
+  return node.decorators &&
+      node.decorators.some(
+          decorator => hasDocsMatching(decorator, /@ExportDecoratedItemsIfPublic\b/, typeChecker));
+}
+
+/**
+ * Returns true if the given decorator has a comment whose text matches the
+ * given regex.
+ */
+function hasDocsMatching(decorator: ts.Decorator, regex: RegExp, typeChecker: ts.TypeChecker) {
   return getDecoratorDeclarations(decorator, typeChecker).some(declaration => {
     const range = getAllLeadingComments(declaration);
     if (!range) {
       return false;
     }
     for (const {text} of range) {
-      if (/@ExportDecoratedItems\b/.test(text)) {
+      if (regex.test(text)) {
         return true;
       }
     }
