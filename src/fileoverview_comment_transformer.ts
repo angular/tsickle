@@ -49,7 +49,15 @@ function augmentFileoverviewComments(
     suppressions = new Set((suppressTag.type || '').split(',').map(s => s.trim()));
   } else {
     suppressTag = {tagName: 'suppress', text: 'checked by tsc'};
-    tags.push(suppressTag);
+    // Special case the @license tag because all text following this tag is
+    // treated by the compiler as part of the license, so we need to place the
+    // new @suppress tag before @license.
+    const licenseTagIndex = tags.findIndex(t => t.tagName === 'license');
+    if (licenseTagIndex !== -1) {
+      tags.splice(licenseTagIndex, 0, suppressTag);
+    } else {
+      tags.push(suppressTag);
+    }
     suppressions = new Set();
   }
 
