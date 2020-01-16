@@ -620,8 +620,9 @@ export class TypeTranslator {
       // Translate can return '?' for a number of situations, e.g. type/value conflicts.
       // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
       if (typeStr === '?') return '?';
-      if (referenceType.typeArguments) {
-        const params = referenceType.typeArguments.map(t => this.translate(t));
+      const typeArgs = this.typeChecker.getTypeArguments(referenceType);
+      if (typeArgs) {
+        const params = typeArgs.map(t => this.translate(t));
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
@@ -852,14 +853,14 @@ export class TypeTranslator {
           paramTypes.push('!Array<?>');
           continue;
         }
-        const typeRef = paramType as ts.TypeReference;
-        if (!typeRef.typeArguments) {
+        const typeArgs = this.typeChecker.getTypeArguments(paramType as ts.TypeReference);
+        if (typeArgs.length === 0) {
           // When a rest argument resolves empty, i.e. the concrete instantiation does not take any
           // arguments, the type arguments are empty. Emit a function type that takes no arg in this
           // position then.
           continue;
         }
-        paramType = typeRef.typeArguments[0];
+        paramType = typeArgs[0];
       }
       let typeStr = this.translate(paramType);
       if (varArgs) typeStr = '...' + typeStr;

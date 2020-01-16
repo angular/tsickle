@@ -14,11 +14,3 @@ var valueNamespace;
     valueNamespace.ValueClass = ValueClass;
 })(valueNamespace || (valueNamespace = {}));
 exports.valueNamespace = valueNamespace;
-var typeNamespace;
-(function (typeNamespace) {
-    /**
-     * @record
-     */
-    function Interface() { }
-    typeNamespace.Interface = Interface;
-})(typeNamespace || (typeNamespace = {}));
