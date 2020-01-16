@@ -6,7 +6,7 @@
 // externs from test_files/augment/angular/index.d.ts:
 /** @const */
 var test_files$augment$angular$index_ = {};
-/** @type {!IAngularStatic} */
+/** @type {!test_files$augment$angular$index.angular.IAngularStatic} */
 test_files$augment$angular$index_.angular;
 /** @const */
 test_files$augment$angular$index_.angular = {};
