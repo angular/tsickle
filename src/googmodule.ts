@@ -281,7 +281,7 @@ export function commonJsToGoogmoduleTransformer(
       // that a bundle by definition cannot be a goog.module()). The cast through any is necessary
       // to remain compatible with earlier TS versions.
       // tslint:disable-next-line:no-any
-      if ((sf as any).kind !== ts.SyntaxKind.SourceFile) return sf;
+      if ((sf as any)['kind'] !== ts.SyntaxKind.SourceFile) return sf;
 
       // JS scripts (as opposed to modules), must not be rewritten to
       // goog.modules.
