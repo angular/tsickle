@@ -280,7 +280,7 @@ function addClutzAliases(
       // This uses an internal TS API, assuming that accessing this will be more stable compared to
       // implementing our own version.
       // tslint:disable-next-line: no-any
-      if (options.stripInternal && (ts as any).isInternalDeclaration(d, origSourceFile)) {
+      if (options.stripInternal && (ts as any)['isInternalDeclaration'](d, origSourceFile)) {
         return false;
       }
 
