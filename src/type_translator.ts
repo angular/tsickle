@@ -540,7 +540,7 @@ export class TypeTranslator {
       // In that case, take the parent symbol of the enum member, which should be the enum
       // declaration.
       // tslint:disable-next-line:no-any working around a TS API deficiency.
-      const parent: ts.Symbol|undefined = (symbol as any).parent;
+      const parent: ts.Symbol|undefined = (symbol as any)['parent'];
       if (!parent) return '?';
       symbol = parent;
     }

@@ -508,7 +508,7 @@ export class ModuleTypeTranslator {
         // parameter. It's not clear how to resolve the two conflicting this types best, the current
         // solution prefers the explicitly given `this` parameter.
         // tslint:disable-next-line:no-any accessing TS internal field.
-        if ((retType as any).isThisType && !hasThisParam) {
+        if ((retType as any)['isThisType'] && !hasThisParam) {
           // foo(): this
           thisReturnType = retType;
           addTag({tagName: 'template', text: 'THIS'});

@@ -178,7 +178,7 @@ export function isTypeNodeKind(kind: ts.SyntaxKind) {
 export function createSingleQuoteStringLiteral(text: string): ts.StringLiteral {
   const stringLiteral = ts.createLiteral(text);
   // tslint:disable-next-line:no-any accessing TS internal API.
-  (stringLiteral as any).singleQuote = true;
+  (stringLiteral as any)['singleQuote'] = true;
   return stringLiteral;
 }
 
