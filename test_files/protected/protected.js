@@ -7,6 +7,7 @@
 goog.module('test_files.protected.protected');
 var module = module || { id: 'test_files/protected/protected.ts' };
 module = module;
+goog.require('tslib');
 class Protected {
     /**
      * @param {string} anotherPrivate

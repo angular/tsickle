@@ -5,4 +5,5 @@
 goog.module('test_files.file_comment.puretransform.comment_with_text');
 var module = module || { id: 'test_files/file_comment.puretransform/comment_with_text.ts' };
 module = module;
+goog.require('tslib');
 console.log('hello');

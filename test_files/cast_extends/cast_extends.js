@@ -11,6 +11,7 @@
 goog.module('test_files.cast_extends.cast_extends');
 var module = module || { id: 'test_files/cast_extends/cast_extends.ts' };
 module = module;
+goog.require('tslib');
 class Someclass {
 }
 /**

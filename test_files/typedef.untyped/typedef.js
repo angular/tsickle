@@ -6,6 +6,7 @@
 goog.module('test_files.typedef.untyped.typedef');
 var module = module || { id: 'test_files/typedef.untyped/typedef.ts' };
 module = module;
+goog.require('tslib');
 /** @typedef {?} */
 var MyType;
 /** @type {?} */

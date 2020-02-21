@@ -10,5 +10,6 @@
 goog.module('test_files.debugger.user');
 var module = module || { id: 'test_files/debugger/user.ts' };
 module = module;
+goog.require('tslib');
 /** @type {(null|!_debugger.Foo)} */
 const x = null;

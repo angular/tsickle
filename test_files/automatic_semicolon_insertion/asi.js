@@ -6,6 +6,7 @@
 goog.module('test_files.automatic_semicolon_insertion.asi');
 var module = module || { id: 'test_files/automatic_semicolon_insertion/asi.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @return {function(number): number}
  */

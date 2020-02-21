@@ -6,6 +6,7 @@
 goog.module('test_files.abstract.abstract');
 var module = module || { id: 'test_files/abstract/abstract.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @abstract
  */

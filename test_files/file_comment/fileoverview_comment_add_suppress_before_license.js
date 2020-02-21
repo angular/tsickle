@@ -12,5 +12,6 @@
 goog.module('test_files.file_comment.fileoverview_comment_add_suppress_before_license');
 var module = module || { id: 'test_files/file_comment/fileoverview_comment_add_suppress_before_license.ts' };
 module = module;
+goog.require('tslib');
 /** @type {number} */
 exports.x = 1;

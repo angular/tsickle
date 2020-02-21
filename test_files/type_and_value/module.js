@@ -9,6 +9,7 @@
 goog.module('test_files.type_and_value.module');
 var module = module || { id: 'test_files/type_and_value/module.ts' };
 module = module;
+goog.require('tslib');
 /** @type {number} */
 exports.TypeAndValue = 3;
 // WARNING: interface has both a type and a value, skipping emit

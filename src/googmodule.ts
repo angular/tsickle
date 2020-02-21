@@ -573,6 +573,35 @@ export function commonJsToGoogmoduleTransformer(
             ts.createAssignment(ts.createIdentifier('module'), ts.createIdentifier('module'))));
       }
 
+      // Add `goog.require('tslib');` if not JS transpilation, and it hasn't already been required.
+      // Rationale:
+      // TS gets compiled to Development mode (ES5) and Closure mode (~ES6)
+      // sources. Tooling generates module manifests from the Closure version.
+      // These manifests are used both with the Closure version and the
+      // Development mode version. 'tslib' is sometimes required by the
+      // development version but not the Closure version. Inserting the import
+      // below unconditionally makes sure that the module manifests are
+      // identical between Closure and Development mode, avoiding breakages
+      // caused by missing module dependencies.
+      if (!host.isJsTranspilation) {
+        // Get a copy of the already resolved module names before calling
+        // resolveModuleName on 'tslib'. Otherwise, resolveModuleName will
+        // add 'tslib' to namespaceToModuleVarName and prevent checking whether
+        // 'tslib' has already been required.
+        const resolvedModuleNames = [...namespaceToModuleVarName.keys()];
+
+        const tslibModuleName =
+            host.pathToModuleName(sf.fileName, resolveModuleName(host, sf.fileName, 'tslib'));
+
+        // Only add the extra require if it hasn't already been required
+        if (resolvedModuleNames.indexOf(tslibModuleName) === -1) {
+          const tslibImport = ts.createExpressionStatement(
+              createGoogCall('require', createSingleQuoteStringLiteral(tslibModuleName)));
+
+          // Place the goog.require('tslib') statement right after the goog.module statements
+          headerStmts.push(tslibImport);
+        }
+      }
       // Insert goog.module() etc after any leading comments in the source file. The comments have
       // been converted to NotEmittedStatements by transformer_util, which this depends on.
       const insertionIdx = stmts.findIndex(s => s.kind !== ts.SyntaxKind.NotEmittedStatement);

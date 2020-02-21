@@ -6,6 +6,7 @@
 goog.module('test_files.nullable.nullable');
 var module = module || { id: 'test_files/nullable/nullable.ts' };
 module = module;
+goog.require('tslib');
 class Primitives {
 }
 if (false) {

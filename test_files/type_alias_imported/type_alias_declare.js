@@ -9,6 +9,7 @@
 goog.module('test_files.type_alias_imported.type_alias_declare');
 var module = module || { id: 'test_files/type_alias_imported/type_alias_declare.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @record
  */

@@ -6,6 +6,7 @@
 goog.module('test_files.return_this.return_this');
 var module = module || { id: 'test_files/return_this/return_this.ts' };
 module = module;
+goog.require('tslib');
 class UnrelatedClass {
     constructor() {
         this.a = 1;

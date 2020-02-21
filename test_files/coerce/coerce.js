@@ -6,6 +6,7 @@
 goog.module('test_files.coerce.coerce');
 var module = module || { id: 'test_files/coerce/coerce.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @param {string} arg
  * @return {string}

@@ -9,6 +9,7 @@
 goog.module('test_files.decorator.only_types');
 var module = module || { id: 'test_files/decorator/only_types.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @record
  */

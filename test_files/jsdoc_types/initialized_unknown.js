@@ -10,6 +10,7 @@
 goog.module('test_files.jsdoc_types.initialized_unknown');
 var module = module || { id: 'test_files/jsdoc_types/initialized_unknown.ts' };
 module = module;
+goog.require('tslib');
 const initializedUntyped = {
     foo: 1
 };

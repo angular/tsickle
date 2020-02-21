@@ -6,6 +6,7 @@
 goog.module('test_files.structural.untyped.structural.untyped');
 var module = module || { id: 'test_files/structural.untyped/structural.untyped.ts' };
 module = module;
+goog.require('tslib');
 // Ensure that a class is structurally equivalent to an object literal
 // with the same fields.
 class StructuralTest {

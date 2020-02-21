@@ -6,6 +6,7 @@
 goog.module('test_files.functions.untyped.functions');
 var module = module || { id: 'test_files/functions.untyped/functions.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @param {?} a
  * @return {?}

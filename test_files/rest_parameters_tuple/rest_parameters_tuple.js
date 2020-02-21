@@ -10,6 +10,7 @@
 goog.module('test_files.rest_parameters_tuple.rest_parameters_tuple');
 var module = module || { id: 'test_files/rest_parameters_tuple/rest_parameters_tuple.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @param {...?} args
  * @return {void}

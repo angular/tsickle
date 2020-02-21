@@ -13,6 +13,7 @@
 goog.module('test_files.type_and_value.type_and_value');
 var module = module || { id: 'test_files/type_and_value/type_and_value.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_module_1 = goog.requireType("test_files.type_and_value.module");
 const conflict = goog.require('test_files.type_and_value.module');
 // This test deals with symbols that are simultaneously types and values.

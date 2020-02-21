@@ -6,5 +6,6 @@
 goog.module('test_files.promiselike.promiselike');
 var module = module || { id: 'test_files/promiselike/promiselike.ts' };
 module = module;
+goog.require('tslib');
 /** @type {!PromiseLike<string>} */
 let promiseLikeOfString;

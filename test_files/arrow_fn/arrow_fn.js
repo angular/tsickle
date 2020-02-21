@@ -6,6 +6,7 @@
 goog.module('test_files.arrow_fn.arrow_fn');
 var module = module || { id: 'test_files/arrow_fn/arrow_fn.ts' };
 module = module;
+goog.require('tslib');
 /** @type {function(number): number} */
 var fn3 = (/**
  * @param {number} a

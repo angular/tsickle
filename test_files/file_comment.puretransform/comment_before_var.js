@@ -6,4 +6,5 @@
 goog.module('test_files.file_comment.puretransform.comment_before_var');
 var module = module || { id: 'test_files/file_comment.puretransform/comment_before_var.ts' };
 module = module;
+goog.require('tslib');
 exports.y = 3;

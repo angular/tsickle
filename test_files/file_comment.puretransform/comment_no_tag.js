@@ -2,5 +2,6 @@
 goog.module('test_files.file_comment.puretransform.comment_no_tag');
 var module = module || { id: 'test_files/file_comment.puretransform/comment_no_tag.ts' };
 module = module;
+goog.require('tslib');
 // here comes code.
 exports.x = 1;
