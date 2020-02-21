@@ -6,6 +6,7 @@
 goog.module('test_files.export.export_helper_3');
 var module = module || { id: 'test_files/export/export_helper_3.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @record
  */

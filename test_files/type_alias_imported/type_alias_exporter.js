@@ -6,6 +6,7 @@
 goog.module('test_files.type_alias_imported.type_alias_exporter');
 var module = module || { id: 'test_files/type_alias_imported/type_alias_exporter.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_type_alias_declare_1 = goog.requireType("test_files.type_alias_imported.type_alias_declare");
 // Export a type alias that references types from this file that, in turn, are
 // not imported at the use site in type_alias_imported. This is a regression

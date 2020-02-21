@@ -9,6 +9,7 @@
 goog.module('test_files.clutz.no_externs.import_default');
 var module = module || { id: 'test_files/clutz.no_externs/import_default.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_goog_default_export_1 = goog.requireType("default_export");
 /** @type {(null|!tsickle_goog_default_export_1)} */
 const usingType = null;

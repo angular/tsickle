@@ -1,6 +1,7 @@
 goog.module('test_files.export_multi.export_multi');
 var module = module || { id: 'test_files/export_multi/export_multi.ts' };
 module = module;
+goog.require('tslib');
 var _a, _b;
 /**
  *

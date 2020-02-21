@@ -10,4 +10,5 @@
 goog.module('test_files.file_comment.side_effect_import');
 var module = module || { id: 'test_files/file_comment/side_effect_import.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_module_1_ = goog.require('test_files.file_comment.file_comment');

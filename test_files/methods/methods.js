@@ -6,6 +6,7 @@
 goog.module('test_files.methods.methods');
 var module = module || { id: 'test_files/methods/methods.ts' };
 module = module;
+goog.require('tslib');
 class HasMethods {
     /**
      * @return {void}

@@ -9,6 +9,7 @@
 goog.module('test_files.file_comment.comment_before_elided_import');
 var module = module || { id: 'test_files/file_comment/comment_before_elided_import.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_comment_before_class_1 = goog.requireType("test_files.file_comment.comment_before_class");
 /** @type {(null|!tsickle_comment_before_class_1.Clazz)} */
 const x = null;

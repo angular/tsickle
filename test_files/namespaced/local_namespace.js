@@ -6,6 +6,7 @@
 goog.module('test_files.namespaced.local_namespace');
 var module = module || { id: 'test_files/namespaced/local_namespace.ts' };
 module = module;
+goog.require('tslib');
 var unexported;
 (function (unexported) {
     class Unexported {

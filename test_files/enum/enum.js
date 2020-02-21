@@ -8,6 +8,7 @@
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
 module = module;
+goog.require('tslib');
 /** @type {!Array<?>} */
 const EnumTestMissingSemi = [];
 /** @enum {number} */

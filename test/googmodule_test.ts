@@ -29,7 +29,7 @@ function processES5(fileName: string, content: string, {
   const host: googmodule.GoogModuleProcessorHost = {
     fileNameToModuleId: (fn: string) => path.relative(rootDir, fn),
     pathToModuleName: (context, fileName) =>
-        cliSupport.pathToModuleName(rootDir, context, fileName),
+        testSupport.pathToModuleName(rootDir, context, fileName),
     es5Mode: isES5,
     options: testSupport.compilerOptions,
     moduleResolutionHost: tsHost,
@@ -68,6 +68,7 @@ describe('convertCommonJsToGoogModule', () => {
     // NB: no line break added below.
     expectCommonJs('a.ts', `console.log('hello');`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 console.log('hello');
 `);
   });
@@ -77,6 +78,7 @@ console.log('hello');
     expectCommonJs('a.ts', `console.log('hello');`, false).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 module = module;
+goog.require('tslib');
 console.log('hello');
 `);
   });
@@ -84,12 +86,14 @@ console.log('hello');
   it('adds a goog.module call to empty files', () => {
     expectCommonJs('a.ts', ``).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 `);
   });
 
   it('adds a goog.module call to empty-looking files', () => {
     expectCommonJs('a.ts', `// empty`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 // empty
 `);
   });
@@ -100,6 +104,7 @@ var module = module || { id: 'a.ts' };
 console.log('hello');`)
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 console.log('hello');
 `);
   });
@@ -107,6 +112,7 @@ console.log('hello');
   it('converts imports to goog.require calls', () => {
     expectCommonJs('a.ts', `import {x} from 'req/mod'; console.log(x);`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 var mod_1 = goog.require('req.mod');
 console.log(mod_1.x);
 `);
@@ -119,6 +125,7 @@ console.log(mod_1.x);
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 module = module;
+goog.require('tslib');
 const mod_1 = goog.require('req.mod');
 console.log(mod_1.x);
 `);
@@ -127,6 +134,7 @@ console.log(mod_1.x);
   it('converts side-effect import to goog.require calls', () => {
     expectCommonJs('a.ts', `import 'req/mod';`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 var tsickle_module_1_ = goog.require('req.mod');
 `);
   });
@@ -137,6 +145,7 @@ var tsickle_module_1_ = goog.require('req.mod');
 import 'req/mod';`)
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 // Comment
 var tsickle_module_1_ = goog.require('req.mod');
 `);
@@ -152,6 +161,7 @@ console.log('in mod_a', dep, sharedDep);
 `).toBe(`/** @modName {mod_a} */
 goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 var dep_1 = goog.require('dep');
 var shared_dep_1 = goog.require('shared_dep');
 console.log('in mod_a', dep_1.dep, shared_dep_1.sharedDep);
@@ -166,6 +176,7 @@ import {sharedDep} from './shared_dep';
 console.log('in mod_a', dep, sharedDep);
 `).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 /** @modName {mod_a} */
 var dep_1 = goog.require('dep');
 var shared_dep_1 = goog.require('shared_dep');
@@ -185,6 +196,7 @@ console.log('in mod_a', x);
 `).toBe(`/** @fileoverview Hello Comment. */
 goog.module('a');
 var module = module || { id: 'a.ts' };
+goog.require('tslib');
 // Only uses the import as a type.
 const x = 1;
 console.log('in mod_a', x);
@@ -236,6 +248,7 @@ console.log(mod_1.x);
 console.log(x);`)
         .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var mod_1 = goog.require('a.req.mod');
 console.log(mod_1.x);
 `);
@@ -247,6 +260,7 @@ import Foo from 'goog:foo_bar.baz';
 console.log(Foo);`)
         .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var goog_foo_bar_baz_1 = goog.require('foo_bar.baz');
 console.log(goog_foo_bar_baz_1);
 `);
@@ -258,6 +272,7 @@ import Foo from 'goog:use.Foo';
 console.log(Foo);`)
         .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var goog_use_Foo_1 = goog.require('use.Foo');
 console.log(goog_use_Foo_1);
 `);
@@ -269,6 +284,7 @@ import {default as Foo} from 'goog:use.Foo';
 console.log(Foo);`)
         .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var goog_use_Foo_1 = goog.require('use.Foo');
 console.log(goog_use_Foo_1);
 `);
@@ -279,6 +295,7 @@ console.log(goog_use_Foo_1);
 export {default as Foo} from 'goog:use.Foo';
 `).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var goog_use_Foo_1 = goog.require('use.Foo');
 exports.Foo = goog_use_Foo_1;
 `);
@@ -290,6 +307,7 @@ import * as Foo from 'goog:use.Foo';
 console.log(Foo.default);
 `).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var Foo = goog.require('use.Foo');
 console.log(Foo);
 `);
@@ -302,6 +320,7 @@ console.log(this.default);
 console.log(foo.bar.default);`)
         .toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 console.log(this.default);
 console.log(foo.bar.default);
 `);
@@ -318,6 +337,7 @@ var foo = bar;
  */
 goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var foo = bar;
 `);
   });
@@ -329,6 +349,7 @@ Foo;
 Foo2;
 `).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var goog_foo_1 = goog.require('foo');
 var goog_foo_2 = goog_foo_1;
 goog_foo_1;
@@ -348,6 +369,7 @@ console.log(sym, es6RelativeRequire, es6NonRelativeRequire);
     // Sanity check the output.
     expect(output).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
+goog.require('tslib');
 var tsickle_module_1_ = goog.require('foo.bare_require');
 var goog_foo_bar_1 = goog.require('foo.bar');
 var relative_1 = goog.require('a.relative');
@@ -368,6 +390,7 @@ console.log(goog_foo_bar_1, relative_1.es6RelativeRequire, relative_2.es6NonRela
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 module = module;
+goog.require('tslib');
 console.log('hello');
 exports = 1;
 `);

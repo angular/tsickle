@@ -7,5 +7,6 @@
 goog.module('test_files.conditional_type.conditional_type');
 var module = module || { id: 'test_files/conditional_type/conditional_type.ts' };
 module = module;
+goog.require('tslib');
 /** @typedef {?} */
 exports.Filter;

@@ -6,6 +6,7 @@
 goog.module('test_files.ctors.ctors');
 var module = module || { id: 'test_files/ctors/ctors.ts' };
 module = module;
+goog.require('tslib');
 /** @type {function(new:Document)} */
 let x = Document;
 class X {

@@ -6,6 +6,7 @@
 goog.module('test_files.module.module');
 var module = module || { id: 'test_files/module/module.ts' };
 module = module;
+goog.require('tslib');
 // tslint:disable-next-line:no-namespace
 var Reflect;
 (function (Reflect) {

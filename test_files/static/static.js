@@ -6,6 +6,7 @@
 goog.module('test_files.static.static');
 var module = module || { id: 'test_files/static/static.ts' };
 module = module;
+goog.require('tslib');
 class Static {
 }
 // This should not become a stub declaration.

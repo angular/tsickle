@@ -7,6 +7,7 @@
 goog.module('test_files.namespaced.export_namespace');
 var module = module || { id: 'test_files/namespaced/export_namespace.ts' };
 module = module;
+goog.require('tslib');
 var valueNamespace;
 (function (valueNamespace) {
     class ValueClass {

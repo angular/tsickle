@@ -6,6 +6,7 @@
 goog.module('test_files.file_comment.puretransform.comment_before_class');
 var module = module || { id: 'test_files/file_comment.puretransform/comment_before_class.ts' };
 module = module;
+goog.require('tslib');
 class Clazz {
 }
 exports.Clazz = Clazz;

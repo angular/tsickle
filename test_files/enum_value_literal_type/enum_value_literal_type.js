@@ -10,6 +10,7 @@
 goog.module('test_files.enum_value_literal_type.enum_value_literal_type');
 var module = module || { id: 'test_files/enum_value_literal_type/enum_value_literal_type.ts' };
 module = module;
+goog.require('tslib');
 /** @enum {number} */
 const ExportedEnum = {
     VALUE: 0,

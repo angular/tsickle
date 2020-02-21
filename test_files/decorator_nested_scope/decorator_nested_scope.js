@@ -6,6 +6,7 @@
 goog.module('test_files.decorator_nested_scope.decorator_nested_scope');
 var module = module || { id: 'test_files/decorator_nested_scope/decorator_nested_scope.ts' };
 module = module;
+goog.require('tslib');
 class SomeService {
 }
 /**

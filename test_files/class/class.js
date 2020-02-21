@@ -19,6 +19,7 @@
 goog.module('test_files.class.class');
 var module = module || { id: 'test_files/class/class.ts' };
 module = module;
+goog.require('tslib');
 /**
  * @record
  */

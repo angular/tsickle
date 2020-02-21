@@ -6,6 +6,7 @@
 goog.module('test_files.export.export');
 var module = module || { id: 'test_files/export/export.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_export_helper_1 = goog.requireType("test_files.export.export_helper");
 const tsickle_export_helper_2_2 = goog.requireType("test_files.export.export_helper_2");
 const tsickle_type_and_value_3 = goog.requireType("test_files.export.type_and_value");

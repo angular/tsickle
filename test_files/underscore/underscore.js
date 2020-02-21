@@ -6,6 +6,7 @@
 goog.module('test_files.underscore.underscore');
 var module = module || { id: 'test_files/underscore/underscore.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_export_underscore_1 = goog.requireType("test_files.underscore.export_underscore");
 // Verify that double-underscored names in various places don't get corrupted.
 // See getIdentifierText() in tsickle.ts.

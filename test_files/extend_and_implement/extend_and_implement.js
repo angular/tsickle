@@ -11,6 +11,7 @@
 goog.module('test_files.extend_and_implement.extend_and_implement');
 var module = module || { id: 'test_files/extend_and_implement/extend_and_implement.ts' };
 module = module;
+goog.require('tslib');
 class ClassInImplements {
 }
 if (false) {

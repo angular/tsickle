@@ -6,5 +6,6 @@
 goog.module('test_files.import_empty.import_empty');
 var module = module || { id: 'test_files/import_empty/import_empty.ts' };
 module = module;
+goog.require('tslib');
 const tsickle_imported_1 = goog.requireType("test_files.import_empty.imported");
 console.log('hello');
