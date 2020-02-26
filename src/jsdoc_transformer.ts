@@ -341,9 +341,18 @@ function createClosurePropertyDeclaration(
     optional: boolean): ts.Statement {
   const name = propertyName(prop);
   if (!name) {
-    mtt.debugWarn(prop, `handle unnamed member:\n${escapeForComment(prop.getText())}`);
-    return transformerUtil.createMultiLineComment(
-        prop, `Skipping unnamed member:\n${escapeForComment(prop.getText())}`);
+    // Skip warning for private identifiers because it is expected they are skipped in the
+    // Closure output.
+    // TODO(rdel): Once Closure Compiler determines how private properties should be represented,
+    // adjust this output accordingly.
+    if (ts.isPrivateIdentifier(prop.name)) {
+      return transformerUtil.createMultiLineComment(
+          prop, `Skipping private member:\n${escapeForComment(prop.getText())}`);
+    } else {
+      mtt.debugWarn(prop, `handle unnamed member:\n${escapeForComment(prop.getText())}`);
+      return transformerUtil.createMultiLineComment(
+          prop, `Skipping unnamed member:\n${escapeForComment(prop.getText())}`);
+    }
   }
 
   if (name === 'prototype') {
@@ -893,8 +902,9 @@ export function jsdocTransformer(
           }
           exportDecl = ts.updateExportDeclaration(
               exportDecl, exportDecl.decorators, exportDecl.modifiers,
-              ts.createNamedExports(exportSpecifiers), exportDecl.moduleSpecifier);
-        } else {
+              ts.createNamedExports(exportSpecifiers), exportDecl.moduleSpecifier, false);
+        } else if (ts.isNamedExports(exportDecl.exportClause)) {
+          // export {a, b, c} from 'abc';
           for (const exp of exportDecl.exportClause.elements) {
             const exportedName = transformerUtil.getIdentifierText(exp.name);
             typesToExport.push(

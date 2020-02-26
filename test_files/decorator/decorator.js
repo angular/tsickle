@@ -79,8 +79,7 @@ class DecoratorTest {
          * @param {string} x
          * @return {void}
          */
-        constructor(x) { } }) {
-    }
+        constructor(x) { } }) { }
     /**
      * @return {number}
      */

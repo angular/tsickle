@@ -196,7 +196,11 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
       for (const member of node.members) {
         const memberName = member.name;
         const memberType = getEnumMemberType(typeChecker, member);
-        if (memberType !== 'number') continue;
+        // Enum members cannot be named with a private identifier, although it
+        // is technically valid in the AST.
+        if (memberType !== 'number' || ts.isPrivateIdentifier(memberName)) {
+          continue;
+        }
 
         // TypeScript enum members can have Identifier names or String names.
         // We need to emit slightly different code to support these two syntaxes:
