@@ -443,7 +443,6 @@ goog.loadedModules_['legacy.bar.baz'] = { exports: exports, type: goog.ModuleTyp
         import * as starImport from './relpath.js';
         import {namedImport, renamedFrom as renamedTo} from '../dotdot/file.js';
         export * from './exportStar.js';
-        export * as ns from './exportStarAsNs.js';
         export {namedRexport, renamedExportFrom as renamedExportTo} from './namedExport.js';
         import 'google3/workspace/rooted/file.js';
         import * as starImportWorkspaceRooted from 'google3/workspace/rooted/otherFile.js';
@@ -456,14 +455,24 @@ var starImport = goog.require('project.relpath');
 var file_js_1 = goog.require('dotdot.file');
 var tsickle_module_1_ = goog.require('project.exportStar');
 tslib_1.__exportStar(tsickle_module_1_, exports);
-var tsickle_module_2_ = goog.require('project.exportStarAsNs');
-exports.ns = tsickle_module_2_;
 var namedExport_js_1 = goog.require('project.namedExport');
 exports.namedRexport = namedExport_js_1.namedRexport;
 exports.renamedExportTo = namedExport_js_1.renamedExportFrom;
-var tsickle_module_3_ = goog.require('google3.workspace.rooted.file');
+var tsickle_module_2_ = goog.require('google3.workspace.rooted.file');
 var starImportWorkspaceRooted = goog.require('google3.workspace.rooted.otherFile');
 console.log(starImport, file_js_1.namedImport, file_js_1.renamedFrom, starImportWorkspaceRooted);
+`);
+    });
+
+    it('handles ESM namespace exports', () => {
+      const before = `
+        export * as ns from './exportStarAsNs.js';
+      `;
+
+      expectJsTranspilation(before).toBe(`goog.module('project.file');
+var module = module || { id: 'project/file.js' };
+var tsickle_module_1_ = goog.require('project.exportStarAsNs');
+exports.ns = tsickle_module_1_;
 `);
     });
 

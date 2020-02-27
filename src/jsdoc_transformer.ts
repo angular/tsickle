@@ -900,9 +900,11 @@ export function jsdocTransformer(
               typesToExport.push([sym.name, sym]);
             }
           }
+          const isTypeOnlyExport = false;
           exportDecl = ts.updateExportDeclaration(
               exportDecl, exportDecl.decorators, exportDecl.modifiers,
-              ts.createNamedExports(exportSpecifiers), exportDecl.moduleSpecifier, false);
+              ts.createNamedExports(exportSpecifiers), exportDecl.moduleSpecifier,
+              isTypeOnlyExport);
         } else if (ts.isNamedExports(exportDecl.exportClause)) {
           // export {a, b, c} from 'abc';
           for (const exp of exportDecl.exportClause.elements) {
