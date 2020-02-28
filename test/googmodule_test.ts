@@ -464,6 +464,18 @@ console.log(starImport, file_js_1.namedImport, file_js_1.renamedFrom, starImport
 `);
     });
 
+    it('handles ESM namespace exports', () => {
+      const before = `
+        export * as ns from './exportStarAsNs.js';
+      `;
+
+      expectJsTranspilation(before).toBe(`goog.module('project.file');
+var module = module || { id: 'project/file.js' };
+var tsickle_module_1_ = goog.require('project.exportStarAsNs');
+exports.ns = tsickle_module_1_;
+`);
+    });
+
     it('elides imports of goog.js', () => {
       const before = `
         import * as goog from 'google3/javascript/closure/goog.js';

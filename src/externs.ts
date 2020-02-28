@@ -518,6 +518,12 @@ export function generateExterns(
           debugLocationStr(exportDeclaration, namespace)}\n`);
       return;
     }
+    if (ts.isNamespaceExport(exportDeclaration.exportClause)) {
+      // TODO(#1135): Support generating externs using this syntax.
+      emit(`\n// TODO(tsickle): export * as declaration in ${
+          debugLocationStr(exportDeclaration, namespace)}\n`);
+      return;
+    }
     for (const exportSpecifier of exportDeclaration.exportClause.elements) {
       // No need to do anything for properties exported under their original name.
       if (!exportSpecifier.propertyName) continue;
