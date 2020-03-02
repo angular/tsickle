@@ -338,7 +338,7 @@ declare global {
  */
 export function addDiffMatchers() {
   jasmine.addMatchers({
-    toEqualWithDiff(util: jasmine.MatchersUtil, cet: jasmine.CustomEqualityTester[]) {
+    toEqualWithDiff(util: jasmine.MatchersUtil, cet: readonly jasmine.CustomEqualityTester[]) {
       return {compare: diffStrings};
     },
   });
