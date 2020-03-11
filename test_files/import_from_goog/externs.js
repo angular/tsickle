@@ -25,3 +25,23 @@ goog_closure$OtherModule.SymA = function() {};
  * @struct
  */
 goog_closure$OtherModule.SymB = function() {};
+/** @const */
+var ಠ_ಠ = {};
+/** @const */
+ಠ_ಠ.clutz = {};
+/** @const */
+ಠ_ಠ.clutz.closure = {};
+/** @const */
+ಠ_ಠ.clutz.closure.LegacyModule = {};
+/** @const */
+ಠ_ಠ.clutz.closure.LegacyModule.LegacyExport = ಠ_ಠ.clutz.module$contents$closure$LegacyModule_LegacyExport;
+// Derived from: declare module "goog:closure.LegacyModule"
+/** @const */
+var goog_closure$LegacyModule = {};
+/** @const */
+goog_closure$LegacyModule.LegacyModule = ಠ_ಠ.clutz.closure.LegacyModule;
+/**
+ * @record
+ * @struct
+ */
+ಠ_ಠ.clutz.module$contents$closure$LegacyModule_LegacyExport = function() {};

@@ -39,6 +39,7 @@ describe('golden file tests', () => {
         'test_files/declare/shim.js',
         'test_files/declare_export_dts/shim.js',
         'test_files/import_from_goog/closure_Module.js',
+        'test_files/import_from_goog/closure_LegacyModule.js',
         'test_files/import_from_goog/closure_OtherModule.js',
         'test_files/export_equals.shim/shim.js',
         'test_files/type_propaccess.no_externs/nested_clazz.js',
