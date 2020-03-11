@@ -1,10 +1,10 @@
 /**
  * @fileoverview added by tsickle
- * Generated from: test_files/import_from_goog/import_from_goog.ts
+ * Generated from: test_files/import_from_goog.no_externs/import_from_goog.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-goog.module('test_files.import_from_goog.import_from_goog');
-var module = module || { id: 'test_files/import_from_goog/import_from_goog.ts' };
+goog.module('test_files.import_from_goog.no_externs.import_from_goog');
+var module = module || { id: 'test_files/import_from_goog.no_externs/import_from_goog.ts' };
 module = module;
 goog.require('tslib');
 const tsickle_Module_1 = goog.requireType("closure.Module");
