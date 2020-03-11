@@ -9,6 +9,7 @@ module = module;
 goog.require('tslib');
 const tsickle_Module_1 = goog.requireType("closure.Module");
 const tsickle_OtherModule_2 = goog.requireType("closure.OtherModule");
+const tsickle_LegacyModule_3 = goog.requireType("closure.LegacyModule");
 const goog_closure_Module_1 = goog.require('closure.Module');
 // Make sure that default imports from goog: modules are emitted as just the
 // module symbol, without a ".default" property.
@@ -17,3 +18,5 @@ const goog_closure_Module_1 = goog.require('closure.Module');
 const x = new goog_closure_Module_1();
 /** @type {!tsickle_OtherModule_2.SymA} */
 let y;
+/** @type {!tsickle_LegacyModule_3.LegacyExport} */
+let z;
