@@ -459,7 +459,7 @@ export function commonJsToGoogmoduleTransformer(
         const exportedName = stmt.expression.left.name;
         const exportStmt = ts.setOriginalNode(
             ts.setTextRange(
-                ts.createStatement(ts.createAssignment(
+                ts.createExpressionStatement(ts.createAssignment(
                     ts.createPropertyAccess(ts.createIdentifier('exports'), exportedName), ident)),
                 stmt),
             stmt);
