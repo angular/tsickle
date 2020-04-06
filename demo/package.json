@@ -10,7 +10,7 @@
     "demo": "node --preserve-symlinks build/demo.js -- --outDir `pwd`/tsickle-out"
   },
   "dependencies": {
-    "minimist": "^1.2.2",
+    "minimist": "^1.2.3",
     "tsickle": "^0.37.0",
     "typescript": "~3.5.3"
   },
