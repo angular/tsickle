@@ -77,6 +77,33 @@ function isEsModuleProperty(stmt: ts.ExpressionStatement): boolean {
   return prop.initializer.kind === ts.SyntaxKind.TrueKeyword;
 }
 
+function isHoistedExportAssignment(stmt: ts.ExpressionStatement): boolean {
+  function checkVoid0Assignment(expr: ts.Expression): boolean {
+    // Ensure this looks something like `exports.abc = exports.xyz = void 0;`.
+    if (!ts.isBinaryExpression(expr)) return false;
+    if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return false;
+
+    // Ensure the left side of the expression is an access on `exports`.
+    if (!ts.isPropertyAccessExpression(expr.left)) return false;
+    if (!ts.isIdentifier(expr.left.expression)) return false;
+    if (expr.left.expression.escapedText !== 'exports') return false;
+
+    // If the right side is another `exports.abc = ...` check that to see if we eventually hit a
+    // `void 0`.
+    if (ts.isBinaryExpression(expr.right)) {
+      return checkVoid0Assignment(expr.right);
+    }
+
+    // Ensure the right side is exactly "void 0";
+    if (!ts.isVoidExpression(expr.right)) return false;
+    if (!ts.isNumericLiteral(expr.right.expression)) return false;
+    if (expr.right.expression.text !== '0') return false;
+    return true;
+  }
+
+  return checkVoid0Assignment(stmt.expression);
+}
+
 /**
  * Returns the string argument if call is of the form
  *   require('foo')
@@ -467,6 +494,61 @@ export function commonJsToGoogmoduleTransformer(
         return [require, exportStmt];
       }
 
+      function rewriteObjectDefinePropertyOnExports(stmt: ts.ExpressionStatement): ts.Statement|
+          null {
+        if (!ts.isCallExpression(stmt.expression)) return null;
+
+        const callExpr = stmt.expression;
+        if (!ts.isPropertyAccessExpression(callExpr.expression)) return null;
+
+        const propAccess = callExpr.expression;
+        if (!ts.isIdentifier(propAccess.expression)) return null;
+        if (propAccess.expression.text !== 'Object') return null;
+        if (propAccess.name.text !== 'defineProperty') return null;
+
+        const [objDefArg1, objDefArg2, objDefArg3] = callExpr.arguments;
+        if (callExpr.arguments.length !== 3) return null;
+        if (!ts.isIdentifier(objDefArg1)) return null;
+        if (objDefArg1.text !== 'exports') return null;
+        if (!ts.isStringLiteral(objDefArg2)) return null;
+        if (!ts.isObjectLiteralExpression(objDefArg3)) return null;
+
+        function findPropConfigFor(name: string) {
+          return (p: ts.ObjectLiteralElementLike) => {
+            return ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === name;
+          };
+        }
+
+        const enumerableConfig = objDefArg3.properties.find(findPropConfigFor('enumerable'));
+        if (!enumerableConfig) return null;
+        if (!ts.isPropertyAssignment(enumerableConfig)) return null;
+        if (enumerableConfig.initializer.kind !== ts.SyntaxKind.TrueKeyword) return null;
+
+        const getConfig = objDefArg3.properties.find(findPropConfigFor('get'));
+        if (!getConfig) return null;
+        if (!ts.isPropertyAssignment(getConfig)) return null;
+        if (!ts.isFunctionExpression(getConfig.initializer)) return null;
+
+        const getterFunc = getConfig.initializer;
+        if (getterFunc.body.statements.length !== 1) return null;
+
+        const getterReturn = getterFunc.body.statements[0];
+        if (!ts.isReturnStatement(getterReturn)) return null;
+
+        const realExportValue = getterReturn.expression;
+        if (!realExportValue) return null;
+
+        const exportStmt = ts.setOriginalNode(
+            ts.setTextRange(
+                ts.createExpressionStatement(ts.createAssignment(
+                    ts.createPropertyAccess(ts.createIdentifier('exports'), objDefArg2.text),
+                    realExportValue)),
+                stmt),
+            stmt);
+
+        return exportStmt;
+      }
+
       /**
        * visitTopLevelStatement implements the main CommonJS to goog.module conversion. It visits a
        * SourceFile level statement and adds a (possibly) transformed representation of it into
@@ -498,7 +580,8 @@ export function commonJsToGoogmoduleTransformer(
           case ts.SyntaxKind.ExpressionStatement: {
             const exprStmt = node as ts.ExpressionStatement;
             // Check for "use strict" and certain Object.defineProperty and skip it if necessary.
-            if (isUseStrict(exprStmt) || isEsModuleProperty(exprStmt)) {
+            if (isUseStrict(exprStmt) || isEsModuleProperty(exprStmt) ||
+                isHoistedExportAssignment(exprStmt)) {
               stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
               return;
             }
@@ -524,6 +607,11 @@ export function commonJsToGoogmoduleTransformer(
             const exportStarAsNs = maybeRewriteExportStarAsNs(exprStmt);
             if (exportStarAsNs) {
               stmts.push(...exportStarAsNs);
+              return;
+            }
+            const exportFromObjDefProp = rewriteObjectDefinePropertyOnExports(exprStmt);
+            if (exportFromObjDefProp) {
+              stmts.push(exportFromObjDefProp);
               return;
             }
             // Check for:
