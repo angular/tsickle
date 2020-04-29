@@ -112,3 +112,6 @@ function CanvasDrawImage() {}
 function CryptoKey() {};
 /** @constructor */
 function CryptoKeyPair() {};
+
+/** @typedef {!{handleEvent: function(Event):void}} */
+var EventListenerObject;
