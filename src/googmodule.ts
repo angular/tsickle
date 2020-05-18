@@ -316,6 +316,11 @@ export function commonJsToGoogmoduleTransformer(
         return sf;
       }
 
+      // TypeScript will create at most one `exports.abc = exports.def = void 0` per file. We keep
+      // track of if we have already seen it here. If we have seen it already that probably means
+      // there was some code like `export const abc = void 0` that we don't want to erase.
+      let didRewriteHoistedExportsAssignment = false;
+
       let moduleVarCounter = 1;
       /**
        * Creates a new unique variable to assign side effect imports into. This allows us to re-use
@@ -580,11 +585,17 @@ export function commonJsToGoogmoduleTransformer(
           case ts.SyntaxKind.ExpressionStatement: {
             const exprStmt = node as ts.ExpressionStatement;
             // Check for "use strict" and certain Object.defineProperty and skip it if necessary.
-            if (isUseStrict(exprStmt) || isEsModuleProperty(exprStmt) ||
-                isHoistedExportAssignment(exprStmt)) {
+            if (isUseStrict(exprStmt) || isEsModuleProperty(exprStmt)) {
               stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
               return;
             }
+
+            if (!didRewriteHoistedExportsAssignment && isHoistedExportAssignment(exprStmt)) {
+              didRewriteHoistedExportsAssignment = true;
+              stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
+              return;
+            }
+
             // Check for:
             //   module.exports = ...;
             const modExports = rewriteModuleExportsAssignment(exprStmt);
