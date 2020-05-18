@@ -19,6 +19,7 @@ import * as googmodule from './googmodule';
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {isDtsFileName} from './transformer_util';
+import {removeClassWrappers} from './unwrap_classes';
 
 // Exported for users as a default impl of pathToModuleName.
 export {pathToModuleName} from './cli_support';
@@ -141,6 +142,7 @@ export function emit(
       ...(customTransformers.beforeTs || []),
     ],
     after: [
+      removeClassWrappers(),
       ...(customTransformers.afterTs || []),
     ],
     afterDeclarations: customTransformers.afterDeclarations,

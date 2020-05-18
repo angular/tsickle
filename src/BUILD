@@ -21,6 +21,7 @@ ts_library(
         "transformer_util.ts",
         "tsickle.ts",
         "type_translator.ts",
+        "unwrap_classes.ts",
     ],
     data = ["closure_externs.js"],
     tsconfig = "//:tsconfig.json",
