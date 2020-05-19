@@ -918,3 +918,5 @@ export function isBlacklisted(pathBlackList: Set<string>|undefined, symbol: ts.S
     return pathBlackList.has(fileName);
   });
 }
+
+hello, copy
