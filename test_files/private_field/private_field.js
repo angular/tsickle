@@ -1,5 +1,5 @@
-goog.module('test_files.class.private_field');
-var module = module || { id: 'test_files/class/private_field.ts' };
+goog.module('test_files.private_field.private_field');
+var module = module || { id: 'test_files/private_field/private_field.ts' };
 module = module;
 var _someField;
 const tslib_1 = goog.require('tslib');
@@ -8,7 +8,7 @@ const tslib_1 = goog.require('tslib');
  * @fileoverview Tests the generation of private field accessors from Tsickle. They do not generate
  * any externs, as they do not exist on the class themselves when downleveled by TypeScript.
  *
- * Generated from: test_files/class/private_field.ts
+ * Generated from: test_files/private_field/private_field.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ContainsPrivateField {
