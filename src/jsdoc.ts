@@ -144,8 +144,8 @@ const JSDOC_TAGS_OUTPUT_WHITELIST = new Set([
  */
 const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
   'augments', 'class',      'constructs', 'constructor', 'enum',      'extends', 'field',
-  'function', 'implements', 'interface',  'lends',       'namespace', 'private', 'protected', 'public',
-  'record',   'static',     'template',   'this',        'type',      'typedef',
+  'function', 'implements', 'interface',  'lends',       'namespace', 'private', 'protected',
+  'public',   'record',     'static',     'template',    'this',      'type',    'typedef',
 ]);
 
 /**
