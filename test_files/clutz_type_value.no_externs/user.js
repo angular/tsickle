@@ -4,7 +4,7 @@
  * occurs in a clutz file still can be used in a heritage clause.
  *
  * Generated from: test_files/clutz_type_value.no_externs/user.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.clutz_type_value.no_externs.user');
 var module = module || { id: 'test_files/clutz_type_value.no_externs/user.ts' };

@@ -9,7 +9,7 @@
  * warnings.
  *
  * Generated from: test_files/jsdoc/enum_tag.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc.enum_tag');
 var module = module || { id: 'test_files/jsdoc/enum_tag.ts' };

@@ -5,7 +5,7 @@
  * source file comments were not emitted separately.
  *
  * Generated from: test_files/file_comment/comment_before_class.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.comment_before_class');
 var module = module || { id: 'test_files/file_comment/comment_before_class.ts' };

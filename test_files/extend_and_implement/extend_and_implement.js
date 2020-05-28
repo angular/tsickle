@@ -6,7 +6,7 @@
  * incorrect optimization results.
  *
  * Generated from: test_files/extend_and_implement/extend_and_implement.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.extend_and_implement.extend_and_implement');
 var module = module || { id: 'test_files/extend_and_implement/extend_and_implement.ts' };

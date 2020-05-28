@@ -14,7 +14,7 @@
  *
  * @fileoverview The last fileoverview actually takes effect.
  * Generated from: test_files/file_comment/multiple_comments.ts
- * @suppress {checkTypes,const,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode}
+ * @suppress {checkTypes,const,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
  *
  */
 /** Here's another trailing comment */

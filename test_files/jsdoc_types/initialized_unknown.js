@@ -4,7 +4,7 @@
  * type annotation, so that Closure's type inference can kick in and possibly do a better job.
  *
  * Generated from: test_files/jsdoc_types/initialized_unknown.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This should not have a type annotation.
 goog.module('test_files.jsdoc_types.initialized_unknown');

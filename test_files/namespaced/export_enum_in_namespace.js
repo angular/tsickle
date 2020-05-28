@@ -4,7 +4,7 @@
  * below must be exported onto foo, which tsickle does by disabling its emit for namespace'd enums.
  *
  * Generated from: test_files/namespaced/export_enum_in_namespace.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_enum_in_namespace');

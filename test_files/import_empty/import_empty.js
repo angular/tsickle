@@ -1,7 +1,7 @@
 /**
  * @fileoverview Make sure tsickle does not crash on empty imports.
  * Generated from: test_files/import_empty/import_empty.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.import_empty.import_empty');
 var module = module || { id: 'test_files/import_empty/import_empty.ts' };

@@ -4,7 +4,7 @@
  * produce type annotations including an indirection to the aliased symbol.
  *
  * Generated from: test_files/clutz.no_externs/import_default.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.clutz.no_externs.import_default');
 var module = module || { id: 'test_files/clutz.no_externs/import_default.ts' };
