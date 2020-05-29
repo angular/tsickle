@@ -188,7 +188,7 @@ class AbstractClassExtendsAbstractClass extends AbstractClass {
 /** @typedef {!Interface} */
 var TypeAlias;
 /**
- * @implements {Interface}
+ * @implements {TypeAlias}
  * @extends {Class}
  */
 class ImplementsTypeAlias {

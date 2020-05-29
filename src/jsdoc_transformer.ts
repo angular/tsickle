@@ -101,7 +101,7 @@ export function maybeAddHeritageClauses(
       relation: 'extends'|'implements', hasAnyExtends: boolean,
       expr: ts.ExpressionWithTypeArguments): void {
     let tagName = relation;
-    let sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
+    const sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
     if (!sym) {
       // It's possible for a class declaration to extend an expression that
       // does not have have a symbol, for example when a mixin function is
@@ -117,30 +117,32 @@ export function maybeAddHeritageClauses(
       return;
     }
 
-    // Resolve any aliases to the underlying type.
-    if (sym.flags & ts.SymbolFlags.TypeAlias) {
+    // Resolve any aliases to the underlying declaration's symbol.
+    // We use that symbol for queries like "is it a type or a value?".
+    let declarationSym = sym;
+    if (declarationSym.flags & ts.SymbolFlags.TypeAlias) {
       // It's implementing a type alias.  Follow the type alias back
       // to the original symbol to check whether it's a type or a value.
-      const type = mtt.typeChecker.getDeclaredTypeOfSymbol(sym);
+      const type = mtt.typeChecker.getDeclaredTypeOfSymbol(declarationSym);
       if (!type.symbol) {
         // It's not clear when this can happen.
         warn(decl, `could not get type of symbol: ${expr.getText()}`);
         return;
       }
-      sym = type.symbol;
+      declarationSym = type.symbol;
     }
-    if (sym.flags & ts.SymbolFlags.Alias) {
-      sym = mtt.typeChecker.getAliasedSymbol(sym);
+    if (declarationSym.flags & ts.SymbolFlags.Alias) {
+      declarationSym = mtt.typeChecker.getAliasedSymbol(declarationSym);
     }
 
     const typeTranslator = mtt.newTypeTranslator(expr.expression);
-    if (typeTranslator.isBlackListed(sym)) {
+    if (typeTranslator.isBlackListed(declarationSym)) {
       // Don't emit references to blacklisted types.
       warn(decl, `dropped ${relation} of blacklisted type: ${expr.getText()}`);
       return;
     }
 
-    if (sym.flags & ts.SymbolFlags.Class) {
+    if (declarationSym.flags & ts.SymbolFlags.Class) {
       if (!isClass) {
         // Closure interfaces cannot extend or implements classes.
         warn(decl, `dropped interface ${relation} class: ${expr.getText()}`);
@@ -161,14 +163,14 @@ export function maybeAddHeritageClauses(
           return;
         }
       }
-    } else if (sym.flags & ts.SymbolFlags.Value) {
+    } else if (declarationSym.flags & ts.SymbolFlags.Value) {
       // If the symbol came from tsickle emit and it's something other than a class in the value
       // namespace, then tsickle may not have emitted the type.
-      if (!typeValueConflictHandled(sym)) {
+      if (!typeValueConflictHandled(declarationSym)) {
         warn(decl, `dropped ${relation} of a type/value conflict: ${expr.getText()}`);
         return;
       }
-    } else if (sym.flags & ts.SymbolFlags.TypeLiteral) {
+    } else if (declarationSym.flags & ts.SymbolFlags.TypeLiteral) {
       // A type literal is a type like `{foo: string}`.
       // These can come up as the output of a mapped type.
       warn(decl, `dropped ${relation} of a type literal: ${expr.getText()}`);
