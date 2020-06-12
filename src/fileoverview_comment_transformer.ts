@@ -62,15 +62,16 @@ function augmentFileoverviewComments(
   }
 
   // Ensure our suppressions are included in the @suppress tag:
-  // * Suppress checkTypes.  We believe the code has already been type-checked by TypeScript,
-  // and we cannot model all the TypeScript type decisions in Closure syntax.
+  // * Suppress checkTypes.  We believe the code has already been type-checked
+  // by TypeScript, and we cannot model all the TypeScript type decisions in
+  // Closure syntax.
   suppressions.add('checkTypes');
-  // * Suppress extraRequire.  We remove extra requires at the TypeScript level, so any require
-  // that gets to the JS level is a load-bearing require.
+  // * Suppress extraRequire.  We remove extra requires at the TypeScript level,
+  // so any require that gets to the JS level is a load-bearing require.
   suppressions.add('extraRequire');
   // * Types references are propagated between files even when they are not
-  // directly imported. While these are violations of the "missing require" rules
-  // they are believed to be safe.
+  // directly imported. While these are violations of the "missing require"
+  // rules they are believed to be safe.
   suppressions.add('missingRequire');
   // * Suppress uselessCode.  We emit an "if (false)" around type declarations,
   // which is flagged as unused code unless we suppress it.
@@ -84,9 +85,6 @@ function augmentFileoverviewComments(
   // reopened. Namespace reopening happens when one writes namespace foo {}
   // or namespace foo.* {} more than once.
   suppressions.add('constantProperty');
-
-
-
 
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 
