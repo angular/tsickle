@@ -5,7 +5,6 @@
  */
 goog.module('test_files.declare_import.exporter');
 var module = module || { id: 'test_files/declare_import/exporter.ts' };
-module = module;
 goog.require('tslib');
 class ExportedClass {
 }

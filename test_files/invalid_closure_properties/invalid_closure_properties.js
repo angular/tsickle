@@ -13,7 +13,6 @@
 // Symbol.observable here refers to the above SymbolConstructor observable.
 goog.module('test_files.invalid_closure_properties.invalid_closure_properties');
 var module = module || { id: 'test_files/invalid_closure_properties/invalid_closure_properties.ts' };
-module = module;
 goog.require('tslib');
 /** @type {(null|{otherField: string})} */
 exports.x = null;

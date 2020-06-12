@@ -5,7 +5,6 @@
  */
 goog.module('test_files.jsx.jsx.tsx');
 var module = module || { id: 'test_files/jsx/jsx.tsx' };
-module = module;
 goog.require('tslib');
 /** @type {!JSX.Element} */
 let simple = React.createElement("div", null);

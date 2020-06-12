@@ -13,7 +13,6 @@
  */
 goog.module('test_files.jsdoc.enum_tag');
 var module = module || { id: 'test_files/jsdoc/enum_tag.ts' };
-module = module;
 goog.require('tslib');
 /** @enum {number} */
 const A = {

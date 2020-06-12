@@ -6,9 +6,8 @@
  */
 goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
-module = module;
-const __tsickle_googReflect = goog.require("goog.reflect");
 const tslib_1 = goog.require('tslib');
+const __tsickle_googReflect = goog.require("goog.reflect");
 const tsickle_default_export_1 = goog.requireType("test_files.decorator.default_export");
 const tsickle_external_2 = goog.requireType("test_files.decorator.external");
 const tsickle_external2_3 = goog.requireType("test_files.decorator.external2");

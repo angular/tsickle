@@ -7,7 +7,6 @@
  */
 goog.module('test_files.jsdoc_types.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types/jsdoc_types.ts' };
-module = module;
 goog.require('tslib');
 const tsickle_default_1 = goog.requireType("test_files.jsdoc_types.default");
 const tsickle_module1_2 = goog.requireType("test_files.jsdoc_types.module1");

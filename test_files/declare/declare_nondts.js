@@ -5,5 +5,4 @@
  */
 goog.module('test_files.declare.declare_nondts');
 var module = module || { id: 'test_files/declare/declare_nondts.ts' };
-module = module;
 goog.require('tslib');

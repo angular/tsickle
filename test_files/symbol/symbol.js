@@ -5,7 +5,6 @@
  */
 goog.module('test_files.symbol.symbol');
 var module = module || { id: 'test_files/symbol/symbol.ts' };
-module = module;
 goog.require('tslib');
 /** @type {symbol} */
 const uniqueSymbol = Symbol('my symbol');

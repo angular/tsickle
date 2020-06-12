@@ -5,7 +5,6 @@
  */
 goog.module('test_files.doc_params.doc_params');
 var module = module || { id: 'test_files/doc_params/doc_params.ts' };
-module = module;
 goog.require('tslib');
 class Foo {
     /**

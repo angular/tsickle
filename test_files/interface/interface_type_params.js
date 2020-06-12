@@ -5,7 +5,6 @@
  */
 goog.module('test_files.interface.interface_type_params');
 var module = module || { id: 'test_files/interface/interface_type_params.ts' };
-module = module;
 goog.require('tslib');
 /**
  * @record

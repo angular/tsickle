@@ -7,7 +7,6 @@
 // export.in.ts test case.
 goog.module('test_files.export.export_helper_2');
 var module = module || { id: 'test_files/export/export_helper_2.ts' };
-module = module;
 goog.require('tslib');
 /** @type {number} */
 exports.export2 = 3;

@@ -15,7 +15,6 @@
 // Closure builtin Error type.
 goog.module('test_files.declare_export.declare_export');
 var module = module || { id: 'test_files/declare_export/declare_export.ts' };
-module = module;
 goog.require('tslib');
 /** @type {!test_files$declare_export$declare_export.ExportDeclaredIf} */
 let user1;

@@ -5,7 +5,6 @@
  */
 goog.module('test_files.implement_reexported_interface.interface');
 var module = module || { id: 'test_files/implement_reexported_interface/interface.ts' };
-module = module;
 goog.require('tslib');
 /**
  * @record

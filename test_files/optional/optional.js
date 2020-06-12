@@ -5,7 +5,6 @@
  */
 goog.module('test_files.optional.optional');
 var module = module || { id: 'test_files/optional/optional.ts' };
-module = module;
 goog.require('tslib');
 /**
  * @param {number} x

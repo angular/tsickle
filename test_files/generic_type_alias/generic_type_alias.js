@@ -5,7 +5,6 @@
  */
 goog.module('test_files.generic_type_alias.generic_type_alias');
 var module = module || { id: 'test_files/generic_type_alias/generic_type_alias.ts' };
-module = module;
 goog.require('tslib');
 /**
  * A type alias including a generic type parameter. Unsupported by Closure, so

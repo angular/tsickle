@@ -7,7 +7,6 @@
  */
 goog.module('test_files.jsdoc_types.module1');
 var module = module || { id: 'test_files/jsdoc_types/module1.ts' };
-module = module;
 goog.require('tslib');
 class Class {
 }

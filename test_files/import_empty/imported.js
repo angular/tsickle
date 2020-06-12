@@ -5,5 +5,4 @@
  */
 goog.module('test_files.import_empty.imported');
 var module = module || { id: 'test_files/import_empty/imported.ts' };
-module = module;
 goog.require('tslib');

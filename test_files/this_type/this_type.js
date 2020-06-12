@@ -5,7 +5,6 @@
  */
 goog.module('test_files.this_type.this_type');
 var module = module || { id: 'test_files/this_type/this_type.ts' };
-module = module;
 goog.require('tslib');
 class SomeClass {
 }

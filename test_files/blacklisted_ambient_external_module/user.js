@@ -5,7 +5,6 @@
  */
 goog.module('test_files.blacklisted_ambient_external_module.user');
 var module = module || { id: 'test_files/blacklisted_ambient_external_module/user.ts' };
-module = module;
 goog.require('tslib');
 class User {
     constructor() { this.field = null; }

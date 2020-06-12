@@ -8,7 +8,6 @@
 // produce {?}.
 goog.module('test_files.anon_class.anon_class');
 var module = module || { id: 'test_files/anon_class/anon_class.ts' };
-module = module;
 goog.require('tslib');
 /** @type {?} */
 const anonClassInstance = new class {

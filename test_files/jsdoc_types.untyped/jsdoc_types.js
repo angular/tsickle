@@ -9,7 +9,6 @@
  */
 goog.module('test_files.jsdoc_types.untyped.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types.untyped/jsdoc_types.ts' };
-module = module;
 goog.require('tslib');
 const module1 = goog.require('test_files.jsdoc_types.untyped.module1');
 const module2_1 = goog.require('test_files.jsdoc_types.untyped.module2');

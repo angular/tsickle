@@ -1,6 +1,5 @@
 goog.module('test_files.private_field.private_field');
 var module = module || { id: 'test_files/private_field/private_field.ts' };
-module = module;
 var _someField;
 const tslib_1 = goog.require('tslib');
 /**

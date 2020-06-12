@@ -15,7 +15,6 @@
  */
 goog.module('test_files.enum_ref_import.enum_ref_import');
 var module = module || { id: 'test_files/enum_ref_import/enum_ref_import.ts' };
-module = module;
 goog.require('tslib');
 const tsickle_exporter_1 = goog.requireType("test_files.enum_ref_import.exporter");
 /** @enum {string} */

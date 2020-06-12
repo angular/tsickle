@@ -6,7 +6,6 @@
 /** This test checks that we emit \@private/\@protected where necessary. */
 goog.module('test_files.protected.protected');
 var module = module || { id: 'test_files/protected/protected.ts' };
-module = module;
 goog.require('tslib');
 class Protected {
     /**

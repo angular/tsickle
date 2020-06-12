@@ -16,7 +16,6 @@
 /** Here's another trailing comment */
 goog.module('test_files.file_comment.puretransform.multiple_comments');
 var module = module || { id: 'test_files/file_comment.puretransform/multiple_comments.ts' };
-module = module;
 goog.require('tslib');
 function f() {
     // Make sure the {const} suppression above is maintained.

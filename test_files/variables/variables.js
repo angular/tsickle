@@ -5,7 +5,6 @@
  */
 goog.module('test_files.variables.variables');
 var module = module || { id: 'test_files/variables/variables.ts' };
-module = module;
 goog.require('tslib');
 /** @type {string} */
 var v1;

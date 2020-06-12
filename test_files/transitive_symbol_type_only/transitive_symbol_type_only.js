@@ -9,7 +9,6 @@
  */
 goog.module('test_files.transitive_symbol_type_only.transitive_symbol_type_only');
 var module = module || { id: 'test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts' };
-module = module;
 goog.require('tslib');
 const tsickle_reexporter_1 = goog.requireType("test_files.transitive_symbol_type_only.reexporter");
 const tsickle_exporter_2 = goog.requireType("test_files.transitive_symbol_type_only.exporter");

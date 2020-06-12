@@ -9,7 +9,6 @@
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_enum_in_namespace');
 var module = module || { id: 'test_files/namespaced/export_enum_in_namespace.ts' };
-module = module;
 goog.require('tslib');
 var foo;
 (function (foo) {

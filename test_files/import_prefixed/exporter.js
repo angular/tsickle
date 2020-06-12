@@ -5,7 +5,6 @@
  */
 goog.module('test_files.import_prefixed.exporter');
 var module = module || { id: 'test_files/import_prefixed/exporter.ts' };
-module = module;
 goog.require('tslib');
 /** @type {number} */
 exports.valueExport = 1;

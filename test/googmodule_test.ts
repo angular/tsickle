@@ -77,7 +77,6 @@ console.log('hello');
     // NB: no line break added below.
     expectCommonJs('a.ts', `console.log('hello');`, false).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
-module = module;
 goog.require('tslib');
 console.log('hello');
 `);
@@ -124,7 +123,6 @@ console.log(mod_1.x);
         /* es5 mode= */ false)
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
-module = module;
 goog.require('tslib');
 const mod_1 = goog.require('req.mod');
 console.log(mod_1.x);
@@ -389,7 +387,6 @@ console.log(goog_foo_bar_1, relative_1.es6RelativeRequire, relative_2.es6NonRela
     expectCommonJs('a.ts', `export {}; console.log('hello'); exports = 1;`, false)
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
-module = module;
 goog.require('tslib');
 console.log('hello');
 exports = 1;

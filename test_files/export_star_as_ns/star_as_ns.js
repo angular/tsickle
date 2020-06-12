@@ -9,7 +9,6 @@
  */
 goog.module('test_files.export_star_as_ns.star_as_ns');
 var module = module || { id: 'test_files/export_star_as_ns/star_as_ns.ts' };
-module = module;
 goog.require('tslib');
 const tsickle_ns_1 = goog.requireType("test_files.export_star_as_ns.ns");
 const tsickle_module_1_ = goog.require('test_files.export_star_as_ns.ns');

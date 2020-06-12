@@ -6,7 +6,6 @@
  */
 goog.module('test_files.file_comment.latecomment_front');
 var module = module || { id: 'test_files/file_comment/latecomment_front.ts' };
-module = module;
 goog.require('tslib');
 /** @type {number} */
 const followedByCode = 1;

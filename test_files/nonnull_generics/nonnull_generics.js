@@ -5,7 +5,6 @@
  */
 goog.module('test_files.nonnull_generics.nonnull_generics');
 var module = module || { id: 'test_files/nonnull_generics/nonnull_generics.ts' };
-module = module;
 goog.require('tslib');
 /**
  * getOrDefault removes the |null branch from its input. In TypeScript, this works, but in Closure,

@@ -5,7 +5,6 @@
  */
 goog.module('test_files.import_only_types.import_only_types');
 var module = module || { id: 'test_files/import_only_types/import_only_types.ts' };
-module = module;
 goog.require('tslib');
 const tsickle_types_only_1 = goog.requireType("test_files.import_only_types.types_only");
 const tsickle_types_and_constenum_2 = goog.requireType("test_files.import_only_types.types_and_constenum");

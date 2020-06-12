@@ -5,7 +5,6 @@
  */
 goog.module('test_files.file_comment.puretransform.before_import');
 var module = module || { id: 'test_files/file_comment.puretransform/before_import.ts' };
-module = module;
 goog.require('tslib');
 const comment_before_var_1 = goog.require('test_files.file_comment.puretransform.comment_before_var');
 console.log(comment_before_var_1.y);

@@ -613,13 +613,6 @@ export function commonJsToGoogmoduleTransformer(
                                          'module', /* type */ undefined, moduleVarInitializer)]));
       headerStmts.push(modAssign);
 
-      if (!host.es5Mode) {
-        // The module=module assignment suppresses an unused variable warning which may trigger
-        // depending on the project's compilation flags.
-        headerStmts.push(ts.createStatement(
-            ts.createAssignment(ts.createIdentifier('module'), ts.createIdentifier('module'))));
-      }
-
       // Add `goog.require('tslib');` if not JS transpilation, and it hasn't already been required.
       // Rationale:
       // TS gets compiled to Development mode (ES5) and Closure mode (~ES6)

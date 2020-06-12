@@ -5,7 +5,6 @@
  */
 goog.module('test_files.generic_local_var.generic_local_var');
 var module = module || { id: 'test_files/generic_local_var/generic_local_var.ts' };
-module = module;
 goog.require('tslib');
 /**
  * @template T

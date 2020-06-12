@@ -5,7 +5,6 @@
  */
 goog.module('test_files.docs_on_ctor_param_properties.docs_on_ctor_param_properties');
 var module = module || { id: 'test_files/docs_on_ctor_param_properties/docs_on_ctor_param_properties.ts' };
-module = module;
 goog.require('tslib');
 class Clazz {
     /**

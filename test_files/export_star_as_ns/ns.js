@@ -5,7 +5,6 @@
  */
 goog.module('test_files.export_star_as_ns.ns');
 var module = module || { id: 'test_files/export_star_as_ns/ns.ts' };
-module = module;
 goog.require('tslib');
 /** @type {number} */
 exports.x = 10;

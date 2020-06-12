@@ -5,7 +5,6 @@
  */
 goog.module('test_files.import_alias.exporter');
 var module = module || { id: 'test_files/import_alias/exporter.ts' };
-module = module;
 goog.require('tslib');
 /** @type {number} */
 const FOO = 1;

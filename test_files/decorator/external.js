@@ -5,7 +5,6 @@
  */
 goog.module('test_files.decorator.external');
 var module = module || { id: 'test_files/decorator/external.ts' };
-module = module;
 goog.require('tslib');
 const tsickle_external2_1 = goog.requireType("test_files.decorator.external2");
 const external2_1 = goog.require('test_files.decorator.external2');

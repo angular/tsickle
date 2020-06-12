@@ -6,7 +6,6 @@
  */
 goog.module('test_files.partial.partial');
 var module = module || { id: 'test_files/partial/partial.ts' };
-module = module;
 goog.require('tslib');
 /**
  * @record
