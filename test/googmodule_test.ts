@@ -133,21 +133,22 @@ console.log(mod_1.x);
     expectCommonJs('a.ts', `import 'req/mod';`).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
-var tsickle_module_1_ = goog.require('req.mod');
+goog.require('req.mod');
 `);
   });
 
-  it('converts imports to goog.require calls without assignments after comments', () => {
-    expectCommonJs('a.ts', `
+  it('converts imports to goog.require calls without assignments after comments',
+     () => {
+       expectCommonJs('a.ts', `
 // Comment
 import 'req/mod';`)
-        .toBe(`goog.module('a');
+           .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
 // Comment
-var tsickle_module_1_ = goog.require('req.mod');
+goog.require('req.mod');
 `);
-  });
+     });
 
   it('keeps fileoverview comments before imports', () => {
     expectCommonJs('a.ts', `/** @modName {mod_a} */
@@ -368,7 +369,7 @@ console.log(sym, es6RelativeRequire, es6NonRelativeRequire);
     expect(output).toBe(`goog.module('a.b');
 var module = module || { id: 'a/b.ts' };
 goog.require('tslib');
-var tsickle_module_1_ = goog.require('foo.bare_require');
+goog.require('foo.bare_require');
 var goog_foo_bar_1 = goog.require('foo.bar');
 var relative_1 = goog.require('a.relative');
 var relative_2 = goog.require('non.relative');
@@ -455,7 +456,7 @@ tslib_1.__exportStar(tsickle_module_1_, exports);
 var namedExport_js_1 = goog.require('project.namedExport');
 exports.namedRexport = namedExport_js_1.namedRexport;
 exports.renamedExportTo = namedExport_js_1.renamedExportFrom;
-var tsickle_module_2_ = goog.require('google3.workspace.rooted.file');
+goog.require('google3.workspace.rooted.file');
 var starImportWorkspaceRooted = goog.require('google3.workspace.rooted.otherFile');
 console.log(starImport, file_js_1.namedImport, file_js_1.renamedFrom, starImportWorkspaceRooted);
 `);

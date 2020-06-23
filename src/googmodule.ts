@@ -291,8 +291,11 @@ export function commonJsToGoogmoduleTransformer(
 
       let moduleVarCounter = 1;
       /**
-       * Creates a new unique variable to assign side effect imports into. This allows us to re-use
-       * the variable later on for other imports of the same namespace.
+       * Creates a new unique variable name for holding an imported module. This
+       * is used to split places where TS wants to codegen code like:
+       *   someExpression(require(...));
+       * which we then rewrite into
+       *   var x = require(...); someExpression(x);
        */
       function nextModuleVar() {
         return `tsickle_module_${moduleVarCounter++}_`;
@@ -305,23 +308,28 @@ export function commonJsToGoogmoduleTransformer(
       const namespaceToModuleVarName = new Map<string, ts.Identifier>();
 
       /**
-       * maybeCreateGoogRequire returns a `goog.require()` call for the given CommonJS `require`
-       * call. Returns null if `call` is not a CommonJS require.
+       * maybeCreateGoogRequire returns a `goog.require()` call for the given
+       * CommonJS `require` call. Returns null if `call` is not a CommonJS
+       * require.
+       *
+       * @param newIdent The identifier to assign the result of the goog.require
+       *     to, or undefined if no assignment is needed.
        */
       function maybeCreateGoogRequire(
-          original: ts.Statement, call: ts.CallExpression, newIdent: ts.Identifier): ts.Statement|
-          null {
+          original: ts.Statement, call: ts.CallExpression,
+          newIdent: ts.Identifier|undefined): ts.Statement|null {
         const importedUrl = extractRequire(call);
         if (!importedUrl) return null;
         const imp = importPathToGoogNamespace(host, sf, importedUrl);
         modulesManifest.addReferencedModule(sf.fileName, imp.text);
-        const ident: ts.Identifier|undefined = namespaceToModuleVarName.get(imp.text);
+        const existingImport: ts.Identifier|undefined =
+            namespaceToModuleVarName.get(imp.text);
         let initializer: ts.Expression;
-        if (!ident) {
-          namespaceToModuleVarName.set(imp.text, newIdent);
+        if (!existingImport) {
+          if (newIdent) namespaceToModuleVarName.set(imp.text, newIdent);
           initializer = createGoogCall('require', imp);
         } else {
-          initializer = ident;
+          initializer = existingImport;
         }
 
         // In JS modules it's recommended that users get a handle on the
@@ -332,18 +340,34 @@ export function commonJsToGoogmoduleTransformer(
         // In a goog.module we just want to access the global `goog` value,
         // so we skip emitting that import as a goog.require.
         // We check the goog module name so that we also catch relative imports.
-        if (newIdent.escapedText === 'goog' && imp.text === 'google3.javascript.closure.goog') {
+        if (newIdent && newIdent.escapedText === 'goog' &&
+            imp.text === 'google3.javascript.closure.goog') {
           return createNotEmittedStatementWithComments(sf, original);
         }
 
-        const varDecl = ts.createVariableDeclaration(newIdent, /* type */ undefined, initializer);
-        const newStmt = ts.createVariableStatement(
-            /* modifiers */ undefined,
-            ts.createVariableDeclarationList(
-                [varDecl],
-                // Use 'const' in ES6 mode so Closure properly forwards type aliases.
-                host.es5Mode ? undefined : ts.NodeFlags.Const));
-        return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
+        if (newIdent) {
+          // Create a statement like one of:
+          //   var foo = goog.require('bar');
+          //   var foo = existingImport;
+          const varDecl = ts.createVariableDeclaration(
+              newIdent, /* type */ undefined, initializer);
+          const newStmt = ts.createVariableStatement(
+              /* modifiers */ undefined,
+              ts.createVariableDeclarationList(
+                  [varDecl],
+                  // Use 'const' in ES6 mode so Closure properly forwards type
+                  // aliases.
+                  host.es5Mode ? undefined : ts.NodeFlags.Const));
+          return ts.setOriginalNode(
+              ts.setTextRange(newStmt, original), original);
+        } else if (!newIdent && !existingImport) {
+          // Create a statement like:
+          //   goog.require('bar');
+          const newStmt = ts.createExpressionStatement(initializer);
+          return ts.setOriginalNode(
+              ts.setTextRange(newStmt, original), original);
+        }
+        return createNotEmittedStatementWithComments(sf, original);
       }
 
       /**
@@ -526,35 +550,53 @@ export function commonJsToGoogmoduleTransformer(
               stmts.push(...exportStarAsNs);
               return;
             }
-            // Check for:
-            //   "require('foo');" (a require for its side effects)
+
+            // The rest of this block handles only some function call forms:
+            //   goog.declareModuleId(...);
+            //   require('foo');
+            //   __exportStar(require('foo'), ...);
             const expr = exprStmt.expression;
             if (!ts.isCallExpression(expr)) break;
             let callExpr = expr;
+
+            // Check for declareModuleId.
             const declaredModuleId = maybeRewriteDeclareModuleId(exprStmt, callExpr);
             if (declaredModuleId) {
               statements.push(declaredModuleId);
               return;
             }
-            // Handle export * in ES5 mode (in ES6 mode, export * is dereferenced already).
-            // export * creates either a pure top-level '__export(require(...))' or the imported
-            // version, 'tslib.__exportStar(require(...))'. The imported version is only substituted
-            // later on though, so appears as a plain "__exportStar" on the top level here.
-            const isExportStar =
-                (ts.isIdentifier(expr.expression) && expr.expression.text === '__exportStar') ||
-                (ts.isIdentifier(expr.expression) && expr.expression.text === '__export');
-            if (isExportStar) callExpr = expr.arguments[0] as ts.CallExpression;
-            const ident = ts.createIdentifier(nextModuleVar());
-            const require = maybeCreateGoogRequire(exprStmt, callExpr, ident);
+
+            // Check for __exportStar, the commonjs version of 'export *'.
+            // export * creates either a pure top-level '__export(require(...))'
+            // or the imported version, 'tslib.__exportStar(require(...))'. The
+            // imported version is only substituted later on though, so appears
+            // as a plain "__exportStar" on the top level here.
+            const isExportStar = ts.isIdentifier(expr.expression) &&
+                (expr.expression.text === '__exportStar' ||
+                 expr.expression.text === '__export');
+            let newIdent: ts.Identifier|undefined;
+            if (isExportStar) {
+              // Extract the goog.require() from the call. (It will be verified
+              // as a goog.require() below.)
+              callExpr = expr.arguments[0] as ts.CallExpression;
+              newIdent = ts.createIdentifier(nextModuleVar());
+            }
+
+            // Check whether the call is actually a require() and translate
+            // as appropriate.
+            const require =
+                maybeCreateGoogRequire(exprStmt, callExpr, newIdent);
             if (!require) break;
             statements.push(require);
-            // If this is an export star, split it up into the import (created by the maybe call
-            // above), and the export operation. This avoids a Closure complaint about non-top-level
-            // requires.
+
+            // If this was an export star, split it up into the import (created
+            // by the maybe call above), and the export operation. This avoids a
+            // Closure complaint about non-top-level requires.
             if (isExportStar) {
-              const args: ts.Expression[] = [ident];
+              const args: ts.Expression[] = [newIdent!];
               if (expr.arguments.length > 1) args.push(expr.arguments[1]);
-              statements.push(ts.createStatement(ts.createCall(expr.expression, undefined, args)));
+              statements.push(ts.createStatement(
+                  ts.createCall(expr.expression, undefined, args)));
             }
             return;
           }
