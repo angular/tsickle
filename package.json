@@ -21,12 +21,10 @@
     "@types/glob": "5.0.35",
     "@types/jasmine": "2.8.8",
     "@types/node": "^10.5.6",
-    "clang-format": "^1.2.4",
     "diff-match-patch": "^1.0.1",
     "glob": "7.1.2",
     "google-closure-compiler": "^20190929.0.0",
     "jasmine": "3.1.0",
-    "prettier": "1.14.0",
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.6",
     "tslib": "1.11",
@@ -35,7 +33,7 @@
   },
   "scripts": {
     "build": "bazel build //:npm_package",
-    "lint": "node check_format.js && tslint -c tslint.json -p tsconfig.json",
+    "lint": "tslint -c tslint.json -p tsconfig.json",
     "test": "yarn lint && bazel test ..."
   },
   "repository": {
