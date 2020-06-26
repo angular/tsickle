@@ -394,6 +394,34 @@ exports = 1;
 `);
   });
 
+
+  it('rewrites live export bindings', () => {
+    const before = `
+      Object.defineProperty(exports, 'foo', {
+        enumerable: true, get: function() { return ns.bar; }
+      });
+    `;
+
+    expectCommonJs('a.ts', before, false).toBe(`goog.module('a');
+var module = module || { id: 'a.ts' };
+goog.require('tslib');
+exports.foo = ns.bar;
+`);
+  });
+
+  it('elides default export values', () => {
+    const before = `
+      exports.foo = exports.bar = exports.baz = void 0;
+      exports.baz = void 0;
+    `;
+
+    expectCommonJs('a.ts', before, false).toBe(`goog.module('a');
+var module = module || { id: 'a.ts' };
+goog.require('tslib');
+exports.baz = void 0;
+`);
+  });
+
   describe('processing transpiled JS output', () => {
     function expectJsTranspilation(content: string, filename = 'project/file.js') {
       return expect(processES5(filename, content, {isJsTranspilation: true}).output);
