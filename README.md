@@ -140,9 +140,7 @@ any of the below commands to make sure you are using the right version.
 - `ibazel test test:unit_test` executes the unit tests in watch mode (use `bazel test test:unit_test` for a single run),
 - `bazel test test:e2e_test` executes the e2e tests,
 - `bazel test test:golden_test` executes the golden tests,
-- `node check_format.js` checks the source code formatting using
-  `clang-format`,
-- `yarn test` runs unit tests, e2e tests and checks the source code formatting.
+- `yarn test` runs unit tests and e2e tests.
 
 ### Debugging
 
