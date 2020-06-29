@@ -1,5 +1,5 @@
-// test_files/cast_extends/cast_extends.ts(16,1): warning TS0: unhandled type flags: IncludesNonWideningType
-// test_files/cast_extends/cast_extends.ts(22,10): warning TS0: unhandled type flags: IncludesNonWideningType
+// test_files/cast_extends/cast_extends.ts(16,1): warning TS0: unhandled type flags: Intersection
+// test_files/cast_extends/cast_extends.ts(22,10): warning TS0: unhandled type flags: Intersection
 /**
  *
  * @fileoverview Reproduces an issue where tsickle would emit a cast for the "extends" claus, and
