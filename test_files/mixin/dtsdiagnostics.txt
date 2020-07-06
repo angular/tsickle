@@ -1,2 +1,2 @@
-test_files/mixin/mixin.d.ts(1,1): warning TS0: unhandled type flags: IncludesNonWideningType
+test_files/mixin/mixin.d.ts(1,1): warning TS0: unhandled type flags: Intersection
 test_files/mixin/mixin.d.ts(12,31): warning TS0: dropped extends of non-symbol supertype: MyMixin(HTMLElement)
