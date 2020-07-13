@@ -59,6 +59,7 @@ export interface Tag {
  */
 const JSDOC_TAGS_OUTPUT_WHITELIST = new Set([
   'abstract',
+  'alternateMessageId',
   'argument',
   'author',
   'const',
