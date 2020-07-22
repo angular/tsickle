@@ -102,7 +102,7 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
         }
         return ts.visitEachChild(node, visitor, context);
       };
-      const updatedSourceFile = ts.visitNode(sourceFile, visitor);
+      let updatedSourceFile = ts.visitNode(sourceFile, visitor);
       if (nodeNeedingGoogReflect !== undefined) {
         const statements = [...updatedSourceFile.statements];
         const googModuleIndex = statements.findIndex(isGoogModuleStatement);
@@ -127,8 +127,11 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
         // after that to avoid visually breaking up the module info, and to be
         // with the rest of the goog.require statements.
         statements.splice(googModuleIndex + 3, 0, googRequireReflectObjectProperty);
-        updatedSourceFile.statements =
-            ts.setTextRange(ts.createNodeArray(statements), updatedSourceFile.statements);
+        updatedSourceFile = ts.factory.updateSourceFile(
+            updatedSourceFile, ts.setTextRange(ts.createNodeArray(statements), updatedSourceFile.statements),
+            updatedSourceFile.isDeclarationFile, updatedSourceFile.referencedFiles,
+            updatedSourceFile.typeReferenceDirectives, updatedSourceFile.hasNoDefaultLib,
+            updatedSourceFile.libReferenceDirectives);
       }
       return updatedSourceFile;
     };

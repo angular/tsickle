@@ -11,7 +11,7 @@
     "src/*"
   ],
   "peerDependencies": {
-    "typescript": "~3.9.5"
+    "typescript": "~4.0.0-dev"
   },
   "devDependencies": {
     "@bazel/bazel": "^0.29.0",
@@ -29,7 +29,7 @@
     "source-map-support": "^0.5.6",
     "tslib": "1.11",
     "tslint": "5.11.0",
-    "typescript": "3.9"
+    "typescript": "~4.0.0-dev"
   },
   "scripts": {
     "build": "bazel build //:npm_package",

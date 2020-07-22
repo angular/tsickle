@@ -170,10 +170,9 @@ function createCtorParametersClassPropertyType(): ts.TypeNode {
             undefined),
       ])),
       undefined));
-  return ts.createFunctionTypeNode(
-      undefined, [],
-      ts.createArrayTypeNode(
-          ts.createUnionTypeNode([ts.createTypeLiteralNode(typeElements), ts.createNull()])));
+  return ts.createFunctionTypeNode(undefined, [], ts.createArrayTypeNode(ts.createUnionTypeNode([
+    ts.createTypeLiteralNode(typeElements), ts.factory.createTypeReferenceNode('null')
+  ])));
 }
 
 /**
@@ -387,7 +386,8 @@ export function decoratorDownlevelTransformer(
      * decorators found. Returns an undefined name if there are no decorators to lower on the
      * element, or the element has an exotic name.
      */
-    function transformClassElement(element: ts.ClassElement):
+    function transformClassElement(element: ts.PropertyDeclaration|ts.GetAccessorDeclaration|
+                                   ts.SetAccessorDeclaration|ts.MethodDeclaration):
         [string|undefined, ts.ClassElement, ts.Decorator[]] {
       element = ts.visitEachChild(element, visitor, context);
       const decoratorsToKeep: ts.Decorator[] = [];
@@ -416,11 +416,35 @@ export function decoratorDownlevelTransformer(
       }
 
       const name = (element.name as ts.Identifier).text;
-      const mutable = ts.getMutableClone(element);
-      mutable.decorators = decoratorsToKeep.length ?
-          ts.setTextRange(ts.createNodeArray(decoratorsToKeep), mutable.decorators) :
+      let newNode: ts.ClassElement;
+      const decorators = decoratorsToKeep.length ?
+          ts.setTextRange(ts.createNodeArray(decoratorsToKeep), element.decorators) :
           undefined;
-      return [name, mutable, toLower];
+      switch (element.kind) {
+        case ts.SyntaxKind.PropertyDeclaration:
+          newNode = ts.factory.updatePropertyDeclaration(element, decorators, 
+            element.modifiers, element.name, element.questionToken ?? element.exclamationToken, element.type, element.initializer);
+          break;
+        case ts.SyntaxKind.GetAccessor:
+          newNode = ts.factory.updateGetAccessorDeclaration(
+              element, decorators, element.modifiers, element.name, element.parameters,
+              element.type, element.body);
+          break;
+        case ts.SyntaxKind.SetAccessor:
+          newNode = ts.factory.updateSetAccessorDeclaration(
+              element, decorators, element.modifiers, element.name, element.parameters,
+              element.body);
+          break;
+        case ts.SyntaxKind.MethodDeclaration:
+          newNode = ts.factory.updateMethodDeclaration(
+              element, decorators, element.modifiers, element.asteriskToken, element.name,
+              element.questionToken, element.typeParameters, element.parameters, element.type,
+              element.body);
+          break;
+        default:
+          throw new Error(`unexpected element: ${element}`);
+      }
+      return [name, newNode, toLower];
     }
 
     /**
@@ -486,7 +510,9 @@ export function decoratorDownlevelTransformer(
           case ts.SyntaxKind.GetAccessor:
           case ts.SyntaxKind.SetAccessor:
           case ts.SyntaxKind.MethodDeclaration: {
-            const [name, newMember, decorators] = transformClassElement(member);
+            const [name, newMember, decorators] = transformClassElement(
+                member as ts.PropertyDeclaration | ts.GetAccessorDeclaration |
+                ts.SetAccessorDeclaration | ts.MethodDeclaration);
             newMembers.push(newMember);
             if (name) decoratedProperties.set(name, decorators);
             continue;
@@ -517,7 +543,7 @@ export function decoratorDownlevelTransformer(
         }
       }
 
-      const newClassDeclaration = ts.getMutableClone(classDecl);
+      // const newClassDeclaration = ts.getMutableClone(classDecl);
 
       if (decoratorsToLower.length) {
         newMembers.push(createDecoratorClassProperty(decoratorsToLower));
@@ -533,12 +559,13 @@ export function decoratorDownlevelTransformer(
       if (decoratedProperties.size) {
         newMembers.push(createPropDecoratorsClassProperty(diagnostics, decoratedProperties));
       }
-      newClassDeclaration.members = ts.setTextRange(
-          ts.createNodeArray(newMembers, newClassDeclaration.members.hasTrailingComma),
-          classDecl.members);
-      newClassDeclaration.decorators =
-          decoratorsToKeep.length ? ts.createNodeArray(decoratorsToKeep) : undefined;
-      return newClassDeclaration;
+      const newDecorators = decoratorsToKeep.length ? ts.createNodeArray(decoratorsToKeep) : undefined;
+      return ts.factory.updateClassDeclaration(
+          classDecl, newDecorators, classDecl.modifiers, classDecl.name, classDecl.typeParameters,
+          classDecl.heritageClauses,
+          ts.setTextRange(
+              ts.createNodeArray(newMembers, classDecl.members.hasTrailingComma),
+              classDecl.members));
     }
 
     function visitor(node: ts.Node): ts.Node {

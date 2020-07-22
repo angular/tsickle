@@ -1,4 +1,4 @@
-// test_files/fields/fields.ts(22,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
+// test_files/fields/fields.ts(24,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/fields/fields.ts
@@ -15,6 +15,8 @@ class FieldsTest {
         this.field3 = field3;
         // A field without an explicit type declaration.
         this.field4 = 'string';
+        this.field1 = '1';
+        this.field2 = 2;
         this.field3 = 2 + 1;
     }
     /**
@@ -45,26 +47,7 @@ let fieldsTest = new FieldsTest(3);
 fieldsTest.field1 = 'hi';
 /** @type {?} */
 let AnonymousClass = class {
+    constructor() {
+        this.field = 1;
+    }
 };
-class BaseThatThrows {
-    /**
-     * @return {number}
-     */
-    get throwMe() { throw new Error(); }
-}
-/**
- * @extends {BaseThatThrows}
- */
-class Derived extends BaseThatThrows {
-}
-/* istanbul ignore if */
-if (false) {
-    /**
-     * Note: in Closure, this type is declared via an annotation on
-     * Derived.prototype.throwMe, which throws if it's evaluated.
-     * So any tsickle output that puts the type declaration at the
-     * top level is wrong.
-     * @type {number}
-     */
-    Derived.prototype.throwMe;
-}

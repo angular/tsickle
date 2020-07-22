@@ -23,6 +23,6 @@ exports.x = {
      * @return {void}
      */
     conditionalRestTupleType(...args) {
-        conditionalRestTupleType(...args);
+        conditionalRestTupleType((/** @type {?} */ (args)));
     }
 };

@@ -45,7 +45,7 @@ const asyncTopLevelArrowFunction = (/**
 (param) => tslib_1.__awaiter(this, void 0, void 0, function* () {
     /** @type {number} */
     const s = yield 3;
-    return s + this.field;
+    return s + ((/** @type {?} */ (this))).field;
 }));
 class Container {
     constructor() {
@@ -76,9 +76,9 @@ class Container {
             return s + this.field;
         }));
         /**
+         * @this {!Container}
          * @param {string} param
          * @return {!Promise<string>}
-         * @this {*}
          */
         function asyncFunctionInMethod(param) {
             return tslib_1.__awaiter(this, void 0, void 0, function* () {

@@ -21,7 +21,7 @@ async function asyncTopLevelFunctionWithThisType(this: Container, param: string)
 
 const asyncTopLevelArrowFunction = async(param: string): Promise<string> => {
   const s = await 3;
-  return s + this.field;
+  return s + (this as any).field;
 };
 
 class Container {
@@ -37,7 +37,7 @@ class Container {
       const s = await 3;
       return s + this.field;
     };
-    async function asyncFunctionInMethod(param: string): Promise<string> {
+    async function asyncFunctionInMethod(this: Container, param: string): Promise<string> {
       const s = await 3;
       return s + this.field;
     }
