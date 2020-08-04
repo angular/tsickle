@@ -317,10 +317,12 @@ function addClutzAliases(
   const moduleName = host.pathToModuleName('', sourceFile.fileName);
   const clutzModuleName = moduleName.replace(/\./g, '$');
 
-  // Clutz might refer to the name in two different forms (stemming from goog.provide and
-  // goog.module respectively).
+  // Clutz might refer to the name in two different forms (stemming from
+  // goog.provide and goog.module respectively).
+  //
   // 1) global in clutz:   ಠ_ಠ.clutz.module$contents$path$to$module_Symbol...
-  // 2) local in a module: ಠ_ಠ.clutz.module$exports$path$to$module.Symbol ..
+  // 2) local in a module: ಠ_ಠ.clutz.module$exports$path$to$module.Symbol...
+  //
   // See examples at:
   // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
 
@@ -337,15 +339,12 @@ function addClutzAliases(
       // i.e. the name used to address the symbol from outside the module.
       // Use the localName for the export then, but publish under the external name.
       localName = declaration.propertyName.text;
+      nestedSymbols += `\t\texport {${localName} as ${symbol.name}};\n`;
+    } else {
+      nestedSymbols += `\t\texport {${symbol.name}};\n`;
     }
     const mangledName = `module$contents$${clutzModuleName}_${symbol.name}`;
-    globalSymbols += `\t\texport {${localName} as ${mangledName}}\n`;
-    // TODO(mprobst): Once tsickle is on TS3.7, the two lines below can be replaced with
-    // "export {localName};". However in TS3.5, localName resolves within the module, so
-    // exporting {localName} causes a circular definition error. The workaround is to import the
-    // mangled name.
-    nestedSymbols += `\t\timport ${localName}$clutz = ಠ_ಠ.clutz.${mangledName};\n`;
-    nestedSymbols += `\t\texport {${localName}$clutz as ${symbol.name}};\n`;
+    globalSymbols += `\t\texport {${localName} as ${mangledName}};\n`;
   }
 
   dtsFileContent += 'declare global {\n';
