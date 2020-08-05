@@ -48,23 +48,27 @@ function isClutzDts(sourceFile: ts.SourceFile): boolean {
 }
 
 /**
- * typeValueConflictHandled returns true for symbols whose type/value conflict is handled outside of
- * tsickle.
+ * typeValueConflictHandled returns true for symbols whose type/value conflict
+ * is handled outside of tsickle.
  *
  * This covers two cases:
  *
- * - symbols provided by Clutz. Given that Closure has a merged type/value namespace, apparent
- *   type/value conflicts on the TypeScript level are actually fine.
- * - builtin lib*.d.ts symbols, such as "Array", which are considered Closure-compatible. Note that
- *   we don't actually enforce that the types are actually compatible, but mostly just hope that
- *   they are due to being derived from the same HTML specs.
+ * - symbols provided by Clutz. Given that Closure has a merged type/value
+ * namespace, apparent type/value conflicts on the TypeScript level are actually
+ * fine.
+ * - builtin lib*.d.ts symbols, such as "Array", which are considered
+ * Closure-compatible. Note that we don't actually enforce that the types are
+ * actually compatible, but mostly just hope that they are due to being derived
+ * from the same HTML specs.
  */
 export function typeValueConflictHandled(symbol: ts.Symbol) {
-  // TODO(#1072): if the symbol comes from a tsickle-transpiled file, either .ts or .d.ts with
-  // externs generation? then maybe we can emit it with name mangling.
+  // TODO(#1072): if the symbol comes from a tsickle-transpiled file, either .ts
+  // or .d.ts with externs generation? then maybe we can emit it with name
+  // mangling.
   return symbol.declarations != null &&
       symbol.declarations.some(
-          n => isBuiltinLibDTS(n.getSourceFile().fileName) || isClutzDts(n.getSourceFile()));
+          n => isBuiltinLibDTS(n.getSourceFile().fileName) ||
+              isClutzDts(n.getSourceFile()));
 }
 
 export function typeToDebugString(type: ts.Type): string {
@@ -74,19 +78,24 @@ export function typeToDebugString(type: ts.Type): string {
     debugString += ` alias:${symbolToDebugString(type.aliasSymbol)}`;
   }
   if (type.aliasTypeArguments) {
-    debugString += ` aliasArgs:<${type.aliasTypeArguments.map(typeToDebugString).join(',')}>`;
+    debugString += ` aliasArgs:<${
+        type.aliasTypeArguments.map(typeToDebugString).join(',')}>`;
   }
 
   // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const basicTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
-    ts.TypeFlags.Boolean,       ts.TypeFlags.Enum,           ts.TypeFlags.StringLiteral,
-    ts.TypeFlags.NumberLiteral, ts.TypeFlags.BooleanLiteral, ts.TypeFlags.EnumLiteral,
-    ts.TypeFlags.BigIntLiteral, ts.TypeFlags.ESSymbol,       ts.TypeFlags.UniqueESSymbol,
-    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,      ts.TypeFlags.Null,
-    ts.TypeFlags.Never,         ts.TypeFlags.TypeParameter,  ts.TypeFlags.Object,
-    ts.TypeFlags.Union,         ts.TypeFlags.Intersection,   ts.TypeFlags.Index,
-    ts.TypeFlags.IndexedAccess, ts.TypeFlags.Conditional,    ts.TypeFlags.Substitution,
+    ts.TypeFlags.Any,           ts.TypeFlags.String,
+    ts.TypeFlags.Number,        ts.TypeFlags.Boolean,
+    ts.TypeFlags.Enum,          ts.TypeFlags.StringLiteral,
+    ts.TypeFlags.NumberLiteral, ts.TypeFlags.BooleanLiteral,
+    ts.TypeFlags.EnumLiteral,   ts.TypeFlags.BigIntLiteral,
+    ts.TypeFlags.ESSymbol,      ts.TypeFlags.UniqueESSymbol,
+    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,
+    ts.TypeFlags.Null,          ts.TypeFlags.Never,
+    ts.TypeFlags.TypeParameter, ts.TypeFlags.Object,
+    ts.TypeFlags.Union,         ts.TypeFlags.Intersection,
+    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,
+    ts.TypeFlags.Conditional,   ts.TypeFlags.Substitution,
   ];
   for (const flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
@@ -129,7 +138,8 @@ export function typeToDebugString(type: ts.Type): string {
 }
 
 export function symbolToDebugString(sym: ts.Symbol): string {
-  let debugString = `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
+  let debugString =
+      `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
 
   // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const symbolFlags = [
@@ -169,12 +179,15 @@ export function symbolToDebugString(sym: ts.Symbol): string {
   return debugString;
 }
 
-/** A module declared as "declare module 'external_name' {...}" (note the quotes). */
+/**
+ * A module declared as "declare module 'external_name' {...}" (note the
+ * quotes).
+ */
 type AmbientModuleDeclaration = ts.ModuleDeclaration&{name: ts.StringLiteral};
 
 /**
- * Searches for an ambient module declaration in the ancestors of declarations, depth first, and
- * returns the first or null if none found.
+ * Searches for an ambient module declaration in the ancestors of declarations,
+ * depth first, and returns the first or null if none found.
  */
 function getContainingAmbientModuleDeclaration(declarations: ts.Declaration[]):
     AmbientModuleDeclaration|null {
@@ -190,37 +203,45 @@ function getContainingAmbientModuleDeclaration(declarations: ts.Declaration[]):
   return null;
 }
 
-/** Returns true if any of declarations is a top level declaration in an external module. */
+/**
+ * Returns true if any of declarations is a top level declaration in an
+ * external module.
+ */
 function isTopLevelExternal(declarations: ts.Declaration[]) {
   for (const declaration of declarations) {
     if (declaration.parent === undefined) continue;
-    if (ts.isSourceFile(declaration.parent) && ts.isExternalModule(declaration.parent)) return true;
+    if (ts.isSourceFile(declaration.parent) &&
+        ts.isExternalModule(declaration.parent)) {
+      return true;
+    }
   }
   return false;
 }
 
 /**
- * Returns true if a and b are (or were originally before transformation) nodes of the same source
- * file.
+ * Returns true if a and b are (or were originally before transformation) nodes
+ * of the same source file.
  */
 function isDeclaredInSameFile(a: ts.Node, b: ts.Node) {
-  return ts.getOriginalNode(a).getSourceFile() === ts.getOriginalNode(b).getSourceFile();
+  return ts.getOriginalNode(a).getSourceFile() ===
+      ts.getOriginalNode(b).getSourceFile();
 }
 
 /**
- * TypeTranslator translates TypeScript types to Closure types. It keeps state per type, so each
- * translation operation has to create a new instance.
+ * TypeTranslator translates TypeScript types to Closure types. It keeps state
+ * per type, so each translation operation has to create a new instance.
  */
 export class TypeTranslator {
   /**
-   * A list of type literals we've encountered while emitting; used to avoid getting stuck in
-   * recursive types.
+   * A list of type literals we've encountered while emitting; used to avoid
+   * getting stuck in recursive types.
    */
-  private readonly seenAnonymousTypes = new Set<ts.Type>();
+  private readonly seenAnonymousTypes: ts.Type[] = [];
 
   /**
-   * Whether to write types suitable for an #externs file. Externs types must not refer to
-   * non-externs types (i.e. non ambient types) and need to use fully qualified names.
+   * Whether to write types suitable for an #externs file. Externs types must
+   * not refer to non-externs types (i.e. non ambient types) and need to use
+   * fully qualified names.
    */
   isForExterns = false;
 
@@ -242,51 +263,64 @@ export class TypeTranslator {
    * @param pathBlackList is a set of paths that should never get typed;
    *     any reference to symbols defined in these paths should by typed
    *     as {?}.
-   * @param symbolsToAliasedNames a mapping from symbols (`Foo`) to a name in scope they should be
-   *     emitted as (e.g. `tsickle_reqType_1.Foo`). Can be augmented during type translation, e.g.
-   *     to blacklist a symbol.
+   * @param symbolsToAliasedNames a mapping from symbols (`Foo`) to a name in
+   *     scope they should be emitted as (e.g. `tsickle_reqType_1.Foo`). Can be
+   *     augmented during type translation, e.g. to blacklist a symbol.
    */
   constructor(
-      private readonly host: AnnotatorHost, private readonly typeChecker: ts.TypeChecker,
-      private readonly node: ts.Node, private readonly pathBlackList: Set<string>,
+      private readonly host: AnnotatorHost,
+      private readonly typeChecker: ts.TypeChecker,
+      private readonly node: ts.Node,
+      private readonly pathBlackList: Set<string>,
       private readonly symbolsToAliasedNames: Map<ts.Symbol, string>,
       private readonly symbolToNameCache: Map<ts.Symbol, string>,
-      private readonly ensureSymbolDeclared: (sym: ts.Symbol) => void = () => {}) {
+      private readonly ensureSymbolDeclared:
+          (sym: ts.Symbol) => void = () => {}) {
     // Normalize paths to not break checks on Windows.
-    this.pathBlackList =
-        new Set<string>(Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
+    this.pathBlackList = new Set<string>(
+        Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
   }
 
   /**
-   * Converts a ts.Symbol to a string, applying aliases and ensuring symbols are imported.
-   * @return a string representation of the symbol as a valid Closure type name, or `undefined` if
-   *     the type cannot be expressed (e.g. for anonymous types).
+   * Converts a ts.Symbol to a string, applying aliases and ensuring symbols are
+   * imported.
+   * @return a string representation of the symbol as a valid Closure type name,
+   *     or `undefined` if the type cannot be expressed (e.g. for anonymous
+   *     types).
    */
   symbolToString(sym: ts.Symbol): string|undefined {
-    // symbolToEntityName can be relatively expensive (40 ms calls with symbols in large namespaces
-    // with many declarations, i.e. Clutz). symbolToString is idempotent per symbol and file, thus
-    // we cache the entire operation to avoid the hit.
+    // symbolToEntityName can be relatively expensive (40 ms calls with symbols
+    // in large namespaces with many declarations, i.e. Clutz). symbolToString
+    // is idempotent per symbol and file, thus we cache the entire operation to
+    // avoid the hit.
     const cachedName = this.symbolToNameCache.get(sym);
     if (cachedName) return cachedName;
 
-    // TypeScript resolves e.g. union types to their members, which can include symbols not declared
-    // in the current scope. Ensure that all symbols found this way are actually declared.
-    // This must happen before the alias check below, it might introduce a new alias for the symbol.
-    if (!this.isForExterns && (sym.flags & ts.SymbolFlags.TypeParameter) === 0) {
+    // TypeScript resolves e.g. union types to their members, which can include
+    // symbols not declared in the current scope. Ensure that all symbols found
+    // this way are actually declared. This must happen before the alias check
+    // below, it might introduce a new alias for the symbol.
+    if (!this.isForExterns &&
+        (sym.flags & ts.SymbolFlags.TypeParameter) === 0) {
       this.ensureSymbolDeclared(sym);
     }
 
     const name = this.typeChecker.symbolToEntityName(
-        sym, ts.SymbolFlags.Type, this.node, ts.NodeBuilderFlags.UseFullyQualifiedType);
+        sym, ts.SymbolFlags.Type, this.node,
+        ts.NodeBuilderFlags.UseFullyQualifiedType);
     // name might be undefined, e.g. for anonymous classes.
     if (!name) return undefined;
 
-    // TypeScript's symbolToEntityName returns a tree of Identifier objects. tsickle needs to
-    // identify and alias specifiy symbols on it. The code below accesses the TypeScript @internal
-    // symbol field on Identifier to do so.
+    // TypeScript's symbolToEntityName returns a tree of Identifier objects.
+    // tsickle needs to identify and alias specifiy symbols on it. The code
+    // below accesses the TypeScript @internal symbol field on Identifier to do
+    // so.
     type IdentifierWithSymbol = ts.Identifier&{symbol: ts.Symbol};
     let str = '';
-    /** Recursively visits components of entity name and writes them to `str` above. */
+    /**
+     * Recursively visits components of entity name and writes them to `str`
+     * above.
+     */
     const writeEntityWithSymbols = (name: ts.EntityName) => {
       let identifier: IdentifierWithSymbol;
       if (ts.isQualifiedName(name)) {
@@ -297,16 +331,17 @@ export class TypeTranslator {
         identifier = name as IdentifierWithSymbol;
       }
       let symbol = identifier.symbol;
-      // When writing a symbol, check if there is an alias for it in the current scope that should
-      // take precedence, e.g. from a goog.requireType.
+      // When writing a symbol, check if there is an alias for it in the current
+      // scope that should take precedence, e.g. from a goog.requireType.
       if (symbol.flags & ts.SymbolFlags.Alias) {
         symbol = this.typeChecker.getAliasedSymbol(symbol);
       }
       const alias = this.symbolsToAliasedNames.get(symbol);
       if (alias) {
-        // If so, discard the entire current text and only use the alias - otherwise if a symbol has
-        // a local alias but appears in a dotted type path (e.g. when it's imported using import *
-        // as foo), str would contain both the prefx *and* the full alias (foo.alias.name).
+        // If so, discard the entire current text and only use the alias -
+        // otherwise if a symbol has a local alias but appears in a dotted type
+        // path (e.g. when it's imported using import * as foo), str would
+        // contain both the prefx *and* the full alias (foo.alias.name).
         str = alias;
         return;
       }
@@ -325,47 +360,52 @@ export class TypeTranslator {
   }
 
   /**
-   * Returns the mangled name prefix for symbol, or an empty string if not applicable.
+   * Returns the mangled name prefix for symbol, or an empty string if not
+   * applicable.
    *
-   * Type names are emitted with a mangled prefix if they are top level symbols declared in an
-   * external module (.d.ts or .ts), and are ambient declarations ("declare ..."). This is because
-   * their declarations get moved to externs files (to make external names visible to Closure and
-   * prevent renaming), which only use global names. This means the names must be mangled to prevent
-   * collisions and allow referencing them uniquely.
+   * Type names are emitted with a mangled prefix if they are top level symbols
+   * declared in an external module (.d.ts or .ts), and are ambient declarations
+   * ("declare ..."). This is because their declarations get moved to externs
+   * files (to make external names visible to Closure and prevent renaming),
+   * which only use global names. This means the names must be mangled to
+   * prevent collisions and allow referencing them uniquely.
    *
-   * This method also handles the special case of symbols declared in an ambient external module
-   * context.
+   * This method also handles the special case of symbols declared in an ambient
+   * external module context.
    *
-   * Symbols declared in a global block, e.g. "declare global { type X; }", are handled implicitly:
-   * when referenced, they are written as just "X", which is not a top level declaration, so the
-   * code below ignores them.
+   * Symbols declared in a global block, e.g. "declare global { type X; }", are
+   * handled implicitly: when referenced, they are written as just "X", which is
+   * not a top level declaration, so the code below ignores them.
    */
   maybeGetMangledNamePrefix(symbol: ts.Symbol): string|'' {
     if (!symbol.declarations) return '';
     const declarations = symbol.declarations;
     let ambientModuleDeclaration: AmbientModuleDeclaration|null = null;
-    // If the symbol is neither a top level declaration in an external module nor in an ambient
-    // block, tsickle should not emit a prefix: it's either not an external symbol, or it's an
-    // external symbol nested in a module, so it will need to be qualified, and the mangling prefix
-    // goes on the qualifier.
+    // If the symbol is neither a top level declaration in an external module
+    // nor in an ambient block, tsickle should not emit a prefix: it's either
+    // not an external symbol, or it's an external symbol nested in a module, so
+    // it will need to be qualified, and the mangling prefix goes on the
+    // qualifier.
     if (!isTopLevelExternal(declarations)) {
-      ambientModuleDeclaration = getContainingAmbientModuleDeclaration(declarations);
+      ambientModuleDeclaration =
+          getContainingAmbientModuleDeclaration(declarations);
       if (!ambientModuleDeclaration) return '';
     }
-    // At this point, the declaration is from an external module (possibly ambient).
-    // These declarations must be prefixed if either:
-    // (a) tsickle is emitting an externs file, so all symbols are qualified within it
-    // (b) or the declaration must be an exported ambient declaration from the local file.
-    // Ambient external declarations from other files are imported, so there's a local alias for the
-    // module and no mangling is needed.
+    // At this point, the declaration is from an external module (possibly
+    // ambient). These declarations must be prefixed if either: (a) tsickle is
+    // emitting an externs file, so all symbols are qualified within it (b) or
+    // the declaration must be an exported ambient declaration from the local
+    // file. Ambient external declarations from other files are imported, so
+    // there's a local alias for the module and no mangling is needed.
     if (!this.isForExterns &&
         !declarations.every(
             d => isDeclaredInSameFile(this.node, d) && isAmbient(d) &&
                 hasModifierFlag(d, ts.ModifierFlags.Export))) {
       return '';
     }
-    // If from an ambient declaration, use and resolve the name from that. Otherwise, use the file
-    // name from the (arbitrary) first declaration to mangle.
+    // If from an ambient declaration, use and resolve the name from that.
+    // Otherwise, use the file name from the (arbitrary) first declaration to
+    // mangle.
     const fileName = ambientModuleDeclaration ?
         ambientModuleDeclaration.name.text :
         ts.getOriginalNode(declarations[0]).getSourceFile().fileName;
@@ -373,34 +413,39 @@ export class TypeTranslator {
     return mangled + '.';
   }
 
-  // Clutz (https://github.com/angular/clutz) emits global type symbols hidden in a special
-  // ಠ_ಠ.clutz namespace. While most code seen by Tsickle will only ever see local aliases, Clutz
-  // symbols can be written by users directly in code, and they can appear by dereferencing
-  // TypeAliases. The code below simply strips the prefix, the remaining type name then matches
-  // Closure's type.
+  // Clutz (https://github.com/angular/clutz) emits global type symbols hidden
+  // in a special ಠ_ಠ.clutz namespace. While most code seen by Tsickle will only
+  // ever see local aliases, Clutz symbols can be written by users directly in
+  // code, and they can appear by dereferencing TypeAliases. The code below
+  // simply strips the prefix, the remaining type name then matches Closure's
+  // type.
   private stripClutzNamespace(name: string) {
-    if (name.startsWith('ಠ_ಠ.clutz.')) return name.substring('ಠ_ಠ.clutz.'.length);
+    if (name.startsWith('ಠ_ಠ.clutz.')) {
+      return name.substring('ಠ_ಠ.clutz.'.length);
+    }
     return name;
   }
 
   translate(type: ts.Type): string {
     // NOTE: Though type.flags has the name "flags", it usually can only be one
-    // of the enum options at a time (except for unions of literal types, e.g. unions of boolean
-    // values, string values, enum values). This switch handles all the cases in the ts.TypeFlags
-    // enum in the order they occur.
+    // of the enum options at a time (except for unions of literal types, e.g.
+    // unions of boolean values, string values, enum values). This switch
+    // handles all the cases in the ts.TypeFlags enum in the order they occur.
 
-    // NOTE: Some TypeFlags are marked "internal" in the d.ts but still show up in the value of
-    // type.flags. This mask limits the flag checks to the ones in the public API. "lastFlag" here
-    // is the last flag handled in this switch statement, and should be kept in sync with
-    // typescript.d.ts.
+    // NOTE: Some TypeFlags are marked "internal" in the d.ts but still show up
+    // in the value of type.flags. This mask limits the flag checks to the ones
+    // in the public API. "lastFlag" here is the last flag handled in this
+    // switch statement, and should be kept in sync with typescript.d.ts.
 
-    // NonPrimitive occurs on its own on the lower case "object" type. Special case to "!Object".
+    // NonPrimitive occurs on its own on the lower case "object" type. Special
+    // case to "!Object".
     if (type.flags === ts.TypeFlags.NonPrimitive) return '!Object';
 
     // Avoid infinite loops on recursive type literals.
-    // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol
-    // below), but Closure Compiler does not allow recursive type definitions.
-    if (this.seenAnonymousTypes.has(type)) return '?';
+    // It would be nice to just emit the name of the recursive type here (in
+    // type.aliasSymbol below), but Closure Compiler does not allow recursive
+    // type definitions.
+    if (this.seenAnonymousTypes.indexOf(type) !== -1) return '?';
 
     let isAmbient = false;
     let isInNamespace = false;
@@ -411,19 +456,24 @@ export class TypeTranslator {
         if (decl.getSourceFile().isDeclarationFile) isAmbient = true;
         let current: ts.Declaration|undefined = decl;
         while (current) {
-          if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
-          if (current.kind === ts.SyntaxKind.ModuleDeclaration) isInNamespace = true;
+          if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) {
+            isAmbient = true;
+          }
+          if (current.kind === ts.SyntaxKind.ModuleDeclaration) {
+            isInNamespace = true;
+          }
           current = current.parent as ts.Declaration | undefined;
         }
       }
     }
 
-    // tsickle cannot generate types for non-ambient namespaces nor any symbols contained in them.
+    // tsickle cannot generate types for non-ambient namespaces nor any symbols
+    // contained in them.
     if (isInNamespace && !isAmbient) return '?';
 
     // Types in externs cannot reference types from external modules.
-    // However ambient types in modules get moved to externs, too, so type references work and we
-    // can emit a precise type.
+    // However ambient types in modules get moved to externs, too, so type
+    // references work and we can emit a precise type.
     if (this.isForExterns && isModule && !isAmbient) return '?';
 
     const lastFlag = ts.TypeFlags.Substitution;
@@ -452,8 +502,9 @@ export class TypeTranslator {
       case ts.TypeFlags.ESSymbol:
       case ts.TypeFlags.UniqueESSymbol:
         // ESSymbol indicates something typed symbol.
-        // UniqueESSymbol indicates a specific unique symbol, used e.g. to index into an object.
-        // Closure does not have this distinction, so tsickle emits both as 'symbol'.
+        // UniqueESSymbol indicates a specific unique symbol, used e.g. to index
+        // into an object. Closure does not have this distinction, so tsickle
+        // emits both as 'symbol'.
         return 'symbol';
       case ts.TypeFlags.Void:
         return 'void';
@@ -470,13 +521,15 @@ export class TypeTranslator {
       case ts.TypeFlags.TypeParameter:
         // This is e.g. the T in a type like Foo<T>.
         if (!type.symbol) {
-          this.warn(`TypeParameter without a symbol`);  // should not happen (tm)
+          this.warn(
+              `TypeParameter without a symbol`);  // should not happen (tm)
           return '?';
         }
-        // In Closure, type parameters ("<T>") are non-nullable by default, unlike references to
-        // classes or interfaces. However this code path can be reached by bound type parameters,
-        // where the type parameter's symbol references a plain class or interface. In this case,
-        // add `!` to avoid emitting a nullable type.
+        // In Closure, type parameters ("<T>") are non-nullable by default,
+        // unlike references to classes or interfaces. However this code path
+        // can be reached by bound type parameters, where the type parameter's
+        // symbol references a plain class or interface. In this case, add `!`
+        // to avoid emitting a nullable type.
         let prefix = '';
         if ((type.symbol.flags & ts.SymbolFlags.TypeParameter) === 0) {
           prefix = '!';
@@ -503,10 +556,11 @@ export class TypeTranslator {
 
         // Types with literal members are represented as
         //   ts.TypeFlags.Union | [literal member]
-        // E.g. an enum typed value is a union type with the enum's members as its members. A
-        // boolean type is a union type with 'true' and 'false' as its members.
-        // Note also that in a more complex union, e.g. boolean|number, then it's a union of three
-        // things (true|false|number) and ts.TypeFlags.Boolean doesn't show up at all.
+        // E.g. an enum typed value is a union type with the enum's members as
+        // its members. A boolean type is a union type with 'true' and 'false'
+        // as its members. Note also that in a more complex union, e.g.
+        // boolean|number, then it's a union of three things (true|false|number)
+        // and ts.TypeFlags.Boolean doesn't show up at all.
         if (type.flags & ts.TypeFlags.Union) {
           return this.translateUnion(type as ts.UnionType);
         }
@@ -516,14 +570,16 @@ export class TypeTranslator {
         }
 
         // The switch statement should have been exhaustive.
-        throw new Error(`unknown type flags ${type.flags} on ${typeToDebugString(type)}`);
+        throw new Error(
+            `unknown type flags ${type.flags} on ${typeToDebugString(type)}`);
     }
   }
 
   private translateUnion(type: ts.UnionType): string {
-    // Union types that include literals (e.g. boolean, enum) can end up repeating the same Closure
-    // type. For example: true | boolean will be translated to boolean | boolean.
-    // Remove duplicates to produce types that read better.
+    // Union types that include literals (e.g. boolean, enum) can end up
+    // repeating the same Closure type. For example: true | boolean will be
+    // translated to boolean | boolean. Remove duplicates to produce types that
+    // read better.
     const parts = new Set(type.types.map(t => this.translate(t)));
     // If it's a single element set, return the single member.
     if (parts.size === 1) return parts.values().next().value;
@@ -533,12 +589,12 @@ export class TypeTranslator {
   private translateEnumLiteral(type: ts.Type): string {
     // Suppose you had:
     //   enum EnumType { MEMBER }
-    // then the type of "EnumType.MEMBER" is an enum literal (the thing passed to this function)
-    // and it has type flags that include
+    // then the type of "EnumType.MEMBER" is an enum literal (the thing passed
+    // to this function) and it has type flags that include
     //   ts.TypeFlags.NumberLiteral | ts.TypeFlags.EnumLiteral
     //
-    // Closure Compiler doesn't support literals in types, so this code must not emit
-    // "EnumType.MEMBER", but rather "EnumType".
+    // Closure Compiler doesn't support literals in types, so this code must not
+    // emit "EnumType.MEMBER", but rather "EnumType".
 
     const enumLiteralBaseType = this.typeChecker.getBaseTypeOfLiteralType(type);
     if (!enumLiteralBaseType.symbol) {
@@ -547,9 +603,10 @@ export class TypeTranslator {
     }
     let symbol = enumLiteralBaseType.symbol;
     if (enumLiteralBaseType === type) {
-      // TypeScript's API will return the same EnumLiteral type if the enum only has a single member
-      // value. See https://github.com/Microsoft/TypeScript/issues/28869.
-      // In that case, take the parent symbol of the enum member, which should be the enum
+      // TypeScript's API will return the same EnumLiteral type if the enum only
+      // has a single member value. See
+      // https://github.com/Microsoft/TypeScript/issues/28869. In that case,
+      // take the parent symbol of the enum member, which should be the enum
       // declaration.
       // tslint:disable-next-line:no-any working around a TS API deficiency.
       const parent: ts.Symbol|undefined = (symbol as any)['parent'];
@@ -558,10 +615,10 @@ export class TypeTranslator {
     }
     const name = this.symbolToString(symbol);
     if (!name) return '?';
-    // In Closure, enum types are non-null by default, so we wouldn't need to emit the `!` here.
-    // However that's confusing to users, to the point that style guides and linters require to
-    // *always* specify the nullability modifier. To be consistent with that style, include it here
-    // as well.
+    // In Closure, enum types are non-null by default, so we wouldn't need to
+    // emit the `!` here. However that's confusing to users, to the point that
+    // style guides and linters require to *always* specify the nullability
+    // modifier. To be consistent with that style, include it here as well.
     return '!' + name;
   }
 
@@ -571,7 +628,8 @@ export class TypeTranslator {
     if (type.symbol && this.isBlackListed(type.symbol)) return '?';
 
     // NOTE: objectFlags is an enum, but a given type can have multiple flags.
-    // Array<string> is both ts.ObjectFlags.Reference and ts.ObjectFlags.Interface.
+    // Array<string> is both ts.ObjectFlags.Reference and
+    // ts.ObjectFlags.Interface.
 
     if (type.objectFlags & ts.ObjectFlags.Class) {
       if (!type.symbol) {
@@ -580,8 +638,8 @@ export class TypeTranslator {
       }
       const name = this.symbolToString(type.symbol);
       if (!name) {
-        // An anonymous type. Make sure not to emit '!?', as that is a syntax error in Closure
-        // Compiler.
+        // An anonymous type. Make sure not to emit '!?', as that is a syntax
+        // error in Closure Compiler.
         return '?';
       }
       return '!' + name;
@@ -602,7 +660,8 @@ export class TypeTranslator {
         // For user-defined types in this state, we may not have a Closure name
         // for the type.  See the type_and_value test.
         if (!typeValueConflictHandled(type.symbol)) {
-          this.warn(`type/symbol conflict for ${type.symbol.name}, using {?} for now`);
+          this.warn(`type/symbol conflict for ${
+              type.symbol.name}, using {?} for now`);
           return '?';
         }
       }
@@ -625,11 +684,12 @@ export class TypeTranslator {
         // the same as the outer; this can occur when this function
         // fails to translate a more specific type before getting to
         // this point.
-        throw new Error(
-            `reference loop in ${typeToDebugString(referenceType)} ${referenceType.flags}`);
+        throw new Error(`reference loop in ${
+            typeToDebugString(referenceType)} ${referenceType.flags}`);
       }
       typeStr += this.translate(referenceType.target);
-      // Translate can return '?' for a number of situations, e.g. type/value conflicts.
+      // Translate can return '?' for a number of situations, e.g. type/value
+      // conflicts.
       // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
       if (typeStr === '?') return '?';
       let typeArgs: readonly ts.Type[] =
@@ -661,151 +721,168 @@ export class TypeTranslator {
 
   /**
    * translateAnonymousType translates a ts.TypeFlags.ObjectType that is also
-   * ts.ObjectFlags.Anonymous. That is, this type's symbol does not have a name. This is the
-   * anonymous type encountered in e.g.
-   *     let x: {a: number};
-   * But also the inferred type in:
-   *     let x = {a: 1};  // type of x is {a: number}, as above
+   * ts.ObjectFlags.Anonymous. That is, this type's symbol does not have a name.
+   * This is the anonymous type encountered in e.g. let x: {a: number}; But also
+   * the inferred type in: let x = {a: 1};  // type of x is {a: number}, as
+   * above
    */
   private translateAnonymousType(type: ts.Type): string {
-    this.seenAnonymousTypes.add(type);
-    if (!type.symbol) {
-      // This comes up when generating code for an arrow function as passed
-      // to a generic function.  The passed-in type is tagged as anonymous
-      // and has no properties so it's hard to figure out what to generate.
-      // Just avoid it for now so we don't crash.
-      this.warn('anonymous type has no symbol');
-      return '?';
-    }
-
-    if (type.symbol.flags & ts.SymbolFlags.Function || type.symbol.flags & ts.SymbolFlags.Method) {
-      const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
-      if (sigs.length === 1) {
-        return this.signatureToClosure(sigs[0]);
-      }
-      this.warn('unhandled anonymous type with multiple call signatures');
-      return '?';
-    }
-
-    // Gather up all the named fields and whether the object is also callable.
-    let callable = false;
-    let indexable = false;
-    const fields: string[] = [];
-    if (!type.symbol.members) {
-      this.warn('anonymous type has no symbol');
-      return '?';
-    }
-
-    // special-case construct signatures.
-    const ctors = type.getConstructSignatures();
-    if (ctors.length) {
-      // TODO(martinprobst): this does not support additional properties defined on constructors
-      // (not expressible in Closure), nor multiple constructors (same).
-      const decl = ctors[0].declaration;
-      if (!decl) {
-        this.warn('unhandled anonymous type with constructor signature but no declaration');
-        return '?';
-      }
-      if (decl.kind === ts.SyntaxKind.JSDocSignature) {
-        this.warn('unhandled JSDoc based constructor signature');
+    this.seenAnonymousTypes.push(type);
+    try {
+      if (!type.symbol) {
+        // This comes up when generating code for an arrow function as passed
+        // to a generic function.  The passed-in type is tagged as anonymous
+        // and has no properties so it's hard to figure out what to generate.
+        // Just avoid it for now so we don't crash.
+        this.warn('anonymous type has no symbol');
         return '?';
       }
 
-      // new <T>(tee: T) is not supported by Closure, blacklist as ?.
-      this.blacklistTypeParameters(this.symbolsToAliasedNames, decl.typeParameters);
-
-      const params = this.convertParams(ctors[0], decl.parameters);
-      const paramsStr = params.length ? (', ' + params.join(', ')) : '';
-      const constructedType = this.translate(ctors[0].getReturnType());
-      const constructedTypeStr =
-          constructedType[0] === '!' ? constructedType.substring(1) : constructedType;
-      // In the specific case of the "new" in a function, the correct Closure
-      // type is:
-      //
-      //   function(new:Bar, ...args)
-      //
-      // Including the nullability annotation can cause the Closure compiler to
-      // no longer recognize the function as a constructor type in externs.
-      return `function(new:${constructedTypeStr}${paramsStr})`;
-    }
-
-    // members is an ES6 map, but the .d.ts defining it defined their own map
-    // type, so typescript doesn't believe that .keys() is iterable
-    // tslint:disable-next-line:no-any
-    for (const field of (type.symbol.members.keys() as any)) {
-      switch (field) {
-        case '__call':
-          callable = true;
-          break;
-        case '__index':
-          indexable = true;
-          break;
-        default:
-          if (!isValidClosurePropertyName(field)) {
-            this.warn(`omitting inexpressible property name: ${field}`);
-            continue;
-          }
-          const member = type.symbol.members.get(field)!;
-          // optional members are handled by the type including |undefined in a union type.
-          const memberType =
-              this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
-          fields.push(`${field}: ${memberType}`);
-          break;
-      }
-    }
-
-    // Try to special-case plain key-value objects and functions.
-    if (fields.length === 0) {
-      if (callable && !indexable) {
-        // A function type.
-        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+      if (type.symbol.flags & ts.SymbolFlags.Function ||
+          type.symbol.flags & ts.SymbolFlags.Method) {
+        const sigs =
+            this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
-      } else if (indexable && !callable) {
-        // A plain key-value map type.
-        let keyType = 'string';
-        let valType = this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.String);
-        if (!valType) {
-          keyType = 'number';
-          valType = this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.Number);
-        }
-        if (!valType) {
-          this.warn('unknown index key type');
-          return `!Object<?,?>`;
-        }
-        return `!Object<${keyType},${this.translate(valType)}>`;
-      } else if (!callable && !indexable) {
-        // The object has no members.  This is the TS type '{}',
-        // which means "any value other than null or undefined".
-        // What is this in Closure's type system?
-        //
-        // First, {!Object} is wrong because it is not a supertype of
-        // {string} or {number}.  This would mean you cannot assign a
-        // number to a variable of TS type {}.
-        //
-        // We get closer with {*}, aka the ALL type.  This one better
-        // captures the typical use of the TS {}, which users use for
-        // "I don't care".
-        //
-        // {*} unfortunately does include null/undefined, so it's a closer
-        // match for TS 3.0's 'unknown'.
-        return '*';
+        this.warn('unhandled anonymous type with multiple call signatures');
+        return '?';
       }
-    }
 
-    if (!callable && !indexable) {
-      // Not callable, not indexable; implies a plain object with fields in it.
-      return `{${fields.join(', ')}}`;
-    }
+      // Gather up all the named fields and whether the object is also callable.
+      let callable = false;
+      let indexable = false;
+      const fields: string[] = [];
+      if (!type.symbol.members) {
+        this.warn('anonymous type has no symbol');
+        return '?';
+      }
 
-    this.warn('unhandled anonymous type');
-    return '?';
+      // special-case construct signatures.
+      const ctors = type.getConstructSignatures();
+      if (ctors.length) {
+        // TODO(martinprobst): this does not support additional properties
+        // defined on constructors (not expressible in Closure), nor multiple
+        // constructors (same).
+        const decl = ctors[0].declaration;
+        if (!decl) {
+          this.warn(
+              'unhandled anonymous type with constructor signature but no declaration');
+          return '?';
+        }
+        if (decl.kind === ts.SyntaxKind.JSDocSignature) {
+          this.warn('unhandled JSDoc based constructor signature');
+          return '?';
+        }
+
+        // new <T>(tee: T) is not supported by Closure, blacklist as ?.
+        this.blacklistTypeParameters(
+            this.symbolsToAliasedNames, decl.typeParameters);
+
+        const params = this.convertParams(ctors[0], decl.parameters);
+        const paramsStr = params.length ? (', ' + params.join(', ')) : '';
+        const constructedType = this.translate(ctors[0].getReturnType());
+        const constructedTypeStr = constructedType[0] === '!' ?
+            constructedType.substring(1) :
+            constructedType;
+        // In the specific case of the "new" in a function, the correct Closure
+        // type is:
+        //
+        //   function(new:Bar, ...args)
+        //
+        // Including the nullability annotation can cause the Closure compiler
+        // to no longer recognize the function as a constructor type in externs.
+        return `function(new:${constructedTypeStr}${paramsStr})`;
+      }
+
+      // members is an ES6 map, but the .d.ts defining it defined their own map
+      // type, so typescript doesn't believe that .keys() is iterable
+      // tslint:disable-next-line:no-any
+      for (const field of (type.symbol.members.keys() as any)) {
+        switch (field) {
+          case '__call':
+            callable = true;
+            break;
+          case '__index':
+            indexable = true;
+            break;
+          default:
+            if (!isValidClosurePropertyName(field)) {
+              this.warn(`omitting inexpressible property name: ${field}`);
+              continue;
+            }
+            const member = type.symbol.members.get(field)!;
+            // optional members are handled by the type including |undefined in
+            // a union type.
+            const memberType = this.translate(
+                this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
+            fields.push(`${field}: ${memberType}`);
+            break;
+        }
+      }
+
+      // Try to special-case plain key-value objects and functions.
+      if (fields.length === 0) {
+        if (callable && !indexable) {
+          // A function type.
+          const sigs =
+              this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+          if (sigs.length === 1) {
+            return this.signatureToClosure(sigs[0]);
+          }
+        } else if (indexable && !callable) {
+          // A plain key-value map type.
+          let keyType = 'string';
+          let valType =
+              this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.String);
+          if (!valType) {
+            keyType = 'number';
+            valType =
+                this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.Number);
+          }
+          if (!valType) {
+            this.warn('unknown index key type');
+            return `!Object<?,?>`;
+          }
+          return `!Object<${keyType},${this.translate(valType)}>`;
+        } else if (!callable && !indexable) {
+          // The object has no members.  This is the TS type '{}',
+          // which means "any value other than null or undefined".
+          // What is this in Closure's type system?
+          //
+          // First, {!Object} is wrong because it is not a supertype of
+          // {string} or {number}.  This would mean you cannot assign a
+          // number to a variable of TS type {}.
+          //
+          // We get closer with {*}, aka the ALL type.  This one better
+          // captures the typical use of the TS {}, which users use for
+          // "I don't care".
+          //
+          // {*} unfortunately does include null/undefined, so it's a closer
+          // match for TS 3.0's 'unknown'.
+          return '*';
+        }
+      }
+
+      if (!callable && !indexable) {
+        // Not callable, not indexable; implies a plain object with fields in
+        // it.
+        return `{${fields.join(', ')}}`;
+      }
+
+      this.warn('unhandled anonymous type');
+      return '?';
+    } finally {
+      this.seenAnonymousTypes.pop();
+    }
   }
 
-  /** Converts a ts.Signature (function signature) to a Closure function type. */
+  /**
+   * Converts a ts.Signature (function signature) to a Closure function type.
+   */
   private signatureToClosure(sig: ts.Signature): string {
-    // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in externs.ts.
+    // TODO(martinprobst): Consider harmonizing some overlap with
+    // emitFunctionType in tsickle.ts.
     if (!sig.declaration) {
       this.warn('signature without declaration');
       return 'Function';
@@ -814,16 +891,20 @@ export class TypeTranslator {
       this.warn('signature with JSDoc declaration');
       return 'Function';
     }
-    this.blacklistTypeParameters(this.symbolsToAliasedNames, sig.declaration.typeParameters);
+    this.blacklistTypeParameters(
+        this.symbolsToAliasedNames, sig.declaration.typeParameters);
 
     let typeStr = `function(`;
-    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> = sig.declaration.parameters || [];
+    let paramDecls: ReadonlyArray<ts.ParameterDeclaration> =
+        sig.declaration.parameters || [];
     const maybeThisParam = paramDecls[0];
-    // Oddly, the this type shows up in paramDecls, but not in the type's parameters.
-    // Handle it here and then pass paramDecls down without its first element.
+    // Oddly, the this type shows up in paramDecls, but not in the type's
+    // parameters. Handle it here and then pass paramDecls down without its
+    // first element.
     if (maybeThisParam && maybeThisParam.name.getText() === 'this') {
       if (maybeThisParam.type) {
-        const thisType = this.typeChecker.getTypeAtLocation(maybeThisParam.type);
+        const thisType =
+            this.typeChecker.getTypeAtLocation(maybeThisParam.type);
         typeStr += `this: (${this.translate(thisType)})`;
         if (paramDecls.length > 1) typeStr += ', ';
       } else {
@@ -835,7 +916,8 @@ export class TypeTranslator {
     const params = this.convertParams(sig, paramDecls);
     typeStr += `${params.join(', ')})`;
 
-    const retType = this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
+    const retType =
+        this.translate(this.typeChecker.getReturnTypeOfSignature(sig));
     if (retType) {
       typeStr += `: ${retType}`;
     }
@@ -844,12 +926,14 @@ export class TypeTranslator {
   }
 
   /**
-   * Converts parameters for the given signature. Takes parameter declarations as those might not
-   * match the signature parameters (e.g. there might be an additional this parameter). This
-   * difference is handled by the caller, as is converting the "this" parameter.
+   * Converts parameters for the given signature. Takes parameter declarations
+   * as those might not match the signature parameters (e.g. there might be an
+   * additional this parameter). This difference is handled by the caller, as is
+   * converting the "this" parameter.
    */
-  private convertParams(sig: ts.Signature, paramDecls: ReadonlyArray<ts.ParameterDeclaration>):
-      string[] {
+  private convertParams(
+      sig: ts.Signature,
+      paramDecls: ReadonlyArray<ts.ParameterDeclaration>): string[] {
     const paramTypes: string[] = [];
     for (let i = 0; i < sig.parameters.length; i++) {
       const param = sig.parameters[i];
@@ -858,23 +942,27 @@ export class TypeTranslator {
       // Parameters are optional if either marked '?' or if have a default
       const optional = !!paramDecl.questionToken || !!paramDecl.initializer;
       const varArgs = !!paramDecl.dotDotDotToken;
-      let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      let paramType =
+          this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
       if (varArgs) {
         if ((paramType.flags & ts.TypeFlags.Object) === 0) {
           this.warn('var args type is not an object type');
           paramTypes.push('!Array<?>');
           continue;
         }
-        if (((paramType as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) === 0) {
+        if (((paramType as ts.ObjectType).objectFlags &
+             ts.ObjectFlags.Reference) === 0) {
           this.warn('unsupported var args type (not an array reference)');
           paramTypes.push('!Array<?>');
           continue;
         }
-        const typeArgs = this.typeChecker.getTypeArguments(paramType as ts.TypeReference);
+        const typeArgs =
+            this.typeChecker.getTypeArguments(paramType as ts.TypeReference);
         if (typeArgs.length === 0) {
-          // When a rest argument resolves empty, i.e. the concrete instantiation does not take any
-          // arguments, the type arguments are empty. Emit a function type that takes no arg in this
-          // position then.
+          // When a rest argument resolves empty, i.e. the concrete
+          // instantiation does not take any arguments, the type arguments are
+          // empty. Emit a function type that takes no arg in this position
+          // then.
           continue;
         }
         paramType = typeArgs[0];
@@ -898,16 +986,18 @@ export class TypeTranslator {
   }
 
   /**
-   * Closure doesn not support type parameters for function types, i.e. generic function types.
-   * Blacklist the symbols declared by them and emit a ? for the types.
+   * Closure doesn not support type parameters for function types, i.e. generic
+   * function types. Blacklist the symbols declared by them and emit a ? for the
+   * types.
    *
-   * This mutates the given blacklist map. The map's scope is one file, and symbols are
-   * unique objects, so this should neither lead to excessive memory consumption nor introduce
-   * errors.
+   * This mutates the given blacklist map. The map's scope is one file, and
+   * symbols are unique objects, so this should neither lead to excessive memory
+   * consumption nor introduce errors.
    *
-   * @param blacklist a map to store the blacklisted symbols in, with a value of '?'. In practice,
-   *     this is always === this.symbolsToAliasedNames, but we're passing it explicitly to make it
-   *    clear that the map is mutated (in particular when used from outside the class).
+   * @param blacklist a map to store the blacklisted symbols in, with a value of
+   *     '?'. In practice, this is always === this.symbolsToAliasedNames, but
+   *     we're passing it explicitly to make it clear that the map is mutated
+   *     (in particular when used from outside the class).
    * @param decls the declarations whose symbols should be blacklisted.
    */
   blacklistTypeParameters(
@@ -926,12 +1016,15 @@ export class TypeTranslator {
 }
 
 /** @return true if sym should always have type {?}. */
-export function isBlacklisted(pathBlackList: Set<string>|undefined, symbol: ts.Symbol) {
+export function isBlacklisted(
+    pathBlackList: Set<string>|undefined, symbol: ts.Symbol) {
   if (pathBlackList === undefined) return false;
-  // Some builtin types, such as {}, get represented by a symbol that has no declarations.
+  // Some builtin types, such as {}, get represented by a symbol that has no
+  // declarations.
   if (symbol.declarations === undefined) return false;
   return symbol.declarations.every(n => {
     const fileName = path.normalize(n.getSourceFile().fileName);
     return pathBlackList.has(fileName);
   });
 }
+
