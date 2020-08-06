@@ -18,7 +18,7 @@ var fn4 = (/**
  * @return {?}
  */
 (a) => a + 12);
-/** @type {function(number): number} */
+/** @type {function(number=): number} */
 exports.fn5 = (/**
  * @param {number=} a
  * @return {number}
@@ -26,7 +26,7 @@ exports.fn5 = (/**
 (a = 10) => a);
 /**
  * \@param a this must be escaped, as Closure bails on it.
- * @type {function(number): number}
+ * @type {function(number=): number}
  */
 const fn6 = (/**
  * @param {number=} a

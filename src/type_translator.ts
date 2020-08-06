@@ -789,7 +789,7 @@ export class TypeTranslator {
 
   /** Converts a ts.Signature (function signature) to a Closure function type. */
   private signatureToClosure(sig: ts.Signature): string {
-    // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in tsickle.ts.
+    // TODO(martinprobst): Consider harmonizing some overlap with emitFunctionType in externs.ts.
     if (!sig.declaration) {
       this.warn('signature without declaration');
       return 'Function';
@@ -839,7 +839,8 @@ export class TypeTranslator {
       const param = sig.parameters[i];
 
       const paramDecl = paramDecls[i];
-      const optional = !!paramDecl.questionToken;
+      // Parameters are optional if either marked '?' or if have a default
+      const optional = !!paramDecl.questionToken || !!paramDecl.initializer;
       const varArgs = !!paramDecl.dotDotDotToken;
       let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
       if (varArgs) {
