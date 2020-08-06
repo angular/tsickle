@@ -10,6 +10,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
 import {assertAbsolute} from './cli_support';
+import * as clutz from './clutz';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
 import {transformDecoratorsOutputForClosurePropertyRenaming} from './decorators';
 import {enumTransformer} from './enum_transformer';
@@ -137,13 +138,12 @@ export function emit(
   const tsTransformers: ts.CustomTransformers = {
     before: [
       ...(customTransformers.beforeTsickle || []),
-      ...(tsickleSourceTransformers || []).map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
+      ...(tsickleSourceTransformers || [])
+          .map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
       ...(customTransformers.beforeTs || []),
     ],
-    after: [
-      ...(customTransformers.afterTs || []),
-    ],
-    afterDeclarations: customTransformers.afterDeclarations,
+    after: [...(customTransformers.afterTs || [])],
+    afterDeclarations: [...(customTransformers.afterDeclarations || [])]
   };
   if (host.transformTypesToClosure) {
     // See comment on remoteTypeAssertions.
@@ -155,27 +155,15 @@ export function emit(
     tsTransformers.after!.push(
         transformDecoratorsOutputForClosurePropertyRenaming(tsickleDiagnostics));
   }
-
-  // Wrap the writeFile callback to hook writing of the dts file.
-  const writeFileImpl: ts.WriteFileCallback =
-      (fileName, content, writeByteOrderMark, onError, sourceFiles) => {
-        assertAbsolute(fileName);
-        if (host.addDtsClutzAliases && isDtsFileName(fileName) && sourceFiles) {
-          // Only bundle emits pass more than one source file for .d.ts writes. Bundle emits however
-          // are not supported by tsickle, as we cannot annotate them for Closure in any meaningful
-          // way anyway.
-          if (!sourceFiles || sourceFiles.length > 1) {
-            throw new Error(`expected exactly one source file for .d.ts emit, got ${
-                sourceFiles.map(sf => sf.fileName)}`);
-          }
-          const originalSource = sourceFiles[0];
-          content = addClutzAliases(content, originalSource, typeChecker, host, tsOptions);
-        }
-        writeFile(fileName, content, writeByteOrderMark, onError, sourceFiles);
-      };
+  if (host.addDtsClutzAliases) {
+    tsTransformers.afterDeclarations!.push(
+        clutz.makeDeclarationTransformerFactory(
+            typeChecker, (path: string) => host.pathToModuleName('', path)));
+  }
 
   const {diagnostics: tsDiagnostics, emitSkipped, emittedFiles} = program.emit(
-      targetSourceFile, writeFileImpl, cancellationToken, emitOnlyDtsFiles, tsTransformers);
+      targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
+      tsTransformers);
 
   const externs: {[fileName: string]: string} = {};
   if (host.transformTypesToClosure) {
@@ -210,155 +198,6 @@ export function emit(
     diagnostics: [...tsDiagnostics, ...tsickleDiagnostics],
     externs
   };
-}
-
-/** Compares two strings and returns a number suitable for use in sort(). */
-function stringCompare(a: string, b: string): number {
-  if (a < b) return -1;
-  if (a > b) return 1;
-  return 0;
-}
-
-/**
- * A tsickle produced declaration file might be consumed be referenced by Clutz
- * produced .d.ts files, which use symbol names based on Closure's internal
- * naming conventions, so we need to provide aliases for all the exported symbols
- * in the Clutz naming convention.
- */
-function addClutzAliases(
-    dtsFileContent: string, sourceFile: ts.SourceFile, typeChecker: ts.TypeChecker,
-    host: TsickleHost, options: ts.CompilerOptions): string {
-  const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile);
-  const moduleExports = moduleSymbol && typeChecker.getExportsOfModule(moduleSymbol);
-  if (!moduleExports) return dtsFileContent;
-
-  // .d.ts files can be transformed, too, so we need to compare the original node below.
-  const origSourceFile = ts.getOriginalNode(sourceFile);
-  // In order to write aliases, the exported symbols need to be available in the
-  // the module scope. That is not always the case:
-  //
-  // export
-  // 1) export const X;           // works
-  //
-  // reexport
-  // 2) export {X} from './foo';  // doesn't
-  //
-  // imported reexport
-  // 3) import {X} from './foo';  // works
-  //    export {X} from './foo';
-  //
-  // getExportsOfModule returns all three types, but we need to separate 2).
-  // For now we 'fix' 2) by simply not emitting a clutz alias, since clutz
-  // interop is used in minority of scenarios.
-  //
-  // TODO(radokirov): attempt to add appropriate imports for 2) so that
-  // currently finding out local appears even harder than fixing exports.
-  const localExports = moduleExports.filter(e => {
-    // If there are no declarations, be conservative and don't emit the aliases.
-    // I don't know how can this happen, we have no tests that excercise it.
-    if (!e.declarations) return false;
-
-    // Skip default exports, they are not currently supported.
-    // default is a keyword in typescript, so the name of the export being
-    // default means that it's a default export.
-    if (e.name === 'default') return false;
-
-    // Use the declaration location to determine separate cases above.
-    for (const d of e.declarations) {
-      // This is a special case for export *. Technically, it is outside the
-      // three cases outlined, but at this point we have rewritten it to a
-      // reexport or an imported reexport. However, it appears that the
-      // rewriting also has made it behave different from explicit named export
-      // in the sense that the declaration appears to point at the original
-      // location not the reexport location.  Since we can't figure out whether
-      // there is a local import here, we err on the side of less emit.
-      if (d.getSourceFile() !== origSourceFile) {
-        return false;
-      }
-
-      // @internal marked APIs are not exported, so must not get aliases.
-      // This uses an internal TS API, assuming that accessing this will be more stable compared to
-      // implementing our own version.
-      // tslint:disable-next-line: no-any
-      if (options.stripInternal && (ts as any)['isInternalDeclaration'](d, origSourceFile)) {
-        return false;
-      }
-
-      if (!ts.isExportSpecifier(d)) {
-        // we have a pure export (case 1) thus safe to emit clutz alias.
-        return true;
-      }
-
-      // The declaration d is useless to separate reexport and import-reexport
-      // because they both point to the reexporting file and not to the original
-      // one.  However, there is another ts API that can do a deeper resolution.
-      const localSymbol = typeChecker.getExportSpecifierLocalTargetSymbol(d);
-      // I don't know how can this happen, but err on the side of less emit.
-      if (!localSymbol) return false;
-      // `declarations` is undefined for builtin symbols, such as `unknown`.
-      if (!localSymbol.declarations) return false;
-
-      // In case of no import we ended up in a declaration in foo.ts, while in
-      // case of having an import localD is still in the reexporing file.
-      for (const localD of localSymbol.declarations) {
-        if (localD.getSourceFile() !== origSourceFile) {
-          return false;
-        }
-      }
-    }
-    return true;
-  });
-  if (!localExports.length) return dtsFileContent;
-
-  // TypeScript 2.8 and TypeScript 2.9 differ on the order in which the
-  // module symbols come out, so sort here to make the tests stable.
-  localExports.sort((a, b) => stringCompare(a.name, b.name));
-
-  const moduleName = host.pathToModuleName('', sourceFile.fileName);
-  const clutzModuleName = moduleName.replace(/\./g, '$');
-
-  // Clutz might refer to the name in two different forms (stemming from
-  // goog.provide and goog.module respectively).
-  //
-  // 1) global in clutz:   ಠ_ಠ.clutz.module$contents$path$to$module_Symbol...
-  // 2) local in a module: ಠ_ಠ.clutz.module$exports$path$to$module.Symbol...
-  //
-  // See examples at:
-  // https://github.com/angular/clutz/tree/master/src/test/java/com/google/javascript/clutz
-
-  // Case (1) from above.
-  let globalSymbols = '';
-  // Case (2) from above.
-  let nestedSymbols = '';
-  for (const symbol of localExports) {
-    let localName = symbol.name;
-    const declaration = symbol.declarations.find(d => d.getSourceFile() === origSourceFile);
-    if (declaration && ts.isExportSpecifier(declaration) && declaration.propertyName) {
-      // If declared in an "export {X as Y};" export specifier, then X (stored in propertyName) is
-      // the local name that resolves within the module, whereas Y is only available on the exports,
-      // i.e. the name used to address the symbol from outside the module.
-      // Use the localName for the export then, but publish under the external name.
-      localName = declaration.propertyName.text;
-      nestedSymbols += `\t\texport {${localName} as ${symbol.name}};\n`;
-    } else {
-      nestedSymbols += `\t\texport {${symbol.name}};\n`;
-    }
-    const mangledName = `module$contents$${clutzModuleName}_${symbol.name}`;
-    globalSymbols += `\t\texport {${localName} as ${mangledName}};\n`;
-  }
-
-  dtsFileContent += 'declare global {\n';
-  dtsFileContent += `\tnamespace ಠ_ಠ.clutz {\n`;
-  dtsFileContent += globalSymbols;
-  dtsFileContent += `\t}\n`;
-  dtsFileContent += `\tnamespace ಠ_ಠ.clutz.module$exports$${clutzModuleName} {\n`;
-  // TODO(martinprobst): See https://github.com/Microsoft/TypeScript/issues/35385, remove once fixed
-  dtsFileContent += `\t\tconst clutz$workaround$tissue$35385: number;\n`;
-  dtsFileContent += nestedSymbols;
-  dtsFileContent += `\t}\n`;
-  dtsFileContent += '}\n';
-
-  return dtsFileContent;
 }
 
 function skipTransformForSourceFileIfNeeded(

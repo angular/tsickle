@@ -1,11 +1,10 @@
 export declare class Foo {
 }
 declare global {
-	namespace ಠ_ಠ.clutz {
-		export {Foo as module$contents$test_files$class$declaration$class_Foo};
-	}
-	namespace ಠ_ಠ.clutz.module$exports$test_files$class$declaration$class {
-		const clutz$workaround$tissue$35385: number;
-		export {Foo};
-	}
+    namespace ಠ_ಠ.clutz {
+        export { Foo as module$contents$test_files$class$declaration$class_Foo };
+        export namespace module$exports$test_files$class$declaration$class {
+            export { Foo };
+        }
+    }
 }
