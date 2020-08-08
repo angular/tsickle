@@ -13,7 +13,10 @@ export function hasModifierFlag(declaration: ts.Declaration, flag: ts.ModifierFl
   return (ts.getCombinedModifierFlags(declaration) & flag) !== 0;
 }
 
-/** @return true if node has the specified modifier flag set. */
+/**
+ * @return true if node or one of its ancestors has the Ambient modifier flag
+ *     set.
+ */
 export function isAmbient(node: ts.Node): boolean {
   let current: ts.Node|undefined = node;
   while (current) {
