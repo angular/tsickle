@@ -1,4 +1,4 @@
-// test_files/extend_and_implement/extend_and_implement.ts(15,1): warning TS0: dropped implements of class: ClassInImplements
+// test_files/extend_and_implement/extend_and_implement.ts(15,1): warning TS0: dropped implements: cannot implements a class
 /**
  *
  * @fileoverview Reproduces a problem where tsickle would emit "\\@extends
@@ -26,7 +26,8 @@ class ClassInExtends {
     }
 }
 /**
- * tsickle: dropped implements of class: ClassInImplements
+ * @extends {ClassInExtends}
+ * tsickle: dropped implements: cannot implements a class
  */
 class ExtendsAndImplementsClass extends ClassInExtends {
 }

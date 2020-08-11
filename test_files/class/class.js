@@ -1,8 +1,10 @@
-// test_files/class/class.ts(44,1): warning TS0: dropped interface extends class: Class
+// test_files/class/class.ts(44,1): warning TS0: dropped extends: interface cannot extend/implement class
 // test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(128,1): warning TS0: dropped implements of a type/value conflict: Zone
+// test_files/class/class.ts(128,42): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(128,1): warning TS0: dropped implements: {?} type
 // test_files/class/class.ts(131,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(132,1): warning TS0: dropped implements of a type/value conflict: ZoneAlias
+// test_files/class/class.ts(132,38): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(132,1): warning TS0: dropped implements: {?} type
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/class/class.ts
@@ -72,7 +74,7 @@ let interfaceExtendsInterface = { /**
     interfaceFunc2() { } };
 /**
  * @record
- * tsickle: dropped interface extends class: Class
+ * tsickle: dropped extends: interface cannot extend/implement class
  */
 function InterfaceExtendsClass() { }
 if (false) {
@@ -118,12 +120,18 @@ class ClassImplementsAbstractClass {
 // Permutation 4: class extends.
 // Note: cannot "extends" an interface.
 // So this is illegal: class ClassExtendsInterface extends Interface {
+/**
+ * @extends {Class}
+ */
 class ClassExtendsClass extends Class {
     /**
      * @return {void}
      */
     classFunc() { }
 }
+/**
+ * @extends {AbstractClass}
+ */
 class ClassExtendsAbstractClass extends AbstractClass {
     /**
      * @return {void}
@@ -172,6 +180,7 @@ class AbstractClassImplementsAbstractClass {
 // So this is illegal: class AbstractClassExtendsInterface extends Interface {
 /**
  * @abstract
+ * @extends {Class}
  */
 class AbstractClassExtendsClass extends Class {
     /**
@@ -181,13 +190,14 @@ class AbstractClassExtendsClass extends Class {
 }
 /**
  * @abstract
+ * @extends {AbstractClass}
  */
 class AbstractClassExtendsAbstractClass extends AbstractClass {
 }
 /** @typedef {!Interface} */
 var TypeAlias;
 /**
- * @implements {TypeAlias}
+ * @implements {Interface}
  * @extends {Class}
  */
 class ImplementsTypeAlias {
@@ -223,7 +233,7 @@ abstractClassVar = new ClassExtendsAbstractClass();
  */
 function Zone() { }
 /**
- * tsickle: dropped implements of a type/value conflict: Zone
+ * tsickle: dropped implements: {?} type
  */
 class ZoneImplementsInterface {
 }
@@ -234,7 +244,7 @@ if (false) {
 /** @typedef {?} */
 var ZoneAlias;
 /**
- * tsickle: dropped implements of a type/value conflict: ZoneAlias
+ * tsickle: dropped implements: {?} type
  */
 class ZoneImplementsAlias {
 }

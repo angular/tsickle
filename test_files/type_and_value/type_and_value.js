@@ -4,7 +4,8 @@
 // test_files/type_and_value/type_and_value.ts(31,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 // test_files/type_and_value/type_and_value.ts(38,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
 // test_files/type_and_value/type_and_value.ts(41,5): warning TS0: anonymous type has no symbol
-// test_files/type_and_value/type_and_value.ts(46,1): warning TS0: dropped implements of a type/value conflict: conflict.TypeAndValue
+// test_files/type_and_value/type_and_value.ts(46,41): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(46,1): warning TS0: dropped implements: {?} type
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/type_and_value/type_and_value.ts
@@ -55,7 +56,7 @@ let extUseEnumAsType;
 // ImplementsTypeAndValue implements a symbol that resolves to both a type and a
 // value, and thus the @implements clause is dropped by tsickle.
 /**
- * tsickle: dropped implements of a type/value conflict: conflict.TypeAndValue
+ * tsickle: dropped implements: {?} type
  */
 class ImplementsTypeAndValue {
     constructor() {

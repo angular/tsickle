@@ -35,7 +35,7 @@ import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {symbolIsValue} from './transformer_util';
-import {isValidClosurePropertyName, typeValueConflictHandled} from './type_translator';
+import {isValidClosurePropertyName} from './type_translator';
 
 function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>) {
   const comment = jsdoc.toSynthesizedComment(tags, escapeExtraTags);
@@ -59,140 +59,117 @@ export function maybeAddTemplateClause(docTags: jsdoc.Tag[], decl: HasTypeParame
 }
 
 /**
- * Adds heritage clauses (\@extends, \@implements) to the given docTags for decl. Used by
- * jsdoc_transformer and externs generation.
+ * Adds heritage clauses (\@extends, \@implements) to the given docTags for
+ * decl. Used by jsdoc_transformer and externs generation.
  */
 export function maybeAddHeritageClauses(
     docTags: jsdoc.Tag[], mtt: ModuleTypeTranslator,
     decl: ts.ClassLikeDeclaration|ts.InterfaceDeclaration) {
   if (!decl.heritageClauses) return;
   const isClass = decl.kind === ts.SyntaxKind.ClassDeclaration;
-  const hasExtends = decl.heritageClauses.some(c => c.token === ts.SyntaxKind.ExtendsKeyword);
+  const hasAnyExtends = decl.heritageClauses.some(c => c.token === ts.SyntaxKind.ExtendsKeyword);
   for (const heritage of decl.heritageClauses) {
     const isExtends = heritage.token === ts.SyntaxKind.ExtendsKeyword;
-    if (isClass && isExtends) {
-      // If a class has an "extends", that is preserved in the ES6 output
-      // and we don't need to emit any additional jsdoc.
-      //
-      // However for ambient declarations, we only emit externs, and in those we do need to
-      // add "@extends {Foo}" as they use ES5 syntax.
-      if (!transformerUtil.isAmbient(decl)) continue;
-    }
-
-    // Otherwise, if we get here, we need to emit some jsdoc.
     for (const expr of heritage.types) {
-      addHeritage(isExtends ? 'extends' : 'implements', hasExtends, expr);
+      addHeritage(isExtends ? 'extends' : 'implements', expr);
     }
   }
 
   /**
-   * Adds the relevant Closure JSdoc tags for an expression occurring in a heritage clause,
-   * e.g. "implements FooBar" => "@implements {FooBar}".
+   * Adds the relevant Closure JSdoc tags for an expression occurring in a
+   * heritage clause, e.g. "implements FooBar" => "@implements {FooBar}".
    *
-   * Will return null if the expression is inexpressible in Closure semantics.
+   * Will omit the JSDoc and add a comment saying why if the expression is
+   * inexpressible in Closure semantics.
    *
-   * Note that we don't need to consider all possible combinations of types/values and
-   * extends/implements because our input is already verified to be valid TypeScript.  See
-   * test_files/class/ for the full cartesian product of test cases.
+   * Note that we don't need to consider all possible combinations of
+   * types/values and extends/implements because our input is already verified
+   * to be valid TypeScript.  See test_files/class/ for the full cartesian
+   * product of test cases.
    *
-   * @param hasAnyExtends True if there are any 'extends' clauses present at all.
+   * In some cases adding the Closure JSDoc tags is unnecessary, like in
+   *   "class Foo {} /** @extends {Foo} * / class Bar extends Foo {}"
+   * but having the extra tag doesn't affect Closure Compiler typechecking
+   * semantics.
    */
   function addHeritage(
-      relation: 'extends'|'implements', hasAnyExtends: boolean,
-      expr: ts.ExpressionWithTypeArguments): void {
+      relation: 'extends'|'implements', expr: ts.ExpressionWithTypeArguments): void {
+    const supertype = mtt.typeChecker.getTypeAtLocation(expr);
+    // We ultimately need to have a named type in the JSDoc, so verify that
+    // the resolved type maps back to some specific symbol.
+    // You cannot @implements an anonymous record type, for example.
+    if (!supertype.symbol) {
+      warn(`type without symbol`);
+      return;
+    }
+    if (!supertype.symbol.name) {
+      warn(`type without symbol name`);
+      return;
+    }
+    if (supertype.symbol.flags & ts.SymbolFlags.TypeLiteral) {
+      // A type literal is a type like `{foo: string}`.
+      // These can come up as the output of a mapped type.
+      warn(`dropped ${relation} of a type literal: ${expr.getText()}`);
+      return;
+    }
+
+    // Translate the reference to the parent into the type expression used
+    // in the @extends/@implements JSDoc.
+    // Normally we'd use mtt.typeToClosure for type translation, but two
+    // caveats:
+    // 1) We need to avoid
+    //    https://github.com/microsoft/TypeScript/issues/38391
+    // 2) We can't emit a leading ! in the type reference.  So
+    //      @extends {X<!Y>}, not @extends {!X<!Y>}.
+    const typeTranslator = mtt.newTypeTranslator(expr);
+    // Workaround for #1, see also the definition of dropFinalTypeArgument
+    // for why we use this.
+    typeTranslator.dropFinalTypeArgument = true;
+
+    let closureType = typeTranslator.translate(supertype);
+    if (closureType === '?') {
+      warn(`{?} type`);
+      return;
+    }
+    // Workaround for #2
+    closureType = closureType.replace(/^!/, '');
+
+    // Choose the @tag to use.  For the (questionable) reasons described in
+    // this block, sometimes we emit @extends even if the TS code uses
+    // 'implements'.
     let tagName = relation;
-    const sym = mtt.typeChecker.getSymbolAtLocation(expr.expression);
-    if (!sym) {
-      // It's possible for a class declaration to extend an expression that
-      // does not have have a symbol, for example when a mixin function is
-      // used to build a base class, as in `declare MyClass extends
-      // MyMixin(MyBaseClass)`.
-      //
-      // Handling this correctly is tricky. Closure throws on this
-      // `extends <expression>` syntax (see
-      // https://github.com/google/closure-compiler/issues/2182). We would
-      // probably need to generate an intermediate class declaration and
-      // extend that.
-      warn(expr, `dropped ${relation} of non-symbol supertype: ${expr.getText()}`);
-      return;
-    }
-
-    // Resolve any aliases to the underlying declaration's symbol.
-    // We use that symbol for queries like "is it a type or a value?".
-    let declarationSym = sym;
-    if (declarationSym.flags & ts.SymbolFlags.TypeAlias) {
-      // It's implementing a type alias.  Follow the type alias back
-      // to the original symbol to check whether it's a type or a value.
-      const type = mtt.typeChecker.getDeclaredTypeOfSymbol(declarationSym);
-      if (!type.symbol) {
-        // It's not clear when this can happen.
-        warn(decl, `could not get type of symbol: ${expr.getText()}`);
-        return;
-      }
-      declarationSym = type.symbol;
-    }
-    if (declarationSym.flags & ts.SymbolFlags.Alias) {
-      declarationSym = mtt.typeChecker.getAliasedSymbol(declarationSym);
-    }
-
-    const typeTranslator = mtt.newTypeTranslator(expr.expression);
-    if (typeTranslator.isBlackListed(declarationSym)) {
-      // Don't emit references to blacklisted types.
-      warn(decl, `dropped ${relation} of blacklisted type: ${expr.getText()}`);
-      return;
-    }
-
-    if (declarationSym.flags & ts.SymbolFlags.Class) {
+    if (supertype.symbol.flags & ts.SymbolFlags.Class) {
       if (!isClass) {
-        // Closure interfaces cannot extend or implements classes.
-        warn(decl, `dropped interface ${relation} class: ${expr.getText()}`);
+        warn(`interface cannot extend/implement class`);
         return;
       }
       if (relation !== 'extends') {
         if (!hasAnyExtends) {
-          // A special case: for a class that has no existing 'extends' clause but does
-          // have an 'implements' clause that refers to another class, we change it to
-          // instead be an 'extends'.  This was a poorly-thought-out hack that may
-          // actually cause compiler bugs:
+          // A special case: for a class that has no existing 'extends' clause
+          // but does have an 'implements' clause that refers to another
+          // class, we change it to instead be an 'extends'.  This was a
+          // poorly-thought-out hack that may actually cause compiler bugs:
           //   https://github.com/google/closure-compiler/issues/3126
           // but we have code that now relies on it, ugh.
           tagName = 'extends';
         } else {
-          // Closure can only @implements an interface, not a class.
-          warn(decl, `dropped implements of class: ${expr.getText()}`);
+          warn(`cannot implements a class`);
           return;
         }
       }
-    } else if (declarationSym.flags & ts.SymbolFlags.Value) {
-      // If the symbol came from tsickle emit and it's something other than a class in the value
-      // namespace, then tsickle may not have emitted the type.
-      if (!typeValueConflictHandled(declarationSym)) {
-        warn(decl, `dropped ${relation} of a type/value conflict: ${expr.getText()}`);
-        return;
-      }
-    } else if (declarationSym.flags & ts.SymbolFlags.TypeLiteral) {
-      // A type literal is a type like `{foo: string}`.
-      // These can come up as the output of a mapped type.
-      warn(decl, `dropped ${relation} of a type literal: ${expr.getText()}`);
-      return;
     }
 
-    // typeToClosure includes nullability modifiers, so call symbolToString directly here.
-    const parentName = typeTranslator.symbolToString(sym);
-    if (!parentName) {
-      warn(decl, `dropped ${relation} of unnameable type: ${expr.getText()}`);
-      return;
-    }
     docTags.push({
       tagName,
-      type: parentName,
+      type: closureType,
     });
-  }
 
-  /** Records a warning, both in the source text and in the emit host. */
-  function warn(context: ts.Node, message: string) {
-    docTags.push({tagName: '', text: `tsickle: ${message}`});
-    mtt.debugWarn(context, message);
+    /** Records a warning, both in the source text and in the emit host. */
+    function warn(message: string) {
+      message = `dropped ${relation}: ${message}`;
+      docTags.push({tagName: '', text: `tsickle: ${message}`});
+      mtt.debugWarn(decl, message);
+    }
   }
 }
 
@@ -576,26 +553,6 @@ export function jsdocTransformer(
         addCommentOn(decl, tags);
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, iface);
         return memberDecl ? [decl, memberDecl] : [decl];
-      }
-
-      /** Returns the `this` type in this context, or undefined if none. */
-      function getContextThisType(node: ts.Node|undefined): ts.Type|undefined {
-        while (node) {
-          if (ts.isClassDeclaration(node) && node.name) {
-            return typeChecker.getTypeAtLocation(node.name);
-          }
-          if (ts.isFunctionDeclaration(node) && node.parameters.length > 0) {
-            const firstParam = node.parameters[0];
-            // ts.Signature does not expose a `this` type, so comparing identifier names to 'this'
-            // is the only way to find a this type declaration.
-            if (ts.isIdentifier(firstParam.name) &&
-                transformerUtil.getIdentifierText(firstParam.name) === 'this' && firstParam.type) {
-              return typeChecker.getTypeAtLocation(firstParam.type);
-            }
-          }
-          node = node.parent;
-        }
-        return undefined;
       }
 
       /** Function declarations are emitted as they are, with only JSDoc added. */

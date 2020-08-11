@@ -22,6 +22,9 @@ if (false) {
     SuperTestBaseOneArg.prototype.x;
 }
 // A ctor with a parameter property.
+/**
+ * @extends {SuperTestBaseOneArg}
+ */
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
      * @param {string} y
@@ -36,6 +39,9 @@ if (false) {
     SuperTestDerivedParamProps.prototype.y;
 }
 // A ctor with an initialized property.
+/**
+ * @extends {SuperTestBaseOneArg}
+ */
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     constructor() {
         super(3);
@@ -47,15 +53,24 @@ if (false) {
     SuperTestDerivedInitializedProps.prototype.y;
 }
 // A ctor with a super() but none of the above two details.
+/**
+ * @extends {SuperTestBaseOneArg}
+ */
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
     constructor() {
         super(3);
     }
 }
 // A class without a ctor, extending a one-arg ctor parent.
+/**
+ * @extends {SuperTestBaseNoArg}
+ */
 class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {
 }
 // A class without a ctor, extending a no-arg ctor parent.
+/**
+ * @extends {SuperTestBaseOneArg}
+ */
 class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 }
 /**
@@ -76,6 +91,9 @@ if (false) {
     /** @type {number} */
     SuperTestDerivedInterface.prototype.foo;
 }
+/**
+ * @extends {SuperTestBaseOneArg}
+ */
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;

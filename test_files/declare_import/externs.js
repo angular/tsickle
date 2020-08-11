@@ -7,25 +7,25 @@
 /** @const */
 var test_files$declare_import$declare_import = {};
 /**
- * @extends {test_files.declare_import.exporter.ExportedClass}
+ * tsickle: dropped extends: {?} type
  * @constructor
  * @struct
  */
 test_files$declare_import$declare_import.ExtendsImported = function() {};
 /**
- * @extends {test_files.declare_import.exporter.PrefixedExportedClass}
+ * tsickle: dropped extends: {?} type
  * @constructor
  * @struct
  */
 test_files$declare_import$declare_import.ExtendsPrefixedImported = function() {};
 /**
- * @extends {test_files.declare_import.export_default.default}
+ * tsickle: dropped extends: {?} type
  * @constructor
  * @struct
  */
 test_files$declare_import$declare_import.ExtendsImportDefault = function() {};
 /**
- * @extends {test_files.declare_import.exporter.Renamed}
+ * tsickle: dropped extends: {?} type
  * @constructor
  * @struct
  */
@@ -37,7 +37,7 @@ test_files$declare_import$declare_import.ExtendsRenamedImported = function() {};
  */
 test_files$declare_import$declare_import.ExtendsLocalClosureClassName = function() {};
 /**
- * @extends {test_files.declare_import.exporter.ImportEqualsExportedClass}
+ * tsickle: dropped extends: {?} type
  * @constructor
  * @struct
  */

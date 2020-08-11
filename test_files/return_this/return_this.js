@@ -116,6 +116,9 @@ if (false) {
     /** @type {number} */
     MethodsReturnThis.prototype.b;
 }
+/**
+ * @extends {MethodsReturnThis}
+ */
 class SubclassReturnsThis extends MethodsReturnThis {
     /**
      * @template THIS

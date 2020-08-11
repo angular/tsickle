@@ -42,6 +42,12 @@ if (false) {
     /** @type {number} */
     ImplementsUser.prototype.shoeSize;
 }
+// Note that the @extends JSDoc points to a different name than the extends
+// clause. Closure Compiler allows this as long as they both eventually resolve
+// to the same type.
+/**
+ * @extends {tsickle_interface_1.User}
+ */
 class ExtendsUser extends interface_1.User {
     constructor() {
         super();

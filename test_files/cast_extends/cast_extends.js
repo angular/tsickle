@@ -1,9 +1,10 @@
-// test_files/cast_extends/cast_extends.ts(16,1): warning TS0: unhandled type flags: IncludesNonWideningType
-// test_files/cast_extends/cast_extends.ts(22,10): warning TS0: unhandled type flags: IncludesNonWideningType
+// test_files/cast_extends/cast_extends.ts(17,1): warning TS0: unhandled type flags: IncludesNonWideningType
+// test_files/cast_extends/cast_extends.ts(23,10): warning TS0: unhandled type flags: IncludesNonWideningType
 /**
  *
- * @fileoverview Reproduces an issue where tsickle would emit a cast for the "extends" claus, and
- * Closure would report an error due to the extends expression not resolving to a plain identifier.
+ * @fileoverview Reproduces an issue where tsickle would emit a cast for the
+ * "extends" clause, and Closure would report an error due to the extends
+ * expression not resolving to a plain identifier.
  *
  * Generated from: test_files/cast_extends/cast_extends.ts
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
@@ -35,6 +36,7 @@ exports.Ctor = Ctor;
 function mix(baseclazz) {
     // "baseclazz" must not be emitted as a cast, but as a direct identifier.
     /**
+     * @extends {Someclass}
      * @implements {MixedIn}
      */
     class WithMixedIn extends baseclazz {

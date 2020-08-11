@@ -8,7 +8,7 @@ goog.module('test_files.iterator.iterator');
 var module = module || { id: 'test_files/iterator/iterator.ts' };
 goog.require('tslib');
 /**
- * @implements {IterableIterator}
+ * @implements {IterableIterator<string>}
  */
 class MyIterable {
     /**

@@ -51,6 +51,9 @@ class BaseThatThrows {
      */
     get throwMe() { throw new Error(); }
 }
+/**
+ * @extends {BaseThatThrows}
+ */
 class Derived extends BaseThatThrows {
 }
 if (false) {

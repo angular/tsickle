@@ -225,6 +225,18 @@ export class TypeTranslator {
   isForExterns = false;
 
   /**
+   * When translating the type of an 'extends' clause, e.g. Y in
+   *   class X extends Y<T> { ... }
+   * then TS believes there is an additional type argument always passed, as if
+   * you had written "extends Y<T, X>".
+   * https://github.com/microsoft/TypeScript/issues/38391
+   *
+   * But we want to emit Y<T> as just Y<T>.  So this flag, when set, causes us
+   * to ignore this final generic argument when translating.
+   */
+  dropFinalTypeArgument = false;
+
+  /**
    * @param node is the source AST ts.Node the type comes from.  This is used
    *     in some cases (e.g. anonymous types) for looking up field names.
    * @param pathBlackList is a set of paths that should never get typed;
@@ -620,8 +632,12 @@ export class TypeTranslator {
       // Translate can return '?' for a number of situations, e.g. type/value conflicts.
       // `?<?>` is illegal syntax in Closure Compiler, so just return `?` here.
       if (typeStr === '?') return '?';
-      const typeArgs = this.typeChecker.getTypeArguments(referenceType);
-      if (typeArgs) {
+      let typeArgs: readonly ts.Type[] =
+          this.typeChecker.getTypeArguments(referenceType) ?? [];
+      if (this.dropFinalTypeArgument) {
+        typeArgs = typeArgs.slice(0, typeArgs.length - 1);
+      }
+      if (typeArgs.length > 0) {
         const params = typeArgs.map(t => this.translate(t));
         typeStr += `<${params.join(', ')}>`;
       }

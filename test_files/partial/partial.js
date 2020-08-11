@@ -1,4 +1,4 @@
-// test_files/partial/partial.ts(7,1): warning TS0: dropped implements of a type literal: Partial<Base>
+// test_files/partial/partial.ts(7,1): warning TS0: dropped implements: dropped implements of a type literal: Partial<Base>
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/partial/partial.ts
@@ -16,7 +16,7 @@ if (false) {
     Base.prototype.foo;
 }
 /**
- * tsickle: dropped implements of a type literal: Partial<Base>
+ * tsickle: dropped implements: dropped implements of a type literal: Partial<Base>
  */
 class Derived {
     /**
