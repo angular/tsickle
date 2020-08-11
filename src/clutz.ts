@@ -114,9 +114,9 @@ function generateClutzAliases(
       // @internal marked APIs are not exported, so must not get aliases.
       // This uses an internal TS API, assuming that accessing this will be
       // more stable compared to implementing our own version.
-      // tslint:disable-next-line: no-any
-      if (options.stripInternal &&
-          (ts as any)['isInternalDeclaration'](d, origSourceFile)) {
+      // tslint:disable-next-line:no-any
+      const isInternalDeclaration = (ts as any)['isInternalDeclaration'];
+      if (options.stripInternal && isInternalDeclaration(d, origSourceFile)) {
         return false;
       }
 
