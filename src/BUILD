@@ -7,6 +7,7 @@ ts_library(
     srcs = [
         "annotator_host.ts",
         "cli_support.ts",
+        "clutz.ts",
         "decorator_downlevel_transformer.ts",
         "decorators.ts",
         "enum_transformer.ts",
