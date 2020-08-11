@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-///<reference types="jasmine"/>
 // Install source-map-support so that stack traces are mapped back to TS code.
 import 'source-map-support';
 
