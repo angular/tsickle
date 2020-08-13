@@ -425,31 +425,6 @@ function containsAsync(node: ts.Node): boolean {
 }
 
 /**
- * Determines if a given expression contains an optional property chain.
- */
-function containsOptionalChainingOperator(node: ts.PropertyAccessExpression|ts.NonNullExpression|
-                                          ts.CallExpression): boolean {
-  let maybePropertyAccessChain: ts.Expression = node;
-  // We know this is a property access chain if each member is a
-  // PropertyAccessExpression`, a `NonNullExpression`, or a
-  // `CallExpression`. Once we get to an expression that isn't, we have
-  // traversed the chain and can see if this was an optional chain.
-  while (ts.isPropertyAccessExpression(maybePropertyAccessChain) ||
-         ts.isNonNullExpression(maybePropertyAccessChain) ||
-         ts.isCallExpression(maybePropertyAccessChain)) {
-    // If we're at an access that used `?.`, we have found an optional property chain.
-    if (ts.isPropertyAccessExpression(maybePropertyAccessChain) &&
-        maybePropertyAccessChain.questionDotToken != null) {
-      return true;
-    }
-
-    maybePropertyAccessChain = maybePropertyAccessChain.expression;
-  }
-
-  return false;
-}
-
-/**
  * jsdocTransformer returns a transformer factory that converts TypeScript types into the equivalent
  * JSDoc annotations.
  */
@@ -782,21 +757,6 @@ export function jsdocTransformer(
        * |undefined from a union type.
        */
       function visitNonNullExpression(nonNull: ts.NonNullExpression) {
-        // If this is a NonNullExpression inside of a property chain with a `?.`
-        // access we cannot add a cast telling Closure Compiler that this node
-        // is non-nullable. Adding that cast requires additional parentheses,
-        // which changes the behavior of the optional chain. Instead, we drop
-        // the `!` and return the inner expression as-is. This works in the
-        // context of chained property access because JSCompiler will not check
-        // this. If this non-null expression is part of a property access chain
-        // but comes before the ?. access (for example a!.b?.c)
-        // `containsOptionalChainingOperator` will return false, but in that
-        // situation we can safely add the cast because extra parens only matter
-        // after the ?. access.
-        if (containsOptionalChainingOperator(nonNull)) {
-          return nonNull.expression;
-        }
-
         const type = typeChecker.getTypeAtLocation(nonNull.expression);
         const nonNullType = typeChecker.getNonNullableType(type);
         return createClosureCast(
