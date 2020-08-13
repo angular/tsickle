@@ -115,3 +115,7 @@ function CryptoKeyPair() {};
 
 /** @typedef {!{handleEvent: function(Event):void}} */
 var EventListenerObject;
+
+/** @record */
+function ImportMeta() {};
+
