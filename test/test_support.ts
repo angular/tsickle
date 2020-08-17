@@ -117,7 +117,8 @@ export function createSourceCachingHost(
     return rootDir();
   };
   host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
-                        onError?: (msg: string) => void): ts.SourceFile|undefined => {
+                        onError?: (msg: string) => void): ts.SourceFile|
+                       undefined => {
     cliSupport.assertAbsolute(fileName);
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
@@ -126,20 +127,22 @@ export function createSourceCachingHost(
     // Cache files in TypeScript's lib directory.
     if (fileName.startsWith(cachedLibDir)) {
       const sf = ts.createSourceFile(
-          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest, true);
+          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest,
+          true);
       cachedLibs.set(fileName, sf);
       return sf;
     }
     if (fileName === tslibPath) {
       return ts.createSourceFile(
-          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest, true);
+          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest,
+          true);
     }
     const contents = sources.get(fileName);
     if (contents !== undefined) {
       return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
     }
-    throw new Error(
-        'unexpected file read of ' + fileName + ' not in ' + Array.from(sources.keys()));
+    throw new Error(`unexpected file read of ${fileName} not in ${
+        Array.from(sources.keys())}`);
   };
   const originalFileExists = host.fileExists;
   host.fileExists = (fileName: string): boolean => {
@@ -159,39 +162,71 @@ export function createSourceCachingHost(
 }
 
 export function createProgramAndHost(
-    sources: Map<string, string>, tsCompilerOptions: ts.CompilerOptions = compilerOptions):
-    {host: ts.CompilerHost, program: ts.Program} {
+    sources: Map<string, string>,
+    tsCompilerOptions: ts.CompilerOptions =
+        compilerOptions): {host: ts.CompilerHost, program: ts.Program} {
   const host = createSourceCachingHost(sources);
   const program = ts.createProgram(Array.from(sources.keys()), tsCompilerOptions, host);
   return {program, host};
 }
 
 export class GoldenFileTest {
-  constructor(
-      /** Absolute path to directory containing test. */
-      public path: string,
-      /** Relative paths from this.path to source files in test. */
-      public tsFiles: string[]) {
-    cliSupport.assertAbsolute(this.path);
+  /** Short name for test, from the directory name. */
+  readonly name = path.basename(this.root);
+
+  /**
+   * @param root Absolute path to directory containing test.
+   * @param tsPaths Relative paths from this.path to all .ts/.d.ts files in the
+   *     test.
+   */
+  constructor(readonly root: string, private readonly tsPaths: string[]) {
+    cliSupport.assertAbsolute(this.root);
   }
 
-  get name(): string {
-    return path.basename(this.path);
+  /**
+   * Returns the absolute path to where generated externs will be kept.
+   */
+  externsPath(): string {
+    return path.join(this.root, 'externs.js');
   }
 
-  get externsPath(): string {
-    return path.join(this.path, 'externs.js');
+  /**
+   * Returns absolute paths to "input" files: human-authored files, as distinct
+   * from goldens.
+   */
+  inputPaths(): string[] {
+    return this.tsPaths
+        .filter(p => {
+          // For .declaration tests, .d.ts's are goldens, not inputs.
+          if (this.isDeclarationTest && p.endsWith('.d.ts')) {
+            return false;
+          }
+          return true;
+        })
+        .map(p => path.join(this.root, p));
   }
 
-  get tsPaths(): string[] {
-    return this.tsFiles.map(f => path.join(this.path, f));
+  /**
+   * Gets all .d.ts files in the test, input or output, as absolute paths.
+   */
+  allDtsPaths(): string[] {
+    return this.tsPaths.filter(p => p.endsWith('.d.ts'))
+        .map(p => path.join(this.root, p));
   }
 
-  get jsPaths(): string[] {
-    return this.tsFiles.filter(f => !/\.d\.ts/.test(f))
-        .map(f => path.join(this.path, GoldenFileTest.tsPathToJs(f)));
+  /**
+   * Gets the absolute paths to the expected .js outputs of the test.
+   */
+  jsPaths(): string[] {
+    return this.tsPaths.filter(f => !/\.d\.ts/.test(f))
+        .map(f => path.join(this.root, GoldenFileTest.tsPathToJs(f)));
   }
 
+  /**
+   * Returns true for 'declaration' tests, which are golden tests that verify
+   * the generated .d.ts output from compilation.  Normally tests are only
+   * verifying the generated .js output.
+   */
   get isDeclarationTest(): boolean {
     return /\.declaration\b/.test(this.name);
   }
@@ -272,7 +307,8 @@ export function findFileContentsByName(filename: string, files: Map<string, stri
   }
   assert(
       undefined,
-      `Couldn't find file ${filename} in files: ${JSON.stringify(Array.from(files.keys()))}`);
+      `Couldn't find file ${filename} in files: ${
+          JSON.stringify(Array.from(files.keys()))}`);
   throw new Error('Unreachable');
 }
 
@@ -387,7 +423,8 @@ export function pathToModuleName(
  * downleveling and closurization.
  */
 export function compileWithTransfromer(
-    sources: Map<string, string>, compilerOptions: ts.CompilerOptions, rootPath?: string) {
+    sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
+    rootPath?: string) {
   const fileNames = Array.from(sources.keys());
   const tsHost = createSourceCachingHost(sources, compilerOptions);
   const program = ts.createProgram(fileNames, compilerOptions, tsHost);

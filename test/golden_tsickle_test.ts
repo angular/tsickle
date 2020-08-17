@@ -91,27 +91,22 @@ testFn('golden tests', () => {
     testSupport.addDiffMatchers();
   });
 
-  testSupport.goldenTests().forEach((test) => {
+  for (const test of testSupport.goldenTests()) {
     if (TEST_FILTER && !TEST_FILTER.testName.test(test.name)) {
       // do not xit(test.name) as that spams a lot of useless console msgs.
-      return;
+      continue;
     }
     let emitDeclarations = true;
     if (test.name === 'fields') {
       emitDeclarations = false;
     }
     it(test.name, () => {
-      expect(test.tsFiles.length).toBeGreaterThan(0);
+      const inputPaths = test.inputPaths();
+      expect(inputPaths.length).toBeGreaterThan(0);
 
       // Read all the inputs into a map, and create a ts.Program from them.
       const tsSources = new Map<string, string>();
-      for (const tsFile of test.tsFiles) {
-        // For .declaration tests, .d.ts's are goldens, not inputs
-        if (/\.declaration\b/.test(test.name) && tsFile.endsWith('.d.ts')) {
-          continue;
-        }
-
-        const tsPath = path.join(test.path, tsFile);
+      for (const tsPath of inputPaths) {
         let tsSource = fs.readFileSync(tsPath, 'utf-8');
         tsSource = normalizeLineEndings(tsSource);
         tsSources.set(tsPath, tsSource);
@@ -139,10 +134,12 @@ testFn('golden tests', () => {
         // See test_files/jsdoc_types/nevertyped.ts and
         // test_files/blacklisted_ambient_external_module/blacklisted.d.ts
         typeBlackListPaths: new Set([
-          path.join(tsCompilerOptions.rootDir!, 'test_files/jsdoc_types/nevertyped.ts'),
           path.join(
               tsCompilerOptions.rootDir!,
-              'test_files/blacklisted_ambient_external_module/blacklisted.d.ts')
+              'test_files/jsdoc_types/nevertyped.ts'),
+          path.join(
+              tsCompilerOptions.rootDir!,
+              'test_files/blacklisted_ambient_external_module/blacklisted.d.ts'),
         ]),
         convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,
@@ -183,19 +180,22 @@ testFn('golden tests', () => {
               Array.from(tsSources.keys())}`);
         }
       }
-      const {diagnostics, externs} =
-          tsickle.emit(program, transformerHost, (fileName: string, data: string) => {
-            if (test.isDeclarationTest) {
-              // Only compare .d.ts files for declaration tests.
-              if (!fileName.endsWith('.d.ts')) return;
-            } else if (!fileName.endsWith('.js')) {
-              // Only compare .js files for regular test runs (non-declaration).
-              return;
+
+      /** Returns true if we test the emitted output for the given path. */
+      function shouldCompareOutputToGolden(fileName: string): boolean {
+        // For regular tests we only check .js files, while for declaration
+        // tests we only check .d.ts files.
+        if (test.isDeclarationTest) {
+          return fileName.endsWith('.d.ts');
+        }
+        return fileName.endsWith('.js');
+      }
+
+      const {diagnostics, externs} = tsickle.emit(
+          program, transformerHost, (fileName: string, data: string) => {
+            if (shouldCompareOutputToGolden(fileName)) {
+              tscOutput.set(fileName, data);
             }
-            // Normally we don't check .d.ts files, we are only interested to test that
-            // we don't throw when we generate them, but if we're in a .declaration test,
-            // we only care about the .d.ts files
-            tscOutput.set(fileName, data);
           }, targetSource);
       for (const d of diagnostics) allDiagnostics.add(d);
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
@@ -205,7 +205,7 @@ testFn('golden tests', () => {
         diags.push(d);
       }
       if (!test.isDeclarationTest) {
-        const sortedPaths = test.jsPaths.sort();
+        const sortedPaths = test.jsPaths().sort();
         const actualPaths = Array.from(tscOutput.keys()).map(p => p.replace(/^\.\//, '')).sort();
         expect(sortedPaths).toEqual(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
       }
@@ -225,7 +225,7 @@ testFn('golden tests', () => {
           allExterns = getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
         }
       }
-      compareAgainstGolden(allExterns, test.externsPath, test);
+      compareAgainstGolden(allExterns, test.externsPath(), test);
       for (const [outputPath, output] of tscOutput) {
         const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
@@ -254,9 +254,9 @@ testFn('golden tests', () => {
       }
       if (dtsDiags.length) {
         compareAgainstGolden(
-            testSupport.formatDiagnostics(dtsDiags), path.join(test.path, 'dtsdiagnostics.txt'),
-            test);
+            testSupport.formatDiagnostics(dtsDiags),
+            path.join(test.root, 'dtsdiagnostics.txt'), test);
       }
     });
-  });
+  }
 });

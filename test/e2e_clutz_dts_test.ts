@@ -21,12 +21,9 @@ describe('clutz dts', () => {
     const dtsSources = new Map<string, string>();
 
     for (const test of tests) {
-      for (const tsFile of test.tsFiles) {
-        if (tsFile.endsWith('.d.ts')) {
-          const tsPath = path.join(test.path, tsFile);
-          const tsSource = fs.readFileSync(tsPath, 'utf-8');
-          dtsSources.set(tsPath, tsSource);
-        }
+      for (const tsPath of test.allDtsPaths()) {
+        const tsSource = fs.readFileSync(tsPath, 'utf-8');
+        dtsSources.set(tsPath, tsSource);
       }
     }
 
