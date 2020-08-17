@@ -62,6 +62,7 @@ class JSDocTest {
  * \@internal
  */
 JSDocTest.X = [];
+/* istanbul ignore if */
 if (false) {
     /**
      * \@internal

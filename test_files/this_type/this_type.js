@@ -8,6 +8,7 @@ var module = module || { id: 'test_files/this_type/this_type.ts' };
 goog.require('tslib');
 class SomeClass {
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {number}

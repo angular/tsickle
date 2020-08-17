@@ -113,6 +113,7 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", Number),
     tslib_1.__metadata("design:paramtypes", [Number])
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("doNotExportThisSetter", MyClass.prototype), null);
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {boolean}

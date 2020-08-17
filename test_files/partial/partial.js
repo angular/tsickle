@@ -11,6 +11,7 @@ goog.require('tslib');
  * @record
  */
 function Base() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     Base.prototype.foo;
@@ -26,6 +27,7 @@ class Derived {
         this.foo = undefined;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {(undefined|string)} */
     Derived.prototype.foo;

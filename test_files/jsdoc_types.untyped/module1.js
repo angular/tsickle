@@ -16,6 +16,7 @@ exports.Class = Class;
  */
 function Interface() { }
 exports.Interface = Interface;
+/* istanbul ignore if */
 if (false) {
     /** @type {?} */
     Interface.prototype.x;

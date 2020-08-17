@@ -100,6 +100,7 @@ class Container {
     }
 }
 Container.staticField = 's';
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     Container.staticField;

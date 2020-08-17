@@ -13,6 +13,7 @@ goog.require('tslib');
  */
 function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
+/* istanbul ignore if */
 if (false) {
     /** @type {?} */
     NeverTyped.prototype.foo;

@@ -19,6 +19,7 @@ function usingSymbol(symbolTyped) {
  * @record
  */
 function ComputedSymbol() { }
+/* istanbul ignore if */
 if (false) {
     /**
      * @return {number}

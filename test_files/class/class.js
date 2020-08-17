@@ -25,6 +25,7 @@ goog.require('tslib');
  * @record
  */
 function Interface() { }
+/* istanbul ignore if */
 if (false) {
     /**
      * @return {void}
@@ -46,6 +47,7 @@ class AbstractClass {
      */
     nonAbstractFunc() { }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @abstract
@@ -58,6 +60,7 @@ if (false) {
  * @extends {Interface}
  */
 function InterfaceExtendsInterface() { }
+/* istanbul ignore if */
 if (false) {
     /**
      * @return {void}
@@ -77,6 +80,7 @@ let interfaceExtendsInterface = { /**
  * tsickle: dropped extends: interface cannot extend/implement class
  */
 function InterfaceExtendsClass() { }
+/* istanbul ignore if */
 if (false) {
     /**
      * @return {void}
@@ -237,6 +241,7 @@ function Zone() { }
  */
 class ZoneImplementsInterface {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
@@ -248,6 +253,7 @@ var ZoneAlias;
  */
 class ZoneImplementsAlias {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     ZoneImplementsAlias.prototype.zone;
@@ -257,6 +263,7 @@ class WithOptionalField {
         this.optionalField = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {(undefined|string)} */
     WithOptionalField.prototype.optionalField;

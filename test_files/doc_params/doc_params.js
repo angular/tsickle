@@ -16,6 +16,7 @@ class Foo {
         this.a = a;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {string}

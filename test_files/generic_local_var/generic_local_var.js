@@ -32,6 +32,7 @@ class Container {
         console.log(myT, myU);
     }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {T}

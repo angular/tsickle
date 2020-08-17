@@ -28,6 +28,7 @@ class Test {
         this.fooStr = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     Test.prototype.fooStr;

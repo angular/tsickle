@@ -21,6 +21,7 @@ class MyPoint {
         this.y = y;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     MyPoint.prototype.x;
@@ -38,6 +39,7 @@ class ImplementsUser {
         this.shoeSize = shoeSize;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     ImplementsUser.prototype.shoeSize;

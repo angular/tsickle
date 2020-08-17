@@ -8,6 +8,7 @@ var module = module || { id: 'test_files/nullable/nullable.ts' };
 goog.require('tslib');
 class Primitives {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {(null|string)} */
     Primitives.prototype.nullable;
@@ -22,6 +23,7 @@ class NonPrimitive {
 }
 class NonPrimitives {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {!NonPrimitive} */
     NonPrimitives.prototype.nonNull;

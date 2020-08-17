@@ -11,6 +11,7 @@ class UnrelatedClass {
         this.a = 1;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     UnrelatedClass.prototype.a;
@@ -79,6 +80,7 @@ class MethodsReturnThis {
                 this.c = 4;
             }
         }
+        /* istanbul ignore if */
         if (false) {
             /** @type {number} */
             NestedClass.prototype.c;
@@ -112,6 +114,7 @@ class MethodsReturnThis {
         return (/** @type {!MethodsReturnThis} */ (this));
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     MethodsReturnThis.prototype.b;

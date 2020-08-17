@@ -10,6 +10,7 @@ goog.require('tslib');
  * @record
  */
 function UpperBound() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     UpperBound.prototype.x;
@@ -19,6 +20,7 @@ if (false) {
  * @template T, U
  */
 function WithTypeParam() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {T} */
     WithTypeParam.prototype.tea;

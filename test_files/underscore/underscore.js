@@ -23,6 +23,7 @@ class __Class {
         return this.__member;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     __Class.prototype.__member;

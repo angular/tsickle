@@ -18,6 +18,7 @@ class Someclass {
  * @record
  */
 function MixedIn() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     MixedIn.prototype.x;
@@ -45,6 +46,7 @@ function mix(baseclazz) {
             this.x = 'mixed in';
         }
     }
+    /* istanbul ignore if */
     if (false) {
         /** @type {string} */
         WithMixedIn.prototype.x;

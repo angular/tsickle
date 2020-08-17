@@ -24,6 +24,7 @@ class Foo {
         this.field = 'hello';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {?} */
     Foo.prototype.field;

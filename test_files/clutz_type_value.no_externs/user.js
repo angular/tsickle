@@ -19,6 +19,7 @@ class C {
         this.field = 'abc';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     C.prototype.field;

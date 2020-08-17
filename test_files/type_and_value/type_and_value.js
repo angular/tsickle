@@ -63,6 +63,7 @@ class ImplementsTypeAndValue {
         this.z = 1;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     ImplementsTypeAndValue.prototype.z;

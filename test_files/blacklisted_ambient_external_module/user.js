@@ -10,6 +10,7 @@ class User {
     constructor() { this.field = null; }
 }
 exports.User = User;
+/* istanbul ignore if */
 if (false) {
     /** @type {(null|?)} */
     User.prototype.field;

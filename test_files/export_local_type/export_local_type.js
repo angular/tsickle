@@ -10,6 +10,7 @@ goog.require('tslib');
  * @record
  */
 function LocalInterface() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     LocalInterface.prototype.field;

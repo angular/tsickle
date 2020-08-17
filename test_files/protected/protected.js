@@ -27,6 +27,7 @@ class Protected {
      */
     protectedMethod() { }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {string}
@@ -54,6 +55,7 @@ if (false) {
  */
 class Abstract {
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @abstract

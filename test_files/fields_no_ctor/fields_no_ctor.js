@@ -8,6 +8,7 @@ var module = module || { id: 'test_files/fields_no_ctor/fields_no_ctor.ts' };
 goog.require('tslib');
 class NoCtor {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     NoCtor.prototype.field1;

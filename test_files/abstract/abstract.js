@@ -21,6 +21,7 @@ class Base {
         this.hasReturnType();
     }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @abstract

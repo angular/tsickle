@@ -8,6 +8,7 @@ var module = module || { id: 'test_files/comments/comments.ts' };
 goog.require('tslib');
 class Comments {
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @export

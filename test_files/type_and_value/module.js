@@ -17,6 +17,7 @@ exports.TemplatizedTypeAndValue = 1;
 class Class {
 }
 exports.Class = Class;
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     Class.prototype.z;

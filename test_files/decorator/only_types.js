@@ -14,6 +14,7 @@ goog.require('tslib');
  */
 function AnotherType() { }
 exports.AnotherType = AnotherType;
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     AnotherType.prototype.field;

@@ -25,6 +25,7 @@ class ParamProps {
         this.publicReadonlyP = publicReadonlyP;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @export

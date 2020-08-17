@@ -43,6 +43,7 @@ class SomeComponent {
         };
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {{A: number, B: number}} */
     SomeComponent.prototype.MY_ENUM;

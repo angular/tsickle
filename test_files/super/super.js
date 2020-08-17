@@ -17,6 +17,7 @@ class SuperTestBaseOneArg {
         this.x = x;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     SuperTestBaseOneArg.prototype.x;
@@ -34,6 +35,7 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
         this.y = y;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     SuperTestDerivedParamProps.prototype.y;
@@ -48,6 +50,7 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
         this.y = 'foo';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     SuperTestDerivedInitializedProps.prototype.y;
@@ -77,6 +80,7 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
  * @record
  */
 function SuperTestInterface() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     SuperTestInterface.prototype.foo;
@@ -87,6 +91,7 @@ if (false) {
  */
 class SuperTestDerivedInterface {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     SuperTestDerivedInterface.prototype.foo;
@@ -97,6 +102,7 @@ if (false) {
 class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     SuperTestStaticProp.foo;

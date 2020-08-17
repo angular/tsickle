@@ -10,6 +10,7 @@ goog.require('tslib');
  * @record
  */
 function ParentInterface() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     ParentInterface.prototype.x;
@@ -19,6 +20,7 @@ if (false) {
  * @extends {ParentInterface}
  */
 function SubType() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     SubType.prototype.y;
@@ -29,6 +31,7 @@ if (false) {
  * @extends {SubType}
  */
 function SubMulti() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     SubMulti.prototype.z;

@@ -288,8 +288,15 @@ function createMemberTypeDeclaration(
     propertyDecls.push(ts.setSourceMapRange(abstractFnDecl, fnDecl));
   }
 
+  // Wrap the property declarations in an 'if (false)' block.
   // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
-  return ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
+  const ifStmt =
+      ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
+  // Also add a comment above the block to exclude it from coverage.
+  ts.addSyntheticLeadingComment(
+      ifStmt, ts.SyntaxKind.MultiLineCommentTrivia, ' istanbul ignore if ',
+      /* trailing newline */ true);
+  return ifStmt;
 }
 
 function propertyName(prop: ts.NamedDeclaration): string|null {

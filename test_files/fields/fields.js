@@ -25,6 +25,7 @@ class FieldsTest {
         return this.field1;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     FieldsTest.prototype.field1;
@@ -56,6 +57,7 @@ class BaseThatThrows {
  */
 class Derived extends BaseThatThrows {
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * Note: in Closure, this type is declared via an annotation on

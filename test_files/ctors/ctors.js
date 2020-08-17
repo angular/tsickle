@@ -16,6 +16,7 @@ class X {
         this.a = a;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {number}
@@ -33,6 +34,7 @@ class OverloadedCtor {
         this.a = a;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /**
      * @type {(string|number)}

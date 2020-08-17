@@ -13,6 +13,7 @@ var module = module || { id: 'test_files/extend_and_implement/extend_and_impleme
 goog.require('tslib');
 class ClassInImplements {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {(undefined|string)} */
     ClassInImplements.prototype.foo;
@@ -31,6 +32,7 @@ class ClassInExtends {
  */
 class ExtendsAndImplementsClass extends ClassInExtends {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     ExtendsAndImplementsClass.prototype.foo;

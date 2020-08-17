@@ -11,6 +11,7 @@ goog.require('tslib');
  * @record
  */
 function Interface() { }
+/* istanbul ignore if */
 if (false) {
     /**
      * @return {?}
@@ -69,6 +70,7 @@ superVar = new ImplementsTypeAlias();
 function Zone() { }
 class ZoneImplementsInterface {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {?} */
     ZoneImplementsInterface.prototype.zone;
@@ -77,6 +79,7 @@ if (false) {
 var ZoneAlias;
 class ZoneImplementsAlias {
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {?} */
     ZoneImplementsAlias.prototype.zone;
@@ -86,6 +89,7 @@ class WithOptionalField {
         this.optionalField = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {?} */
     WithOptionalField.prototype.optionalField;

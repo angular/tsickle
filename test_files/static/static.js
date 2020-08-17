@@ -12,6 +12,7 @@ class Static {
 Static.bar = 3;
 // private statics also should work.
 Static.baz = 3;
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     Static.bar;

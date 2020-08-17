@@ -21,6 +21,7 @@ class RecordImpl {
         this.a = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     RecordImpl.prototype.a;
@@ -35,6 +36,7 @@ class RecordAliasImpl {
         this.a = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     RecordAliasImpl.prototype.a;
@@ -43,6 +45,7 @@ if (false) {
  * @record
  */
 function MyInterface() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     MyInterface.prototype.a;
@@ -55,6 +58,7 @@ class InterfaceImpl {
         this.a = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     InterfaceImpl.prototype.a;
@@ -69,6 +73,7 @@ class InterfaceAliasImpl {
         this.a = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     InterfaceAliasImpl.prototype.a;
@@ -78,6 +83,7 @@ if (false) {
  * @template A, B
  */
 function Generic() { }
+/* istanbul ignore if */
 if (false) {
     /** @type {A} */
     Generic.prototype.a;
@@ -93,6 +99,7 @@ class GenericImpl {
         this.b = 1;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     GenericImpl.prototype.a;
@@ -110,6 +117,7 @@ class GenericPartialImpl {
         this.a = 'a';
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     GenericPartialImpl.prototype.a;
@@ -127,6 +135,7 @@ class GenericIndirectImpl {
         this.b = 1;
     }
 }
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     GenericIndirectImpl.prototype.a;

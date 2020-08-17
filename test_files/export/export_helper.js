@@ -28,6 +28,7 @@ exports.export2 = 3;
  */
 function Bar() { }
 exports.Bar = Bar;
+/* istanbul ignore if */
 if (false) {
     /** @type {number} */
     Bar.prototype.barField;

@@ -10,6 +10,7 @@ goog.require('tslib');
 class DefaultExport {
 }
 exports.default = DefaultExport;
+/* istanbul ignore if */
 if (false) {
     /** @type {string} */
     DefaultExport.prototype.field;
