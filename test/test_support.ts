@@ -207,14 +207,6 @@ export class GoldenFileTest {
   }
 
   /**
-   * Gets all .d.ts files in the test, input or output, as absolute paths.
-   */
-  allDtsPaths(): string[] {
-    return this.tsPaths.filter(p => p.endsWith('.d.ts'))
-        .map(p => path.join(this.root, p));
-  }
-
-  /**
    * Gets the absolute paths to the expected .js outputs of the test.
    */
   jsPaths(): string[] {
@@ -269,6 +261,14 @@ export function goldenTests(): GoldenFileTest[] {
   });
 
   return tests;
+}
+
+/**
+ * Returns absolute paths to every .d.ts in the test_files tree, for
+ * verification by the e2e_clutz_dts_test.
+ */
+export function allDtsPaths(): string[] {
+  return glob.sync(path.join(rootDir(), 'test_files', '**/*.d.ts'));
 }
 
 /**
