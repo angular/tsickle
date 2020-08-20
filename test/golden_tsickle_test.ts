@@ -144,7 +144,11 @@ testFn('golden tests', () => {
         convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,
-        addDtsClutzAliases: test.isDeclarationTest,
+        // Setting this to true matches how we typically run Clutz, but note
+        // that the Clutz pass only affects output d.ts files, which in this
+        // test suite are only produced for "declaration" tests (tests where
+        // test.isDeclarationTest is true).
+        addDtsClutzAliases: true,
         untyped: test.isUntypedTest,
         provideExternalModuleDtsNamespace: !test.hasShim,
         logWarning: (diag: ts.Diagnostic) => {

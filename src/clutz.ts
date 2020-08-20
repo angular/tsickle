@@ -16,6 +16,7 @@
  */
 
 import * as ts from 'typescript';
+import * as path from './path';
 
 /**
  * Constructs a ts.CustomTransformerFactory that postprocesses the .d.ts
@@ -35,11 +36,43 @@ export function makeDeclarationTransformerFactory(
         throw new Error('did not expect to transform a bundle');
       },
       transformSourceFile(file: ts.SourceFile): ts.SourceFile {
-        const moduleName = pathToModuleName(file.fileName);
+        const options = context.getCompilerOptions();
+
+        // Construct
+        //   import 'path/to/file';
+        // for Clutz imports.
+        // Humans write Clutz imports like
+        //   import 'goog:foo';
+        // so to consume that from a d.ts, you need to first import the d.ts
+        // that defines that "goog:foo" module before you can resolve the
+        // import.
+        const imports = gatherNecessaryClutzImports(typeChecker, file);
+        let importStmts: ts.Statement[]|undefined;
+        if (imports.length > 0) {
+          importStmts = imports.map(fileName => {
+            fileName = path.relative(options.rootDir!, fileName);
+            return ts.createImportDeclaration(
+                /* decorators */ undefined,
+                /* modifiers */ undefined,
+                /* importClause */ undefined,
+                /* moduleSpecifier */ ts.createStringLiteral(fileName),
+            );
+          });
+        }
+
+        // Construct `declare global {}` in the Clutz namespace for symbols
+        // Clutz might use.
         const globalBlock = generateClutzAliases(
-            file, moduleName, typeChecker, context.getCompilerOptions());
-        if (!globalBlock) return file;
-        return ts.updateSourceFileNode(file, [...file.statements, globalBlock]);
+            file, pathToModuleName(file.fileName), typeChecker, options);
+
+        // Only need to transform file if we needed one of the above additions.
+        if (!importStmts && !globalBlock) return file;
+
+        return ts.updateSourceFileNode(file, [
+          ...(importStmts ?? []),
+          ...file.statements,
+          ...(globalBlock ? [globalBlock] : []),
+        ]);
       }
     };
   };
@@ -241,4 +274,94 @@ function generateClutzAliases(
       ]),
       ts.NodeFlags.GlobalAugmentation,
   );
+}
+
+/**
+ * Matches a statement, looking for an import/export statement with a 'goog:'
+ * reference, and returns the string literal from that import if found.
+ */
+function moduleSpecifierFromGoog(stmt: ts.Statement): ts.StringLiteral|
+    undefined {
+  if (!ts.isImportDeclaration(stmt) && !ts.isExportDeclaration(stmt)) return;
+  if (!stmt.moduleSpecifier) return;  // can be absent on 'export' statements.
+  if (!ts.isStringLiteral(stmt.moduleSpecifier)) return;
+  if (!stmt.moduleSpecifier.text.startsWith('goog:')) return;
+  return stmt.moduleSpecifier;
+}
+
+/**
+ * Given a node, attempt to match it as the eyeballs found within a larger
+ * ಠ_ಠ.clutz.foo.bar type reference, and return the outer type reference.
+ * Returns undefined if it didn't match.
+ */
+function typeReferenceFromLookOfDisapproval(node: ts.Node):
+    ts.TypeReferenceNode|undefined {
+  if (!ts.isIdentifier(node) || node.text !== 'ಠ_ಠ' || !node.parent) return;
+  node = node.parent;
+  if (!ts.isQualifiedName(node) || node.right.text !== 'clutz') return;
+
+  while (ts.isQualifiedName(node)) {
+    node = node.parent;
+  }
+  if (!ts.isTypeReferenceNode(node)) return;
+  return node;
+}
+
+/**
+ * Given a node that references a symbol, returns the path to the
+ * underlying d.ts file that defines that symbol.
+ */
+function fileNameForNode(node: ts.Node, typeChecker: ts.TypeChecker): string|
+    undefined {
+  const sym = typeChecker.getSymbolAtLocation(node);
+  if (!sym || sym.declarations.length === 0) {
+    // This can happen if an import or symbol somehow references a nonexistent
+    // type, for example in a case where type checking failed or via 'any'.
+    return undefined;
+  }
+  // A Clutz symbol may be multiply defined in the case where a single .js file
+  // is a member of multiple libraries.  Typically those will declaration-merge
+  // due to having the same Clutz output (though also note that the output can
+  // depend on which other files are included in the Clutz run!).  We just need
+  // any definition at all, so take the first.
+  const clutzFile = sym.declarations[0].getSourceFile();
+  return clutzFile.fileName;
+}
+
+/**
+ * Given a ts.SourceFile, looks for imports/exports of the special 'goog:'
+ * namespace and uses the "look of disapproval" namespace, and returns the paths
+ * of the underlying files that define them.
+ */
+function gatherNecessaryClutzImports(
+    typeChecker: ts.TypeChecker, sf: ts.SourceFile): string[] {
+  const imports = new Set<string>();
+  for (const stmt of sf.statements) {
+    const goog = moduleSpecifierFromGoog(stmt);
+    if (goog) {
+      const fileName = fileNameForNode(goog, typeChecker);
+      if (fileName) imports.add(fileName);
+      continue;
+    }
+    ts.forEachChild(stmt, visit);
+  }
+  return Array.from(imports);
+
+
+  /**
+   * Recursively searches a node for references to members of the `ಠ_ಠ.clutz`
+   * namespace, and adds any referenced source files to the `imports` set.
+   * TODO(b/162295026): forbid this pattern and delete this logic.
+   */
+  function visit(node: ts.Node) {
+    const typeRef = typeReferenceFromLookOfDisapproval(node);
+    if (typeRef) {
+      // Note that typeRef doesn't have an associated symbol, but the typeName
+      // within it does.
+      const fileName = fileNameForNode(typeRef.typeName, typeChecker);
+      if (fileName) imports.add(fileName);
+      return;
+    }
+    ts.forEachChild(node, visit);
+  }
 }

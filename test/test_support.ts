@@ -197,8 +197,10 @@ export class GoldenFileTest {
   inputPaths(): string[] {
     return this.tsPaths
         .filter(p => {
-          // For .declaration tests, .d.ts's are goldens, not inputs.
-          if (this.isDeclarationTest && p.endsWith('.d.ts')) {
+          // For .declaration tests, .d.ts's are goldens, not inputs, when there
+          // is a corresponding .ts file.
+          if (this.isDeclarationTest && p.endsWith('.d.ts') &&
+              this.tsPaths.includes(p.replace(/\.d\.ts$/, '.ts'))) {
             return false;
           }
           return true;
