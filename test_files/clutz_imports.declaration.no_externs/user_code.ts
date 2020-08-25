@@ -27,3 +27,11 @@ export function f2(c: ಠ_ಠ.clutz.demo2.C) {}
  * of the underlying module in the output d.ts.
  */
 function f3(c: demo3) {}
+
+/**
+ * demo4 verifies that the Clutz type via 'typeof' still produces an import
+ * statement in the output.  (It differs from the above in that a typeof node
+ * in the TS AST contains the reference to a Clutz symbol as a value, not a
+ * type.)
+ */
+export type f4 = typeof ಠ_ಠ.clutz.demo4;

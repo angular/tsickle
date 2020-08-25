@@ -291,20 +291,19 @@ function moduleSpecifierFromGoog(stmt: ts.Statement): ts.StringLiteral|
 
 /**
  * Given a node, attempt to match it as the eyeballs found within a larger
- * ಠ_ಠ.clutz.foo.bar type reference, and return the outer type reference.
+ * ಠ_ಠ.clutz.foo.bar reference, and return the outer qualified name node.
  * Returns undefined if it didn't match.
  */
-function typeReferenceFromLookOfDisapproval(node: ts.Node):
-    ts.TypeReferenceNode|undefined {
+function qualifiedNameFromLookOfDisapproval(node: ts.Node): ts.QualifiedName|
+    undefined {
   if (!ts.isIdentifier(node) || node.text !== 'ಠ_ಠ' || !node.parent) return;
   node = node.parent;
   if (!ts.isQualifiedName(node) || node.right.text !== 'clutz') return;
 
-  while (ts.isQualifiedName(node)) {
+  while (ts.isQualifiedName(node.parent)) {
     node = node.parent;
   }
-  if (!ts.isTypeReferenceNode(node)) return;
-  return node;
+  return node as ts.QualifiedName;
 }
 
 /**
@@ -354,11 +353,9 @@ function gatherNecessaryClutzImports(
    * TODO(b/162295026): forbid this pattern and delete this logic.
    */
   function visit(node: ts.Node) {
-    const typeRef = typeReferenceFromLookOfDisapproval(node);
-    if (typeRef) {
-      // Note that typeRef doesn't have an associated symbol, but the typeName
-      // within it does.
-      const fileName = fileNameForNode(typeRef.typeName, typeChecker);
+    const qname = qualifiedNameFromLookOfDisapproval(node);
+    if (qname) {
+      const fileName = fileNameForNode(qname, typeChecker);
       if (fileName) imports.add(fileName);
       return;
     }
