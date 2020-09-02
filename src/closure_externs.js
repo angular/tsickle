@@ -89,12 +89,6 @@ var PromiseConstructorLike;
 /** @typedef {?} */
 var SymbolConstructor;
 
-/**
- * This is a placeholder for a Closure type to be determined.
- * @constructor
- */
-function bigintPlaceholder() {}
-
 /** @typedef {!Object} */
 var GlobalFetch;
 

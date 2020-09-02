@@ -439,6 +439,9 @@ export class TypeTranslator {
       case ts.TypeFlags.Number:
       case ts.TypeFlags.NumberLiteral:
         return 'number';
+      case ts.TypeFlags.BigInt:
+      case ts.TypeFlags.BigIntLiteral:
+        return 'bigint';
       case ts.TypeFlags.Boolean:
       case ts.TypeFlags.BooleanLiteral:
         // See the note in translateUnion about booleans.
@@ -459,9 +462,6 @@ export class TypeTranslator {
         return 'void';
       case ts.TypeFlags.Undefined:
         return 'undefined';
-      case ts.TypeFlags.BigInt:
-      case ts.TypeFlags.BigIntLiteral:
-        return 'bigintPlaceholder';
       case ts.TypeFlags.Null:
         return 'null';
       case ts.TypeFlags.Never:

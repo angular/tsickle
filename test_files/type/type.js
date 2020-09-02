@@ -17,7 +17,7 @@ let typeArr2;
 let typeNestedArr;
 /** @type {*} */
 let typeUnknown;
-/** @type {bigintPlaceholder} */
+/** @type {bigint} */
 let typeBigInt;
 /** @type {boolean} */
 let typeBooleanLiteral;
@@ -25,7 +25,7 @@ let typeBooleanLiteral;
 let typeNumberLiteral;
 /** @type {string} */
 let typeStringLiteral;
-/** @type {bigintPlaceholder} */
+/** @type {bigint} */
 let typeBigIntLiteral;
 /** @type {{a: number, b: string}} */
 let typeObject = { a: 3, b: 'b' };
