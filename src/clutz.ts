@@ -290,30 +290,60 @@ function moduleSpecifierFromGoog(stmt: ts.Statement): ts.StringLiteral|
 }
 
 /**
- * Given a node, attempt to match it as the eyeballs found within a larger
- * ಠ_ಠ.clutz.foo.bar reference, and return the outer qualified name node.
- * Returns undefined if it didn't match.
+ * Given a QualifiedName (a reference like `foo.bar.baz`), checks if it's a
+ * reference into a Clutz symbol, and if so return the underlying ts.Symbol.
+ *
+ * Note that this function works top-down over the AST: it starts from the
+ * QualifiedName and looks at its constituent parts.  It cannot work bottom-up,
+ * because sometimes TS generates AST nodes that don't have a parent.
  */
-function qualifiedNameFromLookOfDisapproval(node: ts.Node): ts.QualifiedName|
-    undefined {
-  if (!ts.isIdentifier(node) || node.text !== 'ಠ_ಠ' || !node.parent) return;
-  node = node.parent;
-  if (!ts.isQualifiedName(node) || node.right.text !== 'clutz') return;
-
-  while (ts.isQualifiedName(node.parent)) {
-    node = node.parent;
+function clutzSymbolFromQualifiedName(
+    typeChecker: ts.TypeChecker, qname: ts.QualifiedName): ts.Symbol|undefined {
+  // Verify that the innermost reference is the look of disapproval.
+  let inner = qname;
+  while (ts.isQualifiedName(inner.left)) {
+    inner = inner.left;
   }
-  return node as ts.QualifiedName;
+  if (inner.left.text !== 'ಠ_ಠ' || inner.right.text !== 'clutz') {
+    return undefined;  // Not a look of disapproval.
+  }
+
+  const node = qname.right;
+  let sym = typeChecker.getSymbolAtLocation(node);
+  if (!sym) {
+    // When the declarations transformer has synthesized a reference, for
+    // example due to inference, the type checker will not return a symbol
+    // underlying the node.  Instead we reach through the TS internals for this.
+    // tslint:disable-next-line:no-any circumventing private API
+    sym = (node as any)['symbol'] as ts.Symbol;
+  }
+  return sym;
 }
 
 /**
- * Given a node that references a symbol, returns the path to the
- * underlying d.ts file that defines that symbol.
+ * Given a ts.Node, checks if it's a `foo.bar.baz` reference into a Clutz
+ * symbol, and if so return the underlying ts.Symbol.
  */
-function fileNameForNode(node: ts.Node, typeChecker: ts.TypeChecker): string|
+function clutzSymbolFromNode(
+    typeChecker: ts.TypeChecker, node: ts.Node): ts.Symbol|undefined {
+  if (ts.isTypeReferenceNode(node) && ts.isQualifiedName(node.typeName)) {
+    // Reference in type position.
+    return clutzSymbolFromQualifiedName(typeChecker, node.typeName);
+  }
+  if (ts.isTypeQueryNode(node) && ts.isQualifiedName(node.exprName)) {
+    // Reference in typeof position.
+    return clutzSymbolFromQualifiedName(typeChecker, node.exprName);
+  }
+  return undefined;
+}
+
+/**
+ * Given a ts.Symbol, returns the path to the underlying d.ts file that defines
+ * that symbol.
+ */
+function fileNameForSymbol(typeChecker: ts.TypeChecker, sym: ts.Symbol): string|
     undefined {
-  const sym = typeChecker.getSymbolAtLocation(node);
-  if (!sym || sym.declarations.length === 0) {
+  if (sym.declarations.length === 0) {
     // This can happen if an import or symbol somehow references a nonexistent
     // type, for example in a case where type checking failed or via 'any'.
     return undefined;
@@ -338,7 +368,9 @@ function gatherNecessaryClutzImports(
   for (const stmt of sf.statements) {
     const goog = moduleSpecifierFromGoog(stmt);
     if (goog) {
-      const fileName = fileNameForNode(goog, typeChecker);
+      const sym = typeChecker.getSymbolAtLocation(goog);
+      if (!sym) continue;
+      const fileName = fileNameForSymbol(typeChecker, sym);
       if (fileName) imports.add(fileName);
       continue;
     }
@@ -353,11 +385,12 @@ function gatherNecessaryClutzImports(
    * TODO(b/162295026): forbid this pattern and delete this logic.
    */
   function visit(node: ts.Node) {
-    const qname = qualifiedNameFromLookOfDisapproval(node);
-    if (qname) {
-      const fileName = fileNameForNode(qname, typeChecker);
+    const sym = clutzSymbolFromNode(typeChecker, node);
+    if (sym) {
+      const fileName = fileNameForSymbol(typeChecker, sym);
       if (fileName) imports.add(fileName);
-      return;
+      // Note: no 'return' here, because we need to also visit children in
+      // parameterized types like Foo<Bar>.
     }
     ts.forEachChild(node, visit);
   }

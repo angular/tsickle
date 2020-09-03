@@ -2,6 +2,8 @@
 import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo1.d.ts";
 import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo2.d.ts";
 import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo4.d.ts";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo6.d.ts";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo5.d.ts";
 /**
  * @fileoverview This file simulates a TypeScript file that interacts with Clutz
  * types.  The expected output is that the generated .d.ts file has explicit
@@ -28,11 +30,12 @@ export declare function f2(c: ಠ_ಠ.clutz.demo2.C): void;
  * type.)
  */
 export declare type f4 = typeof ಠ_ಠ.clutz.demo4;
+export declare function f5(): ಠ_ಠ.clutz.module$exports$demo6.C<ಠ_ಠ.clutz.module$exports$demo5.C> | undefined;
 declare global {
     namespace ಠ_ಠ.clutz {
-        export { f1 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f1, f2 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f2, f4 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f4 };
+        export { f1 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f1, f2 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f2, f4 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f4, f5 as module$contents$test_files$clutz_imports$declaration$no_externs$user_code_f5 };
         export namespace module$exports$test_files$clutz_imports$declaration$no_externs$user_code {
-            export { f1, f2, f4 };
+            export { f1, f2, f4, f5 };
         }
     }
 }
