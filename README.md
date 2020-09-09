@@ -144,6 +144,11 @@ any of the below commands to make sure you are using the right version.
   `clang-format`,
 - `yarn test` runs unit tests, e2e tests and checks the source code formatting.
 
+### TypeScript AST help
+
+https://astexplorer.net/ and https://ts-ast-viewer.com/ are convenient tools to
+visualize and inspect a TypeScript AST.
+
 ### Debugging
 
 You can debug tests by using `bazel run` and passing `--node_options=--inspect`
