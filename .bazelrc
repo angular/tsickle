@@ -21,10 +21,6 @@ build:ci --noshow_progress
 # speeding up the Bazel analysis time for CI jobs.
 build:ci --experimental_repository_cache=/home/circleci/bazel_repository_cache
 
-# Turn on managed directories feature in Bazel
-# This allows us to avoid installing a second copy of node_modules
-common --experimental_allow_incremental_repository_updates
-
 # Prevent TS worker from trying to expand the `includes` section in tsconfig.json.
 # It would find the "test/*.ts" reference when compiling //src:src, and the FileCache will then error
 # when TS attempts to read one of these files that doesn't belong in the compilation.
