@@ -118,4 +118,3 @@ var EventListenerObject;
 
 /** @record */
 function ImportMeta() {};
-
