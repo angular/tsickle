@@ -146,7 +146,9 @@ export function createSourceCachingHost(
   };
   const originalFileExists = host.fileExists;
   host.fileExists = (fileName: string): boolean => {
-    cliSupport.assertAbsolute(fileName);
+    // Note that TS appears to sometimes ask about relative paths, but we only
+    // store absolute paths, and we don't need to satisfy queries about relative
+    // paths to be correct here.
     if (sources.has(fileName)) return true;
     if (fileName === tslibPath) return true;
     // Typescript occasionally needs to look on disk for files we don't pass into
