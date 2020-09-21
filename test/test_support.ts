@@ -274,55 +274,6 @@ export function allDtsPaths(): string[] {
 }
 
 /**
- * Reads the files from the file system and returns a map from filePaths to
- * file contents.
- */
-export function readSources(filePaths: string[]): Map<string, string> {
-  const sources = new Map<string, string>();
-  for (const filePath of filePaths) {
-    sources.set(filePath, fs.readFileSync(filePath, {encoding: 'utf8'}));
-  }
-  return sources;
-}
-
-function getLineAndColumn(source: string, token: string): {line: number, column: number} {
-  const idx = source.indexOf(token);
-  if (idx === -1) {
-    throw new Error(`Couldn't find token '${token}' in source ${source}`);
-  }
-  let line = 1, column = 0;
-  for (let i = 0; i < idx; i++) {
-    column++;
-    if (source[i] === '\n') {
-      line++;
-      column = 0;
-    }
-  }
-  return {line, column};
-}
-
-export function findFileContentsByName(filename: string, files: Map<string, string>): string {
-  for (const filepath of files.keys()) {
-    if (path.parse(filepath).base === path.parse(filename).base) {
-      return files.get(filepath)!;
-    }
-  }
-  assert(
-      undefined,
-      `Couldn't find file ${filename} in files: ${
-          JSON.stringify(Array.from(files.keys()))}`);
-  throw new Error('Unreachable');
-}
-
-function removed(str: string) {
-  return '\x1B[37;41m' + str + '\x1B[0m';
-}
-
-function added(str: string) {
-  return '\x1B[37;32m' + str + '\x1B[0m';
-}
-
-/**
  * A Jasmine "compare" function that compares the strings actual vs expected, and produces a human
  * readable, colored diff using diff-match-patch.
  */
@@ -418,42 +369,4 @@ export function pathToModuleName(
     rootModulePath: string, context: string, fileName: string): string {
   if (fileName === tslibPath) return 'tslib';
   return cliSupport.pathToModuleName(rootModulePath, context, fileName);
-}
-
-/**
- * Compiles with the transformer 'emitWithTsickle()', performing both decorator
- * downleveling and closurization.
- */
-export function compileWithTransfromer(
-    sources: Map<string, string>, compilerOptions: ts.CompilerOptions,
-    rootPath?: string) {
-  const fileNames = Array.from(sources.keys());
-  const tsHost = createSourceCachingHost(sources, compilerOptions);
-  const program = ts.createProgram(fileNames, compilerOptions, tsHost);
-  expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
-
-  const rootModulePath = rootPath ? rootPath : path.dirname(fileNames[0]);
-
-  const transformerHost: tsickle.TsickleHost = {
-    shouldSkipTsickleProcessing: (filePath) => !sources.has(filePath),
-    pathToModuleName: pathToModuleName.bind(null, rootModulePath),
-    shouldIgnoreWarningsForPath: (filePath) => false,
-    fileNameToModuleId: (filePath) => filePath,
-    transformDecorators: true,
-    transformTypesToClosure: true,
-    addDtsClutzAliases: true,
-    googmodule: true,
-    es5Mode: false,
-    untyped: false,
-    options: compilerOptions,
-    moduleResolutionHost: tsHost,
-  };
-
-  const files = new Map<string, string>();
-  const {diagnostics, externs} = tsickle.emit(program, transformerHost, (path, contents) => {
-    files.set(path, contents);
-  });
-
-  expectDiagnosticsEmpty(diagnostics);
-  return {files, externs};
 }
