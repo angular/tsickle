@@ -22,7 +22,7 @@ describe('golden file tests', () => {
     // Declaration tests do not produce .js files.
     const tests = goldenTests().filter(t => !t.isDeclarationTest);
     // Collect all JavaScript outputs generated from .ts files.
-    const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths));
+    const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths()));
     // Manually add extra .js files that are not generated from .ts. Several tests include `.d.ts`
     // files describing symbols defined in JavaScript, e.g. for `goog:...` style Clutz imports.
     // These definitions must be included here so that Closure Compiler sees all definitions.
@@ -44,7 +44,7 @@ describe('golden file tests', () => {
         'test_files/export_equals.shim/shim.js',
         'test_files/type_propaccess.no_externs/nested_clazz.js',
     );
-    const externs = tests.map(t => t.externsPath).filter(fs.existsSync);
+    const externs = tests.map(t => t.externsPath()).filter(fs.existsSync);
     const startTime = Date.now();
     const total = goldenJs.length;
     if (!total) throw new Error('No JS files in ' + JSON.stringify(goldenJs));
