@@ -54,7 +54,7 @@ let useNeverTyped2;
 /** @type {?} */
 let useNeverTypedTemplated;
 /**
- * Note: JSDoc should not reference NeverTyped because the type is blacklisted.
+ * Note: JSDoc should not reference NeverTyped because the type is set to always be unknown.
  * tsickle: dropped implements: {?} type
  */
 class ImplementsNeverTyped {

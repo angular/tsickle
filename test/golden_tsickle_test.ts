@@ -132,14 +132,14 @@ testFn('golden tests', () => {
         es5Mode: test.isEs5Target,
         googmodule: true,
         // See test_files/jsdoc_types/nevertyped.ts and
-        // test_files/blacklisted_ambient_external_module/blacklisted.d.ts
-        typeBlackListPaths: new Set([
+        // test_files/ignored_ambient_external_module/ignored.d.ts
+        unknownTypesPaths: new Set([
           path.join(
               tsCompilerOptions.rootDir!,
               'test_files/jsdoc_types/nevertyped.ts'),
           path.join(
               tsCompilerOptions.rootDir!,
-              'test_files/blacklisted_ambient_external_module/blacklisted.d.ts'),
+              'test_files/ignored_ambient_external_module/ignored.d.ts'),
         ]),
         convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,

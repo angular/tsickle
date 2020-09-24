@@ -672,14 +672,14 @@ export function jsdocTransformer(
           // destructuring - those do not have a syntax in Closure) or @defines, which already
           // declare their type.
           if (ts.isIdentifier(decl.name)) {
-            // For variables that are initialized and use a blacklisted type, do not emit a type at
-            // all. Closure Compiler might be able to infer a better type from the initializer than
-            // the `?` the code below would emit.
+            // For variables that are initialized and use a type marked as unknown, do not emit a
+            // type at all. Closure Compiler might be able to infer a better type from the
+            // initializer than the `?` the code below would emit.
             // TODO(martinprobst): consider doing this for all types that get emitted as ?, not just
-            // for blacklisted ones.
-            const blackListedInitialized =
-                !!decl.initializer && moduleTypeTranslator.isBlackListed(decl);
-            if (!blackListedInitialized) {
+            // for marked ones.
+            const initializersMarkedAsUnknown =
+                !!decl.initializer && moduleTypeTranslator.isAlwaysUnknownSymbol(decl);
+            if (!initializersMarkedAsUnknown) {
               // getOriginalNode(decl) is required because the type checker cannot type check
               // synthesized nodes.
               const typeStr = moduleTypeTranslator.typeToClosure(ts.getOriginalNode(decl));
@@ -729,9 +729,9 @@ export function jsdocTransformer(
 
         const typeName = typeAlias.name.getText();
 
-        // Blacklist any type parameters, Closure does not support type aliases with type
+        // Set any type parameters as unknown, Closure does not support type aliases with type
         // parameters.
-        moduleTypeTranslator.newTypeTranslator(typeAlias).blacklistTypeParameters(
+        moduleTypeTranslator.newTypeTranslator(typeAlias).markTypeParameterAsUnknown(
             moduleTypeTranslator.symbolsToAliasedNames, typeAlias.typeParameters);
         const typeStr =
             host.untyped ? '?' : moduleTypeTranslator.typeToClosure(typeAlias, undefined);

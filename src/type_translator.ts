@@ -239,22 +239,22 @@ export class TypeTranslator {
   /**
    * @param node is the source AST ts.Node the type comes from.  This is used
    *     in some cases (e.g. anonymous types) for looking up field names.
-   * @param pathBlackList is a set of paths that should never get typed;
+   * @param pathUnknownSymbolsSet is a set of paths that should never get typed;
    *     any reference to symbols defined in these paths should by typed
    *     as {?}.
    * @param symbolsToAliasedNames a mapping from symbols (`Foo`) to a name in scope they should be
    *     emitted as (e.g. `tsickle_reqType_1.Foo`). Can be augmented during type translation, e.g.
-   *     to blacklist a symbol.
+   *     to mark a symbol as unknown.
    */
   constructor(
       private readonly host: AnnotatorHost, private readonly typeChecker: ts.TypeChecker,
-      private readonly node: ts.Node, private readonly pathBlackList: Set<string>,
+      private readonly node: ts.Node, private readonly pathUnknownSymbolsSet: Set<string>,
       private readonly symbolsToAliasedNames: Map<ts.Symbol, string>,
       private readonly symbolToNameCache: Map<ts.Symbol, string>,
       private readonly ensureSymbolDeclared: (sym: ts.Symbol) => void = () => {}) {
     // Normalize paths to not break checks on Windows.
-    this.pathBlackList =
-        new Set<string>(Array.from(this.pathBlackList.values()).map(p => path.normalize(p)));
+    this.pathUnknownSymbolsSet =
+        new Set<string>(Array.from(this.pathUnknownSymbolsSet.values()).map(p => path.normalize(p)));
   }
 
   /**
@@ -568,7 +568,7 @@ export class TypeTranslator {
   // translateObject translates a ts.ObjectType, which is the type of all
   // object-like things in TS, such as classes and interfaces.
   private translateObject(type: ts.ObjectType): string {
-    if (type.symbol && this.isBlackListed(type.symbol)) return '?';
+    if (type.symbol && this.isAlwaysUnknownSymbol(type.symbol)) return '?';
 
     // NOTE: objectFlags is an enum, but a given type can have multiple flags.
     // Array<string> is both ts.ObjectFlags.Reference and ts.ObjectFlags.Interface.
@@ -711,8 +711,8 @@ export class TypeTranslator {
         return '?';
       }
 
-      // new <T>(tee: T) is not supported by Closure, blacklist as ?.
-      this.blacklistTypeParameters(this.symbolsToAliasedNames, decl.typeParameters);
+      // new <T>(tee: T) is not supported by Closure, always set as ?.
+      this.markTypeParameterAsUnknown(this.symbolsToAliasedNames, decl.typeParameters);
 
       const params = this.convertParams(ctors[0], decl.parameters);
       const paramsStr = params.length ? (', ' + params.join(', ')) : '';
@@ -814,7 +814,7 @@ export class TypeTranslator {
       this.warn('signature with JSDoc declaration');
       return 'Function';
     }
-    this.blacklistTypeParameters(this.symbolsToAliasedNames, sig.declaration.typeParameters);
+    this.markTypeParameterAsUnknown(this.symbolsToAliasedNames, sig.declaration.typeParameters);
 
     let typeStr = `function(`;
     let paramDecls: ReadonlyArray<ts.ParameterDeclaration> = sig.declaration.parameters || [];
@@ -893,25 +893,25 @@ export class TypeTranslator {
   }
 
   /** @return true if sym should always have type {?}. */
-  isBlackListed(symbol: ts.Symbol): boolean {
-    return isBlacklisted(this.pathBlackList, symbol);
+  isAlwaysUnknownSymbol(symbol: ts.Symbol): boolean {
+    return isAlwaysUnknownSymbol(this.pathUnknownSymbolsSet, symbol);
   }
 
   /**
    * Closure doesn not support type parameters for function types, i.e. generic function types.
-   * Blacklist the symbols declared by them and emit a ? for the types.
+   * Mark the symbols declared by them as unknown and emit a ? for the types.
    *
-   * This mutates the given blacklist map. The map's scope is one file, and symbols are
+   * This mutates the given map of unknown symbols. The map's scope is one file, and symbols are
    * unique objects, so this should neither lead to excessive memory consumption nor introduce
    * errors.
    *
-   * @param blacklist a map to store the blacklisted symbols in, with a value of '?'. In practice,
+   * @param unknownSymbolsMap a map to store the unkown symbols in, with a value of '?'. In practice,
    *     this is always === this.symbolsToAliasedNames, but we're passing it explicitly to make it
    *    clear that the map is mutated (in particular when used from outside the class).
-   * @param decls the declarations whose symbols should be blacklisted.
+   * @param decls the declarations whose symbols should be marked as unknown.
    */
-  blacklistTypeParameters(
-      blacklist: Map<ts.Symbol, string>,
+  markTypeParameterAsUnknown(
+      unknownSymbolsMap: Map<ts.Symbol, string>,
       decls: ReadonlyArray<ts.TypeParameterDeclaration>|undefined) {
     if (!decls || !decls.length) return;
     for (const tpd of decls) {
@@ -920,18 +920,18 @@ export class TypeTranslator {
         this.warn(`type parameter with no symbol`);
         continue;
       }
-      blacklist.set(sym, '?');
+      unknownSymbolsMap.set(sym, '?');
     }
   }
 }
 
 /** @return true if sym should always have type {?}. */
-export function isBlacklisted(pathBlackList: Set<string>|undefined, symbol: ts.Symbol) {
-  if (pathBlackList === undefined) return false;
+export function isAlwaysUnknownSymbol(pathUnknownSymbolsSet: Set<string>|undefined, symbol: ts.Symbol) {
+  if (pathUnknownSymbolsSet === undefined) return false;
   // Some builtin types, such as {}, get represented by a symbol that has no declarations.
   if (symbol.declarations === undefined) return false;
   return symbol.declarations.every(n => {
     const fileName = path.normalize(n.getSourceFile().fileName);
-    return pathBlackList.has(fileName);
+    return pathUnknownSymbolsSet.has(fileName);
   });
 }

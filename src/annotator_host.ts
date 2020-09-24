@@ -32,8 +32,10 @@ export interface AnnotatorHost {
    * "don't check types".
    */
   untyped?: boolean;
-  /** If provided, a set of paths whose types should always generate as {?}. */
+  /** @deprecated use unknownTypesPaths instead */
   typeBlackListPaths?: Set<string>;
+  /** If provided, a set of paths whose types should always generate as {?}. */
+  unknownTypesPaths?: Set<string>;
   /**
    * Convert shorthand "/index" imports to full path (include the "/index").
    * Annotation will be slower because every import must be resolved.

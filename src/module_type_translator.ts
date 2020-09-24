@@ -121,7 +121,10 @@ export class ModuleTypeTranslator {
       private host: AnnotatorHost,
       private diagnostics: ts.Diagnostic[],
       private isForExterns: boolean,
-  ) {}
+  ) {
+    // TODO: remove once AnnotatorHost.typeBlackListPaths is removed.
+    this.host.unknownTypesPaths = this.host.unknownTypesPaths ?? this.host.typeBlackListPaths;
+  }
 
   debugWarn(context: ts.Node, messageText: string) {
     reportDebugWarning(this.host, context, messageText);
@@ -157,7 +160,7 @@ export class ModuleTypeTranslator {
     const translationContext = this.isForExterns ? this.sourceFile : context;
 
     const translator = new typeTranslator.TypeTranslator(
-        this.host, this.typeChecker, translationContext, this.host.typeBlackListPaths || new Set(),
+        this.host, this.typeChecker, translationContext, this.host.unknownTypesPaths || new Set(),
         this.symbolsToAliasedNames, this.symbolToNameCache,
         (sym: ts.Symbol) => this.ensureSymbolDeclared(sym));
     translator.isForExterns = this.isForExterns;
@@ -165,14 +168,14 @@ export class ModuleTypeTranslator {
     return translator;
   }
 
-  isBlackListed(context: ts.Node) {
+  isAlwaysUnknownSymbol(context: ts.Node) {
     const type = this.typeChecker.getTypeAtLocation(context);
     let sym = type.symbol;
     if (!sym) return false;
     if (sym.flags & ts.SymbolFlags.Alias) {
       sym = this.typeChecker.getAliasedSymbol(sym);
     }
-    return this.newTypeTranslator(context).isBlackListed(sym);
+    return this.newTypeTranslator(context).isAlwaysUnknownSymbol(sym);
   }
 
   /**
@@ -236,8 +239,8 @@ export class ModuleTypeTranslator {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
-    if (typeTranslator.isBlacklisted(this.host.typeBlackListPaths, moduleSymbol)) {
-      return;  // Do not emit goog.requireType for blacklisted paths.
+    if (typeTranslator.isAlwaysUnknownSymbol(this.host.unknownTypesPaths, moduleSymbol)) {
+      return;  // Do not emit goog.requireType for paths marked as always unknown.
     }
     const nsImport = googmodule.extractGoogNamespaceImport(importPath);
     const requireTypePrefix =

@@ -50,14 +50,14 @@ export interface Tag {
  *
  * Note that some of these tags are also rejected by tsickle when seen in
  * the user-provided source, but also that tsickle itself may generate some of these.
- * This whitelist is just used for controlling the output.
+ * This list is just used for controlling the output.
  *
  * The public Closure docs don't list all the tags it allows; this list comes
  * from the compiler source itself.
  * https://github.com/google/closure-compiler/blob/master/src/com/google/javascript/jscomp/parsing/Annotation.java
  * https://github.com/google/closure-compiler/blob/master/src/com/google/javascript/jscomp/parsing/ParserConfig.properties
  */
-const JSDOC_TAGS_OUTPUT_WHITELIST = new Set([
+const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'abstract',
   'alternateMessageId',
   'argument',
@@ -143,7 +143,7 @@ const JSDOC_TAGS_OUTPUT_WHITELIST = new Set([
  * these will cause Closure Compiler issues and should not be used.
  * Note: 'template' is special-cased below; see where this set is queried.
  */
-const JSDOC_TAGS_INPUT_BLACKLIST = new Set([
+const BANNED_JSDOC_TAGS_INPUT = new Set([
   'augments', 'class',      'constructs', 'constructor', 'enum',      'extends', 'field',
   'function', 'implements', 'interface',  'lends',       'namespace', 'private', 'protected',
   'public',   'record',     'static',     'template',    'this',      'type',    'typedef',
@@ -221,9 +221,9 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
         tagName = 'return';
       }
       let type: string|undefined;
-      if (JSDOC_TAGS_INPUT_BLACKLIST.has(tagName)) {
+      if (BANNED_JSDOC_TAGS_INPUT.has(tagName)) {
         if (tagName !== 'template') {
-          // Tell the user to not write blacklisted tags, because there is TS
+          // Tell the user to not write banned tags, because there is TS
           // syntax available for them.
           warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
           continue;  // Drop the tag so Closure won't process it.
@@ -290,7 +290,7 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
 function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
   let out = '';
   if (tag.tagName) {
-    if (!JSDOC_TAGS_OUTPUT_WHITELIST.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
+    if (!CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
       // Escape tags we don't understand.  This is a subtle
       // compromise between multiple issues.
       // 1) If we pass through these non-Closure tags, the user will

@@ -81,7 +81,7 @@ import {isValidClosurePropertyName} from './type_translator';
  * Symbols that are already declared as externs in Closure, that should
  * be avoided by tsickle's "declare ..." => externs.js conversion.
  */
-const CLOSURE_EXTERNS_BLACKLIST: ReadonlyArray<string> = [
+const PREDECLARED_CLOSURE_EXTERNS_LIST: ReadonlyArray<string> = [
   'exports',
   'global',
   'module',
@@ -91,7 +91,7 @@ const CLOSURE_EXTERNS_BLACKLIST: ReadonlyArray<string> = [
   // assumption is wrong for ErrorConstructor.  To properly handle this
   // we'd somehow need to map methods defined on the ErrorConstructor
   // interface into properties on Closure's Error object, but for now it's
-  // simpler to just blacklist it.
+  // simpler to just treat it as already declared.
   'ErrorConstructor',
   'Symbol',
   'WorkerGlobalScope',
@@ -326,7 +326,7 @@ export function generateExterns(
       decl: ts.VariableDeclaration, namespace: ReadonlyArray<string>) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
       const name = getIdentifierText(decl.name as ts.Identifier);
-      if (CLOSURE_EXTERNS_BLACKLIST.indexOf(name) >= 0) return;
+      if (PREDECLARED_CLOSURE_EXTERNS_LIST.indexOf(name) >= 0) return;
       emit(jsdoc.toString([{tagName: 'type', type: mtt.typeToClosure(decl)}]));
       emit('\n');
       writeVariableStatement(name, namespace);
@@ -410,7 +410,7 @@ export function generateExterns(
       return;
     }
     const typeName = namespace.concat([name.getText()]).join('.');
-    if (CLOSURE_EXTERNS_BLACKLIST.indexOf(typeName) >= 0) return;
+    if (PREDECLARED_CLOSURE_EXTERNS_LIST.indexOf(typeName) >= 0) return;
 
     if (isFirstValueDeclaration(decl)) {
       // Emit the 'function' that is actually the declaration of the interface
