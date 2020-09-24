@@ -167,7 +167,7 @@ export function toClosureJS(
     googmodule: true,
     transformDecorators: true,
     transformTypesToClosure: true,
-    typeBlackListPaths: new Set(),
+    unknownTypesPaths: new Set(),
     untyped: false,
     logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
