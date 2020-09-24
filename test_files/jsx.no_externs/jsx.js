@@ -1,10 +1,10 @@
 /**
  * @fileoverview added by tsickle
- * Generated from: test_files/jsx/jsx.tsx
+ * Generated from: test_files/jsx.no_externs/jsx.tsx
  * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-goog.module('test_files.jsx.jsx.tsx');
-var module = module || { id: 'test_files/jsx/jsx.tsx' };
+goog.module('test_files.jsx.no_externs.jsx.tsx');
+var module = module || { id: 'test_files/jsx.no_externs/jsx.tsx' };
 goog.require('tslib');
 /** @type {!JSX.Element} */
 let simple = React.createElement("div", null);
