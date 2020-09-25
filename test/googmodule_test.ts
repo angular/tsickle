@@ -42,7 +42,7 @@ function processES5(fileName: string, content: string, {
   const manifest = new ModulesManifest();
   let output: string|null = null;
   const transformers = {
-    after: [googmodule.commonJsToGoogmoduleTransformer(host, manifest, typeChecker, diagnostics)]
+    after: [googmodule.commonJsToGoogmoduleTransformer(host, manifest, typeChecker)]
   };
   const res = program.emit(undefined, (fn, content) => {
     output = content;

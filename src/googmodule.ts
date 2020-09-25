@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
 import * as path from './path';
-import {createNotEmittedStatementWithComments, createSingleQuoteStringLiteral,} from './transformer_util';
+import {createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, reportDiagnostic} from './transformer_util';
 
 export interface GoogModuleProcessorHost {
   /**
@@ -114,7 +114,7 @@ function checkExportsVoid0Assignment(expr: ts.Expression): boolean {
  * Returns the string argument if call is of the form
  *   require('foo')
  */
-function extractRequire(call: ts.CallExpression): string|null {
+function extractRequire(call: ts.CallExpression): ts.StringLiteral|null {
   // Verify that the call is a call to require(...).
   if (call.expression.kind !== ts.SyntaxKind.Identifier) return null;
   const ident = call.expression as ts.Identifier;
@@ -124,7 +124,7 @@ function extractRequire(call: ts.CallExpression): string|null {
   if (call.arguments.length !== 1) return null;
   const arg = call.arguments[0];
   if (arg.kind !== ts.SyntaxKind.StringLiteral) return null;
-  return (arg as ts.StringLiteral).text;
+  return arg as ts.StringLiteral;
 }
 
 /** Creates a call expression corresponding to `goog.${methodName}(${literal})`. */
@@ -134,14 +134,81 @@ function createGoogCall(methodName: string, literal: ts.StringLiteral): ts.CallE
 }
 
 /**
- * Extracts the namespace part of a goog: import URL, or returns null if the given import URL is not
- * a goog: import.
- *
- * For example, for `import 'goog:foo.Bar';`, returns `foo.Bar`.
+ * findLocalInDeclarations searches for a local name with the given name in all declarations of
+ * the given symbol. Note that not all declarations are containers that can have local symbols.
  */
-export function extractGoogNamespaceImport(tsImport: string): string|null {
+function findLocalInDeclarations(symbol: ts.Symbol, name: string): ts.Symbol|undefined {
+  for (const decl of symbol.declarations) {
+    // This accesses a TypeScript internal API, "locals" of a container.
+    // This allows declaring special symbols in e.g. d.ts modules as locals that cannot be accessed
+    // from user code.
+    const locals = (decl as {locals?: ts.SymbolTable}).locals;
+    if (!locals) continue;
+    const sym = locals.get(ts.escapeLeadingUnderscores(name));
+    if (sym) return sym;
+  }
+  return undefined;
+}
+
+/**
+ * stringLiteralTypeOfSymbol returns the string literal type of symbol if it is declared in a
+ * variable declaration that has a literal type.
+ */
+function stringLiteralTypeOfSymbol(symbol: ts.Symbol): string|undefined {
+  if (symbol.declarations.length === 0) return undefined;
+  const varDecl = symbol.declarations[0];
+  if (!ts.isVariableDeclaration(varDecl)) return undefined;
+  if (!varDecl.type || !ts.isLiteralTypeNode(varDecl.type)) return undefined;
+  if (!ts.isLiteralExpression(varDecl.type.literal)) return undefined;
+  return varDecl.type.literal.text;
+}
+
+/**
+ * For a given import URL, extracts or finds the namespace to pass to
+ * `goog.require` in two special cases:
+ *
+ * 1) modules can contain a special marker symbol (`__clutz_actual_namespace`)
+ *    that overrides the namespace to import.
+ * 2) tsickle handles specially encoded URLs starting with `goog:`, e.g. for
+ *    `import 'goog:foo.Bar';`, returns `foo.Bar`.
+ *
+ * This is used to mark imports of Closure JavaScript sources and map them back
+ * to the correct goog.require namespace.
+ *
+ * If the given moduleSymbol is undefined, e.g. because tsickle runs with no
+ * type information available, (1) is disabled, but (2) works.
+ *
+ * If there's no special cased namespace, namespaceForImportUrl returns null.
+ *
+ * This is independent of tsickle's regular pathToModuleId conversion logic and
+ * happens before it.
+ */
+export function namespaceForImportUrl(
+    context: ts.Node, tsickleDiagnostics: ts.Diagnostic[], tsImport: string,
+    moduleSymbol: ts.Symbol|undefined): string|null {
   if (tsImport.match(/^goog:/)) return tsImport.substring('goog:'.length);
-  return null;
+  if (!moduleSymbol) return null;  // No type information available, skip symbol resolution.
+  const actualNamespaceSymbol = findLocalInDeclarations(moduleSymbol, '__clutz_actual_namespace');
+  if (!actualNamespaceSymbol) return null;
+  const hasMultipleProvides =
+      findLocalInDeclarations(moduleSymbol, '__clutz_multiple_provides');
+  if (hasMultipleProvides) {
+    // Report an error...
+    reportDiagnostic(
+        tsickleDiagnostics, context,
+        `referenced JavaScript module ${
+            tsImport} provides multiple namespaces and cannot be imported by path.`);
+    // ... but continue producing an emit that effectively references the first
+    // provided symbol (to continue finding any additional errors).
+  }
+  const actualNamespace = stringLiteralTypeOfSymbol(actualNamespaceSymbol);
+  if (actualNamespace === undefined) {
+    reportDiagnostic(
+        tsickleDiagnostics, context,
+        `referenced module's __clutz_actual_namespace not a variable with a string literal type`);
+    return null;
+  }
+  return actualNamespace;
 }
 
 /**
@@ -184,10 +251,11 @@ export function resolveModuleName(
  * namespace, handling regular imports and `goog:` namespace imports.
  */
 function importPathToGoogNamespace(
-    host: GoogModuleProcessorHost, file: ts.SourceFile, tsImport: string): ts.StringLiteral {
+    host: GoogModuleProcessorHost, context: ts.Node, diagnostics: ts.Diagnostic[],
+    file: ts.SourceFile, tsImport: string, moduleSymbol: ts.Symbol|undefined): ts.StringLiteral {
   let modName: string;
-  const nsImport = extractGoogNamespaceImport(tsImport);
-  if (nsImport !== null) {
+  const nsImport = namespaceForImportUrl(context, diagnostics, tsImport, moduleSymbol);
+  if (nsImport != null) {
     // This is a namespace import, of the form "goog:foo.bar".
     // Fix it to just "foo.bar".
     modName = nsImport;
@@ -262,23 +330,21 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
  * module emit to Closure Compiler compatible goog.module and goog.require statements.
  */
 export function commonJsToGoogmoduleTransformer(
-    host: GoogModuleProcessorHost, modulesManifest: ModulesManifest, typeChecker: ts.TypeChecker,
-    diagnostics: ts.Diagnostic[]): (context: ts.TransformationContext) =>
-    ts.Transformer<ts.SourceFile> {
+    host: GoogModuleProcessorHost, modulesManifest: ModulesManifest, typeChecker: ts.TypeChecker):
+    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     // TS' CommonJS processing uses onSubstituteNode to, at the very end of processing, substitute
-    // "modulename.default" for default imports. We intercept the substitution here, check if it's a
-    // .default access, then check if the original node (and thus original import) was from a goog:
-    // module, and if so, replace with just the module name.
+    // `modulename.someProperty` property accesses and replace them with just `modulename` in two
+    // special cases. See below for the cases & motivation.
     const previousOnSubstituteNode = context.onSubstituteNode;
     context.enableSubstitution(ts.SyntaxKind.PropertyAccessExpression);
     context.onSubstituteNode = (hint, node: ts.Node): ts.Node => {
       node = previousOnSubstituteNode(hint, node);
+      // Check if this is a property.access.
       if (!ts.isPropertyAccessExpression(node)) return node;
-      if (node.name.text !== 'default') return node;
       if (!ts.isIdentifier(node.expression)) return node;
-      // Find the import declaration this node comes from.
-      // This may be the original node, if the identifier was transformed from it.
+      // Find the import declaration node.expression (the LHS) comes from.
+      // This may be the original ImportDeclaration, if the identifier was transformed from it.
       const orig = ts.getOriginalNode(node.expression);
       let importExportDecl: ts.ImportDeclaration|ts.ExportDeclaration;
       if (ts.isImportDeclaration(orig) || ts.isExportDeclaration(orig)) {
@@ -298,14 +364,28 @@ export function commonJsToGoogmoduleTransformer(
           return node;
         }
       }
+      if (!importExportDecl.moduleSpecifier) return node;  // export declaration with no URL.
+
       // If the import declaration's URL is a "goog:..." style namespace, then all ".default"
       // accesses on it should be replaced with the symbol itself.
       // This allows referring to the module-level export of a "goog.module" or "goog.provide" as if
       // it was an ES6 default export.
-      if (extractGoogNamespaceImport((importExportDecl.moduleSpecifier as ts.StringLiteral).text)) {
+      const isDefaultAccess = node.name.text === 'default';
+      if (isDefaultAccess &&
+          (importExportDecl.moduleSpecifier as ts.StringLiteral).text.startsWith('goog:')) {
         // Substitute "foo.default" with just "foo".
         return node.expression;
       }
+      // Alternatively, modules may export a well known symbol '__clutz_strip_property'.
+      const moduleSymbol = typeChecker.getSymbolAtLocation(importExportDecl.moduleSpecifier);
+      if (!moduleSymbol) return node;
+      const stripDefaultNameSymbol =
+          findLocalInDeclarations(moduleSymbol, '__clutz_strip_property');
+      if (!stripDefaultNameSymbol) return node;
+      const stripName = stringLiteralTypeOfSymbol(stripDefaultNameSymbol);
+      // In this case, emit `modulename` instead of `modulename.property` if and only if the
+      // accessed name matches the declared name.
+      if (stripName === node.name.text) return node.expression;
       return node;
     };
 
@@ -359,10 +439,14 @@ export function commonJsToGoogmoduleTransformer(
           newIdent: ts.Identifier|undefined): ts.Statement|null {
         const importedUrl = extractRequire(call);
         if (!importedUrl) return null;
-        const imp = importPathToGoogNamespace(host, sf, importedUrl);
+        const moduleSymbol = typeChecker.getSymbolAtLocation(importedUrl);
+        // if importPathToGoogNamespace reports an error, it has already been reported when
+        // originally transforming the file to JS (e.g. to produce the goog.requireType call).
+        const ignoredDiagnostics: ts.Diagnostic[] = [];
+        const imp = importPathToGoogNamespace(
+            host, importedUrl, ignoredDiagnostics, sf, importedUrl.text, moduleSymbol);
         modulesManifest.addReferencedModule(sf.fileName, imp.text);
-        const existingImport: ts.Identifier|undefined =
-            namespaceToModuleVarName.get(imp.text);
+        const existingImport: ts.Identifier|undefined = namespaceToModuleVarName.get(imp.text);
         let initializer: ts.Expression;
         if (!existingImport) {
           if (newIdent) namespaceToModuleVarName.set(imp.text, newIdent);
@@ -388,8 +472,7 @@ export function commonJsToGoogmoduleTransformer(
           // Create a statement like one of:
           //   var foo = goog.require('bar');
           //   var foo = existingImport;
-          const varDecl = ts.createVariableDeclaration(
-              newIdent, /* type */ undefined, initializer);
+          const varDecl = ts.createVariableDeclaration(newIdent, /* type */ undefined, initializer);
           const newStmt = ts.createVariableStatement(
               /* modifiers */ undefined,
               ts.createVariableDeclarationList(
@@ -397,14 +480,12 @@ export function commonJsToGoogmoduleTransformer(
                   // Use 'const' in ES6 mode so Closure properly forwards type
                   // aliases.
                   host.es5Mode ? undefined : ts.NodeFlags.Const));
-          return ts.setOriginalNode(
-              ts.setTextRange(newStmt, original), original);
+          return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
         } else if (!newIdent && !existingImport) {
           // Create a statement like:
           //   goog.require('bar');
           const newStmt = ts.createExpressionStatement(initializer);
-          return ts.setOriginalNode(
-              ts.setTextRange(newStmt, original), original);
+          return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
         }
         return createNotEmittedStatementWithComments(sf, original);
       }
@@ -550,8 +631,8 @@ export function commonJsToGoogmoduleTransformer(
        * exports.a = a_1.a;
        * ```
        */
-      function rewriteObjectDefinePropertyOnExports(
-          stmt: ts.ExpressionStatement): ts.Statement|null {
+      function rewriteObjectDefinePropertyOnExports(stmt: ts.ExpressionStatement): ts.Statement|
+          null {
         // Verify this node is a function call.
         if (!ts.isCallExpression(stmt.expression)) return null;
 
@@ -579,15 +660,13 @@ export function commonJsToGoogmoduleTransformer(
         // Returns a "finder" function to location an object property.
         function findPropNamed(name: string) {
           return (p: ts.ObjectLiteralElementLike) => {
-            return ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) &&
-                p.name.text === name;
+            return ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === name;
           };
         }
 
         // Verify that the export is marked as enumerable. If it isn't then this
         // was not generated by TypeScript.
-        const enumerableConfig =
-            objDefArg3.properties.find(findPropNamed('enumerable'));
+        const enumerableConfig = objDefArg3.properties.find(findPropNamed('enumerable'));
         if (!enumerableConfig) return null;
         if (!ts.isPropertyAssignment(enumerableConfig)) return null;
         if (enumerableConfig.initializer.kind !== ts.SyntaxKind.TrueKeyword) {
@@ -615,8 +694,7 @@ export function commonJsToGoogmoduleTransformer(
         const exportStmt = ts.setOriginalNode(
             ts.setTextRange(
                 ts.createExpressionStatement(ts.createAssignment(
-                    ts.createPropertyAccess(
-                        ts.createIdentifier('exports'), objDefArg2.text),
+                    ts.createPropertyAccess(ts.createIdentifier('exports'), objDefArg2.text),
                     realExportValue)),
                 stmt),
             stmt);
@@ -660,11 +738,11 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
-            // If we have not already seen the defaulted export assignment 
+            // If we have not already seen the defaulted export assignment
             // initializing all exports to `void 0`, skip the statement and mark
             // that we have have now seen it.
             if (!didRewriteDefaultExportsAssignment &&
-              checkExportsVoid0Assignment(exprStmt.expression)) {
+                checkExportsVoid0Assignment(exprStmt.expression)) {
               didRewriteDefaultExportsAssignment = true;
               stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
               return;
@@ -701,8 +779,7 @@ export function commonJsToGoogmoduleTransformer(
             //   })
             // which is a live binding generated when re-exporting from another
             // module.
-            const exportFromObjDefProp =
-                rewriteObjectDefinePropertyOnExports(exprStmt);
+            const exportFromObjDefProp = rewriteObjectDefinePropertyOnExports(exprStmt);
             if (exportFromObjDefProp) {
               stmts.push(exportFromObjDefProp);
               return;
@@ -729,8 +806,7 @@ export function commonJsToGoogmoduleTransformer(
             // imported version is only substituted later on though, so appears
             // as a plain "__exportStar" on the top level here.
             const isExportStar = ts.isIdentifier(expr.expression) &&
-                (expr.expression.text === '__exportStar' ||
-                 expr.expression.text === '__export');
+                (expr.expression.text === '__exportStar' || expr.expression.text === '__export');
             let newIdent: ts.Identifier|undefined;
             if (isExportStar) {
               // Extract the goog.require() from the call. (It will be verified
@@ -741,8 +817,7 @@ export function commonJsToGoogmoduleTransformer(
 
             // Check whether the call is actually a require() and translate
             // as appropriate.
-            const require =
-                maybeCreateGoogRequire(exprStmt, callExpr, newIdent);
+            const require = maybeCreateGoogRequire(exprStmt, callExpr, newIdent);
             if (!require) break;
             statements.push(require);
 
@@ -752,7 +827,7 @@ export function commonJsToGoogmoduleTransformer(
             if (isExportStar) {
               const args: ts.Expression[] = [newIdent!];
               if (expr.arguments.length > 1) args.push(expr.arguments[1]);
-              statements.push(ts.createStatement(
+              statements.push(ts.createExpressionStatement(
                   ts.createCall(expr.expression, undefined, args)));
             }
             return;

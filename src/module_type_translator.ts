@@ -235,14 +235,15 @@ export class ModuleTypeTranslator {
    * @param isDefaultImport True if the import statement is a default import, e.g.
    *     `import Foo from ...;`, which matters for adjusting whether we emit a `.default`.
    */
-  requireType(importPath: string, moduleSymbol: ts.Symbol, isDefaultImport = false) {
+  requireType(context: ts.Node, importPath: string, moduleSymbol: ts.Symbol, isDefaultImport = false) {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
     if (typeTranslator.isAlwaysUnknownSymbol(this.host.unknownTypesPaths, moduleSymbol)) {
       return;  // Do not emit goog.requireType for paths marked as always unknown.
     }
-    const nsImport = googmodule.extractGoogNamespaceImport(importPath);
+    const nsImport =
+        googmodule.namespaceForImportUrl(context, this.diagnostics, importPath, moduleSymbol);
     const requireTypePrefix =
         this.generateModulePrefix(importPath) + String(this.requireTypeModules.size + 1);
     const moduleNamespace = nsImport !== null ?
@@ -295,7 +296,7 @@ export class ModuleTypeTranslator {
     // A source file might not have a symbol if it's not a module (no ES6 im/exports).
     if (!moduleSymbol) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    this.requireType(sourceFile.fileName, moduleSymbol);
+    this.requireType(decl, sourceFile.fileName, moduleSymbol);
   }
 
   insertAdditionalImports(sourceFile: ts.SourceFile) {

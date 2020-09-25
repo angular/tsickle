@@ -69,7 +69,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
-import {extractGoogNamespaceImport, resolveModuleName} from './googmodule';
+import {namespaceForImportUrl, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
@@ -548,12 +548,12 @@ export function generateExterns(
    * referencing the type.
    */
   function addImportAliases(decl: ts.ImportDeclaration|ts.ImportEqualsDeclaration) {
-    let moduleUri: string;
+    let moduleUri: ts.StringLiteral;
     if (ts.isImportDeclaration(decl)) {
-      moduleUri = (decl.moduleSpecifier as ts.StringLiteral).text;
+      moduleUri = decl.moduleSpecifier as ts.StringLiteral;
     } else if (ts.isExternalModuleReference(decl.moduleReference)) {
       // import foo = require('./bar');
-      moduleUri = (decl.moduleReference.expression as ts.StringLiteral).text;
+      moduleUri = decl.moduleReference.expression as ts.StringLiteral;
     } else {
       // import foo = bar.baz.bam;
       // handled at call site.
@@ -593,7 +593,9 @@ export function generateExterns(
    * Adds an import alias for the symbol defined at the given node. Creates an alias name based on
    * the given moduleName and (optionally) the name.
    */
-  function addImportAlias(node: ts.Node, moduleUri: string, name: ts.Identifier|string|undefined) {
+  function addImportAlias(
+      node: ts.Node, moduleUri: ts.StringLiteral,
+      name: ts.Identifier|string|undefined) {
     let symbol = typeChecker.getSymbolAtLocation(node);
     if (!symbol) {
       reportDiagnostic(diagnostics, node, `named import has no symbol`);
@@ -603,7 +605,13 @@ export function generateExterns(
       symbol = typeChecker.getAliasedSymbol(symbol);
     }
 
-    const googNamespace = extractGoogNamespaceImport(moduleUri);
+    const moduleSymbol = typeChecker.getSymbolAtLocation(moduleUri);
+    if (!moduleSymbol) {
+      reportDiagnostic(diagnostics, moduleUri, `imported module has no symbol`);
+      return;
+    }
+    const googNamespace =
+        namespaceForImportUrl(moduleUri, diagnostics, moduleUri.text, moduleSymbol);
     let aliasName: string;
     if (googNamespace) {
       aliasName = googNamespace;
@@ -616,7 +624,8 @@ export function generateExterns(
       // This only applies to non-Closure ('goog:') imports.
       const isAmbientModuleDeclaration =
           symbol.declarations && symbol.declarations.some(d => isAmbient(d));
-      const fullUri = resolveModuleName(host, sourceFile.fileName, moduleUri);
+      const fullUri =
+          resolveModuleName(host, sourceFile.fileName, moduleUri.text);
       if (isAmbientModuleDeclaration) {
         aliasName = moduleNameAsIdentifier(host, fullUri);
       } else {

@@ -833,7 +833,7 @@ export function jsdocTransformer(
             sourceFile.fileName, (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
         moduleTypeTranslator.requireType(
-            importPath, sym,
+            importDecl.moduleSpecifier, importPath, sym,
             /* default import? */ !!importDecl.importClause.name);
         return importDecl;
       }
@@ -873,7 +873,8 @@ export function jsdocTransformer(
           // requireType all explicitly imported modules, so that symbols can be referenced and
           // type only modules are usable from type declarations.
           moduleTypeTranslator.requireType(
-              (exportDecl.moduleSpecifier as ts.StringLiteral).text, importedModuleSymbol,
+              exportDecl.moduleSpecifier!, (exportDecl.moduleSpecifier as ts.StringLiteral).text,
+              importedModuleSymbol,
               /* default import? */ false);
         }
 

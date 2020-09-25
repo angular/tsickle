@@ -150,8 +150,8 @@ export function emit(
     tsTransformers.before!.push(removeTypeAssertions());
   }
   if (host.googmodule) {
-    tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
-        host, modulesManifest, typeChecker, tsickleDiagnostics));
+    tsTransformers.after!.push(
+        googmodule.commonJsToGoogmoduleTransformer(host, modulesManifest, typeChecker));
     tsTransformers.after!.push(
         transformDecoratorsOutputForClosurePropertyRenaming(tsickleDiagnostics));
   }

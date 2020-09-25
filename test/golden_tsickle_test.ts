@@ -114,7 +114,7 @@ testFn('golden tests', () => {
       const tsCompilerOptions: ts.CompilerOptions = {
         ...testSupport.compilerOptions,
         // Test that creating declarations does not throw
-        declaration: emitDeclarations
+        declaration: emitDeclarations,
       };
       const {program, host: tsHost} =
           testSupport.createProgramAndHost(tsSources, tsCompilerOptions);
@@ -204,8 +204,9 @@ testFn('golden tests', () => {
       for (const d of diagnostics) allDiagnostics.add(d);
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
       for (const d of allDiagnostics) {
-        let diags = diagnosticsByFile.get(d.file!.fileName);
-        if (!diags) diagnosticsByFile.set(d.file!.fileName, diags = []);
+        const fileName = d.file?.fileName ?? 'unhandled diagnostic with no file name attached';
+        let diags = diagnosticsByFile.get(fileName);
+        if (!diags) diagnosticsByFile.set(fileName, diags = []);
         diags.push(d);
       }
       if (!test.isDeclarationTest) {
