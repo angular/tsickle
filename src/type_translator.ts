@@ -48,23 +48,27 @@ function isClutzDts(sourceFile: ts.SourceFile): boolean {
 }
 
 /**
- * typeValueConflictHandled returns true for symbols whose type/value conflict is handled outside of
- * tsickle.
+ * typeValueConflictHandled returns true for symbols whose type/value conflict
+ * is handled outside of tsickle.
  *
  * This covers two cases:
  *
- * - symbols provided by Clutz. Given that Closure has a merged type/value namespace, apparent
- *   type/value conflicts on the TypeScript level are actually fine.
- * - builtin lib*.d.ts symbols, such as "Array", which are considered Closure-compatible. Note that
- *   we don't actually enforce that the types are actually compatible, but mostly just hope that
- *   they are due to being derived from the same HTML specs.
+ * - symbols provided by Clutz. Given that Closure has a merged type/value
+ * namespace, apparent type/value conflicts on the TypeScript level are actually
+ * fine.
+ * - builtin lib*.d.ts symbols, such as "Array", which are considered
+ * Closure-compatible. Note that we don't actually enforce that the types are
+ * actually compatible, but mostly just hope that they are due to being derived
+ * from the same HTML specs.
  */
 export function typeValueConflictHandled(symbol: ts.Symbol) {
-  // TODO(#1072): if the symbol comes from a tsickle-transpiled file, either .ts or .d.ts with
-  // externs generation? then maybe we can emit it with name mangling.
+  // TODO(#1072): if the symbol comes from a tsickle-transpiled file, either .ts
+  // or .d.ts with externs generation? then maybe we can emit it with name
+  // mangling.
   return symbol.declarations != null &&
       symbol.declarations.some(
-          n => isBuiltinLibDTS(n.getSourceFile().fileName) || isClutzDts(n.getSourceFile()));
+          n => isBuiltinLibDTS(n.getSourceFile().fileName) ||
+              isClutzDts(n.getSourceFile()));
 }
 
 export function typeToDebugString(type: ts.Type): string {
@@ -74,19 +78,24 @@ export function typeToDebugString(type: ts.Type): string {
     debugString += ` alias:${symbolToDebugString(type.aliasSymbol)}`;
   }
   if (type.aliasTypeArguments) {
-    debugString += ` aliasArgs:<${type.aliasTypeArguments.map(typeToDebugString).join(',')}>`;
+    debugString += ` aliasArgs:<${
+        type.aliasTypeArguments.map(typeToDebugString).join(',')}>`;
   }
 
   // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const basicTypes: ts.TypeFlags[] = [
-    ts.TypeFlags.Any,           ts.TypeFlags.String,         ts.TypeFlags.Number,
-    ts.TypeFlags.Boolean,       ts.TypeFlags.Enum,           ts.TypeFlags.StringLiteral,
-    ts.TypeFlags.NumberLiteral, ts.TypeFlags.BooleanLiteral, ts.TypeFlags.EnumLiteral,
-    ts.TypeFlags.BigIntLiteral, ts.TypeFlags.ESSymbol,       ts.TypeFlags.UniqueESSymbol,
-    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,      ts.TypeFlags.Null,
-    ts.TypeFlags.Never,         ts.TypeFlags.TypeParameter,  ts.TypeFlags.Object,
-    ts.TypeFlags.Union,         ts.TypeFlags.Intersection,   ts.TypeFlags.Index,
-    ts.TypeFlags.IndexedAccess, ts.TypeFlags.Conditional,    ts.TypeFlags.Substitution,
+    ts.TypeFlags.Any,           ts.TypeFlags.String,
+    ts.TypeFlags.Number,        ts.TypeFlags.Boolean,
+    ts.TypeFlags.Enum,          ts.TypeFlags.StringLiteral,
+    ts.TypeFlags.NumberLiteral, ts.TypeFlags.BooleanLiteral,
+    ts.TypeFlags.EnumLiteral,   ts.TypeFlags.BigIntLiteral,
+    ts.TypeFlags.ESSymbol,      ts.TypeFlags.UniqueESSymbol,
+    ts.TypeFlags.Void,          ts.TypeFlags.Undefined,
+    ts.TypeFlags.Null,          ts.TypeFlags.Never,
+    ts.TypeFlags.TypeParameter, ts.TypeFlags.Object,
+    ts.TypeFlags.Union,         ts.TypeFlags.Intersection,
+    ts.TypeFlags.Index,         ts.TypeFlags.IndexedAccess,
+    ts.TypeFlags.Conditional,   ts.TypeFlags.Substitution,
   ];
   for (const flag of basicTypes) {
     if ((type.flags & flag) !== 0) {
@@ -129,7 +138,8 @@ export function typeToDebugString(type: ts.Type): string {
 }
 
 export function symbolToDebugString(sym: ts.Symbol): string {
-  let debugString = `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
+  let debugString =
+      `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
 
   // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
   const symbolFlags = [
@@ -169,12 +179,15 @@ export function symbolToDebugString(sym: ts.Symbol): string {
   return debugString;
 }
 
-/** A module declared as "declare module 'external_name' {...}" (note the quotes). */
+/**
+ * A module declared as "declare module 'external_name' {...}" (note the
+ * quotes).
+ */
 type AmbientModuleDeclaration = ts.ModuleDeclaration&{name: ts.StringLiteral};
 
 /**
- * Searches for an ambient module declaration in the ancestors of declarations, depth first, and
- * returns the first or null if none found.
+ * Searches for an ambient module declaration in the ancestors of declarations,
+ * depth first, and returns the first or null if none found.
  */
 function getContainingAmbientModuleDeclaration(declarations: ts.Declaration[]):
     AmbientModuleDeclaration|null {
@@ -190,21 +203,28 @@ function getContainingAmbientModuleDeclaration(declarations: ts.Declaration[]):
   return null;
 }
 
-/** Returns true if any of declarations is a top level declaration in an external module. */
+/**
+ * Returns true if any of declarations is a top level declaration in an
+ * external module.
+ */
 function isTopLevelExternal(declarations: ts.Declaration[]) {
   for (const declaration of declarations) {
     if (declaration.parent === undefined) continue;
-    if (ts.isSourceFile(declaration.parent) && ts.isExternalModule(declaration.parent)) return true;
+    if (ts.isSourceFile(declaration.parent) &&
+        ts.isExternalModule(declaration.parent)) {
+      return true;
+    }
   }
   return false;
 }
 
 /**
- * Returns true if a and b are (or were originally before transformation) nodes of the same source
- * file.
+ * Returns true if a and b are (or were originally before transformation) nodes
+ * of the same source file.
  */
 function isDeclaredInSameFile(a: ts.Node, b: ts.Node) {
-  return ts.getOriginalNode(a).getSourceFile() === ts.getOriginalNode(b).getSourceFile();
+  return ts.getOriginalNode(a).getSourceFile() ===
+      ts.getOriginalNode(b).getSourceFile();
 }
 
 /**
@@ -213,10 +233,10 @@ function isDeclaredInSameFile(a: ts.Node, b: ts.Node) {
  */
 export class TypeTranslator {
   /**
-   * A list of type literals we've encountered while emitting; used to avoid getting stuck in
-   * recursive types.
+   * A list of type literals we've encountered while emitting; used to avoid
+   * getting stuck in recursive types.
    */
-  private readonly seenAnonymousTypes = new Set<ts.Type>();
+  private readonly seenAnonymousTypes: ts.Type[] = [];
 
   /**
    * Whether to write types suitable for an #externs file. Externs types must not refer to
@@ -400,7 +420,7 @@ export class TypeTranslator {
     // Avoid infinite loops on recursive type literals.
     // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol
     // below), but Closure Compiler does not allow recursive type definitions.
-    if (this.seenAnonymousTypes.has(type)) return '?';
+    if (this.seenAnonymousTypes.indexOf(type) !== -1) return '?';
 
     let isAmbient = false;
     let isInNamespace = false;
@@ -668,139 +688,154 @@ export class TypeTranslator {
    *     let x = {a: 1};  // type of x is {a: number}, as above
    */
   private translateAnonymousType(type: ts.Type): string {
-    this.seenAnonymousTypes.add(type);
-    if (!type.symbol) {
-      // This comes up when generating code for an arrow function as passed
-      // to a generic function.  The passed-in type is tagged as anonymous
-      // and has no properties so it's hard to figure out what to generate.
-      // Just avoid it for now so we don't crash.
-      this.warn('anonymous type has no symbol');
-      return '?';
-    }
-
-    if (type.symbol.flags & ts.SymbolFlags.Function || type.symbol.flags & ts.SymbolFlags.Method) {
-      const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
-      if (sigs.length === 1) {
-        return this.signatureToClosure(sigs[0]);
-      }
-      this.warn('unhandled anonymous type with multiple call signatures');
-      return '?';
-    }
-
-    // Gather up all the named fields and whether the object is also callable.
-    let callable = false;
-    let indexable = false;
-    const fields: string[] = [];
-    if (!type.symbol.members) {
-      this.warn('anonymous type has no symbol');
-      return '?';
-    }
-
-    // special-case construct signatures.
-    const ctors = type.getConstructSignatures();
-    if (ctors.length) {
-      // TODO(martinprobst): this does not support additional properties defined on constructors
-      // (not expressible in Closure), nor multiple constructors (same).
-      const decl = ctors[0].declaration;
-      if (!decl) {
-        this.warn('unhandled anonymous type with constructor signature but no declaration');
-        return '?';
-      }
-      if (decl.kind === ts.SyntaxKind.JSDocSignature) {
-        this.warn('unhandled JSDoc based constructor signature');
+    this.seenAnonymousTypes.push(type);
+    try {
+      if (!type.symbol) {
+        // This comes up when generating code for an arrow function as passed
+        // to a generic function.  The passed-in type is tagged as anonymous
+        // and has no properties so it's hard to figure out what to generate.
+        // Just avoid it for now so we don't crash.
+        this.warn('anonymous type has no symbol');
         return '?';
       }
 
-      // new <T>(tee: T) is not supported by Closure, always set as ?.
-      this.markTypeParameterAsUnknown(this.symbolsToAliasedNames, decl.typeParameters);
-
-      const params = this.convertParams(ctors[0], decl.parameters);
-      const paramsStr = params.length ? (', ' + params.join(', ')) : '';
-      const constructedType = this.translate(ctors[0].getReturnType());
-      const constructedTypeStr =
-          constructedType[0] === '!' ? constructedType.substring(1) : constructedType;
-      // In the specific case of the "new" in a function, the correct Closure
-      // type is:
-      //
-      //   function(new:Bar, ...args)
-      //
-      // Including the nullability annotation can cause the Closure compiler to
-      // no longer recognize the function as a constructor type in externs.
-      return `function(new:${constructedTypeStr}${paramsStr})`;
-    }
-
-    // members is an ES6 map, but the .d.ts defining it defined their own map
-    // type, so typescript doesn't believe that .keys() is iterable
-    // tslint:disable-next-line:no-any
-    for (const field of (type.symbol.members.keys() as any)) {
-      switch (field) {
-        case '__call':
-          callable = true;
-          break;
-        case '__index':
-          indexable = true;
-          break;
-        default:
-          if (!isValidClosurePropertyName(field)) {
-            this.warn(`omitting inexpressible property name: ${field}`);
-            continue;
-          }
-          const member = type.symbol.members.get(field)!;
-          // optional members are handled by the type including |undefined in a union type.
-          const memberType =
-              this.translate(this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
-          fields.push(`${field}: ${memberType}`);
-          break;
-      }
-    }
-
-    // Try to special-case plain key-value objects and functions.
-    if (fields.length === 0) {
-      if (callable && !indexable) {
-        // A function type.
-        const sigs = this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+      if (type.symbol.flags & ts.SymbolFlags.Function ||
+          type.symbol.flags & ts.SymbolFlags.Method) {
+        const sigs =
+            this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
-      } else if (indexable && !callable) {
-        // A plain key-value map type.
-        let keyType = 'string';
-        let valType = this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.String);
-        if (!valType) {
-          keyType = 'number';
-          valType = this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.Number);
-        }
-        if (!valType) {
-          this.warn('unknown index key type');
-          return `!Object<?,?>`;
-        }
-        return `!Object<${keyType},${this.translate(valType)}>`;
-      } else if (!callable && !indexable) {
-        // The object has no members.  This is the TS type '{}',
-        // which means "any value other than null or undefined".
-        // What is this in Closure's type system?
-        //
-        // First, {!Object} is wrong because it is not a supertype of
-        // {string} or {number}.  This would mean you cannot assign a
-        // number to a variable of TS type {}.
-        //
-        // We get closer with {*}, aka the ALL type.  This one better
-        // captures the typical use of the TS {}, which users use for
-        // "I don't care".
-        //
-        // {*} unfortunately does include null/undefined, so it's a closer
-        // match for TS 3.0's 'unknown'.
-        return '*';
+        this.warn('unhandled anonymous type with multiple call signatures');
+        return '?';
       }
-    }
 
-    if (!callable && !indexable) {
-      // Not callable, not indexable; implies a plain object with fields in it.
-      return `{${fields.join(', ')}}`;
-    }
+      // Gather up all the named fields and whether the object is also callable.
+      let callable = false;
+      let indexable = false;
+      const fields: string[] = [];
+      if (!type.symbol.members) {
+        this.warn('anonymous type has no symbol');
+        return '?';
+      }
 
-    this.warn('unhandled anonymous type');
-    return '?';
+      // special-case construct signatures.
+      const ctors = type.getConstructSignatures();
+      if (ctors.length) {
+        // TODO(martinprobst): this does not support additional properties
+        // defined on constructors (not expressible in Closure), nor multiple
+        // constructors (same).
+        const decl = ctors[0].declaration;
+        if (!decl) {
+          this.warn(
+              'unhandled anonymous type with constructor signature but no declaration');
+          return '?';
+        }
+        if (decl.kind === ts.SyntaxKind.JSDocSignature) {
+          this.warn('unhandled JSDoc based constructor signature');
+          return '?';
+        }
+
+        // new <T>(tee: T) is not supported by Closure, always set as ?.
+        this.markTypeParameterAsUnknown(
+            this.symbolsToAliasedNames, decl.typeParameters);
+
+        const params = this.convertParams(ctors[0], decl.parameters);
+        const paramsStr = params.length ? (', ' + params.join(', ')) : '';
+        const constructedType = this.translate(ctors[0].getReturnType());
+        const constructedTypeStr = constructedType[0] === '!' ?
+            constructedType.substring(1) :
+            constructedType;
+        // In the specific case of the "new" in a function, the correct Closure
+        // type is:
+        //
+        //   function(new:Bar, ...args)
+        //
+        // Including the nullability annotation can cause the Closure compiler
+        // to no longer recognize the function as a constructor type in externs.
+        return `function(new:${constructedTypeStr}${paramsStr})`;
+      }
+
+      // members is an ES6 map, but the .d.ts defining it defined their own map
+      // type, so typescript doesn't believe that .keys() is iterable
+      // tslint:disable-next-line:no-any
+      for (const field of (type.symbol.members.keys() as any)) {
+        switch (field) {
+          case '__call':
+            callable = true;
+            break;
+          case '__index':
+            indexable = true;
+            break;
+          default:
+            if (!isValidClosurePropertyName(field)) {
+              this.warn(`omitting inexpressible property name: ${field}`);
+              continue;
+            }
+            const member = type.symbol.members.get(field)!;
+            // optional members are handled by the type including |undefined in
+            // a union type.
+            const memberType = this.translate(
+                this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
+            fields.push(`${field}: ${memberType}`);
+            break;
+        }
+      }
+
+      // Try to special-case plain key-value objects and functions.
+      if (fields.length === 0) {
+        if (callable && !indexable) {
+          // A function type.
+          const sigs =
+              this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
+          if (sigs.length === 1) {
+            return this.signatureToClosure(sigs[0]);
+          }
+        } else if (indexable && !callable) {
+          // A plain key-value map type.
+          let keyType = 'string';
+          let valType =
+              this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.String);
+          if (!valType) {
+            keyType = 'number';
+            valType =
+                this.typeChecker.getIndexTypeOfType(type, ts.IndexKind.Number);
+          }
+          if (!valType) {
+            this.warn('unknown index key type');
+            return `!Object<?,?>`;
+          }
+          return `!Object<${keyType},${this.translate(valType)}>`;
+        } else if (!callable && !indexable) {
+          // The object has no members.  This is the TS type '{}',
+          // which means "any value other than null or undefined".
+          // What is this in Closure's type system?
+          //
+          // First, {!Object} is wrong because it is not a supertype of
+          // {string} or {number}.  This would mean you cannot assign a
+          // number to a variable of TS type {}.
+          //
+          // We get closer with {*}, aka the ALL type.  This one better
+          // captures the typical use of the TS {}, which users use for
+          // "I don't care".
+          //
+          // {*} unfortunately does include null/undefined, so it's a closer
+          // match for TS 3.0's 'unknown'.
+          return '*';
+        }
+      }
+
+      if (!callable && !indexable) {
+        // Not callable, not indexable; implies a plain object with fields in
+        // it.
+        return `{${fields.join(', ')}}`;
+      }
+
+      this.warn('unhandled anonymous type');
+      return '?';
+    } finally {
+      this.seenAnonymousTypes.pop();
+    }
   }
 
   /** Converts a ts.Signature (function signature) to a Closure function type. */
