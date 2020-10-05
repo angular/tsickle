@@ -1,7 +1,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/jsdoc_types.untyped/jsdoc_types.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * This test tests importing a type across module boundaries,

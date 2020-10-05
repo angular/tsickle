@@ -5,7 +5,7 @@
  * imported module to a property on `exports`.
  *
  * Generated from: test_files/export_star_as_ns/star_as_ns.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.export_star_as_ns.star_as_ns');
 var module = module || { id: 'test_files/export_star_as_ns/star_as_ns.ts' };

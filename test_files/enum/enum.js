@@ -2,7 +2,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/enum/enum.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // Line with a missing semicolon should not break the following enum.
 goog.module('test_files.enum.enum');

@@ -1,7 +1,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/clutz.no_externs/strip_clutz_type.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.clutz.no_externs.strip_clutz_type');
 var module = module || { id: 'test_files/clutz.no_externs/strip_clutz_type.ts' };

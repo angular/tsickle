@@ -1,7 +1,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/import_only_types/types_only.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // Exports only types, but must still be goog.require'd for Closure Compiler.
 goog.module('test_files.import_only_types.types_only');

@@ -3,7 +3,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/type_and_value/module.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // WARNING: interface has both a type and a value, skipping emit
 goog.module('test_files.type_and_value.module');

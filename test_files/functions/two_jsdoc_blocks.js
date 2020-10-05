@@ -3,7 +3,7 @@
  * @fileoverview This text here matches the     text below in length.
  *
  * Generated from: test_files/functions/two_jsdoc_blocks.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.functions.two_jsdoc_blocks');
 var module = module || { id: 'test_files/functions/two_jsdoc_blocks.ts' };

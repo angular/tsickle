@@ -5,7 +5,7 @@
  * dependency checking in some systems.
  *
  * Generated from: test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.transitive_symbol_type_only.transitive_symbol_type_only');
 var module = module || { id: 'test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts' };

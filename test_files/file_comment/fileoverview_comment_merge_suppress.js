@@ -2,7 +2,7 @@
  *
  * @fileoverview Tests merging JSDoc tags in fileoverview comments.
  * Generated from: test_files/file_comment/fileoverview_comment_merge_suppress.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
  *
  */
 /** second comment here */

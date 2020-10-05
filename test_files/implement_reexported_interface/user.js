@@ -8,7 +8,7 @@
  * interfaces.
  *
  * Generated from: test_files/implement_reexported_interface/user.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.implement_reexported_interface.user');
 var module = module || { id: 'test_files/implement_reexported_interface/user.ts' };

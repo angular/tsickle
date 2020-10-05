@@ -1,7 +1,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/protected/protected.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** This test checks that we emit \@private/\@protected where necessary. */
 goog.module('test_files.protected.protected');

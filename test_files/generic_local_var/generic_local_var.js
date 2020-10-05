@@ -1,7 +1,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/generic_local_var/generic_local_var.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.generic_local_var.generic_local_var');
 var module = module || { id: 'test_files/generic_local_var/generic_local_var.ts' };

@@ -6,7 +6,7 @@
  * a computed property.
  *
  * Generated from: test_files/invalid_closure_properties/invalid_closure_properties.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test is verifying the type of this expression, which ultimately
 // refers to some TypeScript internal __@observeable thing.  Note that

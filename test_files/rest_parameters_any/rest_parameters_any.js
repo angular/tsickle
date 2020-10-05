@@ -2,7 +2,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/rest_parameters_any/rest_parameters_any.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test covers the rest parameter of function
 // and method signatures. This includes signatures

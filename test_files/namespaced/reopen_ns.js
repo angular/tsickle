@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview undefined
  * Generated from: test_files/namespaced/reopen_ns.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
+ *
  */
 goog.module('test_files.namespaced.reopen_ns');
 var module = module || { id: 'test_files/namespaced/reopen_ns.ts' };
