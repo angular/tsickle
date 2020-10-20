@@ -236,7 +236,7 @@ export class TypeTranslator {
    * A list of type literals we've encountered while emitting; used to avoid
    * getting stuck in recursive types.
    */
-  private readonly seenAnonymousTypes: ts.Type[] = [];
+  private readonly seenTypes: ts.Type[] = [];
 
   /**
    * Whether to write types suitable for an #externs file. Externs types must not refer to
@@ -420,7 +420,7 @@ export class TypeTranslator {
     // Avoid infinite loops on recursive type literals.
     // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol
     // below), but Closure Compiler does not allow recursive type definitions.
-    if (this.seenAnonymousTypes.indexOf(type) !== -1) return '?';
+    if (this.seenTypes.indexOf(type) !== -1) return '?';
 
     let isAmbient = false;
     let isInNamespace = false;
@@ -658,7 +658,18 @@ export class TypeTranslator {
         typeArgs = typeArgs.slice(0, typeArgs.length - 1);
       }
       if (typeArgs.length > 0) {
+        // If a type references itself recursively, such as in `type A = B<A>`,
+        // the type parameter will resolve to itself. In the example above B's
+        // type parameter will be B<B<B<...>>> and just go on indefinitely. To
+        // prevent this we mark the type as seen and if this type comes up again
+        // `?` will be used in its place. Note this won't trigger for something
+        // like `Node<Node<number>>` because this is comparing the types, not
+        // the symbols. In the nested nodes case the symbols are the same, but
+        // `Node<Node<number>> !== Node<number>`. if (t === referenceType)
+        // return '?';
+        this.seenTypes.push(referenceType);
         const params = typeArgs.map(t => this.translate(t));
+        this.seenTypes.pop();
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
@@ -688,7 +699,7 @@ export class TypeTranslator {
    *     let x = {a: 1};  // type of x is {a: number}, as above
    */
   private translateAnonymousType(type: ts.Type): string {
-    this.seenAnonymousTypes.push(type);
+    this.seenTypes.push(type);
     try {
       if (!type.symbol) {
         // This comes up when generating code for an arrow function as passed
@@ -834,7 +845,7 @@ export class TypeTranslator {
       this.warn('unhandled anonymous type');
       return '?';
     } finally {
-      this.seenAnonymousTypes.pop();
+      this.seenTypes.pop();
     }
   }
 
