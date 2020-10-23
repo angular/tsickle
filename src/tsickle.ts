@@ -34,7 +34,7 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost, Annotat
   transformDecorators?: boolean;
 
   /**
-   * Whether to convers types to closure
+   * Whether to convert types to closure
    */
   transformTypesToClosure?: boolean;
 
