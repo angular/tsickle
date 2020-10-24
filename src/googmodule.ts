@@ -92,37 +92,115 @@ function isEsModuleProperty(stmt: ts.ExpressionStatement): boolean {
 }
 
 /**
- * TypeScript defaults all exported values to `void 0` by adding a statement at
- * the top of the file that looks like:
+ * Checks for special statements initalizing all exported names to `void 0`.
  *
- * ```
- * exports.a = exports.b = exports.c = void 0;
- * ```
+ * TypeScript will assign `void 0` to every exported symbol at the
+ * start of the output file for reasons having to do with CommonJS spec
+ * compliance. (See https://github.com/microsoft/TypeScript/issues/38552)
+ * TS uses chained assignment for this up to some arbitrary limit
+ * (currently 50) so it doesn't have to have a separate statement for
+ * every assignment.
  *
- * This matches that code snippet.
+ * ```js
+ * exports.p1 = exports.p2 = ... = exports.p50 = void 0;
+ * exports.p51 = exports.p52 = ... = exports.pN = void 0;
+ * ```
+ * However, closure-compiler will complain about these statements for several
+ * reasons.
+ *
+ * 1. These statements will come before any assignments directly to
+ *    `exports` itself.
+ * 2. Multiple assignments to `exports.p` are not allowed.
+ * 3. Each assignment to `exports.p` must be a separate statement.
+ *
+ * We must drop these statements, but we must also avoid accidentally
+ * dropping a legitimate statement `exports.exportedName = void 0;` that is a
+ * real export. So, we will keep track of the exported names we have seen in
+ * these statements. When we see a second assignment to the same export name,
+ * we will know that no more of these statements should appear.
  */
-function checkExportsVoid0Assignment(expr: ts.Expression): boolean {
-  // Verify this looks something like `exports.abc = exports.xyz = void 0;`.
-  if (!ts.isBinaryExpression(expr)) return false;
-  if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return false;
+class Void0InitChecker {
+  // TS doesn't generate a `void 0` init assignment for the default export,
+  // but it does for all the rest.
+  private readonly alreadyInitializedExportNames = new Set<string>(['default']);
+  private doneWithInitializations = false;
 
-  // Verify the left side of the expression is an access on `exports`.
-  if (!ts.isPropertyAccessExpression(expr.left)) return false;
-  if (!ts.isIdentifier(expr.left.expression)) return false;
-  if (expr.left.expression.escapedText !== 'exports') return false;
+  /**
+   * @param tsickleDiagnostics Location to store generated diagnostics.
+   */
+  constructor(private readonly tsickleDiagnostics: ts.Diagnostic[]) {}
 
-  // If the right side is another `exports.abc = ...` check that to see if we
-  // eventually hit a `void 0`.
-  if (ts.isBinaryExpression(expr.right)) {
-    return checkExportsVoid0Assignment(expr.right);
+  /**
+   * Returns `true` if given one of the special initialization statements.
+   *
+   * This method assumes that a new instance of this class is created for
+   * each transformed file and that all global-level expression statements
+   * that could be the initializations we're looking for will be passed to
+   * this method in order.
+   */
+  isVoid0InitStatement(statement: ts.ExpressionStatement): boolean {
+    return !this.doneWithInitializations &&
+        this.isVoid0InitExpression(statement.expression);
   }
 
-  // Verify the right side is exactly "void 0";
-  if (!ts.isVoidExpression(expr.right)) return false;
-  if (!ts.isNumericLiteral(expr.right.expression)) return false;
-  if (expr.right.expression.text !== '0') return false;
-  return true;
+  private isVoid0InitExpression(expression: ts.Expression): boolean {
+    if (!ts.isBinaryExpression(expression)) return false;
+    if (expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+      return false;
+    }
+    const exportsDotExportedName = expression.left;
+    const assignedValue = expression.right;
+
+    if (!ts.isPropertyAccessExpression(exportsDotExportedName)) return false;
+    const exportsNode = exportsDotExportedName.expression;
+    const exportedName = exportsDotExportedName.name.text;
+
+    if (!(ts.isIdentifier(exportsNode) && exportsNode.text === 'exports')) {
+      return false;
+    }
+    if (this.alreadyInitializedExportNames.has(exportedName)) {
+      // We've already seen an initialization for this name, so this must be
+      // its actual value assignment.
+      this.doneWithInitializations = true;
+      if (this.isVoid0InitExpression(expression.right)) {
+        // The value being assigned to `exports.exportedName` looks like
+        // `exports.otherName = ... = void 0`.
+        // That violates closure-compiler's restriction that each assignment
+        // to `exports.someName` must be a separate statement, and probably
+        // indicates TS has changed its emit or something else has gone
+        // wrong.
+        reportDiagnostic(
+            this.tsickleDiagnostics, expression,
+            `Duplicate void 0 initialization for ${exportedName}`);
+      }
+      return false;
+    }
+    this.alreadyInitializedExportNames.add(exportedName);
+
+    // We know we have exports.exportedName = value.
+    // Now confirm that the value is either `void 0` or
+    // `exports.otherName = ... = void 0`.
+    if (this.isVoid0(assignedValue) ||
+        this.isVoid0InitExpression(assignedValue)) {
+      return true;
+    }
+    // We have an `exports.exportedName = something` that appears before
+    // we see an initialization to `void 0`. Probably TS has changed its emit
+    // or something else has gone wrong.
+    reportDiagnostic(
+        this.tsickleDiagnostics, expression,
+        `No initialization to void 0 seen for ${exportedName}`);
+    this.doneWithInitializations = true;
+    return false;
+  }
+
+  private isVoid0(expression: ts.Expression): boolean {
+    if (!ts.isVoidExpression(expression)) return false;
+    const subExpression = expression.expression;
+    return ts.isNumericLiteral(subExpression) && subExpression.text === '0';
+  }
 }
+
 
 /**
  * Returns the string argument if call is of the form
@@ -366,8 +444,8 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
  */
 export function commonJsToGoogmoduleTransformer(
     host: GoogModuleProcessorHost, modulesManifest: ModulesManifest,
-    typeChecker: ts.TypeChecker): (context: ts.TransformationContext) =>
-    ts.Transformer<ts.SourceFile> {
+    typeChecker: ts.TypeChecker, tsickleDiagnostics: ts.Diagnostic[]):
+    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     // TS' CommonJS processing uses onSubstituteNode to, at the very end of
     // processing, substitute `modulename.someProperty` property accesses and
@@ -447,11 +525,7 @@ export function commonJsToGoogmoduleTransformer(
         return sf;
       }
 
-      // TypeScript will create one or more lines like
-      // `exports.abc = exports.def = void 0`
-      // per file in order to initialize all `exports` properties to `void 0`
-      // before their actual assignment.
-      let didRewriteDefaultExportsAssignment = false;
+      const void0InitChecker = new Void0InitChecker(tsickleDiagnostics);
 
       let moduleVarCounter = 1;
       /**
@@ -817,12 +891,12 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
-            // If we have not already seen the defaulted export assignment
-            // initializing all exports to `void 0`, skip the statement and mark
-            // that we have have now seen it.
-            if (!didRewriteDefaultExportsAssignment &&
-                checkExportsVoid0Assignment(exprStmt.expression)) {
-              didRewriteDefaultExportsAssignment = true;
+            // Check for the initialization statements we need to drop.
+            // ```
+            // exports.p1 = exports.p2 = ... = exports.pn = void 0;
+            // exports.pnPlus1 = ... = exports.pnPlusM = void 0;
+            // ```
+            if (void0InitChecker.isVoid0InitStatement(exprStmt)) {
               stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
               return;
             }

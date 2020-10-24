@@ -19,11 +19,13 @@ function processES5(fileName: string, content: string, {
   isES5 = true,
   isJsTranspilation = false,
 } = {}) {
-  const options = Object.assign({}, testSupport.compilerOptions, {allowJs: isJsTranspilation});
+  const options = Object.assign(
+      {}, testSupport.compilerOptions, {allowJs: isJsTranspilation});
   options.outDir = 'fakeOutDir';
   const rootDir = options.rootDir!;
   fileName = path.join(rootDir, fileName);
-  const tsHost = testSupport.createSourceCachingHost(new Map([[fileName, content]]));
+  const tsHost =
+      testSupport.createSourceCachingHost(new Map([[fileName, content]]));
   const host: googmodule.GoogModuleProcessorHost = {
     fileNameToModuleId: (fn: string) => path.relative(rootDir, fn),
     pathToModuleName: (context, fileName) =>
@@ -34,15 +36,18 @@ function processES5(fileName: string, content: string, {
     isJsTranspilation,
   };
   const program = ts.createProgram([fileName], options, tsHost);
-  // NB: this intentionally only checks for syntactical issues, but allows semantic issues, such
-  // as missing imports to make the tests below easier to write.
-  expect(testSupport.formatDiagnostics(program.getSyntacticDiagnostics())).toBe('');
+  // NB: this intentionally only checks for syntactical issues, but allows
+  // semantic issues, such as missing imports to make the tests below easier to
+  // write.
+  expect(testSupport.formatDiagnostics(program.getSyntacticDiagnostics()))
+      .toBe('');
   const typeChecker = program.getTypeChecker();
   const diagnostics: ts.Diagnostic[] = [];
   const manifest = new ModulesManifest();
   let output: string|null = null;
   const transformers = {
-    after: [googmodule.commonJsToGoogmoduleTransformer(host, manifest, typeChecker)]
+    after: [googmodule.commonJsToGoogmoduleTransformer(
+        host, manifest, typeChecker, diagnostics)]
   };
   const res = program.emit(undefined, (fn, content) => {
     output = content;
@@ -73,7 +78,8 @@ console.log('hello');
 
   it('adds a goog.module call for ES6 mode', () => {
     // NB: no line break added below.
-    expectCommonJs('a.ts', `console.log('hello');`, false).toBe(`goog.module('a');
+    expectCommonJs('a.ts', `console.log('hello');`, false)
+        .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
 console.log('hello');
@@ -107,7 +113,8 @@ console.log('hello');
   });
 
   it('converts imports to goog.require calls', () => {
-    expectCommonJs('a.ts', `import {x} from 'req/mod'; console.log(x);`).toBe(`goog.module('a');
+    expectCommonJs('a.ts', `import {x} from 'req/mod'; console.log(x);`)
+        .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
 var mod_1 = goog.require('req.mod');
@@ -203,7 +210,8 @@ console.log('in mod_a', x);
   describe(
       'ES5 export *', () => {
         it('converts export * statements', () => {
-          expectCommonJs('a.ts', `export * from 'req/mod';`, true).toBe(`goog.module('a');
+          expectCommonJs('a.ts', `export * from 'req/mod';`, true)
+              .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 var tslib_1 = goog.require('tslib');
 var tsickle_module_1_ = goog.require('req.mod');
@@ -298,8 +306,9 @@ exports.Foo = goog_use_Foo_1;
 `);
   });
 
-  it('rewrites access to .default properties on goog: module namespace imports', () => {
-    expectCommonJs('a/b.ts', `
+  it('rewrites access to .default properties on goog: module namespace imports',
+     () => {
+       expectCommonJs('a/b.ts', `
 import * as Foo from 'goog:use.Foo';
 console.log(Foo.default);
 `).toBe(`goog.module('a.b');
@@ -308,7 +317,7 @@ goog.require('tslib');
 var Foo = goog.require('use.Foo');
 console.log(Foo);
 `);
-  });
+     });
 
   it('leaves single .default accesses alone', () => {
     // This is a repro for a bug when no goog: symbols are found.
@@ -374,16 +383,18 @@ var relative_2 = goog.require('non.relative');
 console.log(goog_foo_bar_1, relative_1.es6RelativeRequire, relative_2.es6NonRelativeRequire);
 `);
 
-    expect(manifest.getReferencedModules(path.join(rootDir, 'a/b.ts'))).toEqual([
-      'foo.bare_require',
-      'foo.bar',
-      'a.relative',
-      'non.relative',
-    ]);
+    expect(manifest.getReferencedModules(path.join(rootDir, 'a/b.ts')))
+        .toEqual([
+          'foo.bare_require',
+          'foo.bar',
+          'a.relative',
+          'non.relative',
+        ]);
   });
 
   it(`skips the exports assignment if there's another one`, () => {
-    expectCommonJs('a.ts', `export {}; console.log('hello'); exports = 1;`, false)
+    expectCommonJs(
+        'a.ts', `export {}; console.log('hello'); exports = 1;`, false)
         .toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
@@ -407,31 +418,78 @@ exports.foo = ns.bar;
 `);
   });
 
-  it('elides default export values', () => {
+  it('elides void 0 export init values', () => {
+    // TSC assigns `void 0` to all of the exported properties using one or more
+    // statements at the beginning of the output file.
+    // Here we test that we can recognize and drop those lines, which will
+    // always be the first assignments to the exported properties, without
+    // incorrectly dropping the real exports lines, which will always be the
+    // second assignment.
     const before = `
       exports.foo = exports.bar = exports.baz = void 0;
+      exports.boff = void 0;
+      exports.foo = void 0;
+      exports.bar = void 0;
       exports.baz = void 0;
+      exports.boff = void 0;
     `;
 
-    expectCommonJs('a.ts', before, false).toBe(`goog.module('a');
+    // Note that the first "real" export has a value of `void 0`, which
+    // we must recognize and avoid removing.
+    const after = `goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
+exports.foo = void 0;
+exports.bar = void 0;
 exports.baz = void 0;
-`);
+exports.boff = void 0;
+`;
+
+    expectCommonJs('a.ts', before, false).toBe(after);
+  });
+
+  it('does not expect void 0 init for default export', () => {
+    // The default export is a special case. TS does not generate an `void 0`
+    // init for it, so we must not expect one.
+
+    // 1. `void 0` init for `foo`
+    // 2. `exports.default` is actually supposed to be `void 0`
+    // 3. `exports.foo` is actually supposed to be `void 0`
+    const before = `
+      exports.foo = void 0;
+      exports.default = void 0;
+      exports.foo = void 0;
+    `;
+
+    // Note that the assignment to `exports.default` is the first "real" export,
+    // even though has a value of `void 0`,
+    // which we must recognize and avoid removing.
+    const after = `goog.module('a');
+var module = module || { id: 'a.ts' };
+goog.require('tslib');
+exports.default = void 0;
+exports.foo = void 0;
+`;
+
+    expectCommonJs('a.ts', before, false).toBe(after);
   });
 
   describe('processing transpiled JS output', () => {
-    function expectJsTranspilation(content: string, filename = 'project/file.js') {
-      return expect(processES5(filename, content, {isJsTranspilation: true}).output);
+    function expectJsTranspilation(
+        content: string, filename = 'project/file.js') {
+      return expect(
+          processES5(filename, content, {isJsTranspilation: true}).output);
     }
 
-    it('does not insert goog.module() or module = ... in JS transpilation outputs', () => {
-      expectJsTranspilation(`alert(1);`).toBe(`alert(1);
+    it('does not insert goog.module() or module = ... in JS transpilation outputs',
+       () => {
+         expectJsTranspilation(`alert(1);`).toBe(`alert(1);
 `);
-    });
+       });
 
     it('does not turn require() into goog.require()', () => {
-      expectJsTranspilation(`require('foo'); var x = require('bar');`).toBe(`require('foo');
+      expectJsTranspilation(`require('foo'); var x = require('bar');`)
+          .toBe(`require('foo');
 var x = require('bar');
 `);
     });
@@ -444,7 +502,8 @@ var x = goog.require('bar');
     });
 
     it('converts es modules to goog.modules', () => {
-      expectJsTranspilation(`export const foo = 10;`).toBe(`goog.module('project.file');
+      expectJsTranspilation(`export const foo = 10;`)
+          .toBe(`goog.module('project.file');
 var module = module || { id: 'project/file.js' };
 exports.foo = 10;
 `);
@@ -564,15 +623,22 @@ describe('resolveIndexShorthand', () => {
   });
 
   it('resolves into prefix mapped', () => {
-    expectResolve('my/input.ts', 'prefix/prefixed').toBe('/root/changed_prefix/prefixed.ts');
-    expectResolve('/root/my/input.ts', 'prefix/prefixed').toBe('/root/changed_prefix/prefixed.ts');
-    expectResolve('/root/my/input.ts', 'prefix/gen').toBe('/root/gen/changed_prefix/gen.ts');
-    expectResolve('/root/gen/file.ts', 'prefix/prefixed').toBe('/root/changed_prefix/prefixed.ts');
+    expectResolve('my/input.ts', 'prefix/prefixed')
+        .toBe('/root/changed_prefix/prefixed.ts');
+    expectResolve('/root/my/input.ts', 'prefix/prefixed')
+        .toBe('/root/changed_prefix/prefixed.ts');
+    expectResolve('/root/my/input.ts', 'prefix/gen')
+        .toBe('/root/gen/changed_prefix/gen.ts');
+    expectResolve('/root/gen/file.ts', 'prefix/prefixed')
+        .toBe('/root/changed_prefix/prefixed.ts');
   });
 
   it('resolves path mapped modules', () => {
-    expectResolve('my/input.ts', 'angular').toBe('/root/typings/angular/index.d.ts');
-    expectResolve('/root/my/input.ts', 'angular').toBe('/root/typings/angular/index.d.ts');
-    expectResolve('/root/gen/file.ts', 'angular').toBe('/root/typings/angular/index.d.ts');
+    expectResolve('my/input.ts', 'angular')
+        .toBe('/root/typings/angular/index.d.ts');
+    expectResolve('/root/my/input.ts', 'angular')
+        .toBe('/root/typings/angular/index.d.ts');
+    expectResolve('/root/gen/file.ts', 'angular')
+        .toBe('/root/typings/angular/index.d.ts');
   });
 });
