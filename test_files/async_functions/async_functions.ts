@@ -14,14 +14,14 @@ async function asyncTopLevelFunction(param: string): Promise<string> {
 // Note: some Closure checks are only triggered when functions are exported.
 export {asyncTopLevelFunction, asyncTopLevelFunctionWithThisType};
 
-async function asyncTopLevelFunctionWithThisType(this: Container, param: string): Promise<string> {
+async function asyncTopLevelFunctionWithThisType(this: Container, param: string): Promise<number> {
   const s = await 3;
-  return s + this.field;
+  return s;
 }
 
-const asyncTopLevelArrowFunction = async(param: string): Promise<string> => {
+const asyncTopLevelArrowFunction = async(param: string): Promise<number> => {
   const s = await 3;
-  return s + this.field;
+  return s;
 };
 
 class Container {
@@ -29,17 +29,17 @@ class Container {
 
   async asyncMethod() {
     const s = await asyncTopLevelFunction('x');
-    return s + this.field;
+    return s;
   }
 
   containerMethod() {
-    const asyncArrowFunctionInMethod = async(param: string): Promise<string> => {
+    const asyncArrowFunctionInMethod = async(param: string): Promise<number> => {
       const s = await 3;
-      return s + this.field;
+      return s;
     };
-    async function asyncFunctionInMethod(param: string): Promise<string> {
+    async function asyncFunctionInMethod(param: string): Promise<number> {
       const s = await 3;
-      return s + this.field;
+      return s;
     }
   }
 
