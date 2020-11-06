@@ -27,25 +27,25 @@ exports.asyncTopLevelFunction = asyncTopLevelFunction;
 /**
  * @this {!Container}
  * @param {string} param
- * @return {!Promise<number>}
+ * @return {!Promise<string>}
  */
 function asyncTopLevelFunctionWithThisType(param) {
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
         /** @type {number} */
         const s = yield 3;
-        return s;
+        return s + this.field;
     });
 }
 exports.asyncTopLevelFunctionWithThisType = asyncTopLevelFunctionWithThisType;
-/** @type {function(string): !Promise<number>} */
+/** @type {function(string): !Promise<string>} */
 const asyncTopLevelArrowFunction = (/**
  * @param {string} param
- * @return {!Promise<number>}
+ * @return {!Promise<string>}
  */
 (param) => tslib_1.__awaiter(this, void 0, void 0, function* () {
     /** @type {number} */
     const s = yield 3;
-    return s;
+    return s + this.field;
 }));
 class Container {
     constructor() {
@@ -58,33 +58,33 @@ class Container {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             /** @type {string} */
             const s = yield asyncTopLevelFunction('x');
-            return s;
+            return s + this.field;
         });
     }
     /**
      * @return {void}
      */
     containerMethod() {
-        /** @type {function(string): !Promise<number>} */
+        /** @type {function(string): !Promise<string>} */
         const asyncArrowFunctionInMethod = (/**
          * @param {string} param
-         * @return {!Promise<number>}
+         * @return {!Promise<string>}
          */
         (param) => tslib_1.__awaiter(this, void 0, void 0, function* () {
             /** @type {number} */
             const s = yield 3;
-            return s;
+            return s + this.field;
         }));
         /**
          * @param {string} param
-         * @return {!Promise<number>}
+         * @return {!Promise<string>}
          * @this {*}
          */
         function asyncFunctionInMethod(param) {
             return tslib_1.__awaiter(this, void 0, void 0, function* () {
                 /** @type {number} */
                 const s = yield 3;
-                return s;
+                return s + this.field;
             });
         }
     }

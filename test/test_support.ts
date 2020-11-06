@@ -50,7 +50,7 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   // Setting the target to ES2015 sets the lib field to ['lib.es6.d.ts'] by
   // default. Override this value to also provide type declarations for BigInt
   // literals.
-  lib: ['lib.es6.d.ts', 'lib.es2020.bigint.d.ts'],
+  lib: ['lib.es6.d.ts', 'lib.esnext.bigint.d.ts'],
   skipDefaultLibCheck: true,
   experimentalDecorators: true,
   module: ts.ModuleKind.CommonJS,
