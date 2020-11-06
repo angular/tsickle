@@ -156,15 +156,10 @@ export function updateSourceFileNode(
   if (statements === sf.statements) {
     return sf;
   }
-  sf = ts.factory.updateSourceFile(
-      sf,
-      statements,
-      sf.isDeclarationFile,
-      sf.referencedFiles,
-      sf.typeReferenceDirectives,
-      sf.hasNoDefaultLib,
-      sf.libReferenceDirectives,
-  );
+  // Note: Need to clone the original file (and not use `ts.updateSourceFileNode`)
+  // as otherwise TS fails when resolving types for decorators.
+  sf = ts.getMutableClone(sf);
+  sf.statements = statements;
   return sf;
 }
 
