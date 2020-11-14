@@ -27,7 +27,8 @@ export {pathToModuleName} from './cli_support';
 export {getGeneratedExterns} from './externs';
 export {FileMap, ModulesManifest} from './modules_manifest';
 
-export interface TsickleHost extends googmodule.GoogModuleProcessorHost, AnnotatorHost {
+export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
+                                     AnnotatorHost {
   /**
    * Whether to downlevel decorators
    */
@@ -56,7 +57,10 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost, Annotat
    */
   shouldIgnoreWarningsForPath(filePath: string): boolean;
 
-  /** Whether to convert CommonJS require() imports to goog.module() and goog.require() calls. */
+  /**
+   * Whether to convert CommonJS require() imports to goog.module() and
+   * goog.require() calls.
+   */
   googmodule: boolean;
 }
 
@@ -82,8 +86,8 @@ export interface EmitResult extends ts.EmitResult {
   // The manifest of JS modules output by the compiler.
   modulesManifest: ModulesManifest;
   /**
-   * externs.js files produced by tsickle, if any. module IDs are relative paths from
-   * fileNameToModuleId.
+   * externs.js files produced by tsickle, if any. module IDs are relative paths
+   * from fileNameToModuleId.
    */
   externs: {[moduleId: string]: string};
 }
@@ -100,21 +104,26 @@ export interface EmitTransformers {
 }
 
 
-/** @deprecated Exposed for backward compat with Angular.  Use emit() instead. */
+/**
+ * @deprecated Exposed for backward compat with Angular.  Use emit() instead.
+ */
 export function emitWithTsickle(
-    program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost, tsOptions: ts.CompilerOptions,
-    targetSourceFile?: ts.SourceFile, writeFile?: ts.WriteFileCallback,
-    cancellationToken?: ts.CancellationToken, emitOnlyDtsFiles?: boolean,
+    program: ts.Program, host: TsickleHost, tsHost: ts.CompilerHost,
+    tsOptions: ts.CompilerOptions, targetSourceFile?: ts.SourceFile,
+    writeFile?: ts.WriteFileCallback, cancellationToken?: ts.CancellationToken,
+    emitOnlyDtsFiles?: boolean,
     customTransformers: EmitTransformers = {}): EmitResult {
   return emit(
-      program, host, writeFile || tsHost.writeFile.bind(tsHost), targetSourceFile,
-      cancellationToken, emitOnlyDtsFiles, customTransformers);
+      program, host, writeFile || tsHost.writeFile.bind(tsHost),
+      targetSourceFile, cancellationToken, emitOnlyDtsFiles,
+      customTransformers);
 }
 
 export function emit(
     program: ts.Program, host: TsickleHost, writeFile: ts.WriteFileCallback,
     targetSourceFile?: ts.SourceFile, cancellationToken?: ts.CancellationToken,
-    emitOnlyDtsFiles?: boolean, customTransformers: EmitTransformers = {}): EmitResult {
+    emitOnlyDtsFiles?: boolean,
+    customTransformers: EmitTransformers = {}): EmitResult {
   for (const sf of program.getSourceFiles()) {
     assertAbsolute(sf.fileName);
   }
@@ -122,17 +131,21 @@ export function emit(
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const tsOptions = program.getCompilerOptions();
-  const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> = [];
+  const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> =
+      [];
   if (host.transformTypesToClosure) {
-    // Only add @suppress {checkTypes} comments when also adding type annotations.
+    // Only add @suppress {checkTypes} comments when also adding type
+    // annotations.
     tsickleSourceTransformers.push(
         transformFileoverviewCommentFactory(tsOptions, tsickleDiagnostics));
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
-    tsickleSourceTransformers.push(enumTransformer(typeChecker, tsickleDiagnostics));
+    tsickleSourceTransformers.push(
+        enumTransformer(typeChecker, tsickleDiagnostics));
   }
   if (host.transformDecorators) {
-    tsickleSourceTransformers.push(decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
+    tsickleSourceTransformers.push(
+        decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
   const modulesManifest = new ModulesManifest();
   const tsTransformers: ts.CustomTransformers = {
@@ -150,10 +163,11 @@ export function emit(
     tsTransformers.before!.push(removeTypeAssertions());
   }
   if (host.googmodule) {
+    tsTransformers.after!.push(googmodule.commonJsToGoogmoduleTransformer(
+        host, modulesManifest, typeChecker));
     tsTransformers.after!.push(
-        googmodule.commonJsToGoogmoduleTransformer(host, modulesManifest, typeChecker));
-    tsTransformers.after!.push(
-        transformDecoratorsOutputForClosurePropertyRenaming(tsickleDiagnostics));
+        transformDecoratorsOutputForClosurePropertyRenaming(
+            tsickleDiagnostics));
   }
   if (host.addDtsClutzAliases) {
     tsTransformers.afterDeclarations!.push(
@@ -167,14 +181,16 @@ export function emit(
 
   const externs: {[fileName: string]: string} = {};
   if (host.transformTypesToClosure) {
-    const sourceFiles = targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
+    const sourceFiles =
+        targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
     for (const sourceFile of sourceFiles) {
       const isDts = isDtsFileName(sourceFile.fileName);
       if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
         continue;
       }
       const {output, diagnostics} = generateExterns(
-          typeChecker, sourceFile, host, host.moduleResolutionHost, program.getCompilerOptions());
+          typeChecker, sourceFile, host, host.moduleResolutionHost,
+          program.getCompilerOptions());
       if (output) {
         externs[sourceFile.fileName] = output;
       }
@@ -201,8 +217,8 @@ export function emit(
 }
 
 function skipTransformForSourceFileIfNeeded(
-    host: TsickleHost,
-    delegateFactory: ts.TransformerFactory<ts.SourceFile>): ts.TransformerFactory<ts.SourceFile> {
+    host: TsickleHost, delegateFactory: ts.TransformerFactory<ts.SourceFile>):
+    ts.TransformerFactory<ts.SourceFile> {
   return (context: ts.TransformationContext) => {
     const delegate = delegateFactory(context);
     return (sourceFile: ts.SourceFile) => {
