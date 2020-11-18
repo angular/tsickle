@@ -159,7 +159,6 @@ export function createSourceCachingHost(
     }
     return originalFileExists.call(host, fileName);
   };
-
   return host;
 }
 

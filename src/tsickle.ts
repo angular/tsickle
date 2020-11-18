@@ -189,7 +189,7 @@ export function emit(
         continue;
       }
       const {output, diagnostics} = generateExterns(
-          typeChecker, sourceFile, host, host.moduleResolutionHost,
+          typeChecker, sourceFile, host, host.moduleResolutionHost, program,
           program.getCompilerOptions());
       if (output) {
         externs[sourceFile.fileName] = output;

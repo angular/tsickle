@@ -150,13 +150,34 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
 }
 
 /**
+ * shouldGenerateExterns determines whether a namespace declaration for a given file in
+ * externs should be generated. This allows one to obtain the availability of namespace without
+ * actually generating the externs for a file. This subsumes the previous `output && isExternalModule`
+ * check.
+ */
+function shouldGenerateExterns(sourceFile:ts.SourceFile) {
+  if (!ts.isExternalModule(sourceFile)) {
+    return false;
+  }
+  if (isDtsFileName(sourceFile.fileName)) {
+    return true;
+  }
+  for (const stmt of sourceFile.statements) {
+    if (hasModifierFlag(stmt as ts.DeclarationStatement, ts.ModifierFlags.Ambient)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * generateExterns generates extern definitions for all ambient declarations in the given source
  * file. It returns a string representation of the Closure JavaScript, not including the initial
  * comment with \@fileoverview and #externs (see above for that).
  */
 export function generateExterns(
     typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, host: AnnotatorHost,
-    moduleResolutionHost: ts.ModuleResolutionHost,
+    moduleResolutionHost: ts.ModuleResolutionHost, scriptReferenceHost:ts.ScriptReferenceHost,
     options: ts.CompilerOptions): {output: string, diagnostics: ts.Diagnostic[]} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
@@ -194,11 +215,20 @@ export function generateExterns(
   // tsickle handles the `export =` case by generating symbols in a different namespace (escaped
   // with a `_`) below, and then assigning whatever is actually exported into the `moduleNamespace`
   // below.
+  // Similarly, in case of `export * from ` statements, tsickle generates symbols in a different namespace,
+  // then declare `moduleNamespace` as a union type of all the namespaces for re-exported modules.
   let rootNamespace = moduleNamespace;
   // There can only be one export =, and if there is one, there cannot be any other exports.
   const exportAssignment = sourceFile.statements.find(ts.isExportAssignment);
   const hasExportEquals = exportAssignment && exportAssignment.isExportEquals;
-  if (hasExportEquals) {
+
+  const exportStarFromClauses = sourceFile.statements
+    .filter(ts.isExportDeclaration)
+    .filter(stmt => !stmt.exportClause && !!stmt.moduleSpecifier);
+  // If the re-exported module is a non-declaration `.ts` file, such a file is ignored.
+  const hasExportStarFrom = exportStarFromClauses.length !== 0;
+
+  if (hasExportEquals || hasExportStarFrom) {
     // If so, move all generated symbols into a different sub-namespace, so that later on we can
     // control what exactly goes on the actual exported namespace.
     rootNamespace = rootNamespace + '_';
@@ -240,9 +270,9 @@ export function generateExterns(
     return rootNamespace + '.' + entityName;
   }
 
-  if (output && isExternalModule) {
-    // If tsickle generated any externs and this is an external module, prepend the namespace
-    // declaration for it.
+
+  if (shouldGenerateExterns(sourceFile)) {
+    // Prepend the namespace declaration for it.
     output = `/** @const */\nvar ${rootNamespace} = {};\n` + output;
 
     let exportedNamespace = rootNamespace;
@@ -263,8 +293,27 @@ export function generateExterns(
       // into the module's namespace.
       emit(`/**\n * export = ${exportAssignment.expression.getText()}\n * @const\n */\n`);
       emit(`var ${moduleNamespace} = ${exportedNamespace};\n`);
+    } else if (hasExportStarFrom) {
+      // Add the namespace of the current module-dts too.
+      const mangledModuleNamespaces = [rootNamespace];
+      for (const clause of exportStarFromClauses) {
+        const moduleName = (clause.moduleSpecifier! as ts.StringLiteral).text;
+        const resolved = ts.resolveModuleName(moduleName, sourceFile.fileName, options, moduleResolutionHost);
+        const resolvedFileName = resolved?.resolvedModule?.resolvedFileName;
+        if (!resolvedFileName) {
+          emit(`// could not resolve export * from '${moduleName}'\n`);
+          continue;
+        }
+        const sf = scriptReferenceHost.getSourceFile(resolvedFileName);
+        if (!sf || !shouldGenerateExterns(sf)) continue;
+        emit(`// export * from '${moduleName}'\n`);
+        mangledModuleNamespaces.unshift(moduleNameAsIdentifier(host, resolvedFileName));
+      }
+      emit(`/** @const {(${
+        mangledModuleNamespaces.map(ns => `typeof ${ns}`).join('|')
+      })} */\n`);
+      emit(`var ${moduleNamespace} = {};\n`);
     }
-
     if (isDts && host.provideExternalModuleDtsNamespace) {
       // In a non-shimmed module, create a global namespace. This exists purely for backwards
       // compatiblity, in the medium term all code using tsickle should always use `goog.module`s,
@@ -517,8 +566,7 @@ export function generateExterns(
   function writeExportDeclaration(
       exportDeclaration: ts.ExportDeclaration, namespace: ReadonlyArray<string>) {
     if (!exportDeclaration.exportClause) {
-      emit(`\n// TODO(tsickle): export * declaration in ${
-          debugLocationStr(exportDeclaration, namespace)}\n`);
+      // Handled on the file level.
       return;
     }
     if (ts.isNamespaceExport(exportDeclaration.exportClause)) {
