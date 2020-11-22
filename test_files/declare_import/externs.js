@@ -61,3 +61,5 @@ var goog_imported$closure$Class = {};
  * @struct
  */
 goog_imported$closure$Class.ClosureClazz = function() {};
+/** @const */
+goog_imported$closure$Class.default = ClosureClazz;

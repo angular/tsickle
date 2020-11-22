@@ -60,6 +60,26 @@ export function getEntityNameText(name: ts.EntityName): string {
   return getEntityNameText(name.left) + '.' + getIdentifierText(name.right);
 }
 
+export function getEntityNameExpressionText(name:ts.EntityNameExpression) :string{
+  if (ts.isIdentifier(name)) {
+    return getIdentifierText(name);
+  }
+  return getEntityNameExpressionText(name.expression) + '.' + getIdentifierText(name.name);
+}
+
+/**
+ * Returns true if node is ts.EntityNameExpression. This internal API of typescript is replicated here
+ * in order to be used in externs.ts.
+ */
+export function isEntityNameExpression(node: ts.Node): node is ts.EntityNameExpression {
+  return node.kind === ts.SyntaxKind.Identifier || isPropertyAccessEntityNameExpression(node);
+}
+
+function isPropertyAccessEntityNameExpression(node: ts.Node): node is ts.PropertyAccessEntityNameExpression {
+  return ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.name) &&
+    isEntityNameExpression(node.expression);
+}
+
 /**
  * Converts an escaped TypeScript name into the original source name.
  */
