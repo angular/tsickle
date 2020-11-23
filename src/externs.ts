@@ -312,7 +312,7 @@ export function generateExterns(
       emit(`/** @const {(${
         mangledModuleNamespaces.map(ns => `typeof ${ns}`).join('|')
       })} */\n`);
-      emit(`var ${moduleNamespace} = {};\n`);
+      emit(`var ${moduleNamespace};\n`);
     }
     if (isDts && host.provideExternalModuleDtsNamespace) {
       // In a non-shimmed module, create a global namespace. This exists purely for backwards
@@ -632,7 +632,7 @@ export function generateExterns(
     if (ts.isNamedImports(namedBindings)) {
       // import {A as B}, map to module.name.A
       for (const namedBinding of namedBindings.elements) {
-        addImportAlias(namedBinding.name, moduleUri, namedBinding.name);
+        addImportAlias(namedBinding.name, moduleUri, getIdentifierText(namedBinding.name));
       }
     }
   }
@@ -643,7 +643,7 @@ export function generateExterns(
    */
   function addImportAlias(
       node: ts.Node, moduleUri: ts.StringLiteral,
-      name: ts.Identifier|string|undefined) {
+      name: string|undefined) {
     let symbol = typeChecker.getSymbolAtLocation(node);
     if (!symbol) {
       reportDiagnostic(diagnostics, node, `named import has no symbol`);
@@ -662,14 +662,28 @@ export function generateExterns(
         namespaceForImportUrl(moduleUri, diagnostics, moduleUri.text, moduleSymbol);
     let aliasName: string;
     if (googNamespace) {
-      aliasName = googNamespace;
+      mtt.symbolsToAliasedNames.set(symbol, googNamespace);
+      return;
+    }
+    // While type_translator does add the mangled prefix for ambient declarations, it only does so
+    // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
+    // which will have a local symbol for the imported ambient symbol. However within an externs
+    // file, there are no imports, so we need to make sure the alias already contains the correct
+    // module name, which means the mangled module name in case of imports symbols.
+    // This only applies to non-Closure ('goog:') imports.
+    // When `name` is provided, it is for named imports, and symbol it references is defined in
+    // outside module. When
+    if (name) {
+      // For named imports, a symbol for a node could have been defined in a third module different
+      // from the module that is being imported by this import statement, e.g. when the
+      // module being imported contains export * from "third_module", and the symbol is declared in
+      // there.
+      // It is necessary to always resolve to the actual module where the symbol is defined, as
+      // namespaces for intermediate modules cannot be used to resolve types. Such namespaces are
+      // declared using `(typeof ns1|typeof ns2 ...)` and only closure only resolves values defined
+      // on it.
+      aliasName = mtt.newTypeTranslator(node).maybeGetMangledNamePrefix(symbol) + name;
     } else {
-      // While type_translator does add the mangled prefix for ambient declarations, it only does so
-      // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
-      // which will have a local symbol for the imported ambient symbol. However within an externs
-      // file, there are no imports, so we need to make sure the alias already contains the correct
-      // module name, which means the mangled module name in case of imports symbols.
-      // This only applies to non-Closure ('goog:') imports.
       const isAmbientModuleDeclaration =
           symbol.declarations && symbol.declarations.some(d => isAmbient(d));
       const fullUri =
@@ -680,13 +694,7 @@ export function generateExterns(
         aliasName = host.pathToModuleName(
             sourceFile.fileName, resolveModuleName(host, sourceFile.fileName, fullUri));
       }
-      if (typeof name === 'string') {
-        aliasName += '.' + name;
-      } else if (name) {
-        aliasName += '.' + getIdentifierText(name);
-      }
     }
-
     mtt.symbolsToAliasedNames.set(symbol, aliasName);
   }
 

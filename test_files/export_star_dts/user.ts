@@ -1,6 +1,13 @@
-import {OwnInterface, variableReexportedInDts, exported} from './declare_export_star';
+import { OwnInterface, InterfaceUsedByReexportedInDts, reexportedInDts, rexportedFromNonDts } from './declare_export_star';
 
-const useOwnInterface: OwnInterface = {};
+const a: OwnInterface = {};
+const b: InterfaceUsedByReexportedInDts = { property: '' };
 
-variableReexportedInDts;
-exported;
+// Tests that types are resolved to namespace on which they were initially defined.
+function usesReexportedNameAsParamType(param: InterfaceUsedByReexportedInDts): InterfaceUsedByReexportedInDts {
+    return { property: '' };
+}
+
+// These names will be accessed on declare_export_star in transpiled js.
+reexportedInDts;
+rexportedFromNonDts;

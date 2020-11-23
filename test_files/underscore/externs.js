@@ -11,4 +11,4 @@ var __NS = {};
 /** @type {number} */
 __NS.__ns1;
 /** @const {(typeof test_files$underscore$underscore_)} */
-var test_files$underscore$underscore = {};
+var test_files$underscore$underscore;
