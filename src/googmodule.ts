@@ -200,6 +200,20 @@ function createGoogCall(
 }
 
 /**
+ * extractModuleStringMarker extracts the string value of a well known marker
+ * symbol from the given module symbol. It returns undefined if the symbol
+ * wasn't found.
+ */
+export function extractModuleStringMarker(
+    symbol: ts.Symbol,
+    name: '__clutz_actual_namespace'|'__clutz_multiple_provides'|
+    '__clutz_actual_path'): string|undefined {
+  const localSymbol = findLocalInDeclarations(symbol, name);
+  if (!localSymbol) return undefined;
+  return stringLiteralTypeOfSymbol(localSymbol);
+}
+
+/**
  * findLocalInDeclarations searches for a local name with the given name in all
  * declarations of the given symbol. Note that not all declarations are
  * containers that can have local symbols.
