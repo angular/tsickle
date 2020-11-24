@@ -37,6 +37,16 @@ var test_files$export_star_dts$declare_export_star_ = {};
  */
 test_files$export_star_dts$declare_export_star_.usesNamedExportFollowedByReexportsAsParamType = function(param) {};
 /**
+ * @implements {test_files$export_star_dts$1_reexport_nested.namedExportBehindSeveralExportStars}
+ * @constructor
+ * @struct
+ */
+test_files$export_star_dts$declare_export_star_.AClass = function() {};
+/** @type {string} */
+test_files$export_star_dts$declare_export_star_.AClass.prototype.prop1;
+/** @type {number} */
+test_files$export_star_dts$declare_export_star_.AClass.prototype.prop2;
+/**
  * @record
  * @struct
  */

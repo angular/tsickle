@@ -21,6 +21,16 @@ const b = { property: '' };
 function usesReexportedNameAsParamType(param) {
     return { property: '' };
 }
+// Tests that typesin heritage clauses are resolved to namespace on which they were initially defined.
+/**
+ * @implements {tsickle_reexport_ambient_2.InterfaceUsedByReexportedInDts}
+ */
+class AClass {
+    /**
+     * @return {string}
+     */
+    get property() { return ''; }
+}
 // These names will be accessed on declare_export_star in transpiled js.
 declare_export_star_1.reexportedInDts;
 declare_export_star_1.rexportedFromNonDts;
