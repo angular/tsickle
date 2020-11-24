@@ -498,3 +498,13 @@ export function merge(tags: Tag[]): Tag {
   }
   return tag;
 }
+
+/**
+ * Creates comment to be added in generated code to help map generated code
+ * back to the original .ts or .d.ts file. It is used by other tools like
+ * Kythe to produce cross-language references so it's exact text shouldn't
+ * change without updating corresponding tools.
+ */
+export function createGeneratedFromComment(file: string): string {
+  return `Generated from: ${file}`;
+}

@@ -35,9 +35,9 @@ function augmentFileoverviewComments(
     tags.splice(0, 0, fileOverview);
   }
   if (options.rootDir != null) {
-    // This comment is read by other tools so it's important that its format
-    // doesn't change.
-    fileOverview.text += `\nGenerated from: ${path.relative(options.rootDir, source.fileName)}`;
+    fileOverview.text += `\n${
+        jsdoc.createGeneratedFromComment(
+            path.relative(options.rootDir, source.fileName))}`;
   }
 
   // Find or create a @suppress tag.
