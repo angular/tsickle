@@ -14,6 +14,4 @@ export class AClass implements namedExportBehindSeveralExportStars {
     prop2: number
 }
 
-export { namedExportBehindSeveralExportStars }
-
 export interface OwnInterface { }
