@@ -671,8 +671,6 @@ export function generateExterns(
     // file, there are no imports, so we need to make sure the alias already contains the correct
     // module name, which means the mangled module name in case of imports symbols.
     // This only applies to non-Closure ('goog:') imports.
-    // When `name` is provided, it is for named imports, and symbol it references is defined in
-    // outside module. When
     if (name) {
       // For named imports, a symbol for a node could have been defined in a third module different
       // from the module that is being imported by this import statement, e.g. when the
