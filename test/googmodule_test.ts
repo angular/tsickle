@@ -421,13 +421,20 @@ exports.foo = ns.bar;
   it('elides default export values', () => {
     const before = `
       exports.foo = exports.bar = exports.baz = void 0;
-      exports.baz = void 0;
+      exports.boff = void 0;
+      exports.foo = 1;
+      exports.bar = 2;
+      exports.baz = 3;
+      exports.boff = 4;
     `;
 
     expectCommonJs('a.ts', before, false).toBe(`goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
-exports.baz = void 0;
+exports.foo = 1;
+exports.bar = 2;
+exports.baz = 3;
+exports.boff = 4;
 `);
   });
 

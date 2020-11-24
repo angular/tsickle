@@ -92,14 +92,62 @@ function isEsModuleProperty(stmt: ts.ExpressionStatement): boolean {
 }
 
 /**
- * TypeScript defaults all exported values to `void 0` by adding a statement at
- * the top of the file that looks like:
+ * Return `true`, if the statement looks like a `void 0` export initializer
+ * statement.
+ *
+ * TypeScript will assign `void 0` to **most** exported symbols at the
+ * start of the output file for reasons having to do with CommonJS spec
+ * compliance. (See https://github.com/microsoft/TypeScript/issues/38552)
+ * TS uses chained assignment for this up to some arbitrary limit
+ * (currently 50) so it doesn't have to have a separate statement for
+ * every assignment.
+ *
+ * ```js
+ * exports.p1 = exports.p2 = ... = exports.p50 = void 0;
+ * exports.p51 = exports.p52 = ... = exports.pN = void 0;
+ * ```
+ * However, closure-compiler will complain about these statements for
+ * several reasons.
+ *
+ * 1. These statements will come before any assignments directly to
+ *    `exports` itself.
+ * 2. Multiple assignments to `exports.p` are not allowed.
+ * 3. Each assignment to `exports.p` must be a separate statement.
+ *
+ * We must drop these statements.
+ *
+ * Ideally we should make sure we don't drop any a statement that represents
+ * client code that was actually trying to export a value of `void 0`.
+ * Unfortunately, we've found that we cannot do that reliably without making
+ * significant changes to the way we handle goog modules.
+ *
+ * TypeScript won't generate such initializing assignments for some
+ * cases. These include the default export and symbols re-exported from
+ * other modules, but the exact conditions for determining when an
+ * initialization will appear and when it won't are undocumented.
+ *
+ * Also, we discovered that for at least the case of exports defined with
+ * destructuring, TypeScript won't generate code that we can reliably
+ * recognize here as being an export.
  *
  * ```
- * exports.a = exports.b = exports.c = void 0;
+ * // original TS code
+ * export const {X} = somethingWithAnXProperty;
  * ```
  *
- * This matches that code snippet.
+ * ```
+ * // Looks like this when we see it here.
+ * exports.X = void 0; // init
+ * // this `x` gets somehow turned into `exports.x` somewhere after our code
+ * // runs. We suspect it's done with the substitution API, but aren't sure.
+ * x = somethingWithAnXProperty.X;
+ * ```
+ *
+ * For now we've decided that the chances of a human actually intentionally
+ * exporting `void 0` is so low, that the danger of breaking that case is less
+ * than the danger of us trying something complicated here and still failing
+ * to catch an assignment we need to remove in some complex case we haven't
+ * yet discovered.
  */
 function checkExportsVoid0Assignment(expr: ts.Expression): boolean {
   // Verify this looks something like `exports.abc = exports.xyz = void 0;`.
@@ -149,6 +197,20 @@ function createGoogCall(
   return ts.createCall(
       ts.createPropertyAccess(ts.createIdentifier('goog'), methodName),
       undefined, [literal]);
+}
+
+/**
+ * extractModuleStringMarker extracts the string value of a well known marker
+ * symbol from the given module symbol. It returns undefined if the symbol
+ * wasn't found.
+ */
+export function extractModuleStringMarker(
+    symbol: ts.Symbol,
+    name: '__clutz_actual_namespace'|'__clutz_multiple_provides'|
+    '__clutz_actual_path'): string|undefined {
+  const localSymbol = findLocalInDeclarations(symbol, name);
+  if (!localSymbol) return undefined;
+  return stringLiteralTypeOfSymbol(localSymbol);
 }
 
 /**
@@ -446,12 +508,6 @@ export function commonJsToGoogmoduleTransformer(
       if (host.isJsTranspilation && !isModule(sf)) {
         return sf;
       }
-
-      // TypeScript will create one or more lines like
-      // `exports.abc = exports.def = void 0`
-      // per file in order to initialize all `exports` properties to `void 0`
-      // before their actual assignment.
-      let didRewriteDefaultExportsAssignment = false;
 
       let moduleVarCounter = 1;
       /**
@@ -820,9 +876,7 @@ export function commonJsToGoogmoduleTransformer(
             // If we have not already seen the defaulted export assignment
             // initializing all exports to `void 0`, skip the statement and mark
             // that we have have now seen it.
-            if (!didRewriteDefaultExportsAssignment &&
-                checkExportsVoid0Assignment(exprStmt.expression)) {
-              didRewriteDefaultExportsAssignment = true;
+            if (checkExportsVoid0Assignment(exprStmt.expression)) {
               stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
               return;
             }
