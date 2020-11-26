@@ -200,17 +200,16 @@ function createGoogCall(
 }
 
 /**
- * extractModuleStringMarker extracts the string value of a well known marker
- * symbol from the given module symbol. It returns undefined if the symbol
- * wasn't found.
+ * extractModuleMarker extracts the value of a well known marker symbol from the
+ * given module symbol. It returns undefined if the symbol wasn't found.
  */
-export function extractModuleStringMarker(
+export function extractModuleMarker(
     symbol: ts.Symbol,
     name: '__clutz_actual_namespace'|'__clutz_multiple_provides'|
-    '__clutz_actual_path'): string|undefined {
+    '__clutz_actual_path'): string|boolean|undefined {
   const localSymbol = findLocalInDeclarations(symbol, name);
   if (!localSymbol) return undefined;
-  return stringLiteralTypeOfSymbol(localSymbol);
+  return literalTypeOfSymbol(localSymbol);
 }
 
 /**
@@ -233,16 +232,19 @@ function findLocalInDeclarations(symbol: ts.Symbol, name: string): ts.Symbol|
 }
 
 /**
- * stringLiteralTypeOfSymbol returns the string literal type of symbol if it is
+ * literalTypeOfSymbol returns the string literal type of symbol if it is
  * declared in a variable declaration that has a literal type.
  */
-function stringLiteralTypeOfSymbol(symbol: ts.Symbol): string|undefined {
+function literalTypeOfSymbol(symbol: ts.Symbol): string|boolean|undefined {
   if (symbol.declarations.length === 0) return undefined;
   const varDecl = symbol.declarations[0];
   if (!ts.isVariableDeclaration(varDecl)) return undefined;
   if (!varDecl.type || !ts.isLiteralTypeNode(varDecl.type)) return undefined;
-  if (!ts.isLiteralExpression(varDecl.type.literal)) return undefined;
-  return varDecl.type.literal.text;
+  const literal = varDecl.type.literal;
+  if (ts.isLiteralExpression(literal)) return literal.text;
+  if (literal.kind === ts.SyntaxKind.TrueKeyword) return true;
+  if (literal.kind === ts.SyntaxKind.FalseKeyword) return false;
+  return undefined;
 }
 
 /**
@@ -286,8 +288,8 @@ export function namespaceForImportUrl(
     // ... but continue producing an emit that effectively references the first
     // provided symbol (to continue finding any additional errors).
   }
-  const actualNamespace = stringLiteralTypeOfSymbol(actualNamespaceSymbol);
-  if (actualNamespace === undefined) {
+  const actualNamespace = literalTypeOfSymbol(actualNamespaceSymbol);
+  if (actualNamespace === undefined || typeof actualNamespace !== 'string') {
     reportDiagnostic(
         tsickleDiagnostics, context,
         `referenced module's __clutz_actual_namespace not a variable with a string literal type`);
@@ -488,7 +490,7 @@ export function commonJsToGoogmoduleTransformer(
       const stripDefaultNameSymbol =
           findLocalInDeclarations(moduleSymbol, '__clutz_strip_property');
       if (!stripDefaultNameSymbol) return node;
-      const stripName = stringLiteralTypeOfSymbol(stripDefaultNameSymbol);
+      const stripName = literalTypeOfSymbol(stripDefaultNameSymbol);
       // In this case, emit `modulename` instead of `modulename.property` if and
       // only if the accessed name matches the declared name.
       if (stripName === node.name.text) return node.expression;
