@@ -107,6 +107,12 @@ export function transformFileoverviewCommentFactory(
     }
 
     return (sourceFile: ts.SourceFile) => {
+      // TypeScript supports including some other file formats in compilation
+      // (JS, JSON). Avoid adding comments to those.
+      if (!sourceFile.fileName.match(/\.tsx?$/)) {
+        return sourceFile;
+      }
+
       const text = sourceFile.getFullText();
 
       let fileComments: ts.SynthesizedComment[] = [];
@@ -149,7 +155,9 @@ export function transformFileoverviewCommentFactory(
         for (let i = 0; i < sourceFile.statements.length; i++) {
           const stmt = sourceFile.statements[i];
           // Accept the NotEmittedStatement inserted above.
-          if (i === 0 && stmt.kind === ts.SyntaxKind.NotEmittedStatement) continue;
+          if (i === 0 && stmt.kind === ts.SyntaxKind.NotEmittedStatement) {
+            continue;
+          }
           const comments = jsdoc.synthesizeLeadingComments(stmt);
           checkNoFileoverviewComments(
               stmt, comments,
