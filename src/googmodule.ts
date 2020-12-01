@@ -232,7 +232,7 @@ function findLocalInDeclarations(symbol: ts.Symbol, name: string): ts.Symbol|
 }
 
 /**
- * literalTypeOfSymbol returns the string literal type of symbol if it is
+ * literalTypeOfSymbol returns the literal type of symbol if it is
  * declared in a variable declaration that has a literal type.
  */
 function literalTypeOfSymbol(symbol: ts.Symbol): string|boolean|undefined {
@@ -542,7 +542,22 @@ export function commonJsToGoogmoduleTransformer(
           newIdent: ts.Identifier|undefined): ts.Statement|null {
         const importedUrl = extractRequire(call);
         if (!importedUrl) return null;
-        const moduleSymbol = typeChecker.getSymbolAtLocation(importedUrl);
+        let moduleSymbol = typeChecker.getSymbolAtLocation(importedUrl);
+        if (!moduleSymbol) {
+          // Angular compiler creates import statements that do not retain the
+          // original AST (parse tree nodes). TypeChecker cannot resolve these
+          // import statements, thus moduleSymbols ends up undefined.
+          // The workaround is to resolve the module explicitly, using
+          // an @internal API. TypeChecker has resolveExternalModuleName, but
+          // that also relies on finding parse tree nodes.
+          // Given that the feature that needs this (resolve Closure names) is
+          // only relevant to ambient modules, we can fall back to the function
+          // specific to ambient modules.
+          moduleSymbol =
+              // tslint:disable-next-line:no-any see above.
+              (typeChecker as any)
+                  .tryFindAmbientModuleWithoutAugmentations(importedUrl.text);
+        }
         // if importPathToGoogNamespace reports an error, it has already been
         // reported when originally transforming the file to JS (e.g. to produce
         // the goog.requireType call).
