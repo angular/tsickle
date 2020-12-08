@@ -83,4 +83,13 @@ describe('jsdoc.toString', () => {
  */
 `);
   });
+
+  it('escapes @argument tags', () => {
+    expect(jsdoc.toString([
+      {tagName: 'argument', parameterName: 'hello', text: 'world'},
+    ])).toBe(`/**
+ * \\@argument hello world
+ */
+`);
+  });
 });

@@ -60,7 +60,6 @@ export interface Tag {
 const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'abstract',
   'alternateMessageId',
-  'argument',
   'author',
   'const',
   'constant',
