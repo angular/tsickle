@@ -438,14 +438,15 @@ function containsOptionalChainingOperator(node: ts.PropertyAccessExpression|ts.N
                                           ts.CallExpression): boolean {
   let maybePropertyAccessChain: ts.Expression = node;
   // We know this is a property access chain if each member is a
-  // PropertyAccessExpression`, a `NonNullExpression`, or a
-  // `CallExpression`. Once we get to an expression that isn't, we have
+  // PropertyAccessExpression`, a `NonNullExpression`, a `CallExpression`, or an
+  // `ElementAccessExpression`. Once we get to an expression that isn't, we have
   // traversed the chain and can see if this was an optional chain.
   while (ts.isPropertyAccessExpression(maybePropertyAccessChain) ||
          ts.isNonNullExpression(maybePropertyAccessChain) ||
-         ts.isCallExpression(maybePropertyAccessChain)) {
+         ts.isCallExpression(maybePropertyAccessChain) ||
+         ts.isElementAccessExpression(maybePropertyAccessChain)) {
     // If we're at an access that used `?.`, we have found an optional property chain.
-    if (ts.isPropertyAccessExpression(maybePropertyAccessChain) &&
+    if (!ts.isNonNullExpression(maybePropertyAccessChain) &&
         maybePropertyAccessChain.questionDotToken != null) {
       return true;
     }

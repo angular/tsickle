@@ -39,3 +39,11 @@ let hasOptionalFn: {
       }
 }|undefined;
 let hasOptionalFn1 = hasOptionalFn?.a?.()!.b;
+
+function f(a: any): any {
+  return a.b()?.d()[0].f()!.e()[0]!;
+}
+
+function f2(a: any): any {
+  return a?.().x.y!.z;
+}

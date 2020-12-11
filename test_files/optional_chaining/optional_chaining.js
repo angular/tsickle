@@ -36,7 +36,7 @@ f1(nested === null || nested === void 0 ? void 0 : nested.a.b.c);
 /** @type {(undefined|{a: (undefined|{b: (undefined|!Array<{c: (undefined|number)}>)})})} */
 let hasArray;
 /** @type {number} */
-let hasArray1 = (/** @type {number} */ (hasArray === null || hasArray === void 0 ? void 0 : hasArray.a.b[0].c));
+let hasArray1 = hasArray === null || hasArray === void 0 ? void 0 : hasArray.a.b[0].c;
 /** @type {(undefined|{a: function(): (undefined|{b: number})})} */
 let hasFn;
 /** @type {(undefined|number)} */
@@ -45,3 +45,18 @@ let hasFn1 = hasFn === null || hasFn === void 0 ? void 0 : hasFn.a().b;
 let hasOptionalFn;
 /** @type {(undefined|number)} */
 let hasOptionalFn1 = (_c = hasOptionalFn === null || hasOptionalFn === void 0 ? void 0 : hasOptionalFn.a) === null || _c === void 0 ? void 0 : _c.call(hasOptionalFn).b;
+/**
+ * @param {?} a
+ * @return {?}
+ */
+function f(a) {
+    var _a;
+    return (_a = a.b()) === null || _a === void 0 ? void 0 : _a.d()[0].f().e()[0];
+}
+/**
+ * @param {?} a
+ * @return {?}
+ */
+function f2(a) {
+    return a === null || a === void 0 ? void 0 : a().x.y.z;
+}
