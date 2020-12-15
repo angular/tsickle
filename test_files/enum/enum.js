@@ -23,9 +23,9 @@ let enumTestValue = EnumTest1.XYZ;
 /** @type {!EnumTest1} */
 let enumTestValue2 = EnumTest1['XYZ'];
 /** @type {string} */
-let enumNumIndex = EnumTest1[(/** @type {number} */ ((/** @type {?} */ (null))))];
+let enumNumIndex = EnumTest1[(/** @type {number} */ (null))];
 /** @type {number} */
-let enumStrIndex = EnumTest1[(/** @type {string} */ ((/** @type {?} */ (null))))];
+let enumStrIndex = EnumTest1[(/** @type {string} */ (null))];
 /** @type {(null|!EnumTest1)} */
 let nullableEnum = null;
 /**

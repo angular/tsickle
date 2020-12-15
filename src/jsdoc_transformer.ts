@@ -782,6 +782,26 @@ export function jsdocTransformer(
       /** Converts a TypeScript type assertion into a Closure Cast. */
       function visitAssertionExpression(assertion: ts.AssertionExpression) {
         const type = typeChecker.getTypeAtLocation(assertion.type);
+
+        // If we're translating as cast that looks like any of:
+        //   a as any as B
+        //   a as unknown as B
+        //   a as AnyDuringMigrationAlias as B
+        // emit the cast to B directly without going through the middle type.
+        // The middle type is needed also needed in Closure, but because we
+        // suppress type checking no error will be raised. This ensures Closure
+        // Compiler keeps the association between the variable and the type it's
+        // being cast to.
+        if (ts.isAsExpression(assertion.expression)) {
+          const innerType =
+              typeChecker.getTypeAtLocation(assertion.expression.type);
+          // If the inner type being cast through is an `any` or `unknown`
+          // replace outer expression being casted with the original expression.
+          if (innerType.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
+            assertion = assertion.expression;
+          }
+        }
+
         return createClosureCast(assertion, ts.visitEachChild(assertion, visitor, context), type);
       }
 
