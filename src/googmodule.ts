@@ -555,8 +555,8 @@ export function commonJsToGoogmoduleTransformer(
           // specific to ambient modules.
           moduleSymbol =
               // tslint:disable-next-line:no-any see above.
-              (typeChecker as any)
-                  .tryFindAmbientModuleWithoutAugmentations(importedUrl.text);
+              (typeChecker as any)['tryFindAmbientModuleWithoutAugmentations'](
+                  importedUrl.text);
         }
         // if importPathToGoogNamespace reports an error, it has already been
         // reported when originally transforming the file to JS (e.g. to produce
