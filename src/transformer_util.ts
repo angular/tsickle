@@ -251,6 +251,9 @@ function createDiagnostic(
     node: ts.Node, messageText: string, textRange: ts.TextRange|undefined,
     category: ts.DiagnosticCategory): ts.Diagnostic {
   let start, length: number;
+  // getStart on a synthesized node can crash (due to not finding an associated
+  // source file). Make sure to use the original node.
+  node = ts.getOriginalNode(node);
   if (textRange) {
     start = textRange.pos;
     length = textRange.end - textRange.pos;
