@@ -131,6 +131,24 @@ export function emit(
   let tsickleDiagnostics: ts.Diagnostic[] = [];
   const typeChecker = program.getTypeChecker();
   const tsOptions = program.getCompilerOptions();
+  if (!tsOptions.rootDir) {
+    // Various places within tsickle assume rootDir is always present,
+    // so return an error here if it wasn't provided.
+    return {
+      emitSkipped: false,
+      diagnostics: [{
+        category: ts.DiagnosticCategory.Error,
+        code: 0,
+        file: undefined,
+        start: undefined,
+        length: undefined,
+        messageText: 'TypeScript options must specify rootDir',
+      }],
+      modulesManifest: new ModulesManifest(),
+      externs: {},
+    };
+  }
+
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> =
       [];
   if (host.transformTypesToClosure) {
