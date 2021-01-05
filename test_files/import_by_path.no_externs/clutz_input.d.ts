@@ -92,3 +92,19 @@ declare module 'google3/path/to/multiple_provides/conflicting' {
   export {};
   const __clutz_multiple_provides: true;
 }
+// Models the emit of Clutz for a file that contains conflicting goog.provides
+// and exports a type. The key piece is the `__clutz_multiple_provides` property
+// that's emitted by Clutz when it finds multiple conflicting provides in a
+// file.
+declare namespace ಠ_ಠ.clutz.multiple.provides.conflicting {
+  interface Type { x: number; }
+}
+declare module 'goog:multiple.provides.conflicting.Type' {
+import Type = ಠ_ಠ.clutz.multiple.provides.conflicting.Type;
+  export {Type};
+}
+declare module 'google3/path/to/multiple_provides/conflicting' {
+import Type = ಠ_ಠ.clutz.multiple.provides.conflicting.Type;
+  export {Type};
+  const __clutz_multiple_provides: true;
+}

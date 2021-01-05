@@ -560,7 +560,10 @@ export function commonJsToGoogmoduleTransformer(
         }
         // if importPathToGoogNamespace reports an error, it has already been
         // reported when originally transforming the file to JS (e.g. to produce
-        // the goog.requireType call).
+        // the goog.requireType call). Side-effect imports generate no
+        // requireType, but given they do not import a symbol, there is also no
+        // ambiguity what symbol to import, so not reporting an error for
+        // side-effect imports is working as intended.
         const ignoredDiagnostics: ts.Diagnostic[] = [];
         const imp = importPathToGoogNamespace(
             host, importedUrl, ignoredDiagnostics, sf, importedUrl.text,

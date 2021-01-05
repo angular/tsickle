@@ -832,26 +832,37 @@ export function jsdocTransformer(
       }
 
       function visitImportDeclaration(importDecl: ts.ImportDeclaration) {
-        // For each import, insert a goog.requireType for the module, so that if TypeScript does not
-        // emit the module because it's only used in type positions, the JSDoc comments still
-        // reference a valid Closure level symbol.
+        // For each import, insert a goog.requireType for the module, so that if
+        // TypeScript does not emit the module because it's only used in type
+        // positions, the JSDoc comments still reference a valid Closure level
+        // symbol.
 
         // No need to requireType side effect imports.
+        // Note that this means tsickle does not report diagnostics for
+        // side-effect path imports of JavaScript modules with conflicting
+        // provides. That is working as intended.
         if (!importDecl.importClause) return importDecl;
 
         const sym = typeChecker.getSymbolAtLocation(importDecl.moduleSpecifier);
-        // Scripts do not have a symbol, and neither do unused modules. Scripts can still be
-        // imported, either as side effect imports or with an empty import set ("{}"). TypeScript
-        // does not emit a runtime load for an import with an empty list of symbols, but the import
-        // forces any global declarations from the library to be visible, which is what users use
-        // this for. No symbols from the script need requireType, so just return.
-        // TODO(evmar): revisit this.  If TS needs to see the module import, it's likely Closure
-        // does too.
+        // Scripts do not have a symbol, and neither do unused modules (empty
+        // import list). Scripts can still be imported using side effect
+        // imports. TypeScript emits a runtime load for a side-effect imports,
+        // which has the desired effect of executing side-effects, and can also
+        // be used to make sure global declarations are present. Neither of
+        // these need a `goog.requireType`.
+        // Empty import lists (`import {} from 'x';`) intentionally create no
+        // emit in TS and do not need a `goog.requireType` either (as there is
+        // no symbol imported). Users that wish to force a load should use
+        // side-effect imports.
         if (!sym) return importDecl;
 
         const importPath = googmodule.resolveModuleName(
-            {options: tsOptions, moduleResolutionHost: host.moduleResolutionHost},
-            sourceFile.fileName, (importDecl.moduleSpecifier as ts.StringLiteral).text);
+            {
+              options: tsOptions,
+              moduleResolutionHost: host.moduleResolutionHost
+            },
+            sourceFile.fileName,
+            (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
         moduleTypeTranslator.requireType(
             importDecl.moduleSpecifier, importPath, sym,
