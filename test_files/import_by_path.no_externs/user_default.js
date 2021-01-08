@@ -12,3 +12,8 @@ goog.require('tslib');
 const tsickle_file_1 = goog.requireType("my.module");
 const file_1 = goog.require('my.module');
 console.log(new file_1().someField);
+// Make sure that type annotations get emitted correctly. The type annotation
+// here must just refer to the module alias, without a ".MyClassDefaultExport".
+/** @type {!tsickle_file_1} */
+const typeUsage = new file_1();
+console.log(typeUsage);

@@ -244,6 +244,13 @@ export class ModuleTypeTranslator {
     }
     const nsImport =
         googmodule.namespaceForImportUrl(context, this.diagnostics, importPath, moduleSymbol);
+    if (googmodule.extractModuleMarker(
+            moduleSymbol, '__clutz_strip_property')) {
+      // Symbols using import-by-path with strip property should be mapped to a
+      // default import. This makes sure that type annotations get emitted as
+      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
+      isDefaultImport = true;
+    }
     const requireTypePrefix =
         this.generateModulePrefix(importPath) + String(this.requireTypeModules.size + 1);
     const moduleNamespace = nsImport !== null ?

@@ -93,8 +93,6 @@ export interface EmitResult extends ts.EmitResult {
 }
 
 export interface EmitTransformers {
-  /** Custom transformers to evaluate before Tsickle .js transformations. */
-  beforeTsickle?: ts.CustomTransformers['before'];
   /** Custom transformers to evaluate before built-in .js transformations. */
   beforeTs?: ts.CustomTransformers['before'];
   /** Custom transformers to evaluate after built-in .js transformations. */
@@ -168,7 +166,6 @@ export function emit(
   const modulesManifest = new ModulesManifest();
   const tsTransformers: ts.CustomTransformers = {
     before: [
-      ...(customTransformers.beforeTsickle || []),
       ...(tsickleSourceTransformers || [])
           .map(tf => skipTransformForSourceFileIfNeeded(host, tf)),
       ...(customTransformers.beforeTs || []),
@@ -177,7 +174,7 @@ export function emit(
     afterDeclarations: [...(customTransformers.afterDeclarations || [])]
   };
   if (host.transformTypesToClosure) {
-    // See comment on remoteTypeAssertions.
+    // See comment on removeTypeAssertions.
     tsTransformers.before!.push(removeTypeAssertions());
   }
   if (host.googmodule) {

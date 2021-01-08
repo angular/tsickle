@@ -206,7 +206,7 @@ function createGoogCall(
 export function extractModuleMarker(
     symbol: ts.Symbol,
     name: '__clutz_actual_namespace'|'__clutz_multiple_provides'|
-    '__clutz_actual_path'): string|boolean|undefined {
+    '__clutz_actual_path'|'__clutz_strip_property'): string|boolean|undefined {
   const localSymbol = findLocalInDeclarations(symbol, name);
   if (!localSymbol) return undefined;
   return literalTypeOfSymbol(localSymbol);
@@ -424,6 +424,34 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
 }
 
 /**
+ * getAmbientModuleSymbol returns the module symbol for the module referenced
+ * by the given URL. It special cases ambient module URLs that cannot be
+ * resolved (e.g. because they exist on synthesized nodes) and looks those up
+ * separately.
+ */
+function getAmbientModuleSymbol(
+    typeChecker: ts.TypeChecker, moduleUrl: ts.StringLiteral) {
+  let moduleSymbol =
+      typeChecker.getSymbolAtLocation(moduleUrl);
+  if (!moduleSymbol) {
+    // Angular compiler creates import statements that do not retain the
+    // original AST (parse tree nodes). TypeChecker cannot resolve these
+    // import statements, thus moduleSymbols ends up undefined.
+    // The workaround is to resolve the module explicitly, using
+    // an @internal API. TypeChecker has resolveExternalModuleName, but
+    // that also relies on finding parse tree nodes.
+    // Given that the feature that needs this (resolve Closure names) is
+    // only relevant to ambient modules, we can fall back to the function
+    // specific to ambient modules.
+    const t = moduleUrl.text;
+    moduleSymbol =
+        // tslint:disable-next-line:no-any see above.
+        (typeChecker as any)['tryFindAmbientModuleWithoutAugmentations'](t);
+  }
+  return moduleSymbol;
+}
+
+/**
  * commonJsToGoogmoduleTransformer returns a transformer factory that converts
  * TypeScript's CommonJS module emit to Closure Compiler compatible goog.module
  * and goog.require statements.
@@ -476,16 +504,15 @@ export function commonJsToGoogmoduleTransformer(
       // itself. This allows referring to the module-level export of a
       // "goog.module" or "goog.provide" as if it was an ES6 default export.
       const isDefaultAccess = node.name.text === 'default';
-      if (isDefaultAccess &&
-          (importExportDecl.moduleSpecifier as ts.StringLiteral)
-              .text.startsWith('goog:')) {
+      const moduleSpecifier =
+          importExportDecl.moduleSpecifier as ts.StringLiteral;
+      if (isDefaultAccess && moduleSpecifier.text.startsWith('goog:')) {
         // Substitute "foo.default" with just "foo".
         return node.expression;
       }
       // Alternatively, modules may export a well known symbol
       // '__clutz_strip_property'.
-      const moduleSymbol =
-          typeChecker.getSymbolAtLocation(importExportDecl.moduleSpecifier);
+      const moduleSymbol = getAmbientModuleSymbol(typeChecker, moduleSpecifier);
       if (!moduleSymbol) return node;
       const stripDefaultNameSymbol =
           findLocalInDeclarations(moduleSymbol, '__clutz_strip_property');
@@ -542,22 +569,7 @@ export function commonJsToGoogmoduleTransformer(
           newIdent: ts.Identifier|undefined): ts.Statement|null {
         const importedUrl = extractRequire(call);
         if (!importedUrl) return null;
-        let moduleSymbol = typeChecker.getSymbolAtLocation(importedUrl);
-        if (!moduleSymbol) {
-          // Angular compiler creates import statements that do not retain the
-          // original AST (parse tree nodes). TypeChecker cannot resolve these
-          // import statements, thus moduleSymbols ends up undefined.
-          // The workaround is to resolve the module explicitly, using
-          // an @internal API. TypeChecker has resolveExternalModuleName, but
-          // that also relies on finding parse tree nodes.
-          // Given that the feature that needs this (resolve Closure names) is
-          // only relevant to ambient modules, we can fall back to the function
-          // specific to ambient modules.
-          moduleSymbol =
-              // tslint:disable-next-line:no-any see above.
-              (typeChecker as any)['tryFindAmbientModuleWithoutAugmentations'](
-                  importedUrl.text);
-        }
+        const moduleSymbol = getAmbientModuleSymbol(typeChecker, importedUrl);
         // if importPathToGoogNamespace reports an error, it has already been
         // reported when originally transforming the file to JS (e.g. to produce
         // the goog.requireType call). Side-effect imports generate no
