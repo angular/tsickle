@@ -429,7 +429,7 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
  * resolved (e.g. because they exist on synthesized nodes) and looks those up
  * separately.
  */
-function getAmbientModuleSymbol(
+export function getAmbientModuleSymbol(
     typeChecker: ts.TypeChecker, moduleUrl: ts.StringLiteral) {
   let moduleSymbol =
       typeChecker.getSymbolAtLocation(moduleUrl);
