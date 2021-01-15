@@ -749,7 +749,7 @@ export function commonJsToGoogmoduleTransformer(
 
         // Grab the call to `require`, and exit early if not calling `require`.
         if (!ts.isCallExpression(stmt.expression.right)) return null;
-        const ident = ts.createIdentifier(nextModuleVar());
+        const ident = ts.factory.createIdentifier(nextModuleVar());
         const require =
             maybeCreateGoogRequire(stmt, stmt.expression.right, ident);
         if (!require) return null;
@@ -757,12 +757,17 @@ export function commonJsToGoogmoduleTransformer(
         const exportedName = stmt.expression.left.name;
         const exportStmt = ts.setOriginalNode(
             ts.setTextRange(
-                ts.createExpressionStatement(ts.createAssignment(
-                    ts.createPropertyAccess(
-                        ts.createIdentifier('exports'), exportedName),
-                    ident)),
+                ts.factory.createExpressionStatement(
+                    ts.factory.createAssignment(
+                        ts.factory.createPropertyAccessExpression(
+                            ts.factory.createIdentifier('exports'),
+                            exportedName),
+                        ident)),
                 stmt),
             stmt);
+        ts.addSyntheticLeadingComment(
+            exportStmt, ts.SyntaxKind.MultiLineCommentTrivia, '* @const ',
+            /* trailing newline */ true);
 
         return [require, exportStmt];
       }

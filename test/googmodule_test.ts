@@ -519,6 +519,7 @@ console.log(starImport, file_js_1.namedImport, file_js_1.renamedFrom, starImport
       expectJsTranspilation(before).toBe(`goog.module('project.file');
 var module = module || { id: 'project/file.js' };
 var tsickle_module_1_ = goog.require('project.exportStarAsNs');
+/** @const */
 exports.ns = tsickle_module_1_;
 `);
     });
