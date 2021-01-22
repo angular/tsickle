@@ -343,10 +343,13 @@ function clutzSymbolFromNode(
 }
 
 /**
- * Given a ts.Symbol, returns the path to the underlying d.ts file that defines
- * that symbol.
+ * Given a ts.Symbol, returns the import path string to the source of that
+ * symbol.
+ *
+ * This is a path to an underlying d.ts file that defines that symbol, without a
+ * file extension.
  */
-function fileNameForSymbol(sym: ts.Symbol): string|undefined {
+function importPathForSymbol(sym: ts.Symbol): string|undefined {
   if (sym.declarations.length === 0) {
     // This can happen if an import or symbol somehow references a nonexistent
     // type, for example in a case where type checking failed or via 'any'.
@@ -357,14 +360,18 @@ function fileNameForSymbol(sym: ts.Symbol): string|undefined {
   // due to having the same Clutz output (though also note that the output can
   // depend on which other files are included in the Clutz run!).  We just need
   // any definition at all, so take the first.
-  const clutzFile = sym.declarations[0].getSourceFile();
-  return clutzFile.fileName;
+  const clutzFileName = sym.declarations[0].getSourceFile().fileName;
+  if (!clutzFileName.endsWith('.d.ts')) {
+    throw new Error(`Expected d.ts file for ${sym} but found ${clutzFileName}`);
+  }
+
+  return clutzFileName.substring(0, clutzFileName.length - '.d.ts'.length);
 }
 
 /**
  * Given a ts.SourceFile, looks for imports/exports that resolve to goog:
  * namespaces and uses the "look of disapproval" namespace, and returns the
- * paths of the underlying files that define them.
+ * import paths of the underlying files that define them.
  */
 function gatherNecessaryClutzImports(typeChecker: ts.TypeChecker, sf: ts.SourceFile): string[] {
   const imports = new Set<string>();
@@ -375,8 +382,8 @@ function gatherNecessaryClutzImports(typeChecker: ts.TypeChecker, sf: ts.SourceF
     // Then handle explicit import/export statements.
     const moduleSymbol = moduleSymbolFromGoog(typeChecker, stmt);
     if (!moduleSymbol) continue;
-    const fileName = fileNameForSymbol(moduleSymbol);
-    if (fileName) imports.add(fileName);
+    const importPath = importPathForSymbol(moduleSymbol);
+    if (importPath) imports.add(importPath);
   }
   return Array.from(imports);
 
@@ -389,8 +396,8 @@ function gatherNecessaryClutzImports(typeChecker: ts.TypeChecker, sf: ts.SourceF
   function visit(node: ts.Node) {
     const sym = clutzSymbolFromNode(typeChecker, node);
     if (sym) {
-      const fileName = fileNameForSymbol(sym);
-      if (fileName) imports.add(fileName);
+      const importPath = importPathForSymbol(sym);
+      if (importPath) imports.add(importPath);
       // Note: no 'return' here, because we need to also visit children in
       // parameterized types like Foo<Bar>.
     }

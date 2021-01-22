@@ -1,4 +1,4 @@
-import "test_files/import_by_path.declaration.no_externs/clutz_input.d.ts";
+import "test_files/import_by_path.declaration.no_externs/clutz_input";
 import { SomeClass } from 'google3/another/file';
 export declare class UsingPathImports {
     someField?: SomeClass;

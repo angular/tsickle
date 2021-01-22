@@ -1,9 +1,9 @@
 // test_files/clutz_imports.declaration.no_externs/user_code.ts(37,1): warning TS0: anonymous type has no symbol
-import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo1.d.ts";
-import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo2.d.ts";
-import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo4.d.ts";
-import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo6.d.ts";
-import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo5.d.ts";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo1";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo2";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo4";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo6";
+import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo5";
 /**
  * @fileoverview This file simulates a TypeScript file that interacts with Clutz
  * types.  The expected output is that the generated .d.ts file has explicit
