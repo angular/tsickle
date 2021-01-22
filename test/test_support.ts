@@ -277,32 +277,38 @@ export function allDtsPaths(): string[] {
 
 /**
  * A Jasmine "compare" function that compares the strings actual vs expected, and produces a human
- * readable, colored diff using diff-match-patch.
+ * readable, diff using diff-match-patch.
  */
-function diffStrings(actual: {}, expected: {}) {
+function diffStrings(
+    actual: {}, expected: {}): {pass: boolean, message?: string} {
   if (actual === expected) return {pass: true};
   if (typeof actual !== 'string' || typeof expected !== 'string') {
-    return {pass: false, message: `toEqualWithDiff takes two strings, got ${actual}, ${expected}`};
+    return {
+      pass: false,
+      message: `toEqualWithDiff takes two strings, got ${actual}, ${expected}`
+    };
   }
   const dmp = new DiffMatchPatch();
   dmp.Match_Distance = 0;
   dmp.Match_Threshold = 0;
   const diff = dmp.diff_main(expected, actual);
   dmp.diff_cleanupSemantic(diff);
-  if (!diff.length) return {pass: true};
-  let message = '\x1B[0mstrings differ:\n';
+  if (!diff.length) {
+    return {pass: true};
+  }
+
+  let message =
+      '\nStrings differ:\n⌊missing expected content⌋ / ⌈new actual content⌉\n\n';
   for (const [diffKind, text] of diff) {
     switch (diffKind) {
       case DIFF_EQUAL:
         message += text;
         break;
       case DIFF_DELETE:
-        // light gray on red.
-        message += '\x1B[37;41m' + text + '\x1B[0m';
+        message += `⌊${text}⌋`;
         break;
       case DIFF_INSERT:
-        // dark gray on green.
-        message += '\x1B[90;42m' + text + '\x1B[0m';
+        message += `⌈${text}⌉`;
         break;
       default:
         throw new Error('unexpected diff result: ' + [diffKind, text]);
