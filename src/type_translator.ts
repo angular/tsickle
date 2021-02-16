@@ -416,6 +416,9 @@ export class TypeTranslator {
 
     // NonPrimitive occurs on its own on the lower case "object" type. Special case to "!Object".
     if (type.flags === ts.TypeFlags.NonPrimitive) return '!Object';
+    // TemplateLiteral falls outside of the masked range used for the switch statement
+    // below, so we'll check for it first.
+    if (type.flags === ts.TypeFlags.TemplateLiteral) return 'string';
 
     // Avoid infinite loops on recursive type literals.
     // It would be nice to just emit the name of the recursive type here (in type.aliasSymbol

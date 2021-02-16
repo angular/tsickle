@@ -15,7 +15,7 @@ goog.require('tslib');
  */
 function f(promiseCtor) {
     return promiseCtor ? new promiseCtor((/**
-     * @param {function((undefined|void|!PromiseLike<void>)=): void} res
+     * @param {function((void|!PromiseLike<void>)): void} res
      * @param {function(?=): void} rej
      * @return {void}
      */
