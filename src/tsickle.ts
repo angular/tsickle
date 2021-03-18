@@ -20,6 +20,7 @@ import * as googmodule from './googmodule';
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {isDtsFileName} from './transformer_util';
+import * as tsmes from './ts_migration_exports_shim';
 
 // Exported for users as a default impl of pathToModuleName.
 export {pathToModuleName} from './cli_support';
@@ -28,6 +29,7 @@ export {getGeneratedExterns} from './externs';
 export {FileMap, ModulesManifest} from './modules_manifest';
 
 export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
+                                     tsmes.TsMigrationExportsShimProcessorHost,
                                      AnnotatorHost {
   /**
    * Whether to downlevel decorators
@@ -70,6 +72,7 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
   const emittedFiles: string[] = [];
   const externs: {[fileName: string]: string} = {};
   const modulesManifest = new ModulesManifest();
+  const tsMigrationExportsShimFiles = new Map<string, string>();
   for (const er of emitResults) {
     diagnostics.push(...er.diagnostics);
     emitSkipped = emitSkipped || er.emitSkipped;
@@ -78,8 +81,19 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
     }
     Object.assign(externs, er.externs);
     modulesManifest.addManifest(er.modulesManifest);
+    for (const [k, v] of er.tsMigrationExportsShimFiles) {
+      tsMigrationExportsShimFiles.set(k, v);
+    }
   }
-  return {diagnostics, emitSkipped, emittedFiles, externs, modulesManifest};
+
+  return {
+    diagnostics,
+    emitSkipped,
+    emittedFiles,
+    externs,
+    tsMigrationExportsShimFiles,
+    modulesManifest,
+  };
 }
 
 export interface EmitResult extends ts.EmitResult {
@@ -90,6 +104,12 @@ export interface EmitResult extends ts.EmitResult {
    * from fileNameToModuleId.
    */
   externs: {[moduleId: string]: string};
+
+  /**
+   * Content for the generated files, keyed by their intended filename.
+   * Filenames are google3 relative.
+   */
+  tsMigrationExportsShimFiles: Map<string, string>;
 }
 
 export interface EmitTransformers {
@@ -144,6 +164,7 @@ export function emit(
       }],
       modulesManifest: new ModulesManifest(),
       externs: {},
+      tsMigrationExportsShimFiles: new Map(),
     };
   }
 
@@ -214,6 +235,22 @@ export function emit(
       }
     }
   }
+
+  const tsMigrationExportsShimFiles = new Map<string, string>();
+  {
+    const sourceFiles =
+        targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
+    const filteredSourceFiles =
+        sourceFiles.filter((f) => tsmes.pathHasSupportedExtension(f.fileName))
+            .filter((f) => !host.shouldSkipTsickleProcessing(f.fileName));
+    for (const f of filteredSourceFiles) {
+      const result = tsmes.generateTsMigrationExportsShimFile(
+          f, typeChecker, host, modulesManifest);
+      tsMigrationExportsShimFiles.set(result.filename, result.content);
+      tsickleDiagnostics.push(...result.diagnostics);
+    }
+  }
+
   // All diagnostics (including warnings) are treated as errors.
   // If the host decides to ignore warnings, just discard them.
   // Warnings include stuff like "don't use @type in your jsdoc"; tsickle
@@ -227,7 +264,8 @@ export function emit(
     emitSkipped,
     emittedFiles: emittedFiles || [],
     diagnostics: [...tsDiagnostics, ...tsickleDiagnostics],
-    externs
+    externs,
+    tsMigrationExportsShimFiles,
   };
 }
 

@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
 import * as path from './path';
-import {createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, reportDiagnostic} from './transformer_util';
+import {createGoogCall, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, isGoogCall, reportDiagnostic} from './transformer_util';
 
 /**
  * Provides dependencies for and configures the behavior of
@@ -187,16 +187,6 @@ function extractRequire(call: ts.CallExpression): ts.StringLiteral|null {
   const arg = call.arguments[0];
   if (arg.kind !== ts.SyntaxKind.StringLiteral) return null;
   return arg as ts.StringLiteral;
-}
-
-/**
- * Creates a call expression corresponding to `goog.${methodName}(${literal})`.
- */
-function createGoogCall(
-    methodName: string, literal: ts.StringLiteral): ts.CallExpression {
-  return ts.createCall(
-      ts.createPropertyAccess(ts.createIdentifier('goog'), methodName),
-      undefined, [literal]);
 }
 
 /**
@@ -665,37 +655,41 @@ export function commonJsToGoogmoduleTransformer(
         if (!ts.isStringLiteral(arg)) {
           return null;
         }
-        const moduleId = arg.text;
-        // replace goog.declareModuleId['foo.bar'] with:
-        // goog.loadedModules_['foo.bar'] = {
-        //   exports: exports,
-        //   type: goog.ModuleType.GOOG,
-        //   moduleId: 'foo.bar'
-        // };
-        //
-        // For more info, see `goog.loadModule` in
-        // https://github.com/google/closure-library/blob/master/closure/goog/base.js
-        const newStmt = ts.createStatement(ts.createAssignment(
-            ts.createElementAccess(
-                ts.createPropertyAccess(
-                    ts.createIdentifier('goog'),
-                    ts.createIdentifier('loadedModules_')),
-                createSingleQuoteStringLiteral(moduleId)),
-            ts.createObjectLiteral([
-              ts.createPropertyAssignment(
-                  'exports', ts.createIdentifier('exports')),
-              ts.createPropertyAssignment(
-                  'type',
-                  ts.createPropertyAccess(
-                      ts.createPropertyAccess(
-                          ts.createIdentifier('goog'),
-                          ts.createIdentifier('ModuleType')),
-                      ts.createIdentifier('GOOG'))),
-              ts.createPropertyAssignment(
-                  'moduleId', createSingleQuoteStringLiteral(moduleId)),
-            ])));
+        const newStmt = createGoogLoadedModulesRegistration(
+            arg.text, ts.createIdentifier('exports'));
         return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
       }
+
+      /**
+       * Rewrite goog.legacyModule to something that works in a goog.module.
+       *
+       * goog.tsMigrationExportShim reexports some of the exports of the local
+       * TS module under a new goog.module ID.  This isn't possible with the
+       * public APIs, but we can make it work at runtime by writing a record to
+       * goog.loadedModules_.
+       *
+       * This only works at runtime, and would fail if compiled by closure
+       * compiler, but that's ok because we only transpile JS in development
+       * mode.
+       */
+      function maybeRewriteTsMigrationExportsShim(
+          original: ts.Statement, call: ts.CallExpression): ts.Statement|null {
+        if (!isGoogCall(call, 'tsMigrationExportsShim')) {
+          return null;
+        }
+        if (call.arguments.length !== 2) {
+          return null;
+        }
+        const moduleId = call.arguments[0]!;
+        if (!ts.isStringLiteral(moduleId)) {
+          return null;
+        }
+
+        const newStmt = createGoogLoadedModulesRegistration(
+            moduleId.text, call.arguments[1] || ts.createNull());
+        return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
+      }
+
 
       /**
        * maybeRewriteRequireTslib rewrites a require('tslib') calls to
@@ -972,6 +966,14 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
+            // Check for declareModuleId.
+            const legacyModule =
+                maybeRewriteTsMigrationExportsShim(exprStmt, callExpr);
+            if (legacyModule) {
+              statements.push(legacyModule);
+              return;
+            }
+
             // Check for __exportStar, the commonjs version of 'export *'.
             // export * creates either a pure top-level '__export(require(...))'
             // or the imported version, 'tslib.__exportStar(require(...))'. The
@@ -1118,4 +1120,38 @@ function isModule(sourceFile: ts.SourceFile): boolean {
     externalModuleIndicator?: ts.Node;
   }
   return Boolean((sourceFile as InternalSourceFile).externalModuleIndicator);
+}
+
+/**
+ * Create code like:
+ *
+ * goog.loadedModules_['foo.bar'] = {
+ *  exports: exports,
+ *  type: goog.ModuleType.GOOG,
+ *  moduleId: 'foo.bar'
+ * };
+ *
+ * For more info, see `goog.loadModule` in
+ * https://github.com/google/closure-library/blob/master/closure/goog/base.js
+ */
+function createGoogLoadedModulesRegistration(
+    moduleId: string, exports: ts.Expression): ts.Statement {
+  return ts.createStatement(ts.createAssignment(
+      ts.createElementAccess(
+          ts.createPropertyAccess(
+              ts.createIdentifier('goog'),
+              ts.createIdentifier('loadedModules_')),
+          createSingleQuoteStringLiteral(moduleId)),
+      ts.createObjectLiteral([
+        ts.createPropertyAssignment('exports', exports),
+        ts.createPropertyAssignment(
+            'type',
+            ts.createPropertyAccess(
+                ts.createPropertyAccess(
+                    ts.createIdentifier('goog'),
+                    ts.createIdentifier('ModuleType')),
+                ts.createIdentifier('GOOG'))),
+        ts.createPropertyAssignment(
+            'moduleId', createSingleQuoteStringLiteral(moduleId)),
+      ])));
 }

@@ -86,6 +86,19 @@ function compareAgainstGolden(
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? fdescribe : describe;
 
+/**
+ * Return the google3 relative name of the filename.
+ *
+ * This function only works in the limited contexts of these tests.
+ */
+function rootDirsRelative(filename: string): string {
+  const result = filename.split('runfiles/google3/')[1];
+  if (!result) {
+    throw new Error(filename);
+  }
+  return result;
+}
+
 testFn('golden tests', () => {
   beforeEach(() => {
     testSupport.addDiffMatchers();
@@ -166,6 +179,7 @@ testFn('golden tests', () => {
         },
         options: tsCompilerOptions,
         moduleResolutionHost: tsHost,
+        rootDirsRelative,
       };
 
       const tscOutput = new Map<string, string>();
@@ -195,13 +209,16 @@ testFn('golden tests', () => {
         return fileName.endsWith('.js');
       }
 
-      const {diagnostics, externs} = tsickle.emit(
+      const {diagnostics, externs, tsMigrationExportsShimFiles} = tsickle.emit(
           program, transformerHost, (fileName: string, data: string) => {
             if (shouldCompareOutputToGolden(fileName)) {
               tscOutput.set(fileName, data);
             }
           }, targetSource);
-      for (const d of diagnostics) allDiagnostics.add(d);
+      for (const d of diagnostics) {
+        allDiagnostics.add(d);
+      }
+
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
       for (const d of allDiagnostics) {
         const fileName = d.file?.fileName ?? 'unhandled diagnostic with no file name attached';
@@ -214,6 +231,7 @@ testFn('golden tests', () => {
         const actualPaths = Array.from(tscOutput.keys()).map(p => p.replace(/^\.\//, '')).sort();
         expect(sortedPaths).toEqual(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
       }
+
       let allExterns: string|null = null;
       if (!test.name.endsWith('.no_externs')) {
         // Concatenate externs for the files that are in this tests sources (but not other, shared
@@ -231,6 +249,16 @@ testFn('golden tests', () => {
         }
       }
       compareAgainstGolden(allExterns, test.externsPath(), test);
+
+      for (const absFilename of test.tsMigrationExportsShimPaths()) {
+        const relativeFilename = rootDirsRelative(absFilename);
+        compareAgainstGolden(
+            tsMigrationExportsShimFiles.get(relativeFilename) ?? null,
+            absFilename,
+            test,
+        );
+      }
+
       for (const [outputPath, output] of tscOutput) {
         const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);

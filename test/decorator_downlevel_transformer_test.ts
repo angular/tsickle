@@ -54,6 +54,7 @@ describe('decorator_downlevel_transformer', () => {
       untyped: false,
       options: testSupport.compilerOptions,
       moduleResolutionHost: host,
+      rootDirsRelative: (filename) => filename,
     };
 
     const files = new Map<string, string>();

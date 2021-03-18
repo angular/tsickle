@@ -219,6 +219,20 @@ export class GoldenFileTest {
   }
 
   /**
+   * Gets the absolute paths to the expected '.tsmes.' outputs of the test.
+   */
+  tsMigrationExportsShimPaths(): string[] {
+    return this.tsPaths
+        .map(
+            (p) =>
+                [p.replace('.ts', '.tsmes.d.ts'),
+                 p.replace('.ts', '.tsmes.closure.js')])
+        .flat()
+        .map((p) => path.join(this.root, p))
+        .filter((p) => fs.existsSync(p));
+  }
+
+  /**
    * Returns true for 'declaration' tests, which are golden tests that verify
    * the generated .d.ts output from compilation.  Normally tests are only
    * verifying the generated .js output.
@@ -258,7 +272,7 @@ export function goldenTests(): GoldenFileTest[] {
   const tests = testDirs.map(testDir => {
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
-    tsPaths = tsPaths.filter(p => !p.match(/\.tsickle\./) && !p.match(/\.decorated\./));
+    tsPaths = tsPaths.filter(p => !p.match(/\.(tsickle|decorated|tsmes)\./));
     const tsFiles = tsPaths.map(f => path.relative(testDir, f));
     tsFiles.sort();  // Source order is significant for externs concatenation after the test.
     return new GoldenFileTest(testDir, tsFiles);
@@ -361,8 +375,8 @@ export function formatDiagnostics(diags: ReadonlyArray<ts.Diagnostic>): string {
  */
 export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
   if (diags.length !== 0) {
-    console.error(formatDiagnostics(diags));
-    expect(diags.length).toBe(0);
+    throw new Error(
+        `Expected no diagnostics but got: ` + formatDiagnostics(diags));
   }
 }
 

@@ -287,3 +287,30 @@ export function getAllLeadingComments(node: ts.Node):
   if (synthetic) allRanges.push(...synthetic);
   return allRanges;
 }
+
+/**
+ * Creates a call expression corresponding to `goog.${methodName}(${literal})`.
+ */
+export function createGoogCall(
+    methodName: string, literal: ts.StringLiteral): ts.CallExpression {
+  return ts.createCall(
+      ts.createPropertyAccess(ts.createIdentifier('goog'), methodName),
+      undefined, [literal]);
+}
+
+
+/**
+ * Returns true if the given call executes `goog.$fnName`. Does not check
+ * whether `goog` is the expected symbol (vs e.g. a local variable).
+ */
+export function isGoogCall(call: ts.CallExpression, fnName: string) {
+  if (!ts.isPropertyAccessExpression(call.expression)) {
+    return false;
+  }
+  const propAccess = call.expression;
+  if (!ts.isIdentifier(propAccess.expression) ||
+      propAccess.expression.escapedText !== 'goog') {
+    return false;
+  }
+  return propAccess.name.escapedText === fnName;
+}
