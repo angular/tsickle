@@ -104,6 +104,7 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'noalias',
   'nocollapse',
   'nocompile',
+  'noinline',
   'nosideeffects',
   'override',
   'owner',
