@@ -105,7 +105,7 @@ export function typeToDebugString(type: ts.Type): string {
 
   if (type.flags === ts.TypeFlags.Object) {
     const objType = type as ts.ObjectType;
-    debugString += ` objectFlags:0x${objType.objectFlags}`;
+    debugString += ` objectFlags:0x${objType.objectFlags.toString(16)}`;
     // Just the unique flags (powers of two). Declared in src/compiler/types.ts.
     const objectFlags: ts.ObjectFlags[] = [
       ts.ObjectFlags.Class,
