@@ -24,12 +24,20 @@ Destructuring({a: 1, b: 2});
 Destructuring2([1, 2], [['a']]);
 Destructuring3([1, 2], [['a']]);
 
-function TestSplat(...a: number[]) {}
-function TestSplat2(...a: Array<number>) {}
-function TestSplat3(...a) {}
-TestSplat(1, 2);
-TestSplat2(1, 2);
-TestSplat3(1, 2);
+function testRest(...a: number[]) {}
+function testRest2(...a: Array<number>) {}
+function testRest3(...a) {}
+function testRest4<T extends number[]>(...a: T) {}
+function testRest5<T extends number[]>(f: (...a: T) => void) {}
+function testRest6(...a: [number, number]) {}
+function testRest7(...a: any) {}
+testRest(1, 2);
+testRest2(1, 2);
+testRest3(1, 2);
+testRest4(1, 2);
+testRest5((x: number, y: number) => {});
+testRest6(1, 2);
+testRest7(1, 'a');
 
 function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
 defaultBeforeRequired(undefined, 2, 'h', 3);

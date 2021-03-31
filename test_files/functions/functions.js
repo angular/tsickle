@@ -1,3 +1,4 @@
+// test_files/functions/functions.ts(33,20): warning TS0: failed to resolve rest parameter type, emitting ?
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/functions/functions.ts
@@ -65,20 +66,51 @@ Destructuring3([1, 2], [['a']]);
  * @param {...number} a
  * @return {void}
  */
-function TestSplat(...a) { }
+function testRest(...a) { }
 /**
  * @param {...number} a
  * @return {void}
  */
-function TestSplat2(...a) { }
+function testRest2(...a) { }
 /**
  * @param {...?} a
  * @return {void}
  */
-function TestSplat3(...a) { }
-TestSplat(1, 2);
-TestSplat2(1, 2);
-TestSplat3(1, 2);
+function testRest3(...a) { }
+/**
+ * @template T
+ * @param {...number} a
+ * @return {void}
+ */
+function testRest4(...a) { }
+/**
+ * @template T
+ * @param {function(...number): void} f
+ * @return {void}
+ */
+function testRest5(f) { }
+/**
+ * @param {...number} a
+ * @return {void}
+ */
+function testRest6(...a) { }
+/**
+ * @param {...?} a
+ * @return {void}
+ */
+function testRest7(...a) { }
+testRest(1, 2);
+testRest2(1, 2);
+testRest3(1, 2);
+testRest4(1, 2);
+testRest5((/**
+ * @param {number} x
+ * @param {number} y
+ * @return {void}
+ */
+(x, y) => { }));
+testRest6(1, 2);
+testRest7(1, 'a');
 /**
  * @param {number=} x
  * @param {number=} y

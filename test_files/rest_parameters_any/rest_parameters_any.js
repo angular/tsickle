@@ -1,14 +1,13 @@
-// test_files/rest_parameters_any/rest_parameters_any.ts(26,7): warning TS0: var args type is not an object type
+// test_files/rest_parameters_any/rest_parameters_any.ts(26,7): warning TS0: unable to translate rest args type
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview This test covers the rest parameter of function and method
+ * signatures. This includes signatures only consisting of a rest parameter and
+ * signatures mixing both explicit declarations and a rest parameter.
+ *
  * Generated from: test_files/rest_parameters_any/rest_parameters_any.ts
  * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-// This test covers the rest parameter of function
-// and method signatures. This includes signatures
-// only consisting of a rest parameter and
-// signatures mixing both explicit declarations
-// and a rest parameter.
 goog.module('test_files.rest_parameters_any.rest_parameters_any');
 var module = module || { id: 'test_files/rest_parameters_any/rest_parameters_any.ts' };
 goog.require('tslib');
@@ -36,7 +35,7 @@ const p = {
     (a, b) => ([a, b])),
 };
 // should annotate a as number and b as {?}
-/** @type {function(number, !Array<?>): number} */
+/** @type {function(number, ...?): number} */
 const test = (/**
  * @param {number} a
  * @param {?} b

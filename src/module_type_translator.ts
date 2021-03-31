@@ -367,28 +367,19 @@ export class ModuleTypeTranslator {
    * `@param {...number} x`. The code below unwraps the Array<> wrapper.
    */
   private resolveRestParameterType(
-      newTag: jsdoc.Tag, fnDecl: ts.SignatureDeclaration, paramNode: ts.ParameterDeclaration) {
-    let type = this.typeChecker.getTypeAtLocation(paramNode);
+      newTag: jsdoc.Tag, fnDecl: ts.SignatureDeclaration,
+      paramNode: ts.ParameterDeclaration) {
+    const type = typeTranslator.restParameterType(
+        this.typeChecker, this.typeChecker.getTypeAtLocation(paramNode));
     newTag.restParam = true;
-    if ((type.flags & ts.TypeFlags.Object) === 0 && type.flags & ts.TypeFlags.TypeParameter) {
-      // function f<T extends string[]>(...ts: T) has the Array type on the type parameter
-      // constraint, not on the parameter itself. Resolve it.
-      const baseConstraint = this.typeChecker.getBaseConstraintOfType(type);
-      if (baseConstraint) type = baseConstraint;
-    }
-    if ((type.flags & ts.TypeFlags.Object) !== 0 &&
-        (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
-      const typeRef = type as ts.TypeReference;
-      const typeArgs = this.typeChecker.getTypeArguments(typeRef);
-      if (!typeArgs) {
-        throw new Error('rest parameter does not resolve to a reference type');
-      }
-      newTag.type = this.typeToClosure(fnDecl, typeArgs[0]);
+    if (!type) {
+      // If we fail to unwrap the Array<> type, emit an unknown type.
+      this.debugWarn(
+          paramNode, 'failed to resolve rest parameter type, emitting ?');
+      newTag.type = '?';
       return;
     }
-    // If we fail to unwrap the Array<> type, emit an unknown type.
-    this.debugWarn(paramNode, 'failed to resolve rest parameter type, emitting ?');
-    newTag.type = '?';
+    newTag.type = this.typeToClosure(fnDecl, type);
   }
 
   /**

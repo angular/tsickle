@@ -1,8 +1,8 @@
-// This test covers the rest parameter of function
-// and method signatures. This includes signatures
-// only consisting of a rest parameter and
-// signatures mixing both explicit declarations
-// and a rest parameter.
+/**
+ * @fileoverview This test covers the rest parameter of function and method
+ * signatures. This includes signatures only consisting of a rest parameter and
+ * signatures mixing both explicit declarations and a rest parameter.
+ */
 
 interface CallbackMaps {
     // declares all arguments of method signatures

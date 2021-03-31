@@ -1,8 +1,11 @@
-// test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(1,38): warning TS0: failed to resolve rest parameter type, emitting ?
-// test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(3,14): warning TS0: var args type is not an object type
-// test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(4,31): warning TS0: failed to resolve rest parameter type, emitting ?
+// test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(6,38): warning TS0: failed to resolve rest parameter type, emitting ?
+// test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(8,14): warning TS0: unable to translate rest args type
+// test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts(9,31): warning TS0: failed to resolve rest parameter type, emitting ?
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview Tests an interaction between conditional types and rest (...)
+ * types.
+ *
  * Generated from: test_files/conditional_rest_tuple_type/conditional_rest_tuple_type.ts
  * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
@@ -15,7 +18,7 @@ goog.require('tslib');
  * @return {void}
  */
 function conditionalRestTupleType(...args) { }
-/** @type {{conditionalRestTupleType: function(!Array<?>): void}} */
+/** @type {{conditionalRestTupleType: function(...?): void}} */
 exports.x = {
     /**
      * @template T

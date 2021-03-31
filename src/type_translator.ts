@@ -902,34 +902,25 @@ export class TypeTranslator {
     const paramTypes: string[] = [];
     for (let i = 0; i < sig.parameters.length; i++) {
       const param = sig.parameters[i];
-
       const paramDecl = paramDecls[i];
       // Parameters are optional if either marked '?' or if have a default
       const optional = !!paramDecl.questionToken || !!paramDecl.initializer;
       const varArgs = !!paramDecl.dotDotDotToken;
-      let paramType = this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      const paramType =
+          this.typeChecker.getTypeOfSymbolAtLocation(param, this.node);
+      let typeStr: string;
       if (varArgs) {
-        if ((paramType.flags & ts.TypeFlags.Object) === 0) {
-          this.warn('var args type is not an object type');
-          paramTypes.push('!Array<?>');
-          continue;
+        // When translating (...x: number[]) into {...number}, remove the array.
+        const argType = restParameterType(this.typeChecker, paramType);
+        if (argType) {
+          typeStr = '...' + this.translate(argType);
+        } else {
+          this.warn('unable to translate rest args type');
+          typeStr = '...?';
         }
-        if (((paramType as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) === 0) {
-          this.warn('unsupported var args type (not an array reference)');
-          paramTypes.push('!Array<?>');
-          continue;
-        }
-        const typeArgs = this.typeChecker.getTypeArguments(paramType as ts.TypeReference);
-        if (typeArgs.length === 0) {
-          // When a rest argument resolves empty, i.e. the concrete instantiation does not take any
-          // arguments, the type arguments are empty. Emit a function type that takes no arg in this
-          // position then.
-          continue;
-        }
-        paramType = typeArgs[0];
+      } else {
+        typeStr = this.translate(paramType);
       }
-      let typeStr = this.translate(paramType);
-      if (varArgs) typeStr = '...' + typeStr;
       if (optional) typeStr = typeStr + '=';
       paramTypes.push(typeStr);
     }
@@ -983,4 +974,48 @@ export function isAlwaysUnknownSymbol(pathUnknownSymbolsSet: Set<string>|undefin
     const fileName = path.normalize(n.getSourceFile().fileName);
     return pathUnknownSymbolsSet.has(fileName);
   });
+}
+
+
+/**
+ * Extracts the contained element type from a rest parameter.
+ *
+ * In TypeScript, a rest parameter is written as an array type:
+ *   function f(...xs: number[])
+ * while in JS, that same param would be written without the array:
+ *   @-param {...number} number
+ * This function is used to convert the former into the latter.  It may return
+ * undefined in cases where the type is too complex; e.g. TS allows things like
+ *   function f<T extends More>(...xs: T)
+ */
+export function restParameterType(
+    typeChecker: ts.TypeChecker, type: ts.Type): ts.Type|undefined {
+  if (((type.flags & ts.TypeFlags.Object) === 0) &&
+      (type.flags & ts.TypeFlags.TypeParameter)) {
+    // function f<T extends string[]>(...ts: T) has the Array type on the type
+    // parameter constraint, not on the parameter itself. Resolve it.
+    const baseConstraint = typeChecker.getBaseConstraintOfType(type);
+    if (baseConstraint) type = baseConstraint;
+  }
+  if ((type.flags & ts.TypeFlags.Object) === 0) {
+    // This can happen in cases like
+    //   function f(...args: any)
+    return undefined;
+  }
+  const objType = type as ts.ObjectType;
+  if ((objType.objectFlags & ts.ObjectFlags.Reference) === 0) {
+    return undefined;
+  }
+  const typeRef = objType as ts.TypeReference;
+  const typeArgs = typeChecker.getTypeArguments(typeRef);
+  if (typeArgs.length < 1) {
+    // length can be zero when a generic is instantiated to create a zero-arg
+    // function; see rest_parameters_generic_empty test.
+    //
+    // Per https://github.com/microsoft/TypeScript/issues/38391
+    // it can also happen that length >1, but the first type argument is the one
+    // that matters.
+    return undefined;
+  }
+  return typeArgs[0];
 }
