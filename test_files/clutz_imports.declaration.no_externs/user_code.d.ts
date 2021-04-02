@@ -1,4 +1,3 @@
-// test_files/clutz_imports.declaration.no_externs/user_code.ts(37,1): warning TS0: anonymous type has no symbol
 import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo1";
 import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo2";
 import "test_files/clutz_imports.declaration.no_externs/clutz_output_demo4";
