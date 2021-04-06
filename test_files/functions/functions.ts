@@ -31,6 +31,8 @@ function testRest4<T extends number[]>(...a: T) {}
 function testRest5<T extends number[]>(f: (...a: T) => void) {}
 function testRest6(...a: [number, number]) {}
 function testRest7(...a: any) {}
+function testRest8(...a: Parameters<typeof Destructuring>) {}
+type TestRest8Type = typeof testRest8;
 testRest(1, 2);
 testRest2(1, 2);
 testRest3(1, 2);
@@ -38,6 +40,7 @@ testRest4(1, 2);
 testRest5((x: number, y: number) => {});
 testRest6(1, 2);
 testRest7(1, 'a');
+testRest8({a: 1, b: 2});
 
 function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
 defaultBeforeRequired(undefined, 2, 'h', 3);
@@ -59,3 +62,4 @@ function templatedBoundRestArg3<T extends number[]>(...str: T[]) {
 function templated<T>(t: T): number {
   return 1;
 }
+

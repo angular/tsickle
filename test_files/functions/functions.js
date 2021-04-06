@@ -1,4 +1,5 @@
 // test_files/functions/functions.ts(33,20): warning TS0: failed to resolve rest parameter type, emitting ?
+// test_files/functions/functions.ts(35,1): warning TS0: unable to translate rest anonymous types
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/functions/functions.ts
@@ -99,6 +100,13 @@ function testRest6(...a) { }
  * @return {void}
  */
 function testRest7(...a) { }
+/**
+ * @param {...?} a
+ * @return {void}
+ */
+function testRest8(...a) { }
+/** @typedef {function(...?): void} */
+var TestRest8Type;
 testRest(1, 2);
 testRest2(1, 2);
 testRest3(1, 2);
@@ -111,6 +119,7 @@ testRest5((/**
 (x, y) => { }));
 testRest6(1, 2);
 testRest7(1, 'a');
+testRest8({ a: 1, b: 2 });
 /**
  * @param {number=} x
  * @param {number=} y

@@ -1,3 +1,4 @@
+// test_files/interface/interface_extends.ts(17,1): warning TS0: dropped extends: anonymous type
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/interface/interface_extends.ts
@@ -36,3 +37,10 @@ if (false) {
     /** @type {number} */
     SubMulti.prototype.z;
 }
+/** @typedef {{aFunction: function(): void}} */
+var ANamespace;
+/**
+ * @record
+ * tsickle: dropped extends: anonymous type
+ */
+function InterfaceExtendsNamespace() { }

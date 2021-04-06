@@ -232,11 +232,23 @@ function isDeclaredInSameFile(a: ts.Node, b: ts.Node) {
  * translation operation has to create a new instance.
  */
 export class TypeTranslator {
+
+  /**
+   * In the case of recursive mapped types we can be forced to walk into
+   * incredibly complicated trees. This quickly blows up our ability to do
+   * anything productive, so we use character count as a proxy for complexity
+   * and short circuit if it looks bad.
+   */
+  private static readonly CUMULATIVE_ANONYMOUS_PROPERTY_LIMIT = 1000;
+
   /**
    * A list of type literals we've encountered while emitting; used to avoid
    * getting stuck in recursive types.
    */
   private readonly seenTypes: ts.Type[] = [];
+
+  private readonly seenAnonymousTypes: ts.Type[] = [];
+  private cumulativeAnonymousProperties = 0;
 
   /**
    * Whether to write types suitable for an #externs file. Externs types must not refer to
@@ -676,14 +688,15 @@ export class TypeTranslator {
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
-    } else if (type.objectFlags & ts.ObjectFlags.Anonymous) {
-      return this.translateAnonymousType(type);
+    } else if (
+        (type.objectFlags & ts.ObjectFlags.Anonymous) ||
+        (type.objectFlags & ts.ObjectFlags.Mapped)) {
+      return this.translateAnonymousOrMappedType(type);
     }
 
     /*
     TODO(ts2.1): more unhandled object type flags:
       Tuple
-      Mapped
       Instantiated
       ObjectLiteral
       EvolvingArray
@@ -694,14 +707,29 @@ export class TypeTranslator {
   }
 
   /**
-   * translateAnonymousType translates a ts.TypeFlags.ObjectType that is also
-   * ts.ObjectFlags.Anonymous. That is, this type's symbol does not have a name. This is the
+   * Translates a ts.TypeFlags.ObjectType that is also ts.ObjectFlags.Anonymous
+   * or ts.ObjectFlags.Mapped.
+   *
+   * That is, either this type's symbol does not have a name. This is the
    * anonymous type encountered in e.g.
    *     let x: {a: number};
    * But also the inferred type in:
    *     let x = {a: 1};  // type of x is {a: number}, as above
+   *
+   * Or, it is the mapped type like
+   *     {[K in keyof SomeInterface]: boolean}
+   * But also the named map type like
+   *     Partial<SomeInterface>
    */
-  private translateAnonymousType(type: ts.Type): string {
+  private translateAnonymousOrMappedType(type: ts.Type): string {
+    if (this.seenAnonymousTypes.length === 0) {
+      this.cumulativeAnonymousProperties = 0;
+    } else if (this.cumulativeAnonymousProperties >=
+        TypeTranslator.CUMULATIVE_ANONYMOUS_PROPERTY_LIMIT) {
+      return '?';
+    }
+
+    this.seenAnonymousTypes.push(type);
     this.seenTypes.push(type);
     try {
       if (!type.symbol) {
@@ -721,15 +749,6 @@ export class TypeTranslator {
           return this.signatureToClosure(sigs[0]);
         }
         this.warn('unhandled anonymous type with multiple call signatures');
-        return '?';
-      }
-
-      // Gather up all the named fields and whether the object is also callable.
-      let callable = false;
-      let indexable = false;
-      const fields: string[] = [];
-      if (!type.symbol.members) {
-        this.warn('anonymous type has no symbol');
         return '?';
       }
 
@@ -770,35 +789,42 @@ export class TypeTranslator {
         return `function(new:${constructedTypeStr}${paramsStr})`;
       }
 
-      // members is an ES6 map, but the .d.ts defining it defined their own map
-      // type, so typescript doesn't believe that .keys() is iterable
-      // tslint:disable-next-line:no-any
-      for (const field of (type.symbol.members.keys() as any)) {
-        switch (field) {
-          case '__call':
-            callable = true;
-            break;
-          case '__index':
-            indexable = true;
-            break;
-          default:
-            if (!isValidClosurePropertyName(field)) {
-              this.warn(`omitting inexpressible property name: ${field}`);
-              continue;
-            }
-            const member = type.symbol.members.get(field)!;
-            // optional members are handled by the type including |undefined in
-            // a union type.
-            const memberType = this.translate(
-                this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
-            fields.push(`${field}: ${memberType}`);
-            break;
+      // Gather up all the named fields
+      const fields: string[] = [];
+      let hasInexpressibleProperties = false;
+      let characterCount = 0;
+      for (const property of type.getProperties()) {
+        const name = property.name;
+        if (!isValidClosurePropertyName(name)) {
+          this.warn(`omitting inexpressible property name: ${name}`);
+          hasInexpressibleProperties = true;
+          continue;
         }
+        // optional properties are handled by the type including |undefined
+        // in a union type.
+        const propertyType = this.translate(
+            this.typeChecker.getTypeOfSymbolAtLocation(property, this.node));
+        fields.push(`${name}: ${propertyType}`);
+        this.cumulativeAnonymousProperties += 1;
       }
 
       // Try to special-case plain key-value objects and functions.
+      const callable = type.getCallSignatures().length > 0;
+      const indexable = type.getNumberIndexType() || type.getStringIndexType();
       if (fields.length === 0) {
-        if (callable && !indexable) {
+        if (hasInexpressibleProperties) {
+          // Consider an object mapping from locale to strings, where the
+          // properties are named like "en-us". These keys are usable in TS, but
+          // Closure cannot express them. If we fall through here and eventually
+          // return * (what we return we the type has NO properties) the JS
+          // usage is way worse for no benefit. Instead, we/ return ? here to
+          // express that it's totally inexpressible.
+          //
+          // One could imagine returning ? any time there's an inexpressible
+          // field, but doing so comes at the cost of catching bugs and this
+          // seems like a reasonable compromise.
+          return '?';
+        } else if (callable && !indexable) {
           // A function type.
           const sigs =
               this.typeChecker.getSignaturesOfType(type, ts.SignatureKind.Call);
@@ -848,6 +874,7 @@ export class TypeTranslator {
       this.warn('unhandled anonymous type');
       return '?';
     } finally {
+      this.seenAnonymousTypes.pop();
       this.seenTypes.pop();
     }
   }
@@ -913,7 +940,13 @@ export class TypeTranslator {
         // When translating (...x: number[]) into {...number}, remove the array.
         const argType = restParameterType(this.typeChecker, paramType);
         if (argType) {
-          typeStr = '...' + this.translate(argType);
+          const translated = this.translate(argType);
+          if (translated.startsWith('{')) {
+            this.warn('unable to translate rest anonymous types');
+            typeStr = '...?';
+          } else {
+            typeStr = '...' + translated;
+          }
         } else {
           this.warn('unable to translate rest args type');
           typeStr = '...?';
