@@ -41,8 +41,9 @@ export function generateTsMigrationExportsShimFile(
     host: TsMigrationExportsShimProcessorHost,
     manifest: ModulesManifest): TsMigrationExportsShimResult {
   const srcFilename = host.rootDirsRelative(src.fileName);
-  const srcIds = new FileIdGroup(
-      srcFilename, host.pathToModuleName('', 'google3/' + srcFilename));
+  const srcModuleId = host.pathToModuleName(
+      '', 'google3/' + stripSupportedExtensions(srcFilename));
+  const srcIds = new FileIdGroup(srcFilename, srcModuleId);
 
   return new Generator(src, typeChecker, host, manifest, srcIds).run();
 }
@@ -53,6 +54,10 @@ export function generateTsMigrationExportsShimFile(
  */
 export function pathHasSupportedExtension(p: string): boolean {
   return Boolean(p.match(SUPPORTED_EXTENSIONS));
+}
+
+function stripSupportedExtensions(path: string) {
+  return path.replace(SUPPORTED_EXTENSIONS, '');
 }
 
 // .ts but not .d.ts
@@ -420,7 +425,7 @@ class FileIdGroup {
   ) {}
 
   google3PathWithoutExtension(): string {
-    return this.google3Path.replace(SUPPORTED_EXTENSIONS, '');
+    return stripSupportedExtensions(this.google3Path);
   }
 
   esModuleImportPath() {
