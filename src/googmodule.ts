@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
 import * as path from './path';
-import {createGoogCall, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, isGoogCall, reportDiagnostic} from './transformer_util';
+import {createGoogCall, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, isTsMigrationExportsShimCall, reportDiagnostic} from './transformer_util';
 
 /**
  * Provides dependencies for and configures the behavior of
@@ -38,6 +38,9 @@ export interface GoogModuleProcessorHost {
    * file.
    */
   convertIndexImportShorthand?: boolean;
+
+  /** Is the generated file meant for JSCompiler? */
+  transformTypesToClosure?: boolean;
 
   options: ts.CompilerOptions;
   moduleResolutionHost: ts.ModuleResolutionHost;
@@ -674,7 +677,7 @@ export function commonJsToGoogmoduleTransformer(
        */
       function maybeRewriteTsMigrationExportsShim(
           original: ts.Statement, call: ts.CallExpression): ts.Statement|null {
-        if (!isGoogCall(call, 'tsMigrationExportsShim')) {
+        if (!isTsMigrationExportsShimCall(call)) {
           return null;
         }
         if (call.arguments.length !== 2) {
@@ -970,7 +973,11 @@ export function commonJsToGoogmoduleTransformer(
             const legacyModule =
                 maybeRewriteTsMigrationExportsShim(exprStmt, callExpr);
             if (legacyModule) {
-              statements.push(legacyModule);
+              // Only rewrite tsmes if the output is meant for execution. Just
+              // delete it if the output is targeting JSCompiler.
+              if (!host.transformTypesToClosure) {
+                statements.push(legacyModule);
+              }
               return;
             }
 

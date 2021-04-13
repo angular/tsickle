@@ -314,3 +314,12 @@ export function isGoogCall(call: ts.CallExpression, fnName: string) {
   }
   return propAccess.name.escapedText === fnName;
 }
+
+/**
+ * Returns true if the given call executes `goog.tsMigrationExportsShim`. Does
+ * not check whether `goog` is the expected symbol (vs e.g. a local variable).
+ */
+export function isTsMigrationExportsShimCall(n: ts.Node):
+    n is ts.CallExpression {
+  return ts.isCallExpression(n) && isGoogCall(n, 'tsMigrationExportsShim');
+}

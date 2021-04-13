@@ -203,10 +203,17 @@ testFn('golden tests', () => {
       function shouldCompareOutputToGolden(fileName: string): boolean {
         // For regular tests we only check .js files, while for declaration
         // tests we only check .d.ts files.
-        if (test.isDeclarationTest) {
-          return fileName.endsWith('.d.ts');
+        const supported = [];
+        if (test.isPureTransformerTest) {
+          supported.push('.js');
         }
-        return fileName.endsWith('.js');
+        if (test.isDeclarationTest) {
+          supported.push('.d.ts');
+        } else {
+          supported.push('.js');
+        }
+
+        return supported.some((e) => fileName.endsWith(e));
       }
 
       const {diagnostics, externs, tsMigrationExportsShimFiles} = tsickle.emit(

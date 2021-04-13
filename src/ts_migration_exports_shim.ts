@@ -14,7 +14,7 @@
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
-import {isGoogCall, reportDiagnostic} from './transformer_util';
+import {isTsMigrationExportsShimCall, reportDiagnostic} from './transformer_util';
 
 /** Silence linter. */
 export interface TsMigrationExportsShimResult {
@@ -41,8 +41,7 @@ export function generateTsMigrationExportsShimFile(
     host: TsMigrationExportsShimProcessorHost,
     manifest: ModulesManifest): TsMigrationExportsShimResult {
   const srcFilename = host.rootDirsRelative(src.fileName);
-  const srcModuleId = host.pathToModuleName(
-      '', 'google3/' + stripSupportedExtensions(srcFilename));
+  const srcModuleId = host.pathToModuleName('', src.fileName);
   const srcIds = new FileIdGroup(srcFilename, srcModuleId);
 
   return new Generator(src, typeChecker, host, manifest, srcIds).run();
@@ -396,12 +395,6 @@ class Generator {
  * 'Local'}.
  */
 type GoogExports = string|Map<string, string>;
-
-function isTsMigrationExportsShimCall(node: ts.Node):
-    node is ts.CallExpression {
-  return ts.isCallExpression(node) &&
-      isGoogCall(node, 'tsMigrationExportsShim');
-}
 
 function lines(...x: string[]): string {
   return x.join('\n');
