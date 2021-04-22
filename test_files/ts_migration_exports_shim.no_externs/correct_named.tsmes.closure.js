@@ -1,6 +1,7 @@
 /**
  * @fileoverview generator:ts_migration_exports_shim.ts
- * generated_from:third_party/javascript/node_modules/tsickle/test_files/ts_migration_exports_shim.no_externs/correct_named.ts
+ * original_file:third_party/javascript/node_modules/tsickle/test_files/ts_migration_exports_shim.no_externs/correct_named.ts
+ * pintomodule absent in original_file
  */
 goog.module('project.named');
 const { MyNamedClass } = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_named');

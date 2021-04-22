@@ -281,10 +281,15 @@ class Generator {
     this.manifest.addReferencedModule(
         this.outputIds.google3Path, this.srcIds.googModuleId);
 
+    const pintoModuleAnnotation = containsAtPintoModule(this.src) ?
+        '@pintomodule found in original_file' :
+        'pintomodule absent in original_file';
+
     return lines(
         '/**',
         ' * @fileoverview generator:ts_migration_exports_shim.ts',
-        ' * generated_from:' + this.srcIds.google3Path,
+        ' * original_file:' + this.srcIds.google3Path,
+        ` * ${pintoModuleAnnotation}`,
         ' */',
         `goog.module('${this.outputIds.googModuleId}');`,
         mainModuleRequire,
@@ -436,4 +441,8 @@ class FileIdGroup {
   clutzModuleId(): string {
     return 'goog:' + this.googModuleId;
   }
+}
+
+function containsAtPintoModule(file: ts.SourceFile): boolean {
+  return /\s@pintomodule\s/.test(file.getFullText());
 }
