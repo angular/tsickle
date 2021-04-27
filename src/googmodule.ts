@@ -439,7 +439,7 @@ export function getAmbientModuleSymbol(
     const t = moduleUrl.text;
     moduleSymbol =
         // tslint:disable-next-line:no-any see above.
-        (typeChecker as any)['tryFindAmbientModuleWithoutAugmentations'](t);
+        (typeChecker as any).tryFindAmbientModuleWithoutAugmentations(t);
   }
   return moduleSymbol;
 }
