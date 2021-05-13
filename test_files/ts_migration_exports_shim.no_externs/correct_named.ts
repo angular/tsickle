@@ -3,4 +3,11 @@ export class MyNamedClass {
   field = 1;
 }
 
-goog.tsMigrationExportsShim('project.named', {MyRenamedClass: MyNamedClass});
+export interface AnInterface {
+  shouldBeANumber: number;
+}
+
+goog.tsMigrationExportsShim('project.named', {
+  MyRenamedClass: MyNamedClass,
+  AnInterfaceRenamed: {} as AnInterface,
+});

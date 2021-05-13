@@ -1,9 +1,13 @@
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(35,1): error TS0: at most one goog.tsMigrationExportsShim is allowed per file
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(39,3): error TS0: goog.tsMigrationExportsShim is only allowed in top level statements
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(23,3): error TS0: export must be an exported symbol of the module
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(25,3): error TS0: exports object must only contain (shorthand) properties
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(29,11): error TS0: export values must be plain identifiers
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(31,14): error TS0: export values must be plain identifiers
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(58,1): error TS0: at most one goog.tsMigrationExportsShim is allowed per file
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(62,3): error TS0: goog.tsMigrationExportsShim is only allowed in top level statements
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(37,3): error TS0: export must be an exported symbol of the module
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(39,3): error TS0: exports object must only contain (shorthand) properties
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(43,11): error TS0: export values must be plain identifiers
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(45,14): error TS0: export values must be plain identifiers
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(49,14): error TS0: export must be an exported symbol of the module
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(50,10): error TS0: must be object literal with no keys
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(51,23): error TS0: export types must be plain identifiers
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(52,28): error TS0: must be a type reference
 /**
  *
  * @fileoverview negative tests for the tsMigrationExportsShim transformation.
@@ -28,6 +32,29 @@ exports.nested = {
 // Cannot be exported by tsmes.
 /** @type {number} */
 const notExported = 1;
+/**
+ * @record
+ */
+function AnInterface() { }
+exports.AnInterface = AnInterface;
+/* istanbul ignore if */
+if (false) {
+    /** @type {number} */
+    AnInterface.prototype.shouldBeANumber;
+}
+/**
+ * @record
+ */
+function AnInterfaceNotExported() { }
+/* istanbul ignore if */
+if (false) {
+    /** @type {string} */
+    AnInterfaceNotExported.prototype.shouldBeAString;
+}
+/** @typedef {?} */
+exports.TemplateType;
+/** @type {?} */
+const NotAnObjectLiteral = 'bloop';
 /**
  * @return {void}
  */

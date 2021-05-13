@@ -13,9 +13,10 @@
  * same.
  */
 
-import {DefaultExportClassFromJs, NamedExportClassFromJs} from 'goog:goog.module.ref';
-import DefaultExportClass from 'goog:migrated.module.default';
-import {NamedExportClassRenamed} from 'goog:migrated.module.named';
+import {DefaultExportClassFromJs, DefaultExportTypeFromJs, NamedExportClassFromJs, RenamedExportedTypeFromJs} from 'goog:goog.module.ref';
+import DefaultExportType from 'goog:migrated.module.default.type';
+import DefaultExportClass from 'goog:migrated.module.default.value';
+import {NamedExportClassRenamed, RenamedExportedType} from 'goog:migrated.module.named';
 
 // tslint:disable
 
@@ -52,3 +53,89 @@ DefaultExportClassFromJs.use(new DefaultExportClass());
 
 NamedExportClassRenamed.use(new NamedExportClassFromJs());
 NamedExportClassFromJs.use(new NamedExportClassRenamed());
+
+function testDefaultExportType(x: DefaultExportType) {
+  const notOfTheCorrectType = 'foo';
+  // @ts-expect-error
+  x.shouldBeANumber = 'foo';
+  x.shouldBeANumber = 42;
+  // @ts-expect-error
+  x.someMethod(notOfTheCorrectType);
+  x.someMethod(x);
+}
+let f: DefaultExportType = {
+  shouldBeANumber: 42,
+  someMethod: (x: DefaultExportType) => {},
+};
+// @ts-expect-error
+let h: DefaultExportType = {
+  shouldBeANumber: 42,
+};
+testDefaultExportType(f);
+
+function testDefaultExportTypeFromJs(x: DefaultExportTypeFromJs) {
+  const notOfTheCorrectType = 'foo';
+  // @ts-expect-error
+  x.shouldBeANumber = 'foo';
+  x.shouldBeANumber = 42;
+  // @ts-expect-error
+  x.someMethod(notOfTheCorrectType);
+  x.someMethod(x);
+}
+let j: DefaultExportTypeFromJs = {
+  shouldBeANumber: 42,
+  someMethod: (x: DefaultExportTypeFromJs) => {},
+};
+// @ts-expect-error
+let k: DefaultExportType = {
+  shouldBeANumber: 42,
+};
+testDefaultExportTypeFromJs(j);
+
+f.someMethod(f);
+f.someMethod(j);
+j.someMethod(f);
+j.someMethod(j);
+
+function testRenamedExportedType(x: RenamedExportedType) {
+  const notOfTheCorrectType = 'foo';
+  // @ts-expect-error
+  x.shouldBeANumber = 'foo';
+  x.shouldBeANumber = 42;
+  // @ts-expect-error
+  x.someMethod(notOfTheCorrectType);
+  x.someMethod(x);
+}
+let n: RenamedExportedType = {
+  shouldBeANumber: 42,
+  someMethod: (x: RenamedExportedType) => {},
+};
+// @ts-expect-error
+let o: RenamedExportedType = {
+  shouldBeANumber: 42,
+};
+testRenamedExportedType(n);
+
+function testRenamedExportedTypeFromJs(x: RenamedExportedTypeFromJs) {
+  const notOfTheCorrectType = 'foo';
+  // @ts-expect-error
+  x.shouldBeANumber = 'foo';
+  x.shouldBeANumber = 42;
+  // @ts-expect-error
+  x.someMethod(notOfTheCorrectType);
+  x.someMethod(x);
+}
+let r: RenamedExportedTypeFromJs = {
+  shouldBeANumber: 42,
+  someMethod: (x: RenamedExportedType) => {},
+};
+// @ts-expect-error
+let s: RenamedExportedTypeFromJs = {
+  shouldBeANumber: 42,
+};
+testRenamedExportedTypeFromJs(r);
+
+n.someMethod(n);
+n.someMethod(r);
+r.someMethod(r);
+r.someMethod(n);

@@ -198,16 +198,25 @@ class Generator {
             continue;
           }
 
-          const init = property.initializer;
-          if (!ts.isIdentifier(init)) {
-            this.report(init, 'export values must be plain identifiers');
+          const initializer = property.initializer;
+
+          let identifier: ts.Identifier|null = null;
+          if (ts.isAsExpression(initializer)) {
+            identifier = this.maybeExtractTypeName(initializer);
+          } else if (ts.isIdentifier(initializer)) {
+            identifier = initializer;
+          } else {
+            this.report(initializer, 'export values must be plain identifiers');
             continue;
           }
 
-          const symbol = this.typeChecker.getSymbolAtLocation(init);
-          this.checkIsModuleExport(init, symbol);
+          if (identifier == null) {
+            continue;
+          }
 
-          googExports.set(name.text, init.text);
+          const symbol = this.typeChecker.getSymbolAtLocation(identifier);
+          this.checkIsModuleExport(identifier, symbol);
+          googExports.set(name.text, identifier.text);
         } else {
           this.report(
               property,
@@ -218,6 +227,15 @@ class Generator {
       const symbol = this.typeChecker.getSymbolAtLocation(exportsExpr);
       this.checkIsModuleExport(exportsExpr, symbol);
       googExports = exportsExpr.text;
+    } else if (ts.isAsExpression(exportsExpr)) {
+      // {} as DefaultTypeExport
+      const identifier = this.maybeExtractTypeName(exportsExpr);
+      if (!identifier) {
+        return undefined;
+      }
+      const symbol = this.typeChecker.getSymbolAtLocation(identifier);
+      this.checkIsModuleExport(identifier, symbol);
+      googExports = identifier.text;
     } else {
       this.report(
           exportsExpr,
@@ -227,6 +245,28 @@ class Generator {
 
     return (diagnosticCount === this.diagnostics.length) ? googExports :
                                                            undefined;
+  }
+
+  private maybeExtractTypeName(cast: ts.AsExpression): ts.Identifier|null {
+    if (!ts.isObjectLiteralExpression(cast.expression) ||
+        cast.expression.properties.length != 0) {
+      this.report(cast.expression, 'must be object literal with no keys');
+      return null;
+    }
+
+    const typeRef = cast.type;
+    if (!ts.isTypeReferenceNode(typeRef)) {
+      this.report(typeRef, 'must be a type reference');
+      return null;
+    }
+
+    const typeName = typeRef.typeName;
+    if (typeRef.typeArguments || !ts.isIdentifier(typeName)) {
+      this.report(typeRef, 'export types must be plain identifiers');
+      return null;
+    }
+
+    return typeName;
   }
 
   /**

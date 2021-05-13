@@ -20,3 +20,13 @@ if (false) {
     /** @type {number} */
     MyNamedClass.prototype.field;
 }
+/**
+ * @record
+ */
+function AnInterface() { }
+exports.AnInterface = AnInterface;
+/* istanbul ignore if */
+if (false) {
+    /** @type {number} */
+    AnInterface.prototype.shouldBeANumber;
+}

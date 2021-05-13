@@ -12,6 +12,14 @@ export const nested = {
 
 const notExported = 1;
 
+export interface AnInterface {
+  shouldBeANumber: number;
+}
+
+interface NotAnExportedInterface {
+  shouldBeAString: string
+}
+
 goog.tsMigrationExportsShim('bad.exports', {
   notExported,
   method() {
@@ -19,6 +27,8 @@ goog.tsMigrationExportsShim('bad.exports', {
   },
   nested: {exported},
   navigated: nested.X,
+  foo: {} as AnInterface,
+  bar: {} as NotAnExportedInterface,
 });
 
 goog.tsMigrationExportsShim('only.one.allowed', exported);
