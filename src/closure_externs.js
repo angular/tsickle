@@ -112,3 +112,18 @@ var EventListenerObject;
 
 /** @record */
 function ImportMeta() {};
+
+// Representations for TS' EventMap objects.
+// These are types that contain a mapping from event names to event object
+// types. User code can augment them, which produces externs.js files that then
+// reference the EventMap types - even though they are not defined in Closure.
+// Defining them here works around the problem.
+
+/** @interface */
+class HTMLElementEventMap {}
+/** @interface */
+class ElementEventMap {}
+/** @interface */
+class GlobalEventHandlersEventMap {}
+/** @interface */
+class DocumentAndElementEventHandlersEventMap {}
