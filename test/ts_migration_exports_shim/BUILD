@@ -35,9 +35,11 @@ js_library(
 ts_library(
     name = "migrated",
     srcs = [
+        "migrated_default_shorthand.ts",
         "migrated_default_type.ts",
         "migrated_default_value.ts",
         "migrated_named.ts",
+        "migrated_named_shorthand.ts",
     ],
     enable_ts_migration_exports_shim = True,
 )

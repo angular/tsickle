@@ -1,4 +1,4 @@
-// test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(34,1): error TS0: at most one goog.tsMigrationExportsShim is allowed per file
+// test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(34,1): error TS0: at most one call to any of goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim, goog.tsMigrationNamedExportsShim is allowed per file
 // test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(37,3): error TS0: goog.tsMigrationExportsShim is only allowed in top level statements
 // test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(24,3): error TS0: export must be an exported symbol of the module
 // test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(25,3): error TS0: exports object must only contain (shorthand) properties

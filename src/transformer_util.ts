@@ -298,28 +298,51 @@ export function createGoogCall(
       undefined, [literal]);
 }
 
-
 /**
- * Returns true if the given call executes `goog.$fnName`. Does not check
- * whether `goog` is the expected symbol (vs e.g. a local variable).
+ * Returns the function name called in the given call expression (vis. returns
+ * `$fnName` when pased `goog.$fnName`), or null if the given call expression is
+ * not of the form `goog.$fnName`.
  */
-export function isGoogCall(call: ts.CallExpression, fnName: string) {
+export function getGoogFunctionName(call: ts.CallExpression): string|null {
   if (!ts.isPropertyAccessExpression(call.expression)) {
-    return false;
+    return null;
   }
   const propAccess = call.expression;
   if (!ts.isIdentifier(propAccess.expression) ||
       propAccess.expression.escapedText !== 'goog') {
-    return false;
+    return null;
   }
-  return propAccess.name.escapedText === fnName;
+  return propAccess.name.text;
 }
 
 /**
- * Returns true if the given call executes `goog.tsMigrationExportsShim`. Does
+ * Returns true if the given call executes `goog.$fnName`. Does
  * not check whether `goog` is the expected symbol (vs e.g. a local variable).
  */
-export function isTsMigrationExportsShimCall(n: ts.Node):
-    n is ts.CallExpression {
-  return ts.isCallExpression(n) && isGoogCall(n, 'tsMigrationExportsShim');
+export function isGoogCallExpressionOf(
+    n: ts.Node, fnName: string): n is ts.CallExpression {
+  return ts.isCallExpression(n) && getGoogFunctionName(n) === fnName;
+}
+
+/**
+ * Returns true if the given call executes `goog.tsMigrationExportsShim`,
+ * `goog.tsMigrationNamedExportsShim`, or `goog.tsMigrationDefaultExportsShim`.
+ * Does not check whether `goog` is the expected symbol (vs e.g. a local
+ * variable).
+ */
+export function isAnyTsmesCall(n: ts.Node): n is ts.CallExpression {
+  return isGoogCallExpressionOf(n, 'tsMigrationExportsShim') ||
+      isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
+      isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim');
+}
+
+/**
+ * Returns true if the given call executes `goog.tsMigrationNamedExportsShim`,
+ * or `goog.tsMigrationDefaultExportsShim`, ie one of the tsmes methods that
+ * only take one argument. Does not check whether `goog` is the expected symbol
+ * (vs e.g. a local variable).
+ */
+export function isTsmesShorthandCall(n: ts.Node): n is ts.CallExpression {
+  return isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
+      isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim');
 }

@@ -7,14 +7,15 @@
  */
 
 /**
- * Processes goog.tsMigrationExportsShim statements into
+ * Processes goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim,
+ * and goog.tsMigrationNamedExportsShim statements into
  * ".legacy.closure.js" and ".legacy.d.ts" files.
  */
 
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
-import {isTsMigrationExportsShimCall, reportDiagnostic} from './transformer_util';
+import {getGoogFunctionName, isAnyTsmesCall, isGoogCallExpressionOf, isTsmesShorthandCall, reportDiagnostic} from './transformer_util';
 
 /** Silence linter. */
 export interface TsMigrationExportsShimResult {
@@ -49,7 +50,7 @@ export function generateTsMigrationExportsShimFile(
 
 /**
  * Does this path have a file extension that supports
- * goog.tsMigrationExportsShim?
+ * calls to tsmes?
  */
 export function pathHasSupportedExtension(p: string): boolean {
   return Boolean(p.match(SUPPORTED_EXTENSIONS));
@@ -64,7 +65,7 @@ const SUPPORTED_EXTENSIONS = /(?<!\.d)\.ts$/;
 
 
 /**
- * A one-time-use object for generating tsMigrationExportsShim output files.
+ * A one-time-use object for generating TS Migration Export Shims.
  *
  * The generator is able to emit two different outputs: .js and .d.ts. Only one
  * of thse should be produced for a given src file. The choice of which depends
@@ -127,7 +128,7 @@ class Generator {
     let tsmesCall: ts.CallExpression|undefined = undefined;
     for (const statement of this.src.statements) {
       if (!ts.isExpressionStatement(statement) ||
-          !isTsMigrationExportsShimCall(statement.expression)) {
+          !isAnyTsmesCall(statement.expression)) {
         this.checkNonTopLevelTsmesCalls(statement);
         continue;
       }
@@ -136,7 +137,9 @@ class Generator {
       if (tsmesCall) {
         this.report(
             call,
-            'at most one goog.tsMigrationExportsShim is allowed per file');
+            'at most one call to any of goog.tsMigrationExportsShim, ' +
+                'goog.tsMigrationDefaultExportsShim, ' +
+                'goog.tsMigrationNamedExportsShim is allowed per file');
       } else {
         tsmesCall = call;
       }
@@ -146,24 +149,61 @@ class Generator {
       return undefined;
     }
 
-    if (tsmesCall.arguments.length !== 2) {
+    if (isGoogCallExpressionOf(tsmesCall, 'tsMigrationExportsShim') &&
+        tsmesCall.arguments.length !== 2) {
       this.report(
           tsmesCall, 'goog.tsMigrationExportsShim requires 2 arguments');
+      return undefined;
+    }
+    if (isTsmesShorthandCall(tsmesCall) && tsmesCall.arguments.length !== 1) {
+      this.report(
+          tsmesCall,
+          `goog.${
+              getGoogFunctionName(tsmesCall)} requires exactly one argument`);
+      return undefined;
+    }
+    if (isGoogCallExpressionOf(tsmesCall, 'tsMigrationDefaultExportsShim') &&
+        this.mainExports.length !== 1) {
+      this.report(
+          tsmesCall,
+          'can only call goog.tsMigrationDefaultExportsShim when there is' +
+              ' exactly one export.');
       return undefined;
     }
     const [moduleId, exportsExpr] = tsmesCall.arguments;
     if (!ts.isStringLiteral(moduleId)) {
       this.report(
-          moduleId, 'goog.tsMigrationExportsShim ID must be a string literal');
+          moduleId,
+          `goog.${getGoogFunctionName(tsmesCall)} ID must be a string literal`);
       return undefined;
     }
 
-    const googExports = this.extractGoogExports(exportsExpr);
-    if (!googExports) {
-      return undefined;
+    let googExports: GoogExports|undefined = undefined;
+    const fnName = getGoogFunctionName(tsmesCall);
+    switch (fnName) {
+      case 'tsMigrationDefaultExportsShim':
+        // Export the one and only export as an unnamed export.
+        // vis. export = foo;
+        googExports = this.mainExports[0].name;
+        break;
+      case 'tsMigrationNamedExportsShim':
+        // Export all exports as named exports
+        // vis. export.a = a;
+        //      export.b = b;
+        googExports = new Map<string, string>();
+        for (const mainExport of this.mainExports) {
+          googExports.set(mainExport.name, mainExport.name);
+        }
+        break;
+      case 'tsMigrationExportsShim':
+        // Export the structure described by exportsExpr
+        googExports = this.extractGoogExports(exportsExpr);
+        break;
+      default:
+        this.report(tsmesCall, `encountered unhandled goog.$fnName: ${fnName}`);
+        throw new Error();
     }
-
-    return {
+    return googExports === undefined ? undefined : {
       googModuleId: moduleId.text,
       googExports,
     };
@@ -277,10 +317,10 @@ class Generator {
    */
   private checkNonTopLevelTsmesCalls(topLevelStatement: ts.Statement) {
     const inner = (node: ts.Node): void => {
-      if (isTsMigrationExportsShimCall(node)) {
+      if (isAnyTsmesCall(node)) {
+        const name = getGoogFunctionName(node);
         this.report(
-            node,
-            'goog.tsMigrationExportsShim is only allowed in top level statements');
+            node, `goog.${name} is only allowed in top level statements`);
       }
       ts.forEachChild(node, inner);
     };

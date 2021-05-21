@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
 import * as path from './path';
-import {createGoogCall, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, isTsMigrationExportsShimCall, reportDiagnostic} from './transformer_util';
+import {createGoogCall, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, isAnyTsmesCall, reportDiagnostic} from './transformer_util';
 
 /**
  * Provides dependencies for and configures the behavior of
@@ -677,7 +677,7 @@ export function commonJsToGoogmoduleTransformer(
        */
       function maybeRewriteTsMigrationExportsShim(
           original: ts.Statement, call: ts.CallExpression): ts.Statement|null {
-        if (!isTsMigrationExportsShimCall(call)) {
+        if (!isAnyTsmesCall(call)) {
           return null;
         }
         if (call.arguments.length !== 2) {
