@@ -124,6 +124,10 @@ class HTMLElementEventMap {}
 /** @interface */
 class ElementEventMap {}
 /** @interface */
+class DocumentEventMap {}
+/** @interface */
+class WindowEventMap {}
+/** @interface */
 class GlobalEventHandlersEventMap {}
 /** @interface */
 class DocumentAndElementEventHandlersEventMap {}
