@@ -202,7 +202,7 @@ function generateClutzAliases(
   for (const symbol of localExports) {
     let localName = symbol.name;
     const declaration =
-        symbol.declarations.find(d => d.getSourceFile() === origSourceFile);
+        symbol.declarations?.find(d => d.getSourceFile() === origSourceFile);
     if (declaration && ts.isExportSpecifier(declaration) &&
         declaration.propertyName) {
       // If declared in an "export {X as Y};" export specifier, then X (stored
@@ -350,7 +350,7 @@ function clutzSymbolFromNode(
  * file extension.
  */
 function importPathForSymbol(sym: ts.Symbol): string|undefined {
-  if (sym.declarations.length === 0) {
+  if (!sym.declarations || sym.declarations.length === 0) {
     // This can happen if an import or symbol somehow references a nonexistent
     // type, for example in a case where type checking failed or via 'any'.
     return undefined;

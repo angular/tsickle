@@ -212,10 +212,14 @@ export function extractModuleMarker(
  */
 function findLocalInDeclarations(symbol: ts.Symbol, name: string): ts.Symbol|
     undefined {
+  if (!symbol.declarations) {
+    return undefined;
+  }
+
   for (const decl of symbol.declarations) {
     // This accesses a TypeScript internal API, "locals" of a container.
-    // This allows declaring special symbols in e.g. d.ts modules as locals that
-    // cannot be accessed from user code.
+    // This allows declaring special symbols in e.g. d.ts modules as locals
+    // that cannot be accessed from user code.
     const locals = (decl as {locals?: ts.SymbolTable}).locals;
     if (!locals) continue;
     const sym = locals.get(ts.escapeLeadingUnderscores(name));
@@ -229,7 +233,9 @@ function findLocalInDeclarations(symbol: ts.Symbol, name: string): ts.Symbol|
  * declared in a variable declaration that has a literal type.
  */
 function literalTypeOfSymbol(symbol: ts.Symbol): string|boolean|undefined {
-  if (symbol.declarations.length === 0) return undefined;
+  if (!symbol.declarations || symbol.declarations.length === 0) {
+    return undefined;
+  }
   const varDecl = symbol.declarations[0];
   if (!ts.isVariableDeclaration(varDecl)) return undefined;
   if (!varDecl.type || !ts.isLiteralTypeNode(varDecl.type)) return undefined;
