@@ -1,4 +1,4 @@
-# Tsickle - TypeScript to Closure Translator [![Build Status](https://circleci.com/gh/angular/tsickle.svg?style=svg)](https://circleci.com/gh/angular/tsickle) [![Windows build](https://ci.appveyor.com/api/projects/status/puxdblmlqbofqqt1/branch/master?svg=true)](https://ci.appveyor.com/project/alexeagle/tsickle/branch/master)
+# Tsickle - TypeScript to Closure Translator [![Build Status](https://github.com/angular/tsickle/actions/workflows/node.js.yml/badge.svg)]
 
 Tsickle converts TypeScript code into a form acceptable to the [Closure
 Compiler]. This allows using TypeScript to transpile your sources, and then
@@ -120,29 +120,18 @@ Example:
   [NVM](https://github.com/nvm-sh/nvm)
 - yarn. Install from your operating system's package manager or by following
   [instructions on yarnpkg.com](https://yarnpkg.com/en/docs/install).
-- bazel. Install from your operating system's package manager or by [following
-  instructions here](https://docs.bazel.build/versions/master/install.html).
 
 ### One-time setup
 
-Run `bazel run @nodejs//:yarn` to install dependencies.
+Run `yarn` to install dependencies.
 
-### Bazel install
+### Build & Test commands
 
-We use [bazel](https://bazel.build/) to build, and are pinned to a specific
-version of it in `package.json` for reproducible builds. The build rules check
-for a compatible version of bazel, so it is generally safe to use your local
-installed version. If in doubt, you can run `yarn bazel` instead of `bazel` in
-any of the below commands to make sure you are using the right version.
-
-### Test commands
-
-- `ibazel test test:unit_test` executes the unit tests in watch mode (use `bazel test test:unit_test` for a single run),
-- `bazel test test:e2e_test` executes the e2e tests,
-- `bazel test test:golden_test` executes the golden tests,
-- `node check_format.js` checks the source code formatting using
-  `clang-format`,
-- `yarn test` runs unit tests, e2e tests and checks the source code formatting.
+- `npm run build` builds the code base.
+- Run `tsc --watch` for an interactive, incremental, and continuous build.
+- `npm run lint` checks for lint.
+- `yarn test` runs unit tests, e2e tests and checks for lint. Set the
+  `TEST_FILTER` environment variable to filter what golden tests to run.
 
 ### TypeScript AST help
 
@@ -151,13 +140,13 @@ visualize and inspect a TypeScript AST.
 
 ### Debugging
 
-You can debug tests by using `bazel run` and passing `--node_options=--inspect`
-or `--node_options=--inspect-brk` (to suspend execution directly after startup).
+You can debug tests by passing `--node_options=--inspect` or
+`--node_options=--inspect-brk` (to suspend execution directly after startup).
 
 For example, to debug a specific golden test:
 
 ```shell
-TEST_FILTER=my_golden_test ibazel run //test:golden_test -- --node_options=--inspect-brk
+TEST_FILTER=my_golden_test node --inspect-brk=4332 ./node_modules/.bin/jasmine out/test/*.js
 ```
 
 Then open [about:inspect] in Chrome and choose "about:inspect". Chrome will
@@ -168,13 +157,10 @@ to `localhost:9229`, so things should work out of the box.
 The break in specific code locations you can add `debugger;` statements in the
 source code.
 
-Note: IDEs such as VS Code have support for the inspect protocol, but the
-integration does not work due to bazel's complex directory layout.
-
 ### Updating Goldens
 
-Run `UPDATE_GOLDENS=y bazel run test:golden_test` to have the test suite update
-the goldens in `test_files/...`.
+Run `UPDATE_GOLDENS=y npm test` to have the test suite update the goldens in
+`test_files/...`.
 
 ### Environment variables
 
@@ -220,5 +206,7 @@ https://github.com/angular/tsickle/releases) will be implicitly created.
 From the master branch run:
 
 ```
-bazel run :npm_package.publish -- --registry https://wombat-dressing-room.appspot.com
+npm config set registry https://wombat-dressing-room.appspot.com
+npm login
+npm publish -- --registry https://wombat-dressing-room.appspot.com
 ```

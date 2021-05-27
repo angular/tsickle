@@ -156,6 +156,7 @@ export function toClosureJS(
   const filesToProcess = new Set(absoluteFileNames);
   const rootModulePath = options.rootDir || getCommonParentDirectory(absoluteFileNames);
   const transformerHost: tsickle.TsickleHost = {
+    rootDirsRelative: (f: string) => f,
     shouldSkipTsickleProcessing: (fileName: string) => {
       return !filesToProcess.has(path.resolve(fileName));
     },
@@ -176,6 +177,7 @@ export function toClosureJS(
   const diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length > 0) {
     return {
+      tsMigrationExportsShimFiles: new Map(),
       diagnostics,
       modulesManifest: new tsickle.ModulesManifest(),
       externs: {},

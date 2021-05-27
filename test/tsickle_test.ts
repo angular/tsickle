@@ -14,19 +14,6 @@ import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
 
-/**
- * Return the google3 relative name of the filename.
- *
- * This function only works in the limited contexts of these tests.
- */
-function rootDirsRelative(filename: string): string {
-  const result = filename.split('runfiles/google3/')[1];
-  if (!result) {
-    throw new Error(filename);
-  }
-  return result;
-}
-
 describe('emitWithTsickle', () => {
   function emitWithTsickle(
       tsSources: {[fileName: string]: string}, tsConfigOverride: Partial<ts.CompilerOptions> = {},
@@ -64,7 +51,7 @@ describe('emitWithTsickle', () => {
       ...tsickleHostOverride,
       options: tsCompilerOptions,
       moduleResolutionHost: tsHost,
-      rootDirsRelative,
+      rootDirsRelative: testSupport.relativeToTsickleRoot,
     };
     const jsSources: {[fileName: string]: string} = {};
     tsickle.emit(

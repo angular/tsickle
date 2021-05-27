@@ -17,16 +17,28 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import * as cliSupport from '../src/cli_support';
-import * as tsickle from '../src/tsickle';
+
+/** Returns true if the current build (likely) runs under bazel. */
+function isInBazel() { return !!process.env['RUNFILES']; }
 
 /**
  * Return the 'root dir' under tests, which is the path to the image of
  * the source tree set up under the hermetic testing environment.
  */
-function rootDir(): string {
+export function rootDir(): string {
   const runfiles = process.env['RUNFILES'];
-  assert(runfiles);
+  if (!runfiles) {
+    return path.join(__dirname, '..', '..');
+  }
   return path.join(runfiles!, 'tsickle');
+}
+
+/**
+ * Returns the given path, but relative to the root directory of tsickle (i.e.
+ * the directory named tsickle).
+ */
+export function relativeToTsickleRoot(filename: string): string {
+  return path.relative(rootDir(), filename);
 }
 
 /**
@@ -37,7 +49,13 @@ function rootDir(): string {
  * tslib if we let it do its normal module resolution.  So instead we fix
  * the path here to the known path to the desired file.
  */
-const tslibPath = path.join(rootDir(), '../npm/node_modules/tslib/tslib.d.ts');
+function tslibPath() {
+  // In bazel.
+  const p = path.join(rootDir(), '../npm/node_modules/tslib/tslib.d.ts');
+  if (fs.existsSync(p)) return p;
+  // In plain nodejs.
+  return path.join(rootDir(), 'node_modules/tslib/tslib.d.ts');
+} 
 
 /** Base compiler options to be customized and exposed. */
 export const baseCompilerOptions: ts.CompilerOptions = {
@@ -64,7 +82,7 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   paths: {
     // The compiler builtin 'tslib' library is looked up by name,
     // so this entry controls which code is used for tslib.
-    'tslib': [tslibPath]
+    'tslib': [tslibPath()]
   },
 };
 
@@ -132,7 +150,7 @@ export function createSourceCachingHost(
       cachedLibs.set(fileName, sf);
       return sf;
     }
-    if (fileName === tslibPath) {
+    if (fileName === tslibPath()) {
       return ts.createSourceFile(
           fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest,
           true);
@@ -150,7 +168,7 @@ export function createSourceCachingHost(
     // store absolute paths, and we don't need to satisfy queries about relative
     // paths to be correct here.
     if (sources.has(fileName)) return true;
-    if (fileName === tslibPath) return true;
+    if (fileName === tslibPath()) return true;
     // Typescript occasionally needs to look on disk for files we don't pass into
     // the program as a source (eg to resolve a module that's in node_modules),
     // but only .ts files explicitly passed in should be findable
@@ -267,8 +285,14 @@ export function goldenTests(): GoldenFileTest[] {
   const basePath = path.join(rootDir(), 'test_files');
   const testNames = fs.readdirSync(basePath);
 
-  const testDirs = testNames.map(testName => path.join(basePath, testName))
-                       .filter(testDir => fs.statSync(testDir).isDirectory());
+  let testDirs = testNames.map(testName => path.join(basePath, testName))
+                     .filter(testDir => fs.statSync(testDir).isDirectory());
+  if (!isInBazel()) {
+    // TODO(nickreid): the migration shim code is incompatible with the open
+    // source build.
+    testDirs = testDirs.filter(
+        testDir => !testDir.includes('ts_migration_exports_shim'));
+  }
   const tests = testDirs.map(testDir => {
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
@@ -389,6 +413,6 @@ export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
  */
 export function pathToModuleName(
     rootModulePath: string, context: string, fileName: string): string {
-  if (fileName === tslibPath) return 'tslib';
+  if (fileName === tslibPath()) return 'tslib';
   return cliSupport.pathToModuleName(rootModulePath, context, fileName);
 }

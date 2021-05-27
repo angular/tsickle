@@ -65,7 +65,9 @@ function compareAgainstGolden(
   if (UPDATE_GOLDENS && output !== golden) {
     // Ensure goldenPath refers to the path within the original source root, and not some
     // testing environment symlink.
-    goldenPath = fs.readlinkSync(goldenPath);
+    goldenPath = fs.lstatSync(goldenPath).isSymbolicLink() ?
+        fs.readlinkSync(goldenPath) :
+        goldenPath;
     console.log('Updating golden file for', goldenPath);
     if (output !== null) {
       fs.writeFileSync(goldenPath, output, {encoding: 'utf-8'});
@@ -85,19 +87,6 @@ function compareAgainstGolden(
 
 // Only run golden tests if we filter for a specific one.
 const testFn = TEST_FILTER ? fdescribe : describe;
-
-/**
- * Return the google3 relative name of the filename.
- *
- * This function only works in the limited contexts of these tests.
- */
-function rootDirsRelative(filename: string): string {
-  const result = filename.split('runfiles/google3/')[1];
-  if (!result) {
-    throw new Error(filename);
-  }
-  return result;
-}
 
 testFn('golden tests', () => {
   beforeEach(() => {
@@ -179,7 +168,7 @@ testFn('golden tests', () => {
         },
         options: tsCompilerOptions,
         moduleResolutionHost: tsHost,
-        rootDirsRelative,
+        rootDirsRelative: testSupport.relativeToTsickleRoot,
       };
 
       const tscOutput = new Map<string, string>();
@@ -258,7 +247,7 @@ testFn('golden tests', () => {
       compareAgainstGolden(allExterns, test.externsPath(), test);
 
       for (const absFilename of test.tsMigrationExportsShimPaths()) {
-        const relativeFilename = rootDirsRelative(absFilename);
+        const relativeFilename = testSupport.relativeToTsickleRoot(absFilename);
         compareAgainstGolden(
             tsMigrationExportsShimFiles.get(relativeFilename) ?? null,
             absFilename,

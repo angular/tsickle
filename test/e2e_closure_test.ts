@@ -125,6 +125,9 @@ describe('golden file tests', () => {
           console.error('Closure compilation of', total, 'files done after', durationMs, 'ms');
           // Some problems only print as warnings, without a way to promote them to errors.
           // So treat any stderr output as a reason to fail the test.
+          // In JDK 9+, closure-compiler prints warnigns about unsafe access via reflection from
+          // com.google.protobuf.UnsafeUtil. Ignore those.
+          stderr = stderr.replace(/WARNING: .*\n/g, '');
           if (exitCode !== 0 || stderr.length > 0) {
             // expect() with a message abbreviates the text, so just emit
             // everything here.
