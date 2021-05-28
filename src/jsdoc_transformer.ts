@@ -130,6 +130,9 @@ export function maybeAddHeritageClauses(
     if (closureType === '?') {
       warn(`{?} type`);
       return;
+    } else if (closureType.startsWith('{')) {
+      warn(`anonymous type`);
+      return;
     }
     // Workaround for #2
     closureType = closureType.replace(/^!/, '');

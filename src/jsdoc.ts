@@ -311,8 +311,14 @@ function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
     out += ' {';
     if (tag.restParam) {
       out += '...';
+      if (tag.type.startsWith('{')) {
+        out += '?';
+      } else {
+        out += tag.type;
+      }
+    } else {
+      out += tag.type;
     }
-    out += tag.type;
     if (tag.optional) {
       out += '=';
     }
