@@ -698,14 +698,15 @@ export class TypeTranslator {
         typeStr += `<${params.join(', ')}>`;
       }
       return typeStr;
-    } else if (type.objectFlags & ts.ObjectFlags.Anonymous) {
-      return this.translateAnonymousType(type);
+    } else if (
+        (type.objectFlags & ts.ObjectFlags.Anonymous) ||
+        (type.objectFlags & ts.ObjectFlags.Mapped)) {
+      return this.translateAnonymousOrMappedType(type);
     }
 
     /*
     TODO(ts2.1): more unhandled object type flags:
       Tuple
-      Mapped
       Instantiated
       ObjectLiteral
       EvolvingArray
@@ -716,14 +717,21 @@ export class TypeTranslator {
   }
 
   /**
-   * translateAnonymousType translates a ts.TypeFlags.ObjectType that is also
-   * ts.ObjectFlags.Anonymous. That is, this type's symbol does not have a name. This is the
+   * Translates a ts.TypeFlags.ObjectType that is also ts.ObjectFlags.Anonymous
+   * or ts.ObjectFlags.Mapped.
+   *
+   * That is, either this type's symbol does not have a name. This is the
    * anonymous type encountered in e.g.
    *     let x: {a: number};
    * But also the inferred type in:
    *     let x = {a: 1};  // type of x is {a: number}, as above
+   *
+   * Or, it is the mapped type like
+   *     {[K in keyof SomeInterface]: boolean}
+   * But also the named map type like
+   *     Partial<SomeInterface>
    */
-  private translateAnonymousType(type: ts.Type): string {
+  private translateAnonymousOrMappedType(type: ts.Type): string {
     this.seenTypes.push(type);
     try {
       if (!type.symbol) {
@@ -743,15 +751,6 @@ export class TypeTranslator {
           return this.signatureToClosure(sigs[0]);
         }
         this.warn('unhandled anonymous type with multiple call signatures');
-        return '?';
-      }
-
-      // Gather up all the named fields and whether the object is also callable.
-      let callable = false;
-      let indexable = false;
-      const fields: string[] = [];
-      if (!type.symbol.members) {
-        this.warn('anonymous type has no symbol');
         return '?';
       }
 
@@ -792,33 +791,24 @@ export class TypeTranslator {
         return `function(new:${constructedTypeStr}${paramsStr})`;
       }
 
-      // members is an ES6 map, but the .d.ts defining it defined their own map
-      // type, so typescript doesn't believe that .keys() is iterable
-      // tslint:disable-next-line:no-any
-      for (const field of (type.symbol.members.keys() as any)) {
-        switch (field) {
-          case '__call':
-            callable = true;
-            break;
-          case '__index':
-            indexable = true;
-            break;
-          default:
-            if (!isValidClosurePropertyName(field)) {
-              this.warn(`omitting inexpressible property name: ${field}`);
-              continue;
-            }
-            const member = type.symbol.members.get(field)!;
-            // optional members are handled by the type including |undefined in
-            // a union type.
-            const memberType = this.translate(
-                this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
-            fields.push(`${field}: ${memberType}`);
-            break;
+      // Gather up all the named fields
+      const fields: string[] = [];
+      for (const property of type.getProperties()) {
+        const name = property.name;
+        if (!isValidClosurePropertyName(name)) {
+          this.warn(`omitting inexpressible property name: ${name}`);
+          continue;
         }
+        // optional properties are handled by the type including |undefined
+        // in a union type.
+        const propertyType = this.translate(
+            this.typeChecker.getTypeOfSymbolAtLocation(property, this.node));
+        fields.push(`${name}: ${propertyType}`);
       }
 
       // Try to special-case plain key-value objects and functions.
+      const callable = type.getCallSignatures().length > 0;
+      const indexable = type.getNumberIndexType() || type.getStringIndexType();
       if (fields.length === 0) {
         if (callable && !indexable) {
           // A function type.
