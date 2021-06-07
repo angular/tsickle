@@ -1,6 +1,22 @@
-name: Node.js CI
+'# $ *.' 
 
-on:
+{' # $ 
+  *
+  .
+' 
+ ;
+ ! 
+   - 
+   = 
+   /
+  |
+ /
+/
+'# $.*'name: 
+ Node.js 
+ CI
+ 
+/on:
   push:
     branches: [ master ]
   pull_request:
@@ -20,7 +36,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
-      with:
+      :
         node-version: ${{ matrix.node-version }}
     - run: yarn
     - run: yarn run build
