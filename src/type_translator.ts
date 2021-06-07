@@ -797,10 +797,10 @@ export class TypeTranslator {
       // tslint:disable-next-line:no-any
       for (const field of (type.symbol.members.keys() as any)) {
         switch (field) {
-          case '__call':
+          case ts.InternalSymbolName.Call:
             callable = true;
             break;
-          case '__index':
+          case ts.InternalSymbolName.Index:
             indexable = true;
             break;
           default:
