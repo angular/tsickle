@@ -1,4 +1,3 @@
-// test_files/invalid_closure_properties/invalid_closure_properties.ts(18,12): warning TS0: omitting inexpressible property name: __@observable
 // test_files/invalid_closure_properties/invalid_closure_properties.ts(18,12): warning TS0: omitting inexpressible property name: with spaces
 /**
  *

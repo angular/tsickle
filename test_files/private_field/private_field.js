@@ -1,6 +1,6 @@
 goog.module('test_files.private_field.private_field');
 var module = module || { id: 'test_files/private_field/private_field.ts' };
-var _someField;
+var _ContainsPrivateField_someField;
 const tslib_1 = goog.require('tslib');
 /**
  *
@@ -15,24 +15,24 @@ class ContainsPrivateField {
      * @param {string} arg
      */
     constructor(arg) {
-        _someField.set(this, void 0);
-        tslib_1.__classPrivateFieldSet(this, _someField, arg);
+        _ContainsPrivateField_someField.set(this, void 0);
+        tslib_1.__classPrivateFieldSet(this, _ContainsPrivateField_someField, arg, "f");
     }
     /**
      * @param {string} value
      * @return {void}
      */
     setSomeField(value) {
-        tslib_1.__classPrivateFieldSet(this, _someField, value);
+        tslib_1.__classPrivateFieldSet(this, _ContainsPrivateField_someField, value, "f");
     }
     /**
      * @return {string}
      */
     getSomeField() {
-        return tslib_1.__classPrivateFieldGet(this, _someField);
+        return tslib_1.__classPrivateFieldGet(this, _ContainsPrivateField_someField, "f");
     }
 }
-_someField = new WeakMap();
+_ContainsPrivateField_someField = new WeakMap();
 /* istanbul ignore if */
 if (false) {
     /* Skipping private member:
