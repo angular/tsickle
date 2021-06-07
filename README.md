@@ -1,4 +1,4 @@
-# Tsickle - TypeScript to Closure Translator [![Build Status](https://github.com/angular/tsickle/actions/workflows/node.js.yml/badge.svg)]
+# Tsickle - TypeScript to Closure Translator [![Build Status](https://github.com/angular/tsickle/actions/workflows/node.js.yml/badge.svg)](https://github.com/angular/tsickle/actions/workflows/node.js.yml)
 
 Tsickle converts TypeScript code into a form acceptable to the [Closure
 Compiler]. This allows using TypeScript to transpile your sources, and then
