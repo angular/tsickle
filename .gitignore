@@ -7,8 +7,5 @@
 # VSCode directory
 .vscode
 
-# Bazel working directories
-/bazel-*
-
-# Created by bazel run :npm_package.pack
-tsickle-*.tgz
+# Build output
+/out

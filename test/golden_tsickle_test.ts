@@ -21,7 +21,8 @@ import * as testSupport from './test_support';
 // Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
 const TEST_FILTER = (() => {
   if (!process.env['TEST_FILTER']) return null;
-  const [testName, fileName] = (process.env['TEST_FILTER'] as string).split('/', 2);
+  const [testName, fileName] =
+      (process.env['TEST_FILTER'] as string).split('/', 2);
   return {
     testName: new RegExp(testName + (fileName ? '$' : '')),
     fileName: fileName ? new RegExp('/' + fileName) : null
@@ -63,9 +64,11 @@ function compareAgainstGolden(
   if (output != null) output = normalizeLineEndings(output);
 
   if (UPDATE_GOLDENS && output !== golden) {
-    // Ensure goldenPath refers to the path within the original source root, and not some
-    // testing environment symlink.
-    goldenPath = fs.readlinkSync(goldenPath);
+    // Ensure goldenPath refers to the path within the original source root, and
+    // not some testing environment symlink.
+    goldenPath = fs.lstatSync(goldenPath).isSymbolicLink() ?
+        fs.readlinkSync(goldenPath) :
+        goldenPath;
     console.log('Updating golden file for', goldenPath);
     if (output !== null) {
       fs.writeFileSync(goldenPath, output, {encoding: 'utf-8'});
@@ -79,7 +82,7 @@ function compareAgainstGolden(
       }
     }
   } else {
-    expect(output).toEqualWithDiff(golden!);
+    expect(output).withContext(`${goldenPath}`).toEqualWithDiff(golden!);
   }
 }
 
@@ -92,6 +95,7 @@ const testFn = TEST_FILTER ? fdescribe : describe;
  * This function only works in the limited contexts of these tests.
  */
 function rootDirsRelative(filename: string): string {
+  // TODO(nickreid): this doesn't work in the open source build.
   const result = filename.split('runfiles/google3/')[1];
   if (!result) {
     throw new Error(filename);
@@ -170,7 +174,8 @@ testFn('golden tests', () => {
         shouldSkipTsickleProcessing: (fileName) => !tsSources.has(fileName),
         shouldIgnoreWarningsForPath: () => false,
         pathToModuleName: (context, importPath) => {
-          return testSupport.pathToModuleName(tsCompilerOptions.rootDir!, context, importPath);
+          return testSupport.pathToModuleName(
+              tsCompilerOptions.rootDir!, context, importPath);
         },
         fileNameToModuleId: (fileName) => {
           assertAbsolute(fileName);
@@ -180,6 +185,8 @@ testFn('golden tests', () => {
         options: tsCompilerOptions,
         moduleResolutionHost: tsHost,
         rootDirsRelative,
+        // TODO(nickreid): move to rootDirsRelative.
+        // rootDirsRelative: testSupport.relativeToTsickleRoot,
       };
 
       const tscOutput = new Map<string, string>();
@@ -188,14 +195,14 @@ testFn('golden tests', () => {
         for (const [path] of tsSources.entries()) {
           if (!TEST_FILTER.fileName.test(path)) continue;
           if (targetSource) {
-            throw new Error(
-                `TEST_FILTER matches more than one file: ${targetSource.fileName} vs ${path}`);
+            throw new Error(`TEST_FILTER matches more than one file: ${
+                targetSource.fileName} vs ${path}`);
           }
           targetSource = program.getSourceFile(path);
         }
         if (!targetSource) {
-          throw new Error(`TEST_FILTER matched no file: ${TEST_FILTER.fileName} vs ${
-              Array.from(tsSources.keys())}`);
+          throw new Error(`TEST_FILTER matched no file: ${
+              TEST_FILTER.fileName} vs ${Array.from(tsSources.keys())}`);
         }
       }
 
@@ -228,21 +235,26 @@ testFn('golden tests', () => {
 
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
       for (const d of allDiagnostics) {
-        const fileName = d.file?.fileName ?? 'unhandled diagnostic with no file name attached';
+        const fileName = d.file?.fileName ??
+            'unhandled diagnostic with no file name attached';
         let diags = diagnosticsByFile.get(fileName);
         if (!diags) diagnosticsByFile.set(fileName, diags = []);
         diags.push(d);
       }
       if (!test.isDeclarationTest) {
         const sortedPaths = test.jsPaths().sort();
-        const actualPaths = Array.from(tscOutput.keys()).map(p => p.replace(/^\.\//, '')).sort();
-        expect(sortedPaths).toEqual(actualPaths, `${test.jsPaths} vs ${actualPaths}`);
+        const actualPaths = Array.from(tscOutput.keys())
+                                .map(p => p.replace(/^\.\//, ''))
+                                .sort();
+        expect(sortedPaths)
+            .withContext(`${test.jsPaths} vs ${actualPaths}`)
+            .toEqual(actualPaths);
       }
 
       let allExterns: string|null = null;
       if (!test.name.endsWith('.no_externs')) {
-        // Concatenate externs for the files that are in this tests sources (but not other, shared
-        // .d.ts files).
+        // Concatenate externs for the files that are in this tests sources (but
+        // not other, shared .d.ts files).
         const filteredExterns: {[k: string]: string} = {};
         let anyExternsGenerated = false;
         for (const fileName of tsSources.keys()) {
@@ -252,22 +264,28 @@ testFn('golden tests', () => {
           }
         }
         if (anyExternsGenerated) {
-          allExterns = getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
+          allExterns =
+              getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
         }
       }
       compareAgainstGolden(allExterns, test.externsPath(), test);
 
       for (const absFilename of test.tsMigrationExportsShimPaths()) {
         const relativeFilename = rootDirsRelative(absFilename);
+        const exportShim = tsMigrationExportsShimFiles.get(relativeFilename);
+        expect(exportShim)
+            .withContext(`export shim for ${relativeFilename}`)
+            .toBeTruthy();
         compareAgainstGolden(
-            tsMigrationExportsShimFiles.get(relativeFilename) ?? null,
+            tsMigrationExportsShimFiles.get(relativeFilename)!,
             absFilename,
             test,
         );
       }
 
       for (const [outputPath, output] of tscOutput) {
-        const tsPath = outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
+        const tsPath =
+            outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
         diagnosticsByFile.delete(tsPath);
         let out = output;

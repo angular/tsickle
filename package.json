@@ -2,39 +2,41 @@
   "name": "tsickle",
   "version": "0.40.0",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
-  "main": "src/tsickle.js",
-  "typings": "src/tsickle.d.ts",
+  "main": "out/src/tsickle.js",
+  "typings": "out/src/tsickle.d.ts",
   "directories": {
     "test": "test"
   },
   "files": [
-    "src/*"
+    "out/src/*"
   ],
   "peerDependencies": {
-    "typescript": "~4.0.5"
+    "typescript": "~4.2"
   },
   "devDependencies": {
-    "@bazel/bazel": "^0.29.0",
-    "@bazel/jasmine": "^0.38.0",
-    "@bazel/typescript": "^0.38.0",
     "@types/diff-match-patch": "^1.0.32",
     "@types/glob": "5.0.35",
     "@types/jasmine": "2.8.8",
+    "@types/jest": "^26.0.23",
     "@types/node": "^10.5.6",
+    "@types/source-map-support": "^0.5.3",
     "diff-match-patch": "^1.0.1",
     "glob": "7.1.2",
     "google-closure-compiler": "^20190929.0.0",
-    "jasmine": "3.1.0",
+    "jasmine": "^3.1.0",
+    "jasmine-node": "^3.0.0",
+    "mocha": "^8.4.0",
     "source-map": "^0.7.3",
-    "source-map-support": "^0.5.6",
+    "source-map-support": "^0.5.19",
     "tslib": "1.11",
-    "tslint": "5.11.0",
-    "typescript": "4.0"
+    "tslint": "^6.1.3",
+    "typescript": "~4.2"
   },
   "scripts": {
-    "build": "bazel build //:npm_package",
+    "build": "tsc ",
+    "clean": "rm -r out",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "yarn lint && bazel test ..."
+    "test": "jasmine out/test/*.js && npm run lint"
   },
   "repository": {
     "type": "git",
@@ -56,5 +58,7 @@
     "url": "https://github.com/angular/tsickle/issues"
   },
   "homepage": "https://github.com/angular/tsickle",
-  "private": true
+  "dependencies": {
+    "@types/minimist": "^1.2.1"
+  }
 }

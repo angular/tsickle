@@ -289,7 +289,7 @@ class Generator {
 
   private maybeExtractTypeName(cast: ts.AsExpression): ts.Identifier|null {
     if (!ts.isObjectLiteralExpression(cast.expression) ||
-        cast.expression.properties.length != 0) {
+        cast.expression.properties.length !== 0) {
       this.report(cast.expression, 'must be object literal with no keys');
       return null;
     }

@@ -1,14 +1,11 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "lib": [
-      "es5",
-      "es6",
-      "es2015.collection",
-      "es2015.iterable",
-      "es2015.core",
-      "dom"
+      "es2020"
     ],
+    "declaration": true,
     "types": [
       // Note, we don't include `jasmine` here, as that's a test-only typing.
       // To prevent accidental use of jasmine in production code, we instead
@@ -16,11 +13,15 @@
       // source files that use it.
       "node"
     ],
+    "sourceMap": true,
     "target": "es2015",
-    "strict": true
+    "strict": true,
+    "outDir": "out",
+    "paths": {"tsickle": ["./src/tsickle.ts"]},
   },
   "include": [
     "src/*.ts",
-    "test/*.ts"
-  ]
+    "test/*.ts",
+    "demo/*.ts"
+  ] 
 }
