@@ -98,7 +98,8 @@ function rootDirsRelative(filename: string): string {
   // TODO(nickreid): this doesn't work in the open source build.
   const result = filename.split('runfiles/google3/')[1];
   if (!result) {
-    return path.relative(path.resolve(__dirname, '..'), filename);
+    throw new Error('open source test breakage');
+    // return path.relative(path.resolve(__dirname, '..'), filename);
   }
   return result;
 }
