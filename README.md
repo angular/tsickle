@@ -127,11 +127,12 @@ Run `yarn` to install dependencies.
 
 ### Build & Test commands
 
-- `npm run build` builds the code base.
+- `yarn build` builds the code base.
 - Run `tsc --watch` for an interactive, incremental, and continuous build.
-- `npm run lint` checks for lint.
-- `yarn test` runs unit tests, e2e tests and checks for lint. Set the
-  `TEST_FILTER` environment variable to filter what golden tests to run.
+- `yarn lint` checks for lint.
+- `yarn test` runs unit tests, e2e tests and checks for lint (but make sure to
+  `yarn build` first or run tsc!). Set the `TEST_FILTER` environment variable
+  to filter what golden tests to run.
 
 ### TypeScript AST help
 
@@ -159,14 +160,13 @@ source code.
 
 ### Updating Goldens
 
-Run `UPDATE_GOLDENS=y npm test` to have the test suite update the goldens in
+Run `UPDATE_GOLDENS=y yarn test` to have the test suite update the goldens in
 `test_files/...`.
 
 ### Environment variables
 
-Pass the flag `--action_env=TEST_FILTER=<REGEX>` to bazel test to limit the
-end-to-end test (found in `test_files/...`) run tests with a name matching the
-regex.
+Set the environment variable `TEST_FILTER=<REGEX>` to limit the golden tests
+(found in `test_files/...`) to only run tests with a name matching the regex.
 
 ### Releasing
 
