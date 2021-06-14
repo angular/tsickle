@@ -208,5 +208,5 @@ From the master branch run:
 ```
 npm config set registry https://wombat-dressing-room.appspot.com
 npm login
-npm publish -- --registry https://wombat-dressing-room.appspot.com
+npm publish
 ```
