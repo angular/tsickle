@@ -189,15 +189,18 @@ function createMemberTypeDeclaration(
   // Gather parameter properties from the constructor, if it exists.
   const ctors: ts.ConstructorDeclaration[] = [];
   let paramProps: ts.ParameterDeclaration[] = [];
-  const nonStaticProps: Array<ts.PropertyDeclaration|ts.PropertySignature> = [];
-  const staticProps: Array<ts.PropertyDeclaration|ts.PropertySignature> = [];
+  const nonStaticProps: ClosureProperty[] = [];
+  const staticProps: ClosureProperty[] = [];
   const unhandled: ts.NamedDeclaration[] = [];
   const abstractMethods: ts.FunctionLikeDeclaration[] = [];
   for (const member of typeDecl.members) {
     if (member.kind === ts.SyntaxKind.Constructor) {
       ctors.push(member as ts.ConstructorDeclaration);
-    } else if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
-      const isStatic = transformerUtil.hasModifierFlag(member, ts.ModifierFlags.Static);
+    } else if (
+        ts.isPropertyDeclaration(member) || ts.isPropertySignature(member) ||
+        (ts.isMethodDeclaration(member) && member.questionToken)) {
+      const isStatic =
+          transformerUtil.hasModifierFlag(member, ts.ModifierFlags.Static);
       if (isStatic) {
         staticProps.push(member);
       } else {
@@ -206,13 +209,16 @@ function createMemberTypeDeclaration(
     } else if (
         member.kind === ts.SyntaxKind.MethodDeclaration ||
         member.kind === ts.SyntaxKind.MethodSignature ||
-        member.kind === ts.SyntaxKind.GetAccessor || member.kind === ts.SyntaxKind.SetAccessor) {
+        member.kind === ts.SyntaxKind.GetAccessor ||
+        member.kind === ts.SyntaxKind.SetAccessor) {
       if (transformerUtil.hasModifierFlag(member, ts.ModifierFlags.Abstract) ||
           ts.isInterfaceDeclaration(typeDecl)) {
         abstractMethods.push(
-            member as ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration);
+            member as ts.MethodDeclaration | ts.GetAccessorDeclaration |
+            ts.SetAccessorDeclaration);
       }
-      // Non-abstract methods only exist on classes, and are handled in regular emit.
+      // Non-abstract methods only exist on classes, and are handled in regular
+      // emit.
     } else {
       unhandled.push(member);
     }
@@ -266,7 +272,7 @@ function createMemberTypeDeclaration(
     }
     const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
     if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
-    // Use element access instead of property access for compued names.
+    // Use element access instead of property access for computed names.
     const lhs = typeof name === 'string' ? ts.createPropertyAccess(instancePropAccess, name) :
                                            ts.createElementAccess(instancePropAccess, name);
     // memberNamespace because abstract methods cannot be static in TypeScript.
@@ -321,9 +327,16 @@ export function escapeForComment(str: string): string {
   return str.replace(/\/\*/g, '__').replace(/\*\//g, '__');
 }
 
+/**
+ * A kind of property declaration that tsickle generates a Closure property
+ * declaration for. Note that this includes ts.MethodDeclarations but only for
+ * optional methods.
+ */
+type ClosureProperty = ts.PropertyDeclaration|ts.PropertySignature|
+                       ts.ParameterDeclaration|ts.MethodDeclaration;
+
 function createClosurePropertyDeclaration(
-    mtt: ModuleTypeTranslator, expr: ts.Expression,
-    prop: ts.PropertyDeclaration|ts.PropertySignature|ts.ParameterDeclaration,
+    mtt: ModuleTypeTranslator, expr: ts.Expression, prop: ClosureProperty,
     optional: boolean): ts.Statement {
   const name = propertyName(prop);
   if (!name) {
