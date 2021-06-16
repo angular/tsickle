@@ -40,13 +40,14 @@ export function makeDeclarationTransformerFactory(
         const options = context.getCompilerOptions();
 
         // Construct
-        //   import 'path/to/file';
+        //   import 'path/to/clutz_dts_file';
         // for Clutz imports.
         // Humans write Clutz imports like
         //   import 'goog:foo';
-        // so to consume that from a d.ts, you need to first import the d.ts
-        // that defines that "goog:foo" module before you can resolve the
-        // import.
+        // or
+        //   import 'path/to/the/js_file';
+        // so to for that import to resolve, you need to first import the clutz
+        // d.ts that defines that declared module.
         const imports = gatherNecessaryClutzImports(typeChecker, file);
         let importStmts: ts.Statement[]|undefined;
         if (imports.length > 0) {
@@ -278,18 +279,24 @@ function generateClutzAliases(
 }
 
 /**
- * moduleSymbolFromGoog returns the module's symbol if and only if it is a module that uses
- * tsickle's support for namespace imports (using goog: or declaring a namespace to import in a
+ * moduleSymbolFromClutz returns the module's symbol if and only if it is a
+ * module that uses tsickle's support for namespace imports (using goog: or
+ * declaring the namespace to import in a special __clutz_actual_namespace
  * field).
  */
-function moduleSymbolFromGoog(typeChecker: ts.TypeChecker, stmt: ts.Statement): ts.Symbol|
-    undefined {
-  if (!ts.isImportDeclaration(stmt) && !ts.isExportDeclaration(stmt)) return undefined;
-  if (!stmt.moduleSpecifier) return undefined;  // can be absent on 'export' statements.
+function moduleSymbolFromClutz(
+    typeChecker: ts.TypeChecker, stmt: ts.Statement): ts.Symbol|undefined {
+  if (!ts.isImportDeclaration(stmt) && !ts.isExportDeclaration(stmt)) {
+    return undefined;
+  }
+  if (!stmt.moduleSpecifier) {
+    return undefined;  // can be absent on 'export' statements.
+  }
   const moduleSymbol = typeChecker.getSymbolAtLocation(stmt.moduleSpecifier);
   const ignoredDiagnostics: ts.Diagnostic[] = [];
   const namespace = googmodule.namespaceForImportUrl(
-      stmt, ignoredDiagnostics, (stmt.moduleSpecifier as ts.StringLiteral).text, moduleSymbol);
+      stmt, ignoredDiagnostics, (stmt.moduleSpecifier as ts.StringLiteral).text,
+      moduleSymbol);
   if (namespace === null) return undefined;
   return moduleSymbol;
 }
@@ -380,7 +387,7 @@ function gatherNecessaryClutzImports(typeChecker: ts.TypeChecker, sf: ts.SourceF
     ts.forEachChild(stmt, visit);
 
     // Then handle explicit import/export statements.
-    const moduleSymbol = moduleSymbolFromGoog(typeChecker, stmt);
+    const moduleSymbol = moduleSymbolFromClutz(typeChecker, stmt);
     if (!moduleSymbol) continue;
     const importPath = importPathForSymbol(moduleSymbol);
     if (importPath) imports.add(importPath);
