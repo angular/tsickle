@@ -13,7 +13,7 @@ goog.require('tslib');
 function MyIntrface() { }
 exports.MyIntrface = MyIntrface;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     MyIntrface.prototype.field;
 }
@@ -24,7 +24,7 @@ exports.MyTypeLiteral;
  */
 function MyNotExportedThing() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {boolean} */
     MyNotExportedThing.prototype.aFieldOnMyNotExportedThing;
 }

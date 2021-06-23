@@ -18,7 +18,7 @@ var _a;
  */
 function T() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|number)} */
     T.prototype.a;
     /** @type {(undefined|number)} */

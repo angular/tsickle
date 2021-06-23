@@ -60,7 +60,7 @@ let useNeverTypedTemplated;
 class ImplementsNeverTyped {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     ImplementsNeverTyped.prototype.foo;
 }
@@ -71,7 +71,7 @@ if (false) {
 class ImplementsNeverTypedTemplated {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {T} */
     ImplementsNeverTypedTemplated.prototype.foo;
 }

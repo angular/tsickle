@@ -27,7 +27,7 @@ class HasMethods {
     set f(n) { this._f = n - 1; }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     HasMethods.prototype._f;
 }

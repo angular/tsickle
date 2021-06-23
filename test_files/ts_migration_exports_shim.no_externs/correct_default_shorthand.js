@@ -13,7 +13,7 @@ goog.require('tslib');
 function MyDefaultType() { }
 exports.MyDefaultType = MyDefaultType;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     MyDefaultType.prototype.field;
 }

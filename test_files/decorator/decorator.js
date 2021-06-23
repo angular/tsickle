@@ -124,7 +124,7 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", external_1.AClass)
 ], DecoratorTest.prototype, __tsickle_googReflect.objectProperty("z", DecoratorTest.prototype), void 0);
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * Some comment
      * @type {number}
@@ -148,7 +148,7 @@ DecoratedClass = tslib_1.__decorate([
     classDecorator
 ], DecoratedClass);
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     DecoratedClass.prototype.z;
 }

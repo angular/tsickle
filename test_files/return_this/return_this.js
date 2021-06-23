@@ -12,7 +12,7 @@ class UnrelatedClass {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     UnrelatedClass.prototype.a;
 }
@@ -81,7 +81,7 @@ class MethodsReturnThis {
             }
         }
         /* istanbul ignore if */
-        if (false) {
+        if (COMPILED) {
             /** @type {number} */
             NestedClass.prototype.c;
         }
@@ -115,7 +115,7 @@ class MethodsReturnThis {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     MethodsReturnThis.prototype.b;
 }

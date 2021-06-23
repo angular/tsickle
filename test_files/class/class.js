@@ -26,7 +26,7 @@ goog.require('tslib');
  */
 function Interface() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @return {void}
      */
@@ -48,7 +48,7 @@ class AbstractClass {
     nonAbstractFunc() { }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @abstract
      * @return {void}
@@ -61,7 +61,7 @@ if (false) {
  */
 function InterfaceExtendsInterface() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @return {void}
      */
@@ -81,7 +81,7 @@ let interfaceExtendsInterface = { /**
  */
 function InterfaceExtendsClass() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @return {void}
      */
@@ -242,7 +242,7 @@ function Zone() { }
 class ZoneImplementsInterface {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     ZoneImplementsInterface.prototype.zone;
 }
@@ -254,7 +254,7 @@ var ZoneAlias;
 class ZoneImplementsAlias {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     ZoneImplementsAlias.prototype.zone;
 }
@@ -264,7 +264,7 @@ class WithOptionalField {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|string)} */
     WithOptionalField.prototype.optionalField;
 }

@@ -12,7 +12,7 @@ goog.require('tslib');
 function ExportedInterface() { }
 exports.ExportedInterface = ExportedInterface;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     ExportedInterface.prototype.x;
 }

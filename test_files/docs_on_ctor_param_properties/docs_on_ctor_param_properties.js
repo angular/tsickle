@@ -18,7 +18,7 @@ class Clazz {
 }
 exports.Clazz = Clazz;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {!Array<string>} */
     Clazz.prototype.id;
     /**

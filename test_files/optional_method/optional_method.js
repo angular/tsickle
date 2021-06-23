@@ -12,7 +12,7 @@ goog.require('tslib');
 class OptionalMethod {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|function(): void)} */
     OptionalMethod.staticOptionalMethod;
     /** @type {(undefined|function(): void)} */
@@ -23,7 +23,7 @@ if (false) {
 class OptionalArrowFnProperty {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|function(): void)} */
     OptionalArrowFnProperty.staticArrowFnProperty;
     /** @type {(undefined|function(): void)} */

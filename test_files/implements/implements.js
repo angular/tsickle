@@ -22,7 +22,7 @@ class RecordImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     RecordImpl.prototype.a;
 }
@@ -37,7 +37,7 @@ class RecordAliasImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     RecordAliasImpl.prototype.a;
 }
@@ -46,7 +46,7 @@ if (false) {
  */
 function MyInterface() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     MyInterface.prototype.a;
 }
@@ -59,7 +59,7 @@ class InterfaceImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     InterfaceImpl.prototype.a;
 }
@@ -74,7 +74,7 @@ class InterfaceAliasImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     InterfaceAliasImpl.prototype.a;
 }
@@ -84,7 +84,7 @@ if (false) {
  */
 function Generic() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {A} */
     Generic.prototype.a;
     /** @type {B} */
@@ -100,7 +100,7 @@ class GenericImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     GenericImpl.prototype.a;
     /** @type {number} */
@@ -118,7 +118,7 @@ class GenericPartialImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     GenericPartialImpl.prototype.a;
     /** @type {T} */
@@ -136,7 +136,7 @@ class GenericIndirectImpl {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     GenericIndirectImpl.prototype.a;
     /** @type {number} */

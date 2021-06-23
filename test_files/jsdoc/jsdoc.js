@@ -63,7 +63,7 @@ class JSDocTest {
  */
 JSDocTest.X = [];
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * \@internal
      * @type {!Array<string>}

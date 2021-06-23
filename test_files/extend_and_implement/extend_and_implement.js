@@ -14,7 +14,7 @@ goog.require('tslib');
 class ClassInImplements {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|string)} */
     ClassInImplements.prototype.foo;
 }
@@ -33,7 +33,7 @@ class ClassInExtends {
 class ExtendsAndImplementsClass extends ClassInExtends {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     ExtendsAndImplementsClass.prototype.foo;
 }

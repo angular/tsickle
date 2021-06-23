@@ -24,7 +24,7 @@ class __Class {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     __Class.prototype.__member;
 }

@@ -20,7 +20,7 @@ function usingSymbol(symbolTyped) {
  */
 function ComputedSymbol() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @return {number}
      */

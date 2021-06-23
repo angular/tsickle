@@ -19,7 +19,7 @@ class Someclass {
  */
 function MixedIn() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     MixedIn.prototype.x;
 }
@@ -47,7 +47,7 @@ function mix(baseclazz) {
         }
     }
     /* istanbul ignore if */
-    if (false) {
+    if (COMPILED) {
         /** @type {string} */
         WithMixedIn.prototype.x;
     }

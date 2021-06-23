@@ -174,14 +174,16 @@ export function maybeAddHeritageClauses(
 }
 
 /**
- * createMemberTypeDeclaration emits the type annotations for members of a class. It's necessary in
- * the case where TypeScript syntax specifies there are additional properties on the class, because
- * to declare these in Closure you must declare these separately from the class.
+ * createMemberTypeDeclaration emits the type annotations for members of a
+ * class. It's necessary in the case where TypeScript syntax specifies there are
+ * additional properties on the class, because to declare these in Closure you
+ * must declare these separately from the class.
  *
- * createMemberTypeDeclaration produces an if (false) statement containing property declarations, or
- * null if no declarations could or needed to be generated (e.g. no members, or an unnamed type).
- * The if statement is used to make sure the code is not executed, otherwise property accesses could
- * trigger getters on a superclass. See test_files/fields/fields.ts:BaseThatThrows.
+ * createMemberTypeDeclaration produces an if (COMPILED) block containing
+ * property declarations, or null if no declarations could or needed to be
+ * generated (e.g. no members, or an unnamed type). The if statement is used to
+ * make sure the code is not executed, otherwise property accesses could trigger
+ * getters on a superclass. See test_files/fields/fields.ts:BaseThatThrows.
  */
 function createMemberTypeDeclaration(
     mtt: ModuleTypeTranslator,
@@ -294,10 +296,11 @@ function createMemberTypeDeclaration(
     propertyDecls.push(ts.setSourceMapRange(abstractFnDecl, fnDecl));
   }
 
-  // Wrap the property declarations in an 'if (false)' block.
+  // Wrap the property declarations in an 'if (COMPILED)' block.
   // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
-  const ifStmt =
-      ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
+  const ifStmt = ts.createIf(
+      ts.createIdentifier('COMPILED'),
+      ts.createBlock(propertyDecls, /* multiline */ true));
   // Also add a comment above the block to exclude it from coverage.
   ts.addSyntheticLeadingComment(
       ifStmt, ts.SyntaxKind.MultiLineCommentTrivia, ' istanbul ignore if ',

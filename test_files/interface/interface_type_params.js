@@ -11,7 +11,7 @@ goog.require('tslib');
  */
 function UpperBound() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     UpperBound.prototype.x;
 }
@@ -21,7 +21,7 @@ if (false) {
  */
 function WithTypeParam() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {T} */
     WithTypeParam.prototype.tea;
     /** @type {U} */

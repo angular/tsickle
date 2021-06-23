@@ -16,7 +16,7 @@ class MyNamedClass {
 }
 exports.MyNamedClass = MyNamedClass;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     MyNamedClass.prototype.field;
 }
@@ -26,7 +26,7 @@ if (false) {
 function AnInterface() { }
 exports.AnInterface = AnInterface;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     AnInterface.prototype.shouldBeANumber;
 }

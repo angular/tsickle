@@ -18,7 +18,7 @@ class SuperTestBaseOneArg {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     SuperTestBaseOneArg.prototype.x;
 }
@@ -36,7 +36,7 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     SuperTestDerivedParamProps.prototype.y;
 }
@@ -51,7 +51,7 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     SuperTestDerivedInitializedProps.prototype.y;
 }
@@ -81,7 +81,7 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
  */
 function SuperTestInterface() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     SuperTestInterface.prototype.foo;
 }
@@ -92,7 +92,7 @@ if (false) {
 class SuperTestDerivedInterface {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     SuperTestDerivedInterface.prototype.foo;
 }
@@ -103,7 +103,7 @@ class SuperTestStaticProp extends SuperTestBaseOneArg {
 }
 SuperTestStaticProp.foo = 3;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     SuperTestStaticProp.foo;
 }

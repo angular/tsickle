@@ -13,7 +13,7 @@ const tsickle_enum_1 = goog.requireType("test_files.enum.enum");
 function EnumUsingIf() { }
 exports.EnumUsingIf = EnumUsingIf;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {!tsickle_enum_1.ConstEnum} */
     EnumUsingIf.prototype.field;
 }

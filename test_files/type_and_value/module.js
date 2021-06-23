@@ -18,7 +18,7 @@ class Class {
 }
 exports.Class = Class;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     Class.prototype.z;
 }

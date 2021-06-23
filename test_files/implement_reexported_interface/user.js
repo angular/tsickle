@@ -29,7 +29,7 @@ class Test {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     Test.prototype.fooStr;
 }

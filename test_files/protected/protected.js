@@ -28,7 +28,7 @@ class Protected {
     protectedMethod() { }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @type {string}
      * @private
@@ -56,7 +56,7 @@ if (false) {
 class Abstract {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @abstract
      * @protected

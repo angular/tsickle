@@ -12,7 +12,7 @@ goog.require('tslib');
 function Foo() { }
 exports.Foo = Foo;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     Foo.prototype.fooStr;
 }

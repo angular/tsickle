@@ -15,7 +15,7 @@ class StructuralTest {
     method() { return this.field1; }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {?} */
     StructuralTest.prototype.field1;
 }

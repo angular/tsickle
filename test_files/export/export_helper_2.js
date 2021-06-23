@@ -22,7 +22,7 @@ exports.TypeDef;
 function Interface() { }
 exports.Interface = Interface;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     Interface.prototype.x;
 }

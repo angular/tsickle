@@ -17,7 +17,7 @@ class X {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @type {number}
      * @private
@@ -35,7 +35,7 @@ class OverloadedCtor {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @type {(string|number)}
      * @private

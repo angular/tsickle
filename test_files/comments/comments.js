@@ -9,7 +9,7 @@ goog.require('tslib');
 class Comments {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @export
      * @type {string}

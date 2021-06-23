@@ -15,7 +15,7 @@ goog.require('tslib');
  */
 function Tree() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|!Tree)} */
     Tree.prototype.child;
 }
@@ -25,7 +25,7 @@ if (false) {
  */
 function Node() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {T} */
     Node.prototype.value;
 }
@@ -38,7 +38,7 @@ var NumberNodeTree;
  */
 function NodeTreeInline() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(undefined|!NodeTreeInline)} */
     NodeTreeInline.prototype.child;
 }
@@ -52,7 +52,7 @@ var NodeTreeTree;
  */
 function Pair() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {A} */
     Pair.prototype.a;
     /** @type {B} */

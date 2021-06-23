@@ -9,7 +9,7 @@ goog.require('tslib');
 class Primitives {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(null|string)} */
     Primitives.prototype.nullable;
     /** @type {(undefined|number)} */
@@ -24,7 +24,7 @@ class NonPrimitive {
 class NonPrimitives {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {!NonPrimitive} */
     NonPrimitives.prototype.nonNull;
     /** @type {(null|!NonPrimitive)} */

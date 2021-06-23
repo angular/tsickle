@@ -38,7 +38,7 @@ const notExported = 1;
 function AnInterface() { }
 exports.AnInterface = AnInterface;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     AnInterface.prototype.shouldBeANumber;
 }
@@ -47,7 +47,7 @@ if (false) {
  */
 function AnInterfaceNotExported() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     AnInterfaceNotExported.prototype.shouldBeAString;
 }

@@ -13,7 +13,7 @@ Static.bar = 3;
 // private statics also should work.
 Static.baz = 3;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     Static.bar;
     /**

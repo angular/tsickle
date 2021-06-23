@@ -22,7 +22,7 @@ class Base {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @abstract
      * @return {void}

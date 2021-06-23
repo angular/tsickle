@@ -15,7 +15,7 @@ goog.require('tslib');
 function X() { }
 exports.X = X;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     X.prototype.x;
 }

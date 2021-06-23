@@ -14,7 +14,7 @@ goog.require('tslib');
 function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     NeverTyped.prototype.foo;
 }
@@ -25,7 +25,7 @@ if (false) {
 function NeverTypedTemplated() { }
 exports.NeverTypedTemplated = NeverTypedTemplated;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {T} */
     NeverTypedTemplated.prototype.foo;
 }

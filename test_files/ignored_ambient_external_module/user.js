@@ -11,7 +11,7 @@ class User {
 }
 exports.User = User;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {(null|?)} */
     User.prototype.field;
 }

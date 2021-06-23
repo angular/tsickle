@@ -17,7 +17,7 @@ class Foo {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @type {string}
      * @private

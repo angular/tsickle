@@ -64,7 +64,7 @@ class ImplementsTypeAndValue {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     ImplementsTypeAndValue.prototype.z;
 }

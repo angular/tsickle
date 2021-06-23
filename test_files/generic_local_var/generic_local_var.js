@@ -33,7 +33,7 @@ class Container {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @type {T}
      * @private

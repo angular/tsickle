@@ -17,7 +17,7 @@ exports.Class = Class;
 function Interface() { }
 exports.Interface = Interface;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     Interface.prototype.x;
     /* Skipping unnamed member:

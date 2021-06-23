@@ -25,7 +25,7 @@ class Foo {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {?} */
     Foo.prototype.field;
     /**

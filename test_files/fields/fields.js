@@ -28,7 +28,7 @@ class FieldsTest {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     FieldsTest.prototype.field1;
     /** @type {number} */

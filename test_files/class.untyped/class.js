@@ -12,7 +12,7 @@ goog.require('tslib');
  */
 function Interface() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @return {?}
      */
@@ -71,7 +71,7 @@ function Zone() { }
 class ZoneImplementsInterface {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {?} */
     ZoneImplementsInterface.prototype.zone;
 }
@@ -80,7 +80,7 @@ var ZoneAlias;
 class ZoneImplementsAlias {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {?} */
     ZoneImplementsAlias.prototype.zone;
 }
@@ -90,7 +90,7 @@ class WithOptionalField {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {?} */
     WithOptionalField.prototype.optionalField;
 }

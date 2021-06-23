@@ -75,7 +75,7 @@ let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
 function InterfaceUsingConstEnum() { }
 exports.InterfaceUsingConstEnum = InterfaceUsingConstEnum;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {!ConstEnum} */
     InterfaceUsingConstEnum.prototype.field;
     /** @type {!ConstEnum} */

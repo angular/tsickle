@@ -22,7 +22,7 @@ class MyPoint {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     MyPoint.prototype.x;
     /** @type {number} */
@@ -40,7 +40,7 @@ class ImplementsUser {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     ImplementsUser.prototype.shoeSize;
 }

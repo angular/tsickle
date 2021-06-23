@@ -9,7 +9,7 @@ goog.require('tslib');
 class SomeClass {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @type {number}
      * @private

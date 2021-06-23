@@ -29,7 +29,7 @@ exports.export2 = 3;
 function Bar() { }
 exports.Bar = Bar;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     Bar.prototype.barField;
 }

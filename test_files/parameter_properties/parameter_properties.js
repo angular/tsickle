@@ -26,7 +26,7 @@ class ParamProps {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /**
      * @export
      * @type {string}

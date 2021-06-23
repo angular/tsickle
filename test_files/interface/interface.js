@@ -13,7 +13,7 @@ goog.require('tslib');
 function Point() { }
 exports.Point = Point;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     Point.prototype.x;
     /** @type {number} */
@@ -26,7 +26,7 @@ class User {
 }
 exports.User = User;
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     User.prototype.shoeSize;
 }
@@ -46,7 +46,7 @@ usePoint({ x: 1, y: 1 });
  */
 function TrickyInterface() { }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     TrickyInterface.prototype.foo;
     /** @type {(undefined|string)} */

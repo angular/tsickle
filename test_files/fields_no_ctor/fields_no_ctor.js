@@ -9,7 +9,7 @@ goog.require('tslib');
 class NoCtor {
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {number} */
     NoCtor.prototype.field1;
 }

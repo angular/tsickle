@@ -34,7 +34,7 @@ class ContainsPrivateField {
 }
 _ContainsPrivateField_someField = new WeakMap();
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /* Skipping private member:
     #someField: string;*/
 }

@@ -20,7 +20,7 @@ class C {
     }
 }
 /* istanbul ignore if */
-if (false) {
+if (COMPILED) {
     /** @type {string} */
     C.prototype.field;
 }
