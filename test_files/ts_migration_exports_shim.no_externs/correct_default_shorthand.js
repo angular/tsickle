@@ -17,4 +17,3 @@ if (false) {
     /** @type {number} */
     MyDefaultType.prototype.field;
 }
-goog.tsMigrationDefaultExportsShim('project.CorrectDefaultShorthand');

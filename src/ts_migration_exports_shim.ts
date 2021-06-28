@@ -6,23 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-/**
- * Processes goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim,
- * and goog.tsMigrationNamedExportsShim statements into
- * ".legacy.closure.js" and ".legacy.d.ts" files.
- */
-
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
-import {getGoogFunctionName, isAnyTsmesCall, isGoogCallExpressionOf, isTsmesShorthandCall, reportDiagnostic} from './transformer_util';
-
-/** Silence linter. */
-export interface TsMigrationExportsShimResult {
-  filename: string;
-  content: string;
-  diagnostics: ts.Diagnostic[];
-}
+import {createGoogLoadedModulesRegistration, getGoogFunctionName, isAnyTsmesCall, isGoogCallExpressionOf, isTsmesShorthandCall, reportDiagnostic} from './transformer_util';
 
 /** Provides dependencies for file generation. */
 export interface TsMigrationExportsShimProcessorHost {
@@ -36,24 +23,41 @@ export interface TsMigrationExportsShimProcessorHost {
   rootDirsRelative(fileName: string): string;
 }
 
-/** Silence linter. */
-export function generateTsMigrationExportsShimFile(
-    src: ts.SourceFile, typeChecker: ts.TypeChecker,
-    host: TsMigrationExportsShimProcessorHost,
-    manifest: ModulesManifest): TsMigrationExportsShimResult {
-  const srcFilename = host.rootDirsRelative(src.fileName);
-  const srcModuleId = host.pathToModuleName('', src.fileName);
-  const srcIds = new FileIdGroup(srcFilename, srcModuleId);
-
-  return new Generator(src, typeChecker, host, manifest, srcIds).run();
-}
+/**
+ * A map from google3 relative paths to shim file content.
+ */
+export type TsMigrationExportsShimFileMap = Map<string, string>;
 
 /**
- * Does this path have a file extension that supports
- * calls to tsmes?
+ * Creates a transformer that eliminates goog.tsMigration*ExportsShim (tsmes)
+ * statements and generates appropriate shim file content.
+ *
+ * This transformation will always report an error if
+ * `generateTsMigrationExportsShim` is false.
+ *
+ * If `transformTypesToClosure` is true:
+ *   - tsmes calls are deleted
+ *   - a "*.tsmes.closure.js" file is generated containing a goog.module that
+ *     re-exports the specified exports from the input file
+ * Else:
+ *   - tsmes calls are replaced with insertions into the Closure debug module
+ *     loader
+ *   - a "*.tsmes.d.ts" file is generated containing Clutz-like re-exports of
+ *     the specified exports from the input file
  */
-export function pathHasSupportedExtension(p: string): boolean {
-  return Boolean(p.match(SUPPORTED_EXTENSIONS));
+export function createTsMigrationExportsShimTransformerFactory(
+    typeChecker: ts.TypeChecker, host: TsMigrationExportsShimProcessorHost,
+    manifest: ModulesManifest, tsickleDiagnostics: ts.Diagnostic[],
+    outputFileMap: TsMigrationExportsShimFileMap):
+    ts.TransformerFactory<ts.SourceFile> {
+  return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
+    return (src: ts.SourceFile): ts.SourceFile => {
+      const result = new Generator(src, typeChecker, host, manifest).run();
+      outputFileMap.set(result.filename, result.content);
+      tsickleDiagnostics.push(...result.diagnostics);
+      return result.transformedSrc;
+    };
+  };
 }
 
 function stripSupportedExtensions(path: string) {
@@ -64,55 +68,68 @@ function stripSupportedExtensions(path: string) {
 const SUPPORTED_EXTENSIONS = /(?<!\.d)\.ts$/;
 
 
-/**
- * A one-time-use object for generating TS Migration Export Shims.
- *
- * The generator is able to emit two different outputs: .js and .d.ts. Only one
- * of thse should be produced for a given src file. The choice of which depends
- * on whether tsickle is producing code for downstream typechecking (.d.ts file
- * for TS libraries) or optimization (.js files for Closure Compiler).
- */
+/** A one-time-use object for running the tranformation. */
 class Generator {
-  readonly diagnostics: ts.Diagnostic[] = [];
-  readonly mainExports: ts.Symbol[];
+  private readonly diagnostics: ts.Diagnostic[] = [];
+  private readonly mainExports: ts.Symbol[];
+  private readonly srcIds: FileIdGroup;
 
-  outputIds: FileIdGroup|undefined;
-  googExports: GoogExports|undefined;
+  private tsmesBreakdown: TsmesCallBreakdown|undefined;
+  private outputIds: FileIdGroup|undefined;
 
   constructor(
-      readonly src: ts.SourceFile,
-      readonly typeChecker: ts.TypeChecker,
-      readonly host: TsMigrationExportsShimProcessorHost,
-      readonly manifest: ModulesManifest,
-      readonly srcIds: FileIdGroup,
+      private readonly src: ts.SourceFile,
+      private readonly typeChecker: ts.TypeChecker,
+      private readonly host: TsMigrationExportsShimProcessorHost,
+      private readonly manifest: ModulesManifest,
   ) {
     const moduleSymbol = this.typeChecker.getSymbolAtLocation(this.src);
     this.mainExports =
         moduleSymbol ? this.typeChecker.getExportsOfModule(moduleSymbol) : [];
+
+    const srcFilename = host.rootDirsRelative(src.fileName);
+    const srcModuleId = host.pathToModuleName('', src.fileName);
+    this.srcIds = new FileIdGroup(srcFilename, srcModuleId);
   }
 
-  run(): TsMigrationExportsShimResult {
+  /**
+   * Eliminates goog.tsMigration*ExportsShim (tsmes)
+   * statements and generates appropriate shim file content.
+   *
+   * If `transformTypesToClosure` is true:
+   *   - tsmes calls are deleted
+   *   - a "*.tsmes.closure.js" file is generated containing a goog.module that
+   *     re-exports the specified exports from the input file
+   * Else:
+   *   - tsmes calls are replaced with insertions into the Closure debug module
+   *     loader
+   *   - a "*.tsmes.d.ts" file is generated containing Clutz-like re-exports of
+   *     the specified exports from the input file
+   */
+  run(): GeneratorResult {
     const outputFilename = this.srcIds.google3PathWithoutExtension() +
         (this.host.transformTypesToClosure ? '.tsmes.closure.js' :
                                              '.tsmes.d.ts');
 
-    const tsmessBreakdown = this.extractTsmesStatement();
-    if (!tsmessBreakdown) {
+    const tsmesBreakdown = this.extractTsmesStatement();
+    if (!tsmesBreakdown) {
       return {
         filename: outputFilename,
         content: '',
+        transformedSrc: this.src,
         diagnostics: this.diagnostics,
       };
     }
 
+    this.tsmesBreakdown = tsmesBreakdown;
     this.outputIds =
-        new FileIdGroup(outputFilename, tsmessBreakdown.googModuleId);
-    this.googExports = tsmessBreakdown.googExports;
+        new FileIdGroup(outputFilename, tsmesBreakdown.googModuleId.text);
 
     return {
       filename: outputFilename,
       content: this.host.transformTypesToClosure ? this.generateTsmesJs() :
                                                    this.generateTsmesDts(),
+      transformedSrc: this.transformSourceFile(),
       diagnostics: this.diagnostics,
     };
   }
@@ -125,7 +142,9 @@ class Generator {
    * Diagnostics about malformed calls will also be logged.
    */
   private extractTsmesStatement(): undefined|TsmesCallBreakdown {
-    let tsmesCall: ts.CallExpression|undefined = undefined;
+    const startDiagnosticsCount = this.diagnostics.length;
+
+    let tsmesCallStatement: ts.ExpressionStatement|undefined = undefined;
     for (const statement of this.src.statements) {
       if (!ts.isExpressionStatement(statement) ||
           !isAnyTsmesCall(statement.expression)) {
@@ -133,21 +152,21 @@ class Generator {
         continue;
       }
 
-      const call = statement.expression;
-      if (tsmesCall) {
+      if (tsmesCallStatement) {
         this.report(
-            call,
+            tsmesCallStatement,
             'at most one call to any of goog.tsMigrationExportsShim, ' +
                 'goog.tsMigrationDefaultExportsShim, ' +
                 'goog.tsMigrationNamedExportsShim is allowed per file');
       } else {
-        tsmesCall = call;
+        tsmesCallStatement = statement;
       }
     }
 
-    if (!tsmesCall) {
+    if (!tsmesCallStatement) {
       return undefined;
     }
+    const tsmesCall = tsmesCallStatement.expression as ts.CallExpression;
 
     if (isGoogCallExpressionOf(tsmesCall, 'tsMigrationExportsShim') &&
         tsmesCall.arguments.length !== 2) {
@@ -200,11 +219,20 @@ class Generator {
         googExports = this.extractGoogExports(exportsExpr);
         break;
       default:
-        this.report(tsmesCall, `encountered unhandled goog.$fnName: ${fnName}`);
-        throw new Error();
+        throw new Error(`encountered unhandled goog.$fnName: ${fnName}`);
     }
-    return googExports === undefined ? undefined : {
-      googModuleId: moduleId.text,
+
+    if (googExports === undefined) {
+      if (startDiagnosticsCount >= this.diagnostics.length) {
+        throw new Error(
+            'googExports should be defined unless some diagnostic is reported.');
+      }
+      return undefined;
+    }
+
+    return {
+      callStatement: tsmesCallStatement,
+      googModuleId: moduleId,
       googExports,
     };
   }
@@ -333,8 +361,8 @@ class Generator {
    * shimmed export layout.
    */
   private generateTsmesJs(): string {
-    if (!this.outputIds || !this.googExports) {
-      throw new Error();
+    if (!this.outputIds || !this.tsmesBreakdown) {
+      throw new Error('tsmes call must be extracted first');
     }
 
     const mainRequireImports = this.mainExports.map((e) => e.name).join(', ');
@@ -342,10 +370,10 @@ class Generator {
         `goog.require('${this.srcIds.googModuleId}');`;
 
     let exportsAssignment;
-    if (this.googExports instanceof Map) {
+    if (this.tsmesBreakdown.googExports instanceof Map) {
       // In the case that tsmes was passed named exports.
-      const bindings =
-          Array.from(this.googExports).map(([k, v]) => `  ${k}: ${v},`);
+      const bindings = Array.from(this.tsmesBreakdown.googExports)
+                           .map(([k, v]) => `  ${k}: ${v},`);
       exportsAssignment = lines(
           `exports = {`,
           ...bindings,
@@ -353,7 +381,7 @@ class Generator {
       );
     } else {
       // In the case that tsmes was passed a default export.
-      exportsAssignment = `exports = ${this.googExports};`;
+      exportsAssignment = `exports = ${this.tsmesBreakdown.googExports};`;
     }
 
     this.manifest.addModule(
@@ -387,8 +415,8 @@ class Generator {
    * the shimmed export types.
    */
   private generateTsmesDts(): string {
-    if (!this.outputIds || !this.googExports) {
-      throw new Error();
+    if (!this.outputIds || !this.tsmesBreakdown) {
+      throw new Error('tsmes call must be extracted first');
     }
 
     const generatedFromComment = '// Generated from ' + this.srcIds.google3Path;
@@ -401,12 +429,12 @@ class Generator {
 
     let clutzNamespaceDeclaration;
     let googColonModuleDeclaration;
-    if (this.googExports instanceof Map) {
+    if (this.tsmesBreakdown.googExports instanceof Map) {
       // In the case that tsmes was passed named exports.
 
       const clutzNamespace = this.srcIds.clutzNamespace();
       const clutzNamespaceReexports =
-          Array.from(this.googExports)
+          Array.from(this.tsmesBreakdown.googExports)
               .map(
                   ([k, v]) => `  export import ${k} = ${clutzNamespace}.${v};`);
 
@@ -430,7 +458,8 @@ class Generator {
           generatedFromComment,
           `declare namespace ಠ_ಠ.clutz {`,
           `  export import ${this.outputIds.googModuleRewrittenId()} =`,
-          `      ${this.srcIds.clutzNamespace()}.${this.googExports};`,
+          `      ${this.srcIds.clutzNamespace()}.${
+              this.tsmesBreakdown.googExports};`,
           `}`,
       );
       googColonModuleDeclaration = lines(
@@ -453,6 +482,60 @@ class Generator {
     );
   }
 
+  /**
+   * Rewrite the tsmes call into something that works in a goog.module.
+   *
+   * tsmes reexports some of the exports of the local TS module under a new
+   * goog.module ID. This isn't possible with the public APIs, but we can make
+   * it work at runtime by writing a record to goog.loadedModules_.
+   *
+   * This only works at runtime, and would fail if compiled by closure
+   * compiler, but that's ok because we only transpile JS in development
+   * mode.
+   */
+  private transformSourceFile(): ts.SourceFile {
+    if (!this.outputIds || !this.tsmesBreakdown) {
+      throw new Error('tsmes call must be extracted first');
+    }
+
+    const outputStatements = [...this.src.statements];
+    const tsmesIndex =
+        outputStatements.indexOf(this.tsmesBreakdown.callStatement);
+    if (tsmesIndex < 0) {
+      throw new Error('could not find tsmes call in file');
+    }
+
+    if (this.host.transformTypesToClosure) {
+      // For Closure compilation code, just delete the tsmes call.
+      outputStatements.splice(tsmesIndex, 1);
+    } else {
+      let exportsObj: ts.Expression;
+      if (this.tsmesBreakdown.googExports instanceof Map) {
+        // `{PublicName: PrivateName, ...}`
+        const bindings =
+            Array.from(this.tsmesBreakdown.googExports)
+                .map(
+                    ([k, v]) => ts.createPropertyAssignment(
+                        ts.createIdentifier(k), ts.createIdentifier(v)));
+        exportsObj = ts.createObjectLiteral(bindings);
+      } else {
+        exportsObj = ts.createIdentifier(this.tsmesBreakdown.googExports);
+      }
+
+      // For browser executable code, insert an entry for the shim module into
+      // the debug loader module map.
+      outputStatements.splice(
+          tsmesIndex, 1,
+          createGoogLoadedModulesRegistration(
+              this.outputIds.googModuleId, exportsObj));
+    }
+
+    return ts.updateSourceFileNode(
+        this.src,
+        ts.setTextRange(
+            ts.createNodeArray(outputStatements), this.src.statements));
+  }
+
   private checkIsModuleExport(node: ts.Identifier, symbol: ts.Symbol|undefined):
       boolean {
     if (!symbol) {
@@ -465,11 +548,18 @@ class Generator {
     return false;
   }
 
-  private report(
-      node: ts.Node, messageText: string, textRange?: ts.TextRange,
-      category = ts.DiagnosticCategory.Error): void {
-    reportDiagnostic(this.diagnostics, node, messageText, textRange, category);
+  private report(node: ts.Node, messageText: string): void {
+    reportDiagnostic(
+        this.diagnostics, node, messageText, undefined,
+        ts.DiagnosticCategory.Error);
   }
+}
+
+interface GeneratorResult {
+  filename: string;
+  content: string;
+  transformedSrc: ts.SourceFile;
+  diagnostics: ts.Diagnostic[];
 }
 
 /**
@@ -486,7 +576,8 @@ function lines(...x: string[]): string {
 }
 
 interface TsmesCallBreakdown {
-  googModuleId: string;
+  callStatement: ts.ExpressionStatement;
+  googModuleId: ts.StringLiteral;
   googExports: GoogExports;
 }
 
@@ -524,5 +615,7 @@ class FileIdGroup {
 }
 
 function containsAtPintoModule(file: ts.SourceFile): boolean {
-  return /\s@pintomodule\s/.test(file.getFullText());
+  const leadingTrivia =
+      file.getFullText().substring(0, file.getLeadingTriviaWidth());
+  return /\s@pintomodule\s/.test(leadingTrivia);
 }

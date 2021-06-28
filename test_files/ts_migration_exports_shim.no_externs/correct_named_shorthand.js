@@ -28,4 +28,3 @@ if (false) {
     /** @type {boolean} */
     MyNotExportedThing.prototype.aFieldOnMyNotExportedThing;
 }
-goog.tsMigrationNamedExportsShim('project.CorrectNamedShorthand');

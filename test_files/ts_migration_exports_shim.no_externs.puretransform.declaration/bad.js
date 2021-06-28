@@ -1,4 +1,4 @@
-// test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(34,1): error TS0: at most one call to any of goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim, goog.tsMigrationNamedExportsShim is allowed per file
+// test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(23,1): error TS0: at most one call to any of goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim, goog.tsMigrationNamedExportsShim is allowed per file
 // test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(37,3): error TS0: goog.tsMigrationExportsShim is only allowed in top level statements
 // test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(24,3): error TS0: export must be an exported symbol of the module
 // test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts(25,3): error TS0: exports object must only contain (shorthand) properties
@@ -19,17 +19,17 @@ exports.nested = {
     X: 1
 };
 const notExported = 1;
-goog.loadedModules_['bad.exports'] = { exports: {
-        notExported,
-        method() {
-            return 1;
-        },
-        nested: { exported: exports.exported },
-        navigated: exports.nested.X,
-        foo: {},
-        bar: {},
-    }, type: goog.ModuleType.GOOG, moduleId: 'bad.exports' };
-goog.loadedModules_['only.one.allowed'] = { exports: exports.exported, type: goog.ModuleType.GOOG, moduleId: 'only.one.allowed' };
+goog.tsMigrationExportsShim('bad.exports', {
+    notExported,
+    method() {
+        return 1;
+    },
+    nested: { exported: exports.exported },
+    navigated: exports.nested.X,
+    foo: {},
+    bar: {},
+});
+goog.tsMigrationExportsShim('only.one.allowed', exports.exported);
 function f() {
     goog.tsMigrationExportsShim('must.be.top.level', {});
 }

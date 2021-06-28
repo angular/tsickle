@@ -346,3 +346,37 @@ export function isTsmesShorthandCall(n: ts.Node): n is ts.CallExpression {
   return isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
       isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim');
 }
+
+/**
+ * Create code like:
+ *
+ * goog.loadedModules_['foo.bar'] = {
+ *  exports: exports,
+ *  type: goog.ModuleType.GOOG,
+ *  moduleId: 'foo.bar'
+ * };
+ *
+ * For more info, see `goog.loadModule` in
+ * https://github.com/google/closure-library/blob/master/closure/goog/base.js
+ */
+export function createGoogLoadedModulesRegistration(
+    moduleId: string, exports: ts.Expression): ts.Statement {
+  return ts.createStatement(ts.createAssignment(
+      ts.createElementAccess(
+          ts.createPropertyAccess(
+              ts.createIdentifier('goog'),
+              ts.createIdentifier('loadedModules_')),
+          createSingleQuoteStringLiteral(moduleId)),
+      ts.createObjectLiteral([
+        ts.createPropertyAssignment('exports', exports),
+        ts.createPropertyAssignment(
+            'type',
+            ts.createPropertyAccess(
+                ts.createPropertyAccess(
+                    ts.createIdentifier('goog'),
+                    ts.createIdentifier('ModuleType')),
+                ts.createIdentifier('GOOG'))),
+        ts.createPropertyAssignment(
+            'moduleId', createSingleQuoteStringLiteral(moduleId)),
+      ])));
+}

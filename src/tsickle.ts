@@ -109,7 +109,7 @@ export interface EmitResult extends ts.EmitResult {
    * Content for the generated files, keyed by their intended filename.
    * Filenames are google3 relative.
    */
-  tsMigrationExportsShimFiles: Map<string, string>;
+  tsMigrationExportsShimFiles: tsmes.TsMigrationExportsShimFileMap;
 }
 
 export interface EmitTransformers {
@@ -168,8 +168,14 @@ export function emit(
     };
   }
 
+  const modulesManifest = new ModulesManifest();
+  const tsMigrationExportsShimFiles = new Map<string, string>();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> =
       [];
+  tsickleSourceTransformers.push(
+      tsmes.createTsMigrationExportsShimTransformerFactory(
+          typeChecker, host, modulesManifest, tsickleDiagnostics,
+          tsMigrationExportsShimFiles));
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type
     // annotations.
@@ -184,7 +190,6 @@ export function emit(
     tsickleSourceTransformers.push(
         decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
-  const modulesManifest = new ModulesManifest();
   const tsTransformers: ts.CustomTransformers = {
     before: [
       ...(tsickleSourceTransformers || [])
@@ -233,21 +238,6 @@ export function emit(
       if (diagnostics) {
         tsickleDiagnostics.push(...diagnostics);
       }
-    }
-  }
-
-  const tsMigrationExportsShimFiles = new Map<string, string>();
-  {
-    const sourceFiles =
-        targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
-    const filteredSourceFiles =
-        sourceFiles.filter((f) => tsmes.pathHasSupportedExtension(f.fileName))
-            .filter((f) => !host.shouldSkipTsickleProcessing(f.fileName));
-    for (const f of filteredSourceFiles) {
-      const result = tsmes.generateTsMigrationExportsShimFile(
-          f, typeChecker, host, modulesManifest);
-      tsMigrationExportsShimFiles.set(result.filename, result.content);
-      tsickleDiagnostics.push(...result.diagnostics);
     }
   }
 

@@ -1,4 +1,4 @@
-// test_files/ts_migration_exports_shim.no_externs/bad.ts(58,1): error TS0: at most one call to any of goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim, goog.tsMigrationNamedExportsShim is allowed per file
+// test_files/ts_migration_exports_shim.no_externs/bad.ts(35,1): error TS0: at most one call to any of goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim, goog.tsMigrationNamedExportsShim is allowed per file
 // test_files/ts_migration_exports_shim.no_externs/bad.ts(62,3): error TS0: goog.tsMigrationExportsShim is only allowed in top level statements
 // test_files/ts_migration_exports_shim.no_externs/bad.ts(37,3): error TS0: export must be an exported symbol of the module
 // test_files/ts_migration_exports_shim.no_externs/bad.ts(39,3): error TS0: exports object must only contain (shorthand) properties
@@ -55,6 +55,31 @@ if (false) {
 exports.TemplateType;
 /** @type {?} */
 const NotAnObjectLiteral = 'bloop';
+// Only module-level exports can be exported by tsmes
+goog.tsMigrationExportsShim('bad.exports', {
+    // This symbol is not exported
+    notExported,
+    // Method declarations are not module-level exports
+    /**
+     * @return {number}
+     */
+    method() {
+        return 1;
+    },
+    // Properties are not module-level exports
+    nested: { exported: exports.exported },
+    // Properties are not module-level exports
+    navigated: exports.nested.X,
+    // This should be allowed
+    foo: (/** @type {!AnInterface} */ ({})),
+    // This symbol is not exported
+    bar: (/** @type {!AnInterfaceNotExported} */ ({})),
+    bloop: (/** @type {!AnInterface} */ (NotAnObjectLiteral)),
+    templateType: (/** @type {string} */ ({})),
+    objectLiteralType: (/** @type {{someProperty: string}} */ ({}))
+});
+// Only 0-1 tsmes calls are allowed per-module
+goog.tsMigrationExportsShim('only.one.allowed', exports.exported);
 /**
  * @return {void}
  */
