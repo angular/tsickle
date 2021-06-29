@@ -34,6 +34,7 @@ describe('emitWithTsickle', () => {
       convertIndexImportShorthand: true,
       transformDecorators: true,
       transformTypesToClosure: true,
+      generateTsMigrationExportsShim: false,
       logWarning: (diag: ts.Diagnostic) => {},
       shouldSkipTsickleProcessing: (fileName) => {
         assertAbsolute(fileName);

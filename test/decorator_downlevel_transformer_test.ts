@@ -49,6 +49,7 @@ describe('decorator_downlevel_transformer', () => {
       fileNameToModuleId: (filePath) => filePath,
       transformDecorators: true,
       transformTypesToClosure: false,
+      generateTsMigrationExportsShim: false,
       googmodule: true,
       es5Mode: false,
       untyped: false,

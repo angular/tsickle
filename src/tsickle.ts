@@ -41,6 +41,9 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
    */
   transformTypesToClosure?: boolean;
 
+  /** Are tsMigrationExports calls allowed and should shim files be emitted? */
+  generateTsMigrationExportsShim?: boolean;
+
   /**
    * Whether to add aliases to the .d.ts files to add the exports to the
    * ಠ_ಠ.clutz namespace.

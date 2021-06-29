@@ -41,5 +41,5 @@ ts_library(
         "migrated_named.ts",
         "migrated_named_shorthand.ts",
     ],
-    enable_ts_migration_exports_shim = True,
+    generate_ts_migration_exports_shim = True,
 )

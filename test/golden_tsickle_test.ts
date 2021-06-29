@@ -73,13 +73,10 @@ function compareAgainstGolden(
     if (output !== null) {
       fs.writeFileSync(goldenPath, output, {encoding: 'utf-8'});
     } else {
-      // The desired golden state is for there to be no output file.
-      // Ensure no file exists.
-      try {
-        fs.unlinkSync(goldenPath);
-      } catch (e) {
-        // ignore.
-      }
+      // We don't delete the file automatically in case the existence of the
+      // file triggers an assertion.
+      throw new Error(
+          `Expected ${goldenPath} to be absent. Please delete it manually.`);
     }
   } else {
     expect(output).withContext(`${goldenPath}`).toEqualWithDiff(golden!);
@@ -161,6 +158,7 @@ testFn('golden tests', () => {
         convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,
+        generateTsMigrationExportsShim: test.isTsmesEnabledTest,
         // Setting this to true matches how we typically run Clutz, but note
         // that the Clutz pass only affects output d.ts files, which in this
         // test suite are only produced for "declaration" tests (tests where
@@ -272,12 +270,10 @@ testFn('golden tests', () => {
 
       for (const absFilename of test.tsMigrationExportsShimPaths()) {
         const relativeFilename = rootDirsRelative(absFilename);
-        const exportShim = tsMigrationExportsShimFiles.get(relativeFilename);
-        expect(exportShim)
-            .withContext(`export shim for ${relativeFilename}`)
-            .toBeTruthy();
+        const exportShim =
+            tsMigrationExportsShimFiles.get(relativeFilename) ?? null;
         compareAgainstGolden(
-            tsMigrationExportsShimFiles.get(relativeFilename)!,
+            exportShim,
             absFilename,
             test,
         );

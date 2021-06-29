@@ -279,6 +279,10 @@ export class GoldenFileTest {
     return /\.shim\b/.test(this.name);
   }
 
+  get isTsmesEnabledTest(): boolean {
+    return !/\.tsmes_disabled\./.test(this.name);
+  }
+
   static tsPathToJs(tsPath: string): string {
     return tsPath.replace(/\.tsx?$/, '.js');
   }

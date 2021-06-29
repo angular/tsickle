@@ -13,6 +13,9 @@ import {createGoogLoadedModulesRegistration, getGoogFunctionName, isAnyTsmesCall
 
 /** Provides dependencies for file generation. */
 export interface TsMigrationExportsShimProcessorHost {
+  /** Are tsMigrationExports calls allowed and should shim files be emitted? */
+  generateTsMigrationExportsShim?: boolean;
+
   /** If true emit .legacy.closure.js file, else emit .legacy.d.ts */
   transformTypesToClosure?: boolean;
 
@@ -164,6 +167,12 @@ class Generator {
     }
 
     if (!tsmesCallStatement) {
+      return undefined;
+    } else if (!this.host.generateTsMigrationExportsShim) {
+      this.report(
+          tsmesCallStatement,
+          'calls to goog.tsMigration*ExportsShim are not enabled. Did you' +
+              ' remember to set generate_ts_migration_exports_shim?');
       return undefined;
     }
     const tsmesCall = tsmesCallStatement.expression as ts.CallExpression;
