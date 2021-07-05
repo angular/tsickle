@@ -74,13 +74,13 @@ export function shouldLower(decorator: ts.Decorator, typeChecker: ts.TypeChecker
  */
 function createDecoratorInvocationType(): ts.TypeNode {
   const typeElements: ts.TypeElement[] = [];
-  typeElements.push(ts.createPropertySignature(
+  typeElements.push(ts.factory.createPropertySignature(
       undefined, 'type', undefined,
-      ts.createTypeReferenceNode(ts.createIdentifier('Function'), undefined), undefined));
-  typeElements.push(ts.createPropertySignature(
-      undefined, 'args', ts.createToken(ts.SyntaxKind.QuestionToken),
-      ts.createArrayTypeNode(ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)), undefined));
-  return ts.createArrayTypeNode(ts.createTypeLiteralNode(typeElements));
+      ts.factory.createTypeReferenceNode(ts.factory.createIdentifier('Function'), undefined)));
+  typeElements.push(ts.factory.createPropertySignature(
+      undefined, 'args', ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+      ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))));
+  return ts.factory.createArrayTypeNode(ts.factory.createTypeLiteralNode(typeElements));
 }
 
 /**
@@ -97,20 +97,23 @@ function extractMetadataFromSingleDecorator(
   switch (expr.kind) {
     case ts.SyntaxKind.Identifier:
       // The decorator was a plain @Foo.
-      metadataProperties.push(ts.createPropertyAssignment('type', expr));
+      metadataProperties.push(
+          ts.factory.createPropertyAssignment('type', expr));
       break;
     case ts.SyntaxKind.CallExpression:
       // The decorator was a call, like @Foo(bar).
       const call = expr as ts.CallExpression;
-      metadataProperties.push(ts.createPropertyAssignment('type', call.expression));
+      metadataProperties.push(
+          ts.factory.createPropertyAssignment('type', call.expression));
       if (call.arguments.length) {
         const args: ts.Expression[] = [];
         for (const arg of call.arguments) {
           args.push(arg);
         }
-        const argsArrayLiteral = ts.createArrayLiteral(args);
-        argsArrayLiteral.elements.hasTrailingComma = true;
-        metadataProperties.push(ts.createPropertyAssignment('args', argsArrayLiteral));
+        const argsArrayLiteral = ts.factory.createArrayLiteralExpression(
+            ts.factory.createNodeArray(args, /* hasTrailingComma */ true));
+        metadataProperties.push(
+            ts.factory.createPropertyAssignment('args', argsArrayLiteral));
       }
       break;
     default:
@@ -125,7 +128,7 @@ function extractMetadataFromSingleDecorator(
       });
       break;
   }
-  return ts.createObjectLiteral(metadataProperties);
+  return ts.factory.createObjectLiteralExpression(metadataProperties);
 }
 
 /**
@@ -133,11 +136,13 @@ function extractMetadataFromSingleDecorator(
  * static class property of an array of those metadata objects.
  */
 function createDecoratorClassProperty(decoratorList: ts.ObjectLiteralExpression[]) {
-  const modifier = ts.createToken(ts.SyntaxKind.StaticKeyword);
+  const modifier = ts.factory.createToken(ts.SyntaxKind.StaticKeyword);
   const type = createDecoratorInvocationType();
-  const initializer = ts.createArrayLiteral(decoratorList, true);
-  initializer.elements.hasTrailingComma = true;
-  const prop = ts.createProperty(undefined, [modifier], 'decorators', undefined, type, initializer);
+  const initializer = ts.factory.createArrayLiteralExpression(
+      ts.factory.createNodeArray(decoratorList, /* hasTrailingComma */ true),
+      true);
+  const prop = ts.factory.createPropertyDeclaration(
+      undefined, [modifier], 'decorators', undefined, type, initializer);
   // NB: the .decorators property does not get a @nocollapse property. There is
   // no good reason why - it means .decorators is not runtime accessible if you
   // compile with collapse properties, whereas propDecorators is, which doesn't
@@ -214,7 +219,7 @@ function createCtorParametersClassProperty(
 
   for (const ctorParam of ctorParameters) {
     if (!ctorParam.type && ctorParam.decorators.length === 0) {
-      params.push(ts.createNull());
+      params.push(ts.factory.createNull());
       continue;
     }
 
@@ -222,24 +227,24 @@ function createCtorParametersClassProperty(
         typeReferenceToExpression(entityNameToExpression, ctorParam.type) :
         undefined;
     const members =
-        [ts.createPropertyAssignment('type', paramType || ts.createIdentifier('undefined'))];
+        [ts.factory.createPropertyAssignment('type', paramType || ts.factory.createIdentifier('undefined'))];
 
     const decorators: ts.ObjectLiteralExpression[] = [];
     for (const deco of ctorParam.decorators) {
       decorators.push(extractMetadataFromSingleDecorator(deco, diagnostics));
     }
     if (decorators.length) {
-      members.push(ts.createPropertyAssignment('decorators', ts.createArrayLiteral(decorators)));
+      members.push(ts.factory.createPropertyAssignment('decorators', ts.factory.createArrayLiteralExpression(decorators)));
     }
-    params.push(ts.createObjectLiteral(members));
+    params.push(ts.factory.createObjectLiteralExpression(members));
   }
 
-  const initializer = ts.createArrowFunction(
-      undefined, undefined, [], undefined, ts.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-      ts.createArrayLiteral(params, true));
+  const initializer = ts.factory.createArrowFunction(
+      undefined, undefined, [], undefined, ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+      ts.factory.createArrayLiteralExpression(params, true));
   const type = createCtorParametersClassPropertyType();
-  const ctorProp = ts.createProperty(
-      undefined, [ts.createToken(ts.SyntaxKind.StaticKeyword)], 'ctorParameters', undefined, type,
+  const ctorProp = ts.factory.createPropertyDeclaration(
+      undefined, [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)], 'ctorParameters', undefined, type,
       initializer);
   addNoCollapseComment(ctorProp);
   return ctorProp;
@@ -259,28 +264,20 @@ function createPropDecoratorsClassProperty(
   //  `static propDecorators: {[key: string]: ` + {type: Function, args?: any[]}[] + `} = {\n`);
   const entries: ts.ObjectLiteralElementLike[] = [];
   for (const [name, decorators] of properties.entries()) {
-    entries.push(ts.createPropertyAssignment(
+    entries.push(ts.factory.createPropertyAssignment(
         name,
-        ts.createArrayLiteral(
+        ts.factory.createArrayLiteralExpression(
             decorators.map(deco => extractMetadataFromSingleDecorator(deco, diagnostics)))));
   }
-  const initializer = ts.createObjectLiteral(entries, true);
-  const type = ts.createTypeLiteralNode([ts.createIndexSignature(
-      undefined, undefined, [ts.createParameter(
+  const initializer = ts.factory.createObjectLiteralExpression(entries, true);
+  const type = ts.factory.createTypeLiteralNode([ts.factory.createIndexSignature(
+      undefined, undefined, [ts.factory.createParameterDeclaration(
                                 undefined, undefined, undefined, 'key', undefined,
-                                ts.createTypeReferenceNode('string', undefined), undefined)],
+                                ts.factory.createTypeReferenceNode('string', undefined), undefined)],
       createDecoratorInvocationType())]);
-  return ts.createProperty(
-      undefined, [ts.createToken(ts.SyntaxKind.StaticKeyword)], 'propDecorators', undefined, type,
+  return ts.factory.createPropertyDeclaration(
+      undefined, [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)], 'propDecorators', undefined, type,
       initializer);
-}
-
-function isNameEqual(classMember: ts.ClassElement, name: string): boolean {
-  if (classMember.name === undefined) {
-    return false;
-  }
-  const id = classMember.name as ts.Identifier;
-  return id.text === name;
 }
 
 /**
@@ -302,23 +299,23 @@ function typeReferenceToExpression(
   switch (kind) {
     case ts.SyntaxKind.FunctionType:
     case ts.SyntaxKind.ConstructorType:
-      return ts.createIdentifier('Function');
+      return ts.factory.createIdentifier('Function');
     case ts.SyntaxKind.ArrayType:
     case ts.SyntaxKind.TupleType:
-      return ts.createIdentifier('Array');
+      return ts.factory.createIdentifier('Array');
     case ts.SyntaxKind.TypePredicate:
     case ts.SyntaxKind.TrueKeyword:
     case ts.SyntaxKind.FalseKeyword:
     case ts.SyntaxKind.BooleanKeyword:
-      return ts.createIdentifier('Boolean');
+      return ts.factory.createIdentifier('Boolean');
     case ts.SyntaxKind.StringLiteral:
     case ts.SyntaxKind.StringKeyword:
-      return ts.createIdentifier('String');
+      return ts.factory.createIdentifier('String');
     case ts.SyntaxKind.ObjectKeyword:
-      return ts.createIdentifier('Object');
+      return ts.factory.createIdentifier('Object');
     case ts.SyntaxKind.NumberKeyword:
     case ts.SyntaxKind.NumericLiteral:
-      return ts.createIdentifier('Number');
+      return ts.factory.createIdentifier('Number');
     case ts.SyntaxKind.TypeReference:
       const typeRef = node as ts.TypeReferenceNode;
       // Ignore any generic types, just return the base type.
@@ -380,7 +377,7 @@ export function decoratorDownlevelTransformer(
       }
       const ref = entityNameToExpression(name.left);
       if (!ref) return undefined;
-      return ts.createPropertyAccess(ref, name.right);
+      return ts.factory.createPropertyAccessExpression(ref, name.right);
     }
 
     /**
@@ -422,7 +419,7 @@ export function decoratorDownlevelTransformer(
       let newNode: ts.ClassElement;
       const decorators = decoratorsToKeep.length ?
           ts.setTextRange(
-              ts.createNodeArray(decoratorsToKeep), element.decorators) :
+              ts.factory.createNodeArray(decoratorsToKeep), element.decorators) :
           undefined;
       switch (element.kind) {
         case ts.SyntaxKind.PropertyDeclaration:
@@ -483,14 +480,14 @@ export function decoratorDownlevelTransformer(
           paramInfo!.type = param.type;
         }
         parametersInfo.push(paramInfo);
-        const newParam = ts.updateParameter(
+        const newParam = ts.factory.updateParameterDeclaration(
             param,
             // Must pass 'undefined' to avoid emitting decorator metadata.
             decoratorsToKeep.length ? decoratorsToKeep : undefined, param.modifiers,
             param.dotDotDotToken, param.name, param.questionToken, param.type, param.initializer);
         newParameters.push(newParam);
       }
-      const updated = ts.updateConstructor(
+      const updated = ts.factory.updateConstructorDeclaration(
           ctor, ctor.decorators, ctor.modifiers, newParameters,
           ts.visitFunctionBody(ctor.body, visitor, context));
       return [updated, parametersInfo];
@@ -504,8 +501,6 @@ export function decoratorDownlevelTransformer(
      * - creates a propDecorators property
      */
     function transformClassDeclaration(classDecl: ts.ClassDeclaration): ts.ClassDeclaration {
-      classDecl = ts.getMutableClone(classDecl);
-
       const newMembers: ts.ClassElement[] = [];
       const decoratedProperties = new Map<string, ts.Decorator[]>();
       let classParameters: ParameterDecorationInfo[]|null = null;
@@ -549,8 +544,6 @@ export function decoratorDownlevelTransformer(
         }
       }
 
-      // const newClassDeclaration = ts.getMutableClone(classDecl);
-
       if (decoratorsToLower.length) {
         newMembers.push(createDecoratorClassProperty(decoratorsToLower));
       }
@@ -566,13 +559,13 @@ export function decoratorDownlevelTransformer(
         newMembers.push(createPropDecoratorsClassProperty(diagnostics, decoratedProperties));
       }
       const newDecorators = decoratorsToKeep.length ?
-          ts.createNodeArray(decoratorsToKeep) :
+          ts.factory.createNodeArray(decoratorsToKeep) :
           undefined;
       return ts.factory.updateClassDeclaration(
           classDecl, newDecorators, classDecl.modifiers, classDecl.name,
           classDecl.typeParameters, classDecl.heritageClauses,
           ts.setTextRange(
-              ts.createNodeArray(
+              ts.factory.createNodeArray(
                   newMembers, classDecl.members.hasTrailingComma),
               classDecl.members));
     }
