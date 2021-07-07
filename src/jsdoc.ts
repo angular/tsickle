@@ -397,7 +397,6 @@ export function suppressLeadingCommentsRecursively(node: ts.Node) {
   // setting NoLeadingComments recursively is not enough, we must also set the text range to avoid
   // the copied node to have comments emitted.
   const originalStart = node.getFullStart();
-  const actualStart = node.getStart();
   function suppressCommentsInternal(node: ts.Node): boolean {
     ts.setEmitFlags(node, ts.EmitFlags.NoLeadingComments);
     return !!ts.forEachChild(node, (child) => {
@@ -409,13 +408,14 @@ export function suppressLeadingCommentsRecursively(node: ts.Node) {
 }
 
 export function toSynthesizedComment(
-    tags: Tag[], escapeExtraTags?: Set<string>): ts.SynthesizedComment {
+    tags: Tag[], escapeExtraTags?: Set<string>,
+    hasTrailingNewLine = true): ts.SynthesizedComment {
   return {
     kind: ts.SyntaxKind.MultiLineCommentTrivia,
     text: toStringWithoutStartEnd(tags, escapeExtraTags),
     pos: -1,
     end: -1,
-    hasTrailingNewLine: true,
+    hasTrailingNewLine,
   };
 }
 

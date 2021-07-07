@@ -23,10 +23,3 @@ exports.v6 = 1;
 let v7 = 1;
 /** @type {number} */
 let v8 = 1;
-// Closure Compiler has no syntax for destructuring patterns, so these are emitted without a type
-// annotation.
-const [destructured1, destructured2] = ['destructured1', 'destructured2'];
-const { destructured3, destructured4 } = {
-    destructured3: 3,
-    destructured4: 4
-};

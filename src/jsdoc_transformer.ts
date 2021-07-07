@@ -37,8 +37,11 @@ import * as transformerUtil from './transformer_util';
 import {symbolIsValue} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
-function addCommentOn(node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>) {
-  const comment = jsdoc.toSynthesizedComment(tags, escapeExtraTags);
+function addCommentOn(
+    node: ts.Node, tags: jsdoc.Tag[], escapeExtraTags?: Set<string>,
+    hasTrailingNewLine = true) {
+  const comment =
+      jsdoc.toSynthesizedComment(tags, escapeExtraTags, hasTrailingNewLine);
   const comments = ts.getSyntheticLeadingComments(node) || [];
   comments.push(comment);
   ts.setSyntheticLeadingComments(node, comments);
@@ -670,7 +673,7 @@ export function jsdocTransformer(
         const leading = ts.getSyntheticLeadingComments(varStmt);
         if (leading) {
           // Attach non-JSDoc comments to a not emitted statement.
-          const commentHolder = ts.createNotEmittedStatement(varStmt);
+          const commentHolder = ts.factory.createNotEmittedStatement(varStmt);
           ts.setSyntheticLeadingComments(commentHolder, leading.filter(c => c.text[0] !== '*'));
           stmts.push(commentHolder);
         }
@@ -705,10 +708,31 @@ export function jsdocTransformer(
                 localTags.push({tagName: 'type', type: typeStr});
               }
             }
+          } else if (ts.isArrayBindingPattern(decl.name)) {
+            const aliases: Array<[ts.Identifier, ts.Identifier]> = [];
+            const updatedBinding = renameArrayBindings(decl.name, aliases);
+            if (updatedBinding && aliases.length > 0) {
+              const declVisited = ts.visitNode(decl, visitor);
+              const newDecl = ts.factory.updateVariableDeclaration(
+                  declVisited, updatedBinding, declVisited.exclamationToken,
+                  declVisited.type, declVisited.initializer);
+              const newStmt = ts.factory.createVariableStatement(
+                  varStmt.modifiers,
+                  ts.factory.createVariableDeclarationList([newDecl], flags));
+              if (localTags.length) {
+                addCommentOn(
+                    newStmt, localTags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
+              }
+              stmts.push(newStmt);
+              stmts.push(...createArrayBindingAliases(
+                  varStmt.declarationList.flags, aliases));
+              continue;
+            }
           }
           const newDecl = ts.visitNode(decl, visitor);
-          const newStmt = ts.createVariableStatement(
-              varStmt.modifiers, ts.createVariableDeclarationList([newDecl], flags));
+          const newStmt = ts.factory.createVariableStatement(
+              varStmt.modifiers,
+              ts.factory.createVariableDeclarationList([newDecl], flags));
           if (localTags.length) addCommentOn(newStmt, localTags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
           stmts.push(newStmt);
         }
@@ -1044,6 +1068,136 @@ export function jsdocTransformer(
         moduleTypeTranslator.getJSDoc(node, /* reportWarnings */ true);
       }
 
+      /**
+       * Counter to generate (reasonably) unique alias names for array
+       * rebindings.
+       */
+      let aliasCounter = 1;
+
+      /**
+       * renameArrayBindings renames each destructured array binding identifier
+       * and returns a list of the generated aliases. It operates recursively,
+       * but does not support nested object patterns.
+       */
+      function renameArrayBindings(
+          node: ts.ArrayBindingPattern,
+          aliases: Array<[ts.Identifier, ts.Identifier]>):
+          ts.ArrayBindingPattern|undefined {
+        const updatedElements: ts.ArrayBindingElement[] = [];
+        for (const e of node.elements) {
+          if (ts.isOmittedExpression(e)) {
+            updatedElements.push(e);
+            continue;
+          } else if (ts.isObjectBindingPattern(e.name)) {
+            return undefined;  // object binding patterns are unsupported
+          }
+          let updatedBindingName;
+          if (ts.isArrayBindingPattern(e.name)) {
+            updatedBindingName = renameArrayBindings(e.name, aliases);
+            // If the nested binding wasn't handled, we cannot handle the parent
+            // case either.
+            if (!updatedBindingName) return undefined;
+          } else {
+            // Plain identifier.
+            const aliasName = ts.factory.createIdentifier(
+                `${e.name.text}__tsickle_destructured_${aliasCounter++}`);
+            aliases.push([e.name, aliasName]);
+            updatedBindingName = aliasName;
+          }
+          updatedElements.push(ts.factory.updateBindingElement(
+              e, e.dotDotDotToken, ts.visitNode(e.propertyName, visitor),
+              updatedBindingName, ts.visitNode(e.initializer, visitor)));
+        }
+        return ts.factory.updateArrayBindingPattern(node, updatedElements);
+      }
+
+      /**
+       * For each alias created, insert a "const oldName = aliasName;",
+       * with an appropriate JSDoc comment.
+       * @param flags The node.flags to use for the variable declaration. This
+       *     controls const/let/var in particular.
+       */
+      function createArrayBindingAliases(
+          flags: ts.NodeFlags,
+          aliases: Array<[ts.Identifier, ts.Identifier]>): ts.Statement[] {
+        const aliasDecls: ts.Statement[] = [];
+        for (const [oldName, aliasName] of aliases) {
+          const typeStr =
+              moduleTypeTranslator.typeToClosure(ts.getOriginalNode(oldName));
+          const closureCastExpr =
+              ts.factory.createParenthesizedExpression(aliasName);
+          addCommentOn(
+              closureCastExpr, [{tagName: 'type', type: typeStr}],
+              /* escape tags */ undefined,
+              /* hasTrailingNewLine */ false);
+          const varDeclList = ts.factory.createVariableDeclarationList(
+              [ts.factory.createVariableDeclaration(
+                  oldName, /* exclamationToken? */ undefined,
+                  /* type? */ undefined, closureCastExpr)],
+              flags);
+          const varStmt = ts.factory.createVariableStatement(
+              /*modifiers*/ undefined, varDeclList);
+          aliasDecls.push(varStmt);
+        }
+        return aliasDecls;
+      }
+
+      /**
+       * Special cases the common idiom:
+       *   for (const [a, b] of x) { ... }
+       *
+       * Closure Compiler does not support tuple types, so a and b end up being
+       * a union type. Using the union type can then lead to type mismatches,
+       * which can lead to deoptimizations.
+       *
+       * To work around, this code renames the binding elements and creates
+       * explicit casts and assignments to the previous names, giving symbols to
+       * Closure Compiler that have the right type. E.g. like so:
+       *
+       *   for (const [a_1, b_1] of x) {
+       *     const a = /.. .type {string} ./ (a_1);
+       *     ...
+       *   }
+       */
+      function visitForOfStatement(node: ts.ForOfStatement): ts.ForOfStatement {
+        const varDecls = node.initializer;
+        if (!ts.isVariableDeclarationList(varDecls)) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+        if (varDecls.declarations.length !== 1) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+        const varDecl = varDecls.declarations[0];
+        if (!ts.isArrayBindingPattern(varDecl.name)) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+
+        const aliases: Array<[ts.Identifier, ts.Identifier]> = [];
+        const updatedPattern = renameArrayBindings(varDecl.name, aliases);
+        if (!updatedPattern || aliases.length === 0) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+
+        const updatedInitializer = ts.factory.updateVariableDeclarationList(
+            varDecls, [ts.factory.updateVariableDeclaration(
+                          varDecl, updatedPattern, varDecl.exclamationToken,
+                          varDecl.type, varDecl.initializer)]);
+        const aliasDecls = createArrayBindingAliases(varDecls.flags, aliases);
+        // Convert the for/of body into a block, if needed.
+        let updatedStatement;
+        if (ts.isBlock(node.statement)) {
+          updatedStatement = ts.factory.updateBlock(node.statement, [
+            ...aliasDecls, ...ts.visitNode(node.statement, visitor).statements
+          ]);
+        } else {
+          updatedStatement = ts.factory.createBlock(
+              [...aliasDecls, ts.visitNode(node.statement, visitor)]);
+        }
+        return ts.factory.updateForOfStatement(
+            node, node.awaitModifier, updatedInitializer,
+            ts.visitNode(node.expression, visitor), updatedStatement);
+      }
+
       function visitor(node: ts.Node): ts.Node|ts.Node[] {
         if (transformerUtil.isAmbient(node)) {
           if (!transformerUtil.hasModifierFlag(node as ts.Declaration, ts.ModifierFlags.Export)) {
@@ -1105,6 +1259,8 @@ export function jsdocTransformer(
           case ts.SyntaxKind.EnumDeclaration:
             visitEnumDeclaration(node as ts.EnumDeclaration);
             break;
+          case ts.SyntaxKind.ForOfStatement:
+            return visitForOfStatement(node as ts.ForOfStatement);
           default:
             break;
         }
