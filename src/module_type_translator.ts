@@ -152,7 +152,19 @@ export class ModuleTypeTranslator {
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
     }
-    return this.newTypeTranslator(context).translate(type);
+    try {
+      return this.newTypeTranslator(context).translate(type);
+    } catch (e: unknown) {
+      if (!(e instanceof Error)) throw e;  // should not happen (tm)
+      const sourceFile = context.getSourceFile();
+      const {line, character} = context.pos !== -1 ?
+          sourceFile.getLineAndCharacterOfPosition(context.pos) :
+          {line: 0, character: 0};
+      e.message = `internal error converting type at ${sourceFile.fileName}:${
+                      line}:${character}:\n\n` +
+          e.message;
+      throw e;
+    }
   }
 
   newTypeTranslator(context: ts.Node) {
