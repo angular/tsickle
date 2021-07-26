@@ -61,6 +61,12 @@ export function maybeAddTemplateClause(docTags: jsdoc.Tag[], decl: HasTypeParame
   });
 }
 
+const ADDITIONAL_ESCAPED_JSDOC_TAGS = new Set([
+  'param',
+  'return',
+  'this',
+]);
+
 /**
  * Adds heritage clauses (\@extends, \@implements) to the given docTags for
  * decl. Used by jsdoc_transformer and externs generation.
@@ -174,138 +180,6 @@ export function maybeAddHeritageClauses(
       mtt.debugWarn(decl, message);
     }
   }
-}
-
-/**
- * createMemberTypeDeclaration emits the type annotations for members of a class. It's necessary in
- * the case where TypeScript syntax specifies there are additional properties on the class, because
- * to declare these in Closure you must declare these separately from the class.
- *
- * createMemberTypeDeclaration produces an if (false) statement containing property declarations, or
- * null if no declarations could or needed to be generated (e.g. no members, or an unnamed type).
- * The if statement is used to make sure the code is not executed, otherwise property accesses could
- * trigger getters on a superclass. See test_files/fields/fields.ts:BaseThatThrows.
- */
-function createMemberTypeDeclaration(
-    mtt: ModuleTypeTranslator,
-    typeDecl: ts.ClassDeclaration|ts.InterfaceDeclaration): ts.IfStatement|null {
-  // Gather parameter properties from the constructor, if it exists.
-  const ctors: ts.ConstructorDeclaration[] = [];
-  let paramProps: ts.ParameterDeclaration[] = [];
-  const nonStaticProps: ClosureProperty[] = [];
-  const staticProps: ClosureProperty[] = [];
-  const unhandled: ts.NamedDeclaration[] = [];
-  const abstractMethods: ts.FunctionLikeDeclaration[] = [];
-  for (const member of typeDecl.members) {
-    if (member.kind === ts.SyntaxKind.Constructor) {
-      ctors.push(member as ts.ConstructorDeclaration);
-    } else if (
-        ts.isPropertyDeclaration(member) || ts.isPropertySignature(member) ||
-        (ts.isMethodDeclaration(member) && member.questionToken)) {
-      const isStatic =
-          transformerUtil.hasModifierFlag(member, ts.ModifierFlags.Static);
-      if (isStatic) {
-        staticProps.push(member);
-      } else {
-        nonStaticProps.push(member);
-      }
-    } else if (
-        member.kind === ts.SyntaxKind.MethodDeclaration ||
-        member.kind === ts.SyntaxKind.MethodSignature ||
-        member.kind === ts.SyntaxKind.GetAccessor ||
-        member.kind === ts.SyntaxKind.SetAccessor) {
-      if (transformerUtil.hasModifierFlag(member, ts.ModifierFlags.Abstract) ||
-          ts.isInterfaceDeclaration(typeDecl)) {
-        abstractMethods.push(
-            member as ts.MethodDeclaration | ts.GetAccessorDeclaration |
-            ts.SetAccessorDeclaration);
-      }
-      // Non-abstract methods only exist on classes, and are handled in regular
-      // emit.
-    } else {
-      unhandled.push(member);
-    }
-  }
-
-  if (ctors.length > 0) {
-    // Only the actual constructor implementation, which must be last in a potential sequence of
-    // overloaded constructors, may contain parameter properties.
-    const ctor = ctors[ctors.length - 1];
-    paramProps = ctor.parameters.filter(
-        p => transformerUtil.hasModifierFlag(p, ts.ModifierFlags.ParameterPropertyModifier));
-  }
-
-  if (nonStaticProps.length === 0 && paramProps.length === 0 && staticProps.length === 0 &&
-      abstractMethods.length === 0) {
-    // There are no members so we don't need to emit any type
-    // annotations helper.
-    return null;
-  }
-
-  if (!typeDecl.name) {
-    mtt.debugWarn(typeDecl, 'cannot add types on unnamed declarations');
-    return null;
-  }
-
-  const className = transformerUtil.getIdentifierText(typeDecl.name);
-  const staticPropAccess = ts.createIdentifier(className);
-  const instancePropAccess = ts.createPropertyAccess(staticPropAccess, 'prototype');
-  // Closure Compiler will report conformance errors about this being unknown type when emitting
-  // class properties as {?|undefined}, instead of just {?}. So make sure to only emit {?|undefined}
-  // on interfaces.
-  const isInterface = ts.isInterfaceDeclaration(typeDecl);
-  const propertyDecls = staticProps.map(
-      p => createClosurePropertyDeclaration(
-          mtt, staticPropAccess, p, isInterface && !!p.questionToken));
-  propertyDecls.push(...[...nonStaticProps, ...paramProps].map(
-      p => createClosurePropertyDeclaration(
-          mtt, instancePropAccess, p, isInterface && !!p.questionToken)));
-  propertyDecls.push(...unhandled.map(
-      p => transformerUtil.createMultiLineComment(
-          p, `Skipping unhandled member: ${escapeForComment(p.getText())}`)));
-
-  for (const fnDecl of abstractMethods) {
-    // If the function declaration is computed, its name is the computed expression; otherwise, its
-    // name can be resolved to a string.
-    const name = fnDecl.name && ts.isComputedPropertyName(fnDecl.name) ? fnDecl.name.expression :
-                                                                         propertyName(fnDecl);
-    if (!name) {
-      mtt.error(fnDecl, 'anonymous abstract function');
-      continue;
-    }
-    const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
-    if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
-    // Use element access instead of property access for computed names.
-    const lhs = typeof name === 'string' ? ts.createPropertyAccess(instancePropAccess, name) :
-                                           ts.createElementAccess(instancePropAccess, name);
-    // memberNamespace because abstract methods cannot be static in TypeScript.
-    const abstractFnDecl = ts.createStatement(ts.createAssignment(
-        lhs,
-        ts.createFunctionExpression(
-            /* modifiers */ undefined,
-            /* asterisk */ undefined,
-            /* name */ undefined,
-            /* typeParameters */ undefined,
-            parameterNames.map(
-                n => ts.createParameter(
-                    /* decorators */ undefined, /* modifiers */ undefined,
-                    /* dotDotDot */ undefined, n)),
-            undefined,
-            ts.createBlock([]),
-            )));
-    ts.setSyntheticLeadingComments(abstractFnDecl, [jsdoc.toSynthesizedComment(tags)]);
-    propertyDecls.push(ts.setSourceMapRange(abstractFnDecl, fnDecl));
-  }
-
-  // Wrap the property declarations in an 'if (false)' block.
-  // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
-  const ifStmt =
-      ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
-  // Also add a comment above the block to exclude it from coverage.
-  ts.addSyntheticLeadingComment(
-      ifStmt, ts.SyntaxKind.MultiLineCommentTrivia, ' istanbul ignore if ',
-      /* trailing newline */ true);
-  return ifStmt;
 }
 
 function propertyName(prop: ts.NamedDeclaration): string|null {
@@ -517,7 +391,7 @@ export function jsdocTransformer(
         if (!host.untyped) {
           maybeAddHeritageClauses(mjsdoc.tags, moduleTypeTranslator, classDecl);
         }
-        mjsdoc.updateComment();
+        mjsdoc.updateComment(ADDITIONAL_ESCAPED_JSDOC_TAGS);
         const decls: ts.Statement[] = [];
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, classDecl);
         // WARNING: order is significant; we must create the member decl before transforming away
@@ -888,12 +762,17 @@ export function jsdocTransformer(
       }
 
       /**
-       * Closure Compiler will fail when it finds incorrect JSDoc tags on nodes. This function
-       * parses and then re-serializes JSDoc comments, escaping or removing illegal tags.
+       * Parses and then re-serializes JSDoc comments, escaping or removing
+       * illegal tags.
+       *
+       * Closure Compiler will fail when it finds incorrect JSDoc tags on
+       * nodes. This function also escapes some type-syntax tags used by
+       * JSCompiler, in case they would end up in incorrect places after
+       * transformation.
        */
       function escapeIllegalJSDoc(node: ts.Node) {
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(node);
-        mjsdoc.updateComment();
+        mjsdoc.updateComment(ADDITIONAL_ESCAPED_JSDOC_TAGS);
       }
 
       /** Returns true if a value export should be emitted for the given symbol in export *. */
@@ -1143,6 +1022,157 @@ export function jsdocTransformer(
       }
 
       /**
+       * createMemberTypeDeclaration emits the type annotations for members of a
+       * class. It's necessary in the case where TypeScript syntax specifies
+       * there are additional properties on the class, because to declare these
+       * in Closure you must declare these separately from the class.
+       *
+       * createMemberTypeDeclaration produces an if (false) statement containing
+       * property declarations, or null if no declarations could or needed to be
+       * generated (e.g. no members, or an unnamed type). The if statement is
+       * used to make sure the code is not executed, otherwise property accesses
+       * could trigger getters on a superclass. See
+       * test_files/fields/fields.ts:BaseThatThrows.
+       */
+      function createMemberTypeDeclaration(
+          mtt: ModuleTypeTranslator,
+          typeDecl: ts.ClassDeclaration|
+          ts.InterfaceDeclaration): ts.IfStatement|null {
+        // Gather parameter properties from the constructor, if it exists.
+        const ctors: ts.ConstructorDeclaration[] = [];
+        let paramProps: ts.ParameterDeclaration[] = [];
+        const nonStaticProps: ClosureProperty[] = [];
+        const staticProps: ClosureProperty[] = [];
+        const unhandled: ts.NamedDeclaration[] = [];
+        const abstractMethods: ts.FunctionLikeDeclaration[] = [];
+        for (const member of typeDecl.members) {
+          if (member.kind === ts.SyntaxKind.Constructor) {
+            ctors.push(member as ts.ConstructorDeclaration);
+          } else if (
+              ts.isPropertyDeclaration(member) ||
+              ts.isPropertySignature(member) ||
+              (ts.isMethodDeclaration(member) && member.questionToken)) {
+            const isStatic = transformerUtil.hasModifierFlag(
+                member, ts.ModifierFlags.Static);
+            escapeIllegalJSDoc(member);
+            if (isStatic) {
+              staticProps.push(member);
+            } else {
+              nonStaticProps.push(member);
+            }
+          } else if (
+              member.kind === ts.SyntaxKind.MethodDeclaration ||
+              member.kind === ts.SyntaxKind.MethodSignature ||
+              member.kind === ts.SyntaxKind.GetAccessor ||
+              member.kind === ts.SyntaxKind.SetAccessor) {
+            if (transformerUtil.hasModifierFlag(
+                    member, ts.ModifierFlags.Abstract) ||
+                ts.isInterfaceDeclaration(typeDecl)) {
+              abstractMethods.push(
+                  member as ts.MethodDeclaration | ts.GetAccessorDeclaration |
+                  ts.SetAccessorDeclaration);
+            }
+            // Non-abstract methods only exist on classes, and are handled in
+            // regular emit.
+          } else {
+            unhandled.push(member);
+          }
+        }
+
+        if (ctors.length > 0) {
+          // Only the actual constructor implementation, which must be last in a
+          // potential sequence of overloaded constructors, may contain
+          // parameter properties.
+          const ctor = ctors[ctors.length - 1];
+          paramProps = ctor.parameters.filter(
+              p => transformerUtil.hasModifierFlag(
+                  p, ts.ModifierFlags.ParameterPropertyModifier));
+        }
+
+        if (nonStaticProps.length === 0 && paramProps.length === 0 &&
+            staticProps.length === 0 && abstractMethods.length === 0) {
+          // There are no members so we don't need to emit any type
+          // annotations helper.
+          return null;
+        }
+
+        if (!typeDecl.name) {
+          mtt.debugWarn(typeDecl, 'cannot add types on unnamed declarations');
+          return null;
+        }
+
+        const className = transformerUtil.getIdentifierText(typeDecl.name);
+        const staticPropAccess = ts.createIdentifier(className);
+        const instancePropAccess =
+            ts.createPropertyAccess(staticPropAccess, 'prototype');
+        // Closure Compiler will report conformance errors about this being
+        // unknown type when emitting class properties as {?|undefined}, instead
+        // of just {?}. So make sure to only emit {?|undefined} on interfaces.
+        const isInterface = ts.isInterfaceDeclaration(typeDecl);
+        const propertyDecls = staticProps.map(
+            p => createClosurePropertyDeclaration(
+                mtt, staticPropAccess, p, isInterface && !!p.questionToken));
+        propertyDecls.push(...[...nonStaticProps, ...paramProps].map(
+            p => createClosurePropertyDeclaration(
+                mtt, instancePropAccess, p, isInterface && !!p.questionToken)));
+        propertyDecls.push(...unhandled.map(
+            p => transformerUtil.createMultiLineComment(
+                p,
+                `Skipping unhandled member: ${
+                    escapeForComment(p.getText())}`)));
+
+        for (const fnDecl of abstractMethods) {
+          // If the function declaration is computed, its name is the computed
+          // expression; otherwise, its name can be resolved to a string.
+          const name = fnDecl.name && ts.isComputedPropertyName(fnDecl.name) ?
+              fnDecl.name.expression :
+              propertyName(fnDecl);
+          if (!name) {
+            mtt.error(fnDecl, 'anonymous abstract function');
+            continue;
+          }
+          const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
+          if (hasExportingDecorator(fnDecl, mtt.typeChecker))
+            tags.push({tagName: 'export'});
+          // Use element access instead of property access for computed names.
+          const lhs = typeof name === 'string' ?
+              ts.createPropertyAccess(instancePropAccess, name) :
+              ts.createElementAccess(instancePropAccess, name);
+          // memberNamespace because abstract methods cannot be static in
+          // TypeScript.
+          const abstractFnDecl = ts.createStatement(ts.createAssignment(
+              lhs,
+              ts.createFunctionExpression(
+                  /* modifiers */ undefined,
+                  /* asterisk */ undefined,
+                  /* name */ undefined,
+                  /* typeParameters */ undefined,
+                  parameterNames.map(
+                      n => ts.createParameter(
+                          /* decorators */ undefined, /* modifiers */ undefined,
+                          /* dotDotDot */ undefined, n)),
+                  undefined,
+                  ts.createBlock([]),
+                  )));
+          ts.setSyntheticLeadingComments(
+              abstractFnDecl, [jsdoc.toSynthesizedComment(tags)]);
+          propertyDecls.push(ts.setSourceMapRange(abstractFnDecl, fnDecl));
+        }
+
+        // Wrap the property declarations in an 'if (false)' block.
+        // See test_files/fields/fields.ts:BaseThatThrows for a note on this
+        // wrapper.
+        const ifStmt = ts.createIf(
+            ts.createLiteral(false), ts.createBlock(propertyDecls, true));
+        // Also add a comment above the block to exclude it from coverage.
+        ts.addSyntheticLeadingComment(
+            ifStmt, ts.SyntaxKind.MultiLineCommentTrivia,
+            ' istanbul ignore if ',
+            /* trailing newline */ true);
+        return ifStmt;
+      }
+
+      /**
        * Special cases the common idiom:
        *   for (const [a, b] of x) { ... }
        *
@@ -1233,8 +1263,9 @@ export function jsdocTransformer(
             return visitThisExpression(node as ts.ThisExpression);
           case ts.SyntaxKind.VariableStatement:
             return visitVariableStatement(node as ts.VariableStatement);
-          case ts.SyntaxKind.PropertyDeclaration:
+          case ts.SyntaxKind.ExpressionStatement:
           case ts.SyntaxKind.PropertyAssignment:
+          case ts.SyntaxKind.PropertyDeclaration:
             escapeIllegalJSDoc(node);
             break;
           case ts.SyntaxKind.Parameter:

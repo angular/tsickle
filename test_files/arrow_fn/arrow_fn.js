@@ -25,7 +25,7 @@ exports.fn5 = (/**
  */
 (a = 10) => a);
 /**
- * \@param a this must be escaped, as Closure bails on it.
+ * &param a this must be escaped, as Closure bails on it.
  * @type {function(number=): number}
  */
 const fn6 = (/**

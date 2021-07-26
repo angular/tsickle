@@ -4,11 +4,6 @@
 // test_files/jsdoc/jsdoc.ts(43,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(46,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
 // test_files/jsdoc/jsdoc.ts(49,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(35,3): warning TS0: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(40,3): warning TS0: @type annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(43,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(46,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(49,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(56,1): warning TS0: use index signatures (`[k: string]: type`) instead of @dict
 // test_files/jsdoc/jsdoc.ts(59,1): warning TS0: @lends annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(65,1): warning TS0: @this annotations are redundant with TypeScript equivalents
@@ -46,12 +41,12 @@ function returnsTest() {
 function jsDocTestBadDoc(foo) { }
 /**
  * Test JS doc on class.
- * \@madeUpTag This tag will be escaped, because Closure disallows it.
+ * &madeUpTag This tag will be escaped, because Closure disallows it.
  */
 class JSDocTest {
     constructor() {
         /**
-         * \@internal
+         * &internal
          */
         this.x = [];
         this.badEnumThing = { A: 'a' };
@@ -59,18 +54,18 @@ class JSDocTest {
     }
 }
 /**
- * \@internal
+ * &internal
  */
 JSDocTest.X = [];
 /* istanbul ignore if */
 if (false) {
     /**
-     * \@internal
+     * &internal
      * @type {!Array<string>}
      */
     JSDocTest.X;
     /**
-     * \@internal
+     * &internal
      * @type {!Array<string>}
      */
     JSDocTest.prototype.x;
@@ -112,7 +107,7 @@ function badThis() { }
  */
 function BadInterface() { }
 /**
- * \@madeUptag This tag will be escaped, because Closure disallows it.
+ * &madeUptag This tag will be escaped, because Closure disallows it.
  * @see This tag will be kept, because Closure allows it.
  * @return {void}
  */
@@ -127,18 +122,18 @@ class RedundantJSDocShouldBeStripped {
 }
 /**
  * This comment has code that needs to be escaped to pass Closure checking.
- * \@example
+ * &example
  *
- * \@Reflect
+ * &Reflect
  *   function example() {}
- * \@Reflect.metadata(foo, bar)
+ * &Reflect.metadata(foo, bar)
  *   function example2() {}
  * @return {void}
  */
 function JSDocWithBadTag() { }
 /**
  * For example,
- * \@madeUpTag
+ * &madeUpTag
  * @type {string}
  */
 const c = 'c';

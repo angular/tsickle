@@ -302,7 +302,7 @@ function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
       //    free to add whichever JSDoc they feel like.  If the user
       //    wants help ensuring they didn't typo a tag, that is the
       //    responsibility of a linter.
-      out += ` \\@${tag.tagName}`;
+      out += ` &${tag.tagName}`;
     } else {
       out += ` @${tag.tagName}`;
     }

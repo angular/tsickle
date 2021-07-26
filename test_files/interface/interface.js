@@ -54,8 +54,8 @@ if (false) {
     /** @type {?|undefined} */
     TrickyInterface.prototype.optAny;
     /**
-     * \@param a some string value
-     * \@return some number value
+     * &param a some string value
+     * &return some number value
      * @override
      * @type {function(string): number}
      */

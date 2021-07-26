@@ -26,7 +26,7 @@ const api = goog.require('test_files.decorator.only_types');
  */
 function decorator(a, b) { }
 /**
- * \@Annotation
+ * &Annotation
  * @param {!Object} a
  * @param {string} b
  * @return {?}
@@ -43,7 +43,7 @@ function classDecorator(t) {
 // Comment comes after statement so that type alias does not have
 // a comment on its own.
 /**
- * \@Annotation
+ * &Annotation
  * @param {?} t
  * @return {?}
  */
