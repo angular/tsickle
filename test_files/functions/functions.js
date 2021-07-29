@@ -52,13 +52,13 @@ function Destructuring({ a, b }) { }
  * @param {!Array<!Array<string>>} __1
  * @return {void}
  */
-function Destructuring2([a, b], [[c]]) { }
+function Destructuring2([a__tsickle_destructured_1, b__tsickle_destructured_2], [[c__tsickle_destructured_3]]) { let a = /** @type {number} */ (a__tsickle_destructured_1); let b = /** @type {number} */ (b__tsickle_destructured_2); let c = /** @type {string} */ (c__tsickle_destructured_3); }
 /**
  * @param {!Array<?>} __0
  * @param {!Array<?>} __1
  * @return {void}
  */
-function Destructuring3([a, b], [[c]]) { }
+function Destructuring3([a__tsickle_destructured_4, b__tsickle_destructured_5], [[c__tsickle_destructured_6]]) { let a = /** @type {?} */ (a__tsickle_destructured_4); let b = /** @type {?} */ (b__tsickle_destructured_5); let c = /** @type {?} */ (c__tsickle_destructured_6); }
 Destructuring({ a: 1, b: 2 });
 Destructuring2([1, 2], [['a']]);
 Destructuring3([1, 2], [['a']]);
