@@ -22,7 +22,6 @@ function unsupportedObjectDestructuring(xs: [string, {a: string}]) {
   const {destructured3, destructured4}:
       {destructured3: number,
        destructured4: number} = {destructured3: 3, destructured4: 4};
-  console.error(destructured3, destructured4);
 }
 
 function letDestructuring(xs: [string, number]) {
@@ -30,8 +29,3 @@ function letDestructuring(xs: [string, number]) {
   a = 'changed';
   console.error(a, b);
 }
-
-const tupleTyped: [number, string] = [1, 'a'];
-const tupleTypedHomogeneous: [number, number] = [1, 1];
-const emptyTupleType: [] = [];
-console.error(tupleTyped, tupleTypedHomogeneous, emptyTupleType);

@@ -38,7 +38,6 @@ function unsupportedObjectDestructuring(xs) {
     const [s, { a }] = xs;
     console.error(s, a);
     const { destructured3, destructured4 } = { destructured3: 3, destructured4: 4 };
-    console.error(destructured3, destructured4);
 }
 /**
  * @param {!Array<?>} xs
@@ -51,10 +50,3 @@ function letDestructuring(xs) {
     a = 'changed';
     console.error(a, b);
 }
-/** @type {!Array<?>} */
-const tupleTyped = [1, 'a'];
-/** @type {!Array<?>} */
-const tupleTypedHomogeneous = [1, 1];
-/** @type {!Array<?>} */
-const emptyTupleType = [];
-console.error(tupleTyped, tupleTypedHomogeneous, emptyTupleType);

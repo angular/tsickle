@@ -566,14 +566,10 @@ export class TypeTranslator {
   }
 
   private translateUnion(type: ts.UnionType): string {
-    return this.translateUnionMembers(type.types);
-  }
-
-  private translateUnionMembers(types: readonly ts.Type[]): string {
     // Union types that include literals (e.g. boolean, enum) can end up repeating the same Closure
     // type. For example: true | boolean will be translated to boolean | boolean.
     // Remove duplicates to produce types that read better.
-    const parts = new Set(types.map(t => this.translate(t)));
+    const parts = new Set(type.types.map(t => this.translate(t)));
     // If it's a single element set, return the single member.
     if (parts.size === 1) return parts.values().next().value;
     return `(${Array.from(parts.values()).join('|')})`;
@@ -662,12 +658,8 @@ export class TypeTranslator {
       const referenceType = type as ts.TypeReference;
 
       // A tuple is a ReferenceType where the target is flagged Tuple and the
-      // typeArguments are the tuple arguments. Closure Compiler does not
-      // support tuple types, so tsickle emits this as `Array<?>`.
-      // It would also be possible to emit an Array of the union of the
-      // constituent types. In experimentation, this however does not seem to
-      // improve optimization compatibility much, as long as destructuring
-      // assignments are aliased.
+      // typeArguments are the tuple arguments.  Just treat it as a mystery
+      // array, because Closure doesn't understand tuples.
       if (referenceType.target.objectFlags & ts.ObjectFlags.Tuple) {
         return '!Array<?>';
       }
@@ -712,6 +704,7 @@ export class TypeTranslator {
 
     /*
     TODO(ts2.1): more unhandled object type flags:
+      Tuple
       Mapped
       Instantiated
       ObjectLiteral
