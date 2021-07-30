@@ -86,10 +86,17 @@ class DecoratorTest {
         return 1;
     }
 }
+/** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
 DecoratorTest.decorators = [
     { type: classAnnotation },
 ];
-/** @nocollapse */
+/**
+ * @type {function(): !Array<(null|{
+ *   type: ?,
+ *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+ * })>}
+ * @nocollapse
+ */
 DecoratorTest.ctorParameters = () => [
     { type: Array },
     { type: undefined, decorators: [{ type: annotationDecorator, args: [1, 'args',] }] },
@@ -111,6 +118,7 @@ DecoratorTest.ctorParameters = () => [
     { type: Function },
     null
 ];
+/** @type {!Object<string, !Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
 DecoratorTest.propDecorators = {
     w: [{ type: annotationDecorator }],
     y: [{ type: annotationDecorator }]

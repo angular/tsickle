@@ -30,6 +30,7 @@
 import * as ts from 'typescript';
 
 import {getDecoratorDeclarations} from './decorators';
+import * as jsdoc from './jsdoc';
 import {getAllLeadingComments, symbolIsValue, visitEachChild} from './transformer_util';
 
 /**
@@ -68,19 +69,16 @@ export function shouldLower(decorator: ts.Decorator, typeChecker: ts.TypeChecker
   return false;
 }
 
-/**
- * Creates the AST for the decorator field type annotation, which has the form
- *     { type: Function, args?: any[] }[]
- */
-function createDecoratorInvocationType(): ts.TypeNode {
-  const typeElements: ts.TypeElement[] = [];
-  typeElements.push(ts.factory.createPropertySignature(
-      undefined, 'type', undefined,
-      ts.factory.createTypeReferenceNode(ts.factory.createIdentifier('Function'), undefined)));
-  typeElements.push(ts.factory.createPropertySignature(
-      undefined, 'args', ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-      ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))));
-  return ts.factory.createArrayTypeNode(ts.factory.createTypeLiteralNode(typeElements));
+const DECORATOR_INVOCATION_JSDOC_TYPE =
+    '!Array<{type: !Function, args: (undefined|!Array<?>)}>';
+
+function addJSDocTypeAnnotation(node: ts.Node, jsdocType: string): void {
+  ts.setSyntheticLeadingComments(node, [
+    jsdoc.toSynthesizedComment([{
+      tagName: 'type',
+      type: jsdocType,
+    }]),
+  ]);
 }
 
 /**
@@ -137,12 +135,13 @@ function extractMetadataFromSingleDecorator(
  */
 function createDecoratorClassProperty(decoratorList: ts.ObjectLiteralExpression[]) {
   const modifier = ts.factory.createToken(ts.SyntaxKind.StaticKeyword);
-  const type = createDecoratorInvocationType();
   const initializer = ts.factory.createArrayLiteralExpression(
       ts.factory.createNodeArray(decoratorList, /* hasTrailingComma */ true),
       true);
   const prop = ts.factory.createPropertyDeclaration(
-      undefined, [modifier], 'decorators', undefined, type, initializer);
+      undefined, [modifier], 'decorators', undefined, undefined, initializer);
+  addJSDocTypeAnnotation(prop, DECORATOR_INVOCATION_JSDOC_TYPE);
+
   // NB: the .decorators property does not get a @nocollapse property. There is
   // no good reason why - it means .decorators is not runtime accessible if you
   // compile with collapse properties, whereas propDecorators is, which doesn't
@@ -150,51 +149,6 @@ function createDecoratorClassProperty(decoratorList: ts.ObjectLiteralExpression[
   // adding it back in leads to substantial code size increases as Closure fails
   // to tree shake these props without @nocollapse.
   return prop;
-}
-
-/**
- * Creates the AST for the 'ctorParameters' field type annotation:
- *   () => ({ type: any, decorators?: {type: Function, args?: any[]}[] }|null)[]
- */
-function createCtorParametersClassPropertyType(): ts.TypeNode {
-  // Sorry about this. Try reading just the string literals below.
-  const typeElements: ts.TypeElement[] = [];
-  typeElements.push(ts.createPropertySignature(
-      undefined, 'type', undefined,
-      ts.createTypeReferenceNode(ts.createIdentifier('any'), undefined), undefined));
-  typeElements.push(ts.createPropertySignature(
-      undefined, 'decorators', ts.createToken(ts.SyntaxKind.QuestionToken),
-      ts.createArrayTypeNode(ts.createTypeLiteralNode([
-        ts.createPropertySignature(
-            undefined, 'type', undefined,
-            ts.createTypeReferenceNode(ts.createIdentifier('Function'), undefined), undefined),
-        ts.createPropertySignature(
-            undefined, 'args', ts.createToken(ts.SyntaxKind.QuestionToken),
-            ts.createArrayTypeNode(
-                ts.createTypeReferenceNode(ts.createIdentifier('any'), undefined)),
-            undefined),
-      ])),
-      undefined));
-  return ts.createFunctionTypeNode(
-      undefined, [], ts.createArrayTypeNode(ts.createUnionTypeNode([
-        ts.createTypeLiteralNode(typeElements),
-        ts.factory.createTypeReferenceNode('null')
-      ])));
-}
-
-/**
- * Sets a Closure \@nocollapse synthetic comment on the given node. This prevents Closure Compiler
- * from collapsing the apparently static property, which would make it impossible to find for code
- * trying to detect it at runtime.
- */
-function addNoCollapseComment(n: ts.Node) {
-  ts.setSyntheticLeadingComments(n, [{
-                                   kind: ts.SyntaxKind.MultiLineCommentTrivia,
-                                   text: '* @nocollapse ',
-                                   pos: -1,
-                                   end: -1,
-                                   hasTrailingNewLine: true
-                                 }]);
 }
 
 /**
@@ -242,11 +196,24 @@ function createCtorParametersClassProperty(
   const initializer = ts.factory.createArrowFunction(
       undefined, undefined, [], undefined, ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
       ts.factory.createArrayLiteralExpression(params, true));
-  const type = createCtorParametersClassPropertyType();
   const ctorProp = ts.factory.createPropertyDeclaration(
-      undefined, [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)], 'ctorParameters', undefined, type,
-      initializer);
-  addNoCollapseComment(ctorProp);
+      undefined, [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)],
+      'ctorParameters', undefined, undefined, initializer);
+  ts.setSyntheticLeadingComments(ctorProp, [
+    jsdoc.toSynthesizedComment([
+      {
+        tagName: 'type',
+        type: lines(
+            `function(): !Array<(null|{`,
+            `  type: ?,`,
+            `  decorators: (undefined|${DECORATOR_INVOCATION_JSDOC_TYPE}),`,
+            `})>`,
+            ),
+      },
+      {tagName: 'nocollapse'}
+    ]),
+  ]);
+
   return ctorProp;
 }
 
@@ -270,14 +237,12 @@ function createPropDecoratorsClassProperty(
             decorators.map(deco => extractMetadataFromSingleDecorator(deco, diagnostics)))));
   }
   const initializer = ts.factory.createObjectLiteralExpression(entries, true);
-  const type = ts.factory.createTypeLiteralNode([ts.factory.createIndexSignature(
-      undefined, undefined, [ts.factory.createParameterDeclaration(
-                                undefined, undefined, undefined, 'key', undefined,
-                                ts.factory.createTypeReferenceNode('string', undefined), undefined)],
-      createDecoratorInvocationType())]);
-  return ts.factory.createPropertyDeclaration(
-      undefined, [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)], 'propDecorators', undefined, type,
-      initializer);
+  const prop = ts.factory.createPropertyDeclaration(
+      undefined, [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)],
+      'propDecorators', undefined, undefined, initializer);
+  addJSDocTypeAnnotation(
+      prop, `!Object<string, ${DECORATOR_INVOCATION_JSDOC_TYPE}>`);
+  return prop;
 }
 
 /**
@@ -606,4 +571,8 @@ export function decoratorDownlevelTransformer(
 
     return (sf: ts.SourceFile) => visitor(sf) as ts.SourceFile;
   };
+}
+
+function lines(...s: string[]) {
+  return s.join('\n');
 }

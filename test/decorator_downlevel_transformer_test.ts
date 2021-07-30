@@ -114,10 +114,8 @@ class Foo {
 let param: any;
 class Foo {
     field: string;
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test1 },
         { type: Test2, args: [param,] },
     ];
@@ -125,8 +123,9 @@ class Foo {
 `);
     });
 
-    it('transforms decorated classes with function expression annotation declaration', () => {
-      expectTranslated(`
+    it('transforms decorated classes with function expression annotation declaration',
+       () => {
+         expectTranslated(`
 /** @Annotation */ function Test(t: any) {};
 @Test
 class Foo {
@@ -135,18 +134,17 @@ class Foo {
 ;
 class Foo {
     field: string;
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test },
     ];
 }
 `);
-    });
+       });
 
-    it('transforms decorated classes with an exported annotation declaration', () => {
-      expectTranslated(`
+    it('transforms decorated classes with an exported annotation declaration',
+       () => {
+         expectTranslated(`
 import {FakeDecorator} from 'bar';
 /** @Annotation */ export let Test: FakeDecorator;
 @Test
@@ -156,15 +154,13 @@ class Foo {
 /** @Annotation */ export let Test: FakeDecorator;
 class Foo {
     field: string;
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test },
     ];
 }
 `);
-    });
+       });
 
     it('accepts various complicated decorators', () => {
       expectTranslated(`
@@ -186,10 +182,8 @@ class Foo {
 /** @Annotation */ function Test4<T>(param: any): ClassDecorator { return null as any; }
 let param: any;
 class Foo {
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test1, args: [{ name: 'percentPipe' }, class ZZZ {
                 },] },
         { type: Test2 },
@@ -209,10 +203,8 @@ export class Foo {
 }`).toBe(`import { FakeDecorator } from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 export class Foo {
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test1 },
     ];
 }
@@ -237,18 +229,14 @@ export class Foo {
 export class Foo {
     foo() {
         class Bar {
-            static decorators: {
-                type: Function;
-                args?: any[];
-            }[] = [
+            /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+            static decorators = [
                 { type: Test2 },
             ];
         }
     }
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test1 },
     ];
 }
@@ -279,20 +267,18 @@ class Foo {
 class Foo {
     constructor() {
     }
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test1 },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [];
 }
 `);
     });
@@ -316,14 +302,14 @@ abstract class AbstractService {
 class Foo {
     constructor(bar: AbstractService, num: AnEnum) {
     }
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [
         { type: AbstractService, decorators: [{ type: Inject }] },
         { type: AnEnum, decorators: [{ type: Inject, args: ['enum',] }] }
     ];
@@ -331,8 +317,9 @@ class Foo {
 `);
     });
 
-    it('stores non annotated parameters if the class has at least one decorator', () => {
-      expectTranslated(`
+    it('stores non annotated parameters if the class has at least one decorator',
+       () => {
+         expectTranslated(`
 import {BarService, FakeDecorator} from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 @Test1()
@@ -344,26 +331,24 @@ class Foo {
 class Foo {
     constructor(bar: BarService, num: number) {
     }
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: Test1 },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [
         { type: BarService },
         { type: Number }
     ];
 }
 `);
-    });
+       });
 
     it('handles complex ctor parameters', () => {
       expectTranslated(`
@@ -379,14 +364,14 @@ let param: any;
 class Foo {
     constructor(x: bar.BarService, { a, b }, defArg = 3, optional?: bar.BarService) {
     }
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [
         { type: bar.BarService, decorators: [{ type: Inject, args: [param,] }] },
         null,
         null,
@@ -406,14 +391,14 @@ class ViewUtils {
 let APP_ID: any;
 class ViewUtils {
     constructor(private _appId: string) { }
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [
         { type: String, decorators: [{ type: Inject, args: [APP_ID,] }] }
     ];
 }
@@ -437,20 +422,18 @@ var KeepMe: Function = undefined as any;
 @KeepMe()
 class ViewUtils {
     constructor() { }
-    static decorators: {
-        type: Function;
-        args?: any[];
-    }[] = [
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
+    static decorators = [
         { type: RemoveMe },
     ];
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [];
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [];
 }
 `);
     });
@@ -465,14 +448,14 @@ class Foo {
 class Foo {
     constructor(typed: Promise<string>) {
     }
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [
         { type: Promise, decorators: [{ type: Inject }] }
     ];
 }
@@ -493,14 +476,14 @@ interface Iface {
 }
 class Foo {
     constructor(aClass: Class, aIface: Iface) { }
-    /** @nocollapse */
-    static ctorParameters: () => ({
-        type: any;
-        decorators?: {
-            type: Function;
-            args?: any[];
-        }[];
-    } | null)[] = () => [
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
+    static ctorParameters = () => [
         { type: Class, decorators: [{ type: Inject }] },
         { type: undefined, decorators: [{ type: Inject }] }
     ];
@@ -526,12 +509,8 @@ class Foo {
 }`).toBe(`/** @Annotation */ let Test1: Function;
 class Foo {
     bar() { }
-    static propDecorators: {
-        [key: string]: {
-            type: Function;
-            args?: any[];
-        }[];
-    } = {
+    /** @type {!Object<string, !Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
+    static propDecorators = {
         bar: [{ type: Test1, args: ['somename',] }]
     };
 }
@@ -552,12 +531,8 @@ class ClassWithDecorators {
     a;
     b;
     set c(value) { }
-    static propDecorators: {
-        [key: string]: {
-            type: Function;
-            args?: any[];
-        }[];
-    } = {
+    /** @type {!Object<string, !Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
+    static propDecorators = {
         a: [{ type: PropDecorator, args: ["p1",] }, { type: PropDecorator, args: ["p2",] }],
         c: [{ type: PropDecorator, args: ["p3",] }]
     };
@@ -590,12 +565,8 @@ class Foo {
 class Foo {
     missingSemi = () => { };
     other: number;
-    static propDecorators: {
-        [key: string]: {
-            type: Function;
-            args?: any[];
-        }[];
-    } = {
+    /** @type {!Object<string, !Array<{type: !Function, args: (undefined|!Array<?>)}>>} */
+    static propDecorators = {
         other: [{ type: PropDecorator }]
     };
 }

@@ -18,10 +18,17 @@ function main() {
          */
         constructor(service) { }
     }
+    /** @type {!Array<{type: !Function, args: (undefined|!Array<?>)}>} */
     TestComp3.decorators = [
         { type: Component },
     ];
-    /** @nocollapse */
+    /**
+     * @type {function(): !Array<(null|{
+     *   type: ?,
+     *   decorators: (undefined|!Array<{type: !Function, args: (undefined|!Array<?>)}>),
+     * })>}
+     * @nocollapse
+     */
     TestComp3.ctorParameters = () => [
         { type: SomeService }
     ];
