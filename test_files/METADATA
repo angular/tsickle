@@ -1,0 +1,7 @@
+# go/google3metadata
+# proto-file: devtools/metadata/metadata.proto
+# proto-message: MetaData
+tricorder {
+  # Disable lint on tsickle test data.
+  disable: ThirdPartyAndExperimentalLint
+}
