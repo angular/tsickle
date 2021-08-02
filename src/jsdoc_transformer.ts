@@ -642,9 +642,100 @@ export function jsdocTransformer(
         // Arrow functions retain their context `this` type. All others reset the this type to
         // either none (if not specified) or the type given in a fn(this: T, ...) declaration.
         if (!ts.isArrowFunction(fnDecl)) contextThisType = thisReturnType;
-        const result = ts.visitEachChild(fnDecl, visitor, context);
+        fnDecl = ts.visitEachChild(fnDecl, visitor, context);
         contextThisType = contextThisTypeBackup;
-        return result;
+
+        if (!fnDecl.body) {
+          // abstract functions do not need aliasing of their destructured
+          // arguments.
+          return fnDecl;
+        }
+
+        // Alias destructured function parameters for more precise types.
+
+        const bindingAliases: Array<[ts.Identifier, ts.Identifier]> = [];
+        const updatedParams = [];
+        let hasUpdatedParams = false;
+        for (const param of fnDecl.parameters) {
+          if (!ts.isArrayBindingPattern(param.name)) {
+            updatedParams.push(param);
+            continue;
+          }
+          const updatedParamName =
+              renameArrayBindings(param.name, bindingAliases);
+          if (!updatedParamName) {
+            updatedParams.push(param);
+            continue;
+          }
+          hasUpdatedParams = true;
+          updatedParams.push(ts.factory.updateParameterDeclaration(
+              param, param.decorators, param.modifiers, param.dotDotDotToken,
+              updatedParamName, param.questionToken, param.type,
+              param.initializer));
+        }
+
+        if (!hasUpdatedParams || bindingAliases.length === 0) return fnDecl;
+
+        let body = fnDecl.body;
+        const stmts: ts.Statement[] =
+            createArrayBindingAliases(ts.NodeFlags.Let, bindingAliases);
+        if (!ts.isBlock(body)) {
+          stmts.push(ts.factory.createReturnStatement(
+              // Use ( parens ) to protect the return statement against
+              // automatic semicolon insertion.
+              ts.factory.createParenthesizedExpression(body)));
+          body = ts.factory.createBlock(stmts, true);
+        } else {
+          stmts.push(...body.statements);
+          body = ts.factory.updateBlock(body, stmts);
+        }
+
+        switch (fnDecl.kind) {
+          case ts.SyntaxKind.FunctionDeclaration:
+            fnDecl =
+                ts.factory.updateFunctionDeclaration(
+                    fnDecl, fnDecl.decorators, fnDecl.modifiers,
+                    fnDecl.asteriskToken, fnDecl.name, fnDecl.typeParameters,
+                    updatedParams, fnDecl.type, body) as T;
+            break;
+          case ts.SyntaxKind.MethodDeclaration:
+            fnDecl = ts.factory.updateMethodDeclaration(
+                         fnDecl, fnDecl.decorators, fnDecl.modifiers,
+                         fnDecl.asteriskToken, fnDecl.name,
+                         fnDecl.questionToken, fnDecl.typeParameters,
+                         updatedParams, fnDecl.type, body) as T;
+            break;
+          case ts.SyntaxKind.SetAccessor:
+            fnDecl = ts.factory.updateSetAccessorDeclaration(
+                         fnDecl, fnDecl.decorators, fnDecl.modifiers,
+                         fnDecl.name, updatedParams, body) as T;
+            break;
+          case ts.SyntaxKind.Constructor:
+            fnDecl = ts.factory.updateConstructorDeclaration(
+                         fnDecl, fnDecl.decorators, fnDecl.modifiers,
+                         updatedParams, body) as T;
+            break;
+          case ts.SyntaxKind.FunctionExpression:
+            fnDecl = ts.factory.updateFunctionExpression(
+                         fnDecl, fnDecl.modifiers, fnDecl.asteriskToken,
+                         fnDecl.name, fnDecl.typeParameters, updatedParams,
+                         fnDecl.type, body) as T;
+            break;
+          case ts.SyntaxKind.ArrowFunction:
+            fnDecl = ts.factory.updateArrowFunction(
+                         fnDecl, fnDecl.modifiers, fnDecl.name, updatedParams,
+                         fnDecl.type, fnDecl.equalsGreaterThanToken, body) as T;
+            break;
+          case ts.SyntaxKind.GetAccessor:
+            moduleTypeTranslator.error(
+                fnDecl, `get accessors cannot have parameters`);
+            break;
+          default:
+            moduleTypeTranslator.error(
+                fnDecl, `unexpected function like declaration`);
+            break;
+        }
+        return fnDecl;
       }
 
       /**
@@ -1221,8 +1312,9 @@ export function jsdocTransformer(
             // Inserting a comment before an expression can trigger automatic semicolon insertion,
             // e.g. if the function below is the expression in a `return` statement. Parenthesizing
             // prevents ASI, as long as the opening paren remains on the same line (which it does).
-            return ts.createParen(
-                visitFunctionLikeDeclaration(node as ts.ArrowFunction | ts.FunctionExpression));
+            return ts.factory.createParenthesizedExpression(
+                visitFunctionLikeDeclaration(
+                    node as ts.ArrowFunction | ts.FunctionExpression));
           case ts.SyntaxKind.Constructor:
           case ts.SyntaxKind.FunctionDeclaration:
           case ts.SyntaxKind.MethodDeclaration:
