@@ -2,7 +2,7 @@
  * @fileoverview negative tests for the tsMigrationExportsShim transformation.
  *
  * Suppress expected errors for :test_files_compilation_test
- * @suppress {checkTypes,undefinedNames,visibility}
+ * @suppress {checkTypes,visibility}
  */
 
 // Allowed to be exported by tsmes.

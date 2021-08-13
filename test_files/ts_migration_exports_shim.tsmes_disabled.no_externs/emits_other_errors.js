@@ -7,7 +7,7 @@
  *
  * Suppress expected errors for :test_files_compilation_test
  * Generated from: test_files/ts_migration_exports_shim.tsmes_disabled.no_externs/emits_other_errors.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,undefinedNames,unusedPrivateMembers,uselessCode,visibility}
+ * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode,visibility}
  *
  */
 // Allowed to be exported by tsmes.

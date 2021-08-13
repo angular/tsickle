@@ -3,7 +3,7 @@
  * transformation.
  *
  * Suppress expected errors for :test_files_compilation_test
- * @suppress {checkTypes,undefinedNames,visibility}
+ * @suppress {checkTypes,visibility}
  */
 
 export const Foo = 42;

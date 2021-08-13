@@ -9,7 +9,7 @@
  * @fileoverview negative tests for the tsMigrationExportsShim transformation.
  *
  * Suppress expected errors for :test_files_compilation_test
- * @suppress {checkTypes,undefinedNames,visibility}
+ * @suppress {checkTypes,visibility}
  */
 goog.module('test_files.ts_migration_exports_shim.no_externs.puretransform.declaration.bad');
 var module = module || { id: 'test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/bad.ts' };

@@ -3,7 +3,7 @@
  * transformation.
  *
  * Suppress expected errors for :test_files_compilation_test
- * @suppress {checkTypes,undefinedNames,visibility}
+ * @suppress {checkTypes,visibility}
  */
 
 // Default exports in JavaScript only make sense when the corresponding
