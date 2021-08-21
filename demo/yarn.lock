@@ -22,10 +22,10 @@ minimist@^1.2.3:
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.3.tgz#3db5c0765545ab8637be71f333a104a965a9ca3f"
   integrity sha512-+bMdgqjMN/Z77a6NlY/I3U5LlRDbnmaAk6lDveAPKwSpcPM4tKAuYsvYF8xjhOPXhOYGe/73vVLVez5PW+jqhw==
 
-tsickle@^0.41.0:
-  version "0.41.0"
-  resolved "https://registry.yarnpkg.com/tsickle/-/tsickle-0.41.0.tgz#ab4f168a7168db6ce8fcdd306a44fa07270368ee"
-  integrity sha512-IRfRP3efl6E19MxqOwkty/hoqudAxd91tO75VmIZqXtVeiDyi3l3b8OqrC0/JagnJvqe+fHyefM5cbMR2lyEjw==
+tsickle@^0.43.0:
+  version "0.43.0"
+  resolved "https://registry.yarnpkg.com/tsickle/-/tsickle-0.43.0.tgz#d53501ee54932382c4923a77de9ab5a82abd9e98"
+  integrity sha512-n0lgIQBLliB7EFVTDpqrd/GjyB9I3NCodfX4R3NE/H73PQvGjgrkSZc8RVcWBG6s1MDiFjYDHIezYkuh8GYslw==
   dependencies:
     "@types/minimist" "^1.2.1"
 
