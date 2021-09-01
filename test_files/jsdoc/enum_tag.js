@@ -2,7 +2,6 @@
 // test_files/jsdoc/enum_tag.ts(14,1): warning TS0: @enum annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/enum_tag.ts(20,1): warning TS0: @enum annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/enum_tag.ts(29,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/enum_tag.ts(29,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
 /**
  *
  * @fileoverview Checks that JSDoc `\@enum` tags on an `enum` are flagged as

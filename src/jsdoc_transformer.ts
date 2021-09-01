@@ -380,7 +380,9 @@ function createClosurePropertyDeclaration(
   // so the Closure type must be ?|undefined.
   if (optional && type === '?') type += '|undefined';
 
-  const tags = mtt.getJSDoc(prop, /* reportWarnings */ true);
+  // Don't report warnings here to avoid duplicate warnings. We already warn
+  // once when visiting this ts.PropertyDeclaration in jsdocTransformer.visitor
+  const tags = mtt.getJSDoc(prop, /* reportWarnings */ false);
   tags.push({tagName: 'type', type});
   const flags = ts.getCombinedModifierFlags(prop);
   if (flags & ts.ModifierFlags.Protected) {

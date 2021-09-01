@@ -4,11 +4,6 @@
 // test_files/jsdoc/jsdoc.ts(43,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(46,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
 // test_files/jsdoc/jsdoc.ts(49,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(35,3): warning TS0: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(40,3): warning TS0: @type annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(43,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(46,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(49,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(56,1): warning TS0: use index signatures (`[k: string]: type`) instead of @dict
 // test_files/jsdoc/jsdoc.ts(59,1): warning TS0: @lends annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(65,1): warning TS0: @this annotations are redundant with TypeScript equivalents
