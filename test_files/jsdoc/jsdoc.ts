@@ -21,6 +21,7 @@ function jsDocTestBadDoc(foo: string) {}
 /**
  * Test JS doc on class.
  * @madeUpTag This tag will be escaped, because Closure disallows it.
+ * @param What does this even mean?
  */
 class JSDocTest {
   /** @internal */
@@ -49,6 +50,9 @@ class JSDocTest {
   /** @typedef {string} */
   badTypeDef: string;
 }
+
+/** @param What does this even mean? */
+interface MyInterface {}
 
 /** @template T */
 class BadTemplated {}

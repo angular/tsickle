@@ -1,17 +1,17 @@
 // test_files/jsdoc/jsdoc.ts(16,1): warning TS0: the type annotation on @param is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(35,3): warning TS0: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(40,3): warning TS0: @type annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(43,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(46,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
-// test_files/jsdoc/jsdoc.ts(49,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(56,1): warning TS0: use index signatures (`[k: string]: type`) instead of @dict
-// test_files/jsdoc/jsdoc.ts(59,1): warning TS0: @lends annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(65,1): warning TS0: @this annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(68,1): warning TS0: @interface annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(77,1): warning TS0: @extends annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(36,3): warning TS0: the type annotation on @export is redundant with its TypeScript type, remove the {...} part
+// test_files/jsdoc/jsdoc.ts(41,3): warning TS0: @type annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(44,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(47,3): warning TS0: the type annotation on @const is redundant with its TypeScript type, remove the {...} part
+// test_files/jsdoc/jsdoc.ts(50,3): warning TS0: @typedef annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(60,1): warning TS0: use index signatures (`[k: string]: type`) instead of @dict
+// test_files/jsdoc/jsdoc.ts(63,1): warning TS0: @lends annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(69,1): warning TS0: @this annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(72,1): warning TS0: @interface annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(81,1): warning TS0: @extends annotations are redundant with TypeScript equivalents
 // @implements annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(84,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
-// test_files/jsdoc/jsdoc.ts(132,1): warning TS0: the type annotation on @define is redundant with its TypeScript type, remove the {...} part
+// test_files/jsdoc/jsdoc.ts(88,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
+// test_files/jsdoc/jsdoc.ts(136,1): warning TS0: the type annotation on @define is redundant with its TypeScript type, remove the {...} part
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/jsdoc/jsdoc.ts
@@ -42,6 +42,7 @@ function jsDocTestBadDoc(foo) { }
 /**
  * Test JS doc on class.
  * \@madeUpTag This tag will be escaped, because Closure disallows it.
+ * \@param What does this even mean?
  */
 class JSDocTest {
     constructor() {
@@ -87,6 +88,11 @@ if (false) {
     /** @type {string} */
     JSDocTest.prototype.badTypeDef;
 }
+/**
+ * \@param What does this even mean?
+ * @record
+ */
+function MyInterface() { }
 class BadTemplated {
 }
 class BadDict {

@@ -1,5 +1,6 @@
 export {}
 
+/** @someTag */
 namespace unexported {
   export class Unexported {}
 }

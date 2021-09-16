@@ -55,6 +55,7 @@ const ComponentIndex = {
     Scheme: 1,
     UserInfo: 2,
     Domain: 0,
+    // Be sure to exercise the code with a 0 enum value.
     UserInfo2: 2,
 };
 ComponentIndex[ComponentIndex.Scheme] = 'Scheme';
@@ -114,7 +115,13 @@ MixedEnum[MixedEnum.NUM] = 'NUM';
 MixedEnum[MixedEnum['string key']] = 'string key';
 /** @enum {number} */
 const EnumWithJSDoc = {
-    /** @export */ MEMBER_WITH_JSDOC: 0,
+    /**
+     * @export
+     */ MEMBER_WITH_JSDOC: 0,
+    /**
+     * \@someTag
+     */ MEMBER_WITH_UNRECOGNIZED_JSDOC: 1,
 };
 exports.EnumWithJSDoc = EnumWithJSDoc;
 EnumWithJSDoc[EnumWithJSDoc.MEMBER_WITH_JSDOC] = 'MEMBER_WITH_JSDOC';
+EnumWithJSDoc[EnumWithJSDoc.MEMBER_WITH_UNRECOGNIZED_JSDOC] = 'MEMBER_WITH_UNRECOGNIZED_JSDOC';

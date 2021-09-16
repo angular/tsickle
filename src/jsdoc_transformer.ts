@@ -519,7 +519,7 @@ export function jsdocTransformer(
         if (!host.untyped) {
           maybeAddHeritageClauses(mjsdoc.tags, moduleTypeTranslator, classDecl);
         }
-        mjsdoc.updateComment();
+        mjsdoc.updateComment(jsdoc.TAGS_CONFLICTING_WITH_TYPE);
         const decls: ts.Statement[] = [];
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, classDecl);
         // WARNING: order is significant; we must create the member decl before transforming away
@@ -601,7 +601,7 @@ export function jsdocTransformer(
                 /* body */ ts.createBlock([]),
                 ),
             iface);
-        addCommentOn(decl, tags);
+        addCommentOn(decl, tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, iface);
         return memberDecl ? [decl, memberDecl] : [decl];
       }
@@ -981,12 +981,19 @@ export function jsdocTransformer(
       }
 
       /**
-       * Closure Compiler will fail when it finds incorrect JSDoc tags on nodes. This function
-       * parses and then re-serializes JSDoc comments, escaping or removing illegal tags.
+       * Parses and then re-serializes JSDoc comments, escaping or removing
+       * illegal tags.
+       *
+       * Closure Compiler will fail when it finds incorrect JSDoc tags on
+       * nodes. This function also escapes some type-syntax tags used by
+       * JSCompiler, in case they would end up in incorrect places after
+       * transformation.
        */
       function escapeIllegalJSDoc(node: ts.Node) {
+        // TODO(b/139687753): support escaping multiple pieces of JSDoc attached
+        // to a single ts.Node instead of just the last JSDoc or ban them
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(node);
-        mjsdoc.updateComment();
+        mjsdoc.updateComment(jsdoc.TAGS_CONFLICTING_WITH_TYPE);
       }
 
       /** Returns true if a value export should be emitted for the given symbol in export *. */
@@ -1327,8 +1334,11 @@ export function jsdocTransformer(
             return visitThisExpression(node as ts.ThisExpression);
           case ts.SyntaxKind.VariableStatement:
             return visitVariableStatement(node as ts.VariableStatement);
-          case ts.SyntaxKind.PropertyDeclaration:
+          case ts.SyntaxKind.ExpressionStatement:
           case ts.SyntaxKind.PropertyAssignment:
+          case ts.SyntaxKind.PropertyDeclaration:
+          case ts.SyntaxKind.ModuleDeclaration:
+          case ts.SyntaxKind.EnumMember:
             escapeIllegalJSDoc(node);
             break;
           case ts.SyntaxKind.Parameter:

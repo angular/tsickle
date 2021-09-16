@@ -150,6 +150,12 @@ const BANNED_JSDOC_TAGS_INPUT = new Set([
 ]);
 
 /**
+ * Tags that conflict with \@type in Closure Compiler and must always be
+ * escaped (e.g. \@param).
+ */
+export const TAGS_CONFLICTING_WITH_TYPE = new Set(['param', 'return']);
+
+/**
  * JSDoc \@tags that might include a {type} after them. Specifying a type is forbidden, since it
  * would collide with TypeScript's type information. If a type *is* given, the entire tag will be
  * ignored.
@@ -158,8 +164,7 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
   'const',
   'define',
   'export',
-  'param',
-  'return',
+  ...TAGS_CONFLICTING_WITH_TYPE
 ]);
 
 /**
@@ -329,9 +334,6 @@ function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
 
 /** Tags that must only occur onces in a comment (filtered below). */
 const SINGLETON_TAGS = new Set(['deprecated']);
-
-/** Tags that conflict with \@type in Closure Compiler (e.g. \@param). */
-export const TAGS_CONFLICTING_WITH_TYPE = new Set(['param', 'return']);
 
 /**
  * A synthesized comment that (possibly) includes the original comment range it was created from.

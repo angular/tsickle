@@ -82,4 +82,5 @@ enum MixedEnum {
 /** JSDoc in here. */
 export enum EnumWithJSDoc {
   /** @export */ MEMBER_WITH_JSDOC,
+  /** @someTag */ MEMBER_WITH_UNRECOGNIZED_JSDOC,
 }
