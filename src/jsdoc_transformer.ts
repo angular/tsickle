@@ -630,7 +630,7 @@ export function jsdocTransformer(
         // suppress in that case.  We do so by stuffing a @this on any function
         // where it might be needed; it's harmless to overapproximate.
         const isDownlevellingAsync =
-            tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2015;
+            tsOptions.target !== undefined && tsOptions.target <= ts.ScriptTarget.ES2018;
         const isFunction = fnDecl.kind === ts.SyntaxKind.FunctionDeclaration;
         const hasExistingThisTag = tags.some(t => t.tagName === 'this');
         if (isDownlevellingAsync && isFunction && !hasExistingThisTag && containsAsync(fnDecl)) {
