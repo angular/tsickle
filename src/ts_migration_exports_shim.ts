@@ -1,4 +1,6 @@
 /**
+ * @fileoverview
+ * @suppress {untranspilableFeatures} ES2018 feature "RegExp named groups"
  * @license
  * Copyright Google Inc. All Rights Reserved.
  *
