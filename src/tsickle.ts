@@ -12,7 +12,7 @@ import {AnnotatorHost} from './annotator_host';
 import {assertAbsolute} from './cli_support';
 import * as clutz from './clutz';
 import {decoratorDownlevelTransformer} from './decorator_downlevel_transformer';
-import {transformDecoratorJsdoc, transformDecoratorsOutputForClosurePropertyRenaming} from './decorators';
+import {transformDecoratorsOutputForClosurePropertyRenaming} from './decorators';
 import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
 import {transformFileoverviewCommentFactory} from './fileoverview_comment_transformer';
@@ -212,7 +212,6 @@ export function emit(
     tsTransformers.after!.push(
         transformDecoratorsOutputForClosurePropertyRenaming(
             tsickleDiagnostics));
-    tsTransformers.after!.push(transformDecoratorJsdoc());
   }
   if (host.addDtsClutzAliases) {
     tsTransformers.afterDeclarations!.push(

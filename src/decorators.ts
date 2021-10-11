@@ -200,39 +200,3 @@ function isGoogModuleStatement(statement: ts.Node) {
   }
   return goog.text === 'goog' && expr.expression.name.text === 'module';
 }
-
-/**
- * A transformation pass that removes leading comments of toplevel
- * statements of the form `ident = tslib_1.__decorate(...)`.
- *
- * These call statements are generated for decorated classes and other
- * declarations. The leading comments of the declarations are cloned to the
- * `__decorate()` calls. The comments of decorated classes may contain template
- * annotations, and these template annotations lead to JSCompiler errors when
- * they are cloned to the `__decorate()` call.
- */
-export function transformDecoratorJsdoc(): ts.TransformerFactory<ts.SourceFile> {
-  return (context: ts.TransformationContext) => {
-    const transformer: ts.Transformer<ts.SourceFile> =
-        (sourceFile: ts.SourceFile) => {
-          for (const stmt of sourceFile.statements) {
-            // Only need to iterate over top-level statements in the source
-            // file.
-            if (!ts.isExpressionStatement(stmt)) continue;
-            const comments = ts.getSyntheticLeadingComments(stmt);
-            if (!comments || comments.length === 0) continue;
-            const expr = stmt.expression;
-            if (!ts.isBinaryExpression(expr)) continue;
-            if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) continue;
-            const rhs = expr.right;
-            if (!ts.isCallExpression(rhs)) continue;
-            if (ts.isIdentifier(rhs.expression) &&
-                (rhs.expression.text === '__decorate')) {
-              ts.setSyntheticLeadingComments(stmt, []);
-            }
-          }
-          return sourceFile;
-        };
-    return transformer;
-  };
-}
