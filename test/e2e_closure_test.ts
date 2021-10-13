@@ -5,6 +5,12 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
+// copybara:begin_strip(internal docs)
+// WARNING: This code is only used in the external github test. Internally, we
+// rely on the js_binary() target in ./BUILD.
+// This file is included here so we can edit it in internal changelists that
+// also require an update to the external test.
+// copybara:end_strip
 
 ///<reference types="jasmine"/>
 
