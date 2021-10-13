@@ -21,7 +21,7 @@
     "@types/source-map-support": "^0.5.3",
     "diff-match-patch": "^1.0.5",
     "glob": "7.1.2",
-    "google-closure-compiler": "^20190929.0.0",
+    "google-closure-compiler": "^20211006.0.0",
     "jasmine": "^3.7.0",
     "jasmine-node": "^3.0.0",
     "source-map": "^0.7.3",
