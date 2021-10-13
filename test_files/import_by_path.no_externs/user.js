@@ -12,5 +12,5 @@ const tsickle_otherfile_1 = goog.requireType("other.module");
 const tsickle_typeonly_2 = goog.requireType("type.module");
 const ns = goog.require('other.module');
 const otherfile_1 = ns;
-console.log((/** @type {number} */ (otherfile_1.someFunction(1))));
+console.log((/** @type {number} */ ((0, otherfile_1.someFunction)(1))));
 ns.someFunction(1);

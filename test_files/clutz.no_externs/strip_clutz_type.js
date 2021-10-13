@@ -14,4 +14,4 @@ let clutzedClass = new goog_some_name_space_1.ClutzedClass();
 console.log(clutzedClass);
 /** @type {!tsickle_other_2.ClutzedInterface} */
 let typeAliased = clutzedClass.field;
-goog_some_name_space_1.clutzedFn(typeAliased);
+(0, goog_some_name_space_1.clutzedFn)(typeAliased);

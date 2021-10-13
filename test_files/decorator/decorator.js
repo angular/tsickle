@@ -123,13 +123,13 @@ DecoratorTest.propDecorators = {
     w: [{ type: annotationDecorator }],
     y: [{ type: annotationDecorator }]
 };
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     decorator,
-    tslib_1.__metadata("design:type", Number)
+    (0, tslib_1.__metadata)("design:type", Number)
 ], DecoratorTest.prototype, __tsickle_googReflect.objectProperty("x", DecoratorTest.prototype), void 0);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     decorator,
-    tslib_1.__metadata("design:type", external_1.AClass)
+    (0, tslib_1.__metadata)("design:type", external_1.AClass)
 ], DecoratorTest.prototype, __tsickle_googReflect.objectProperty("z", DecoratorTest.prototype), void 0);
 /* istanbul ignore if */
 if (false) {
@@ -152,7 +152,7 @@ if (false) {
 }
 let DecoratedClass = class DecoratedClass {
 };
-DecoratedClass = tslib_1.__decorate([
+DecoratedClass = (0, tslib_1.__decorate)([
     classDecorator
 ], DecoratedClass);
 /* istanbul ignore if */

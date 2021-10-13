@@ -73,45 +73,45 @@ class MyClass {
         console.log(`I don't really care about ${x}.`);
     }
 }
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     exportingDecorator(),
-    tslib_1.__metadata("design:type", Boolean)
+    (0, tslib_1.__metadata)("design:type", Boolean)
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("exportMe", MyClass.prototype), void 0);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     nonExportingDecorator(),
-    tslib_1.__metadata("design:type", Number)
+    (0, tslib_1.__metadata)("design:type", Number)
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("doNotExportMe", MyClass.prototype), void 0);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     exportingDecorator(),
-    tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", []),
-    tslib_1.__metadata("design:returntype", void 0)
+    (0, tslib_1.__metadata)("design:type", Function),
+    (0, tslib_1.__metadata)("design:paramtypes", []),
+    (0, tslib_1.__metadata)("design:returntype", void 0)
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("exportThisOneToo", MyClass.prototype), null);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     nonExportingDecorator(),
-    tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", []),
-    tslib_1.__metadata("design:returntype", void 0)
+    (0, tslib_1.__metadata)("design:type", Function),
+    (0, tslib_1.__metadata)("design:paramtypes", []),
+    (0, tslib_1.__metadata)("design:returntype", void 0)
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("doNotExportThisOneEither", MyClass.prototype), null);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     exportingDecorator(),
-    tslib_1.__metadata("design:type", Object),
-    tslib_1.__metadata("design:paramtypes", [])
+    (0, tslib_1.__metadata)("design:type", Object),
+    (0, tslib_1.__metadata)("design:paramtypes", [])
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("exportThisGetter", MyClass.prototype), null);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     exportingDecorator(),
-    tslib_1.__metadata("design:type", Number),
-    tslib_1.__metadata("design:paramtypes", [Number])
+    (0, tslib_1.__metadata)("design:type", Number),
+    (0, tslib_1.__metadata)("design:paramtypes", [Number])
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("exportThisSetter", MyClass.prototype), null);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     nonExportingDecorator(),
-    tslib_1.__metadata("design:type", Object),
-    tslib_1.__metadata("design:paramtypes", [])
+    (0, tslib_1.__metadata)("design:type", Object),
+    (0, tslib_1.__metadata)("design:paramtypes", [])
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("doNotExportThisGetter", MyClass.prototype), null);
-tslib_1.__decorate([
+(0, tslib_1.__decorate)([
     nonExportingDecorator(),
-    tslib_1.__metadata("design:type", Number),
-    tslib_1.__metadata("design:paramtypes", [Number])
+    (0, tslib_1.__metadata)("design:type", Number),
+    (0, tslib_1.__metadata)("design:paramtypes", [Number])
 ], MyClass.prototype, __tsickle_googReflect.objectProperty("doNotExportThisSetter", MyClass.prototype), null);
 /* istanbul ignore if */
 if (false) {

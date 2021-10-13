@@ -16,20 +16,20 @@ class ContainsPrivateField {
      */
     constructor(arg) {
         _ContainsPrivateField_someField.set(this, void 0);
-        tslib_1.__classPrivateFieldSet(this, _ContainsPrivateField_someField, arg, "f");
+        (0, tslib_1.__classPrivateFieldSet)(this, _ContainsPrivateField_someField, arg, "f");
     }
     /**
      * @param {string} value
      * @return {void}
      */
     setSomeField(value) {
-        tslib_1.__classPrivateFieldSet(this, _ContainsPrivateField_someField, value, "f");
+        (0, tslib_1.__classPrivateFieldSet)(this, _ContainsPrivateField_someField, value, "f");
     }
     /**
      * @return {string}
      */
     getSomeField() {
-        return tslib_1.__classPrivateFieldGet(this, _ContainsPrivateField_someField, "f");
+        return (0, tslib_1.__classPrivateFieldGet)(this, _ContainsPrivateField_someField, "f");
     }
 }
 _ContainsPrivateField_someField = new WeakMap();
