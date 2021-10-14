@@ -8,6 +8,7 @@
 
 import * as ts from 'typescript';
 
+import * as jsdoc from './jsdoc';
 import {getAllLeadingComments, reportDiagnostic} from './transformer_util';
 
 /**
@@ -199,4 +200,63 @@ function isGoogModuleStatement(statement: ts.Node) {
     return false;
   }
   return goog.text === 'goog' && expr.expression.name.text === 'module';
+}
+
+const TAGS_CONFLICTING_WITH_DECORATE = new Set(['template', 'abstract']);
+
+/**
+ * Removes problematic annotations from JsDoc comments.
+ */
+function sanitizeDecorateComments(comments: ts.SynthesizedComment[]):
+    ts.SynthesizedComment[] {
+  const sanitized: ts.SynthesizedComment[] = [];
+  for (const comment of comments) {
+    const parsedComment: jsdoc.ParsedJSDocComment|null = jsdoc.parse(comment);
+    if (parsedComment && parsedComment.tags.length !== 0) {
+      const filteredTags = parsedComment.tags.filter(
+          t => !(TAGS_CONFLICTING_WITH_DECORATE.has(t.tagName)));
+      if (filteredTags.length !== 0) {
+        sanitized.push(jsdoc.toSynthesizedComment(filteredTags));
+      }
+    }
+  }
+  return sanitized;
+}
+
+/**
+ * A transformation pass that removes the annotations contained in
+ * TAGS_CONFLICTING_WITH_DECORATE from toplevel statements of the form `ident =
+ * tslib_1.__decorate(...)`.
+ *
+ * These call statements are generated for decorated classes and other
+ * declarations. The leading comments of the declarations are cloned to the
+ * `__decorate()` calls and may contain annotations that are not allowed in this
+ * context and result in JSCompiler errors.
+ */
+export function transformDecoratorJsdoc():
+    ts.TransformerFactory<ts.SourceFile> {
+  return (context: ts.TransformationContext) => {
+    const transformer: ts.Transformer<ts.SourceFile> =
+        (sourceFile: ts.SourceFile) => {
+          for (const stmt of sourceFile.statements) {
+            // Only need to iterate over top-level statements in the source
+            // file.
+            if (!ts.isExpressionStatement(stmt)) continue;
+            const comments = ts.getSyntheticLeadingComments(stmt);
+            if (!comments || comments.length === 0) continue;
+            const expr = stmt.expression;
+            if (!ts.isBinaryExpression(expr)) continue;
+            if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) continue;
+            const rhs = expr.right;
+            if (!ts.isCallExpression(rhs)) continue;
+            if (ts.isIdentifier(rhs.expression) &&
+                (rhs.expression.text === '__decorate')) {
+              ts.setSyntheticLeadingComments(
+                  stmt, sanitizeDecorateComments(comments));
+            }
+          }
+          return sourceFile;
+        };
+    return transformer;
+  };
 }
