@@ -50,8 +50,9 @@ function compareAgainstGolden(
   let golden: string|null = null;
   try {
     golden = fs.readFileSync(goldenPath, 'utf-8');
-  } catch (e) {
-    if (e.code === 'ENOENT' && (UPDATE_GOLDENS || output === null)) {
+  } catch (e: unknown) {
+    if ((e as {code: string}).code === 'ENOENT' &&
+        (UPDATE_GOLDENS || output === null)) {
       // A missing file is acceptable if we're updating goldens or
       // if we're expected to produce no output.
     } else {

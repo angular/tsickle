@@ -5,17 +5,17 @@
   "main": "demo.js",
   "license": "Apache-2.0",
   "private": true,
-  "scripts": {
-    "build": "node_modules/typescript/bin/tsc",
-    "demo": "node --preserve-symlinks build/demo.js -- --outDir `pwd`/tsickle-out"
-  },
   "dependencies": {
     "minimist": "^1.2.3",
-    "tsickle": "^0.43.0",
-    "typescript": "~4.3"
+    "tsickle": "file:../",
+    "typescript": "mprobst/TypeScript#ts44-no-double-comments"
   },
   "devDependencies": {
     "@types/minimist": "1.2.0",
     "@types/node": "^10.5.6"
+  },
+  "scripts": {
+    "build": "(cd ../ && yarn build) && node_modules/typescript/bin/tsc",
+    "demo": "node --preserve-symlinks build/demo.js -- --outDir `pwd`/tsickle-out"
   }
 }
