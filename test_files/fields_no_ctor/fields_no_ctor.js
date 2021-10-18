@@ -10,6 +10,9 @@ class NoCtor {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     NoCtor.prototype.field1;
 }

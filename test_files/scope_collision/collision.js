@@ -12,7 +12,10 @@ goog.require('tslib');
 function MyType() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     MyType.prototype.propA;
 }
 /** @typedef {!MyType} */
@@ -33,9 +36,15 @@ function () {
     }
     /* istanbul ignore if */
     if (false) {
-        /** @type {string} */
+        /**
+         * @type {string}
+         * @public
+         */
         MyType.prototype.propA;
-        /** @type {string} */
+        /**
+         * @type {string}
+         * @public
+         */
         MyType.prototype.propB;
     }
     // TODO(b/195232797): Should emit MyTypeAlias

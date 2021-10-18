@@ -31,6 +31,7 @@ test_files$augment$angular$index_.angular.IAngularStatic = function() {};
 test_files$augment$angular$index_.angular.IAngularStatic.prototype.version;
 
 /**
+ * @public
  * @param {string} a
  * @return {string}
  */

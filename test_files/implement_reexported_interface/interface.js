@@ -13,6 +13,9 @@ function ExportedInterface() { }
 exports.ExportedInterface = ExportedInterface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ExportedInterface.prototype.fooStr;
 }

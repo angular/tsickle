@@ -14,7 +14,10 @@ function EnumUsingIf() { }
 exports.EnumUsingIf = EnumUsingIf;
 /* istanbul ignore if */
 if (false) {
-    /** @type {!tsickle_enum_1.ConstEnum} */
+    /**
+     * @type {!tsickle_enum_1.ConstEnum}
+     * @public
+     */
     EnumUsingIf.prototype.field;
 }
 /** @type {!tsickle_enum_1.ConstEnum} */

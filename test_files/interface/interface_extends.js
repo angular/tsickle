@@ -12,7 +12,10 @@ goog.require('tslib');
 function ParentInterface() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     ParentInterface.prototype.x;
 }
 /**
@@ -22,7 +25,10 @@ if (false) {
 function SubType() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     SubType.prototype.y;
 }
 /**
@@ -33,6 +39,9 @@ if (false) {
 function SubMulti() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     SubMulti.prototype.z;
 }

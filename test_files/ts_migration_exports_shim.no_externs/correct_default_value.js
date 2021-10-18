@@ -17,6 +17,9 @@ class MyDefaultClass {
 exports.MyDefaultClass = MyDefaultClass;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyDefaultClass.prototype.field;
 }

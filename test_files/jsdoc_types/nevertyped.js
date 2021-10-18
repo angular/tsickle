@@ -15,7 +15,10 @@ function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     NeverTyped.prototype.foo;
 }
 /**
@@ -26,6 +29,9 @@ function NeverTypedTemplated() { }
 exports.NeverTypedTemplated = NeverTypedTemplated;
 /* istanbul ignore if */
 if (false) {
-    /** @type {T} */
+    /**
+     * @type {T}
+     * @public
+     */
     NeverTypedTemplated.prototype.foo;
 }

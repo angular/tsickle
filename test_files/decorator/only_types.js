@@ -16,6 +16,9 @@ function AnotherType() { }
 exports.AnotherType = AnotherType;
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     AnotherType.prototype.field;
 }

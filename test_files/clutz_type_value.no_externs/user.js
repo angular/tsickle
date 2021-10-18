@@ -21,7 +21,10 @@ class C {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     C.prototype.field;
 }
 // We expect IFace to show up in the @type of usingTypeValueConflictType below.

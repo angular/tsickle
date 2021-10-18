@@ -26,6 +26,7 @@ Child.prototype.y;
 function ParentInterface() {}
 
 /**
+ * @public
  * @return {void}
  */
 ParentInterface.prototype.foo = function() {};
@@ -37,6 +38,7 @@ ParentInterface.prototype.foo = function() {};
 function ChildInterface() {}
 
 /**
+ * @public
  * @return {void}
  */
 ChildInterface.prototype.bar = function() {};
@@ -48,6 +50,7 @@ ChildInterface.prototype.bar = function() {};
 function ImplementingClass() {}
 
 /**
+ * @public
  * @return {void}
  */
 ImplementingClass.prototype.foo = function() {};

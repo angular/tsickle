@@ -17,6 +17,7 @@ function func(arg1) {
 }
 class Foo {
     /**
+     * @public
      * @param {?} ctorArg
      */
     constructor(ctorArg) {
@@ -26,7 +27,10 @@ class Foo {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     Foo.prototype.field;
     /**
      * @type {?}

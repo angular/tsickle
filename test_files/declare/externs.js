@@ -19,6 +19,7 @@ DeclareTestModule.Foo = function() {};
 DeclareTestModule.Foo.prototype.field;
 
 /**
+ * @public
  * @param {string} a
  * @return {number}
  */
@@ -38,6 +39,7 @@ DeclareTestModule.fooMaker;
 /**
  * @constructor
  * @struct
+ * @public
  * @param {number} a
  */
 DeclareTestModule.Clazz = function(a) {};
@@ -50,12 +52,14 @@ DeclareTestModule.Clazz.field;
 
 /**
  * Comment
+ * @public
  * @param {string} a
  * @return {number}
  */
 DeclareTestModule.Clazz.prototype.method = function(a) {};
 
 /**
+ * @public
  * @param {string} a
  * @return {number}
  */
@@ -67,11 +71,13 @@ DeclareTestModule.Clazz.staticMethod = function(a) {};
 DeclareTestModule.Example = function() {};
 
 /**
+ * @public
  * @return {number}
  */
 DeclareTestModule.Example.methodA = function() {};
 
 /**
+ * @public
  * @return {string}
  */
 DeclareTestModule.Example.prototype.methodA = function() {};
@@ -109,11 +115,13 @@ DeclareTestInterface.prototype.foo;
 /**
  * @constructor
  * @struct
+ * @public
  * @param {number=} a
  */
 function MultipleConstructors(a) {}
 
 /**
+ * @public
  * @return {?}
  */
 Object.prototype.myMethod = function() {};
@@ -182,6 +190,7 @@ var ChartType = {
  * @template T
  * @constructor
  * @struct
+ * @public
  * @param {T} t
  */
 function Container(t) {}

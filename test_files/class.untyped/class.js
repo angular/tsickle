@@ -14,28 +14,33 @@ function Interface() { }
 /* istanbul ignore if */
 if (false) {
     /**
+     * @public
      * @return {?}
      */
     Interface.prototype.interfaceFunc = function () { };
 }
 class Super {
     /**
+     * @public
      * @return {?}
      */
     superFunc() { }
 }
 class Implements {
     /**
+     * @public
      * @return {?}
      */
     interfaceFunc() { }
     /**
+     * @public
      * @return {?}
      */
     superFunc() { }
 }
 class Extends extends Super {
     /**
+     * @public
      * @return {?}
      */
     interfaceFunc() { }
@@ -44,10 +49,12 @@ class Extends extends Super {
 var TypeAlias;
 class ImplementsTypeAlias {
     /**
+     * @public
      * @return {?}
      */
     interfaceFunc() { }
     /**
+     * @public
      * @return {?}
      */
     superFunc() { }
@@ -72,7 +79,10 @@ class ZoneImplementsInterface {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     ZoneImplementsInterface.prototype.zone;
 }
 /** @typedef {?} */
@@ -81,7 +91,10 @@ class ZoneImplementsAlias {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     ZoneImplementsAlias.prototype.zone;
 }
 class WithOptionalField {
@@ -91,6 +104,9 @@ class WithOptionalField {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     WithOptionalField.prototype.optionalField;
 }

@@ -8,6 +8,7 @@ var module = module || { id: 'test_files/docs_on_ctor_param_properties/docs_on_c
 goog.require('tslib');
 class Clazz {
     /**
+     * @public
      * @param {!Array<string>} id
      * @param {!Array<string>=} parameterProperty
      */
@@ -19,11 +20,15 @@ class Clazz {
 exports.Clazz = Clazz;
 /* istanbul ignore if */
 if (false) {
-    /** @type {!Array<string>} */
+    /**
+     * @type {!Array<string>}
+     * @public
+     */
     Clazz.prototype.id;
     /**
      * Here is a docstring for the parameter property.
      * @type {!Array<string>}
+     * @public
      */
     Clazz.prototype.parameterProperty;
 }

@@ -30,7 +30,10 @@ function Bar() { }
 exports.Bar = Bar;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     Bar.prototype.barField;
 }
 /** @type {number} */

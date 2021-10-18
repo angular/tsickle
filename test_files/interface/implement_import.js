@@ -13,6 +13,7 @@ const interface_1 = goog.require('test_files.interface.interface');
  */
 class MyPoint {
     /**
+     * @public
      * @param {number} x
      * @param {number} y
      */
@@ -23,9 +24,15 @@ class MyPoint {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyPoint.prototype.x;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyPoint.prototype.y;
 }
 /**
@@ -33,6 +40,7 @@ if (false) {
  */
 class ImplementsUser {
     /**
+     * @public
      * @param {number} shoeSize
      */
     constructor(shoeSize) {
@@ -41,7 +49,10 @@ class ImplementsUser {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     ImplementsUser.prototype.shoeSize;
 }
 // Note that the @extends JSDoc points to a different name than the extends
@@ -51,6 +62,9 @@ if (false) {
  * @extends {tsickle_interface_1.User}
  */
 class ExtendsUser extends interface_1.User {
+    /**
+     * @public
+     */
     constructor() {
         super();
     }

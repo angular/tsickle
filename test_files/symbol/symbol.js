@@ -22,6 +22,7 @@ function ComputedSymbol() { }
 /* istanbul ignore if */
 if (false) {
     /**
+     * @public
      * @return {number}
      */
     ComputedSymbol.prototype[uniqueSymbol] = function () { };

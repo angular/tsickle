@@ -14,9 +14,15 @@ function Point() { }
 exports.Point = Point;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     Point.prototype.x;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     Point.prototype.y;
 }
 /**
@@ -27,7 +33,10 @@ class User {
 exports.User = User;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     User.prototype.shoeSize;
 }
 /**
@@ -47,17 +56,27 @@ usePoint({ x: 1, y: 1 });
 function TrickyInterface() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     TrickyInterface.prototype.foo;
-    /** @type {(undefined|string)} */
+    /**
+     * @type {(undefined|string)}
+     * @public
+     */
     TrickyInterface.prototype.foobar;
-    /** @type {?|undefined} */
+    /**
+     * @type {?|undefined}
+     * @public
+     */
     TrickyInterface.prototype.optAny;
     /**
      * \@param a some string value
      * \@return some number value
      * @override
      * @type {function(string): number}
+     * @public
      */
     TrickyInterface.prototype.hasSomeParamJsDoc;
     /* Skipping illegal member name:

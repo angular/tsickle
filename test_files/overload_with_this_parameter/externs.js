@@ -11,6 +11,7 @@
 function Foo() {}
 
 /**
+ * @public
  * @this {!Foo|void}
  * @param {boolean|string|(undefined|number)=} x
  * @param {number=} y

@@ -14,6 +14,7 @@ class SomeService {
 function main() {
     class TestComp3 {
         /**
+         * @public
          * @param {!SomeService} service
          */
         constructor(service) { }

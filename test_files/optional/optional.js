@@ -16,11 +16,13 @@ function optionalArgument(x, y) {
 optionalArgument(1);
 class OptionalTest {
     /**
+     * @public
      * @param {string} a
      * @param {(undefined|string)=} b
      */
     constructor(a, b) { }
     /**
+     * @public
      * @param {string=} c
      * @return {void}
      */

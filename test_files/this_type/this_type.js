@@ -35,6 +35,7 @@ class ThisThisReturnsThisAsThis {
     // explicitly passed this type, plus one for the template'd this type, which is an error in
     // Closure.
     /**
+     * @public
      * @this {!UnrelatedType}
      * @return {!ThisThisReturnsThisAsThis}
      */

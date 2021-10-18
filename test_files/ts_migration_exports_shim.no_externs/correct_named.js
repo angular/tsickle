@@ -17,7 +17,10 @@ class MyNamedClass {
 exports.MyNamedClass = MyNamedClass;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyNamedClass.prototype.field;
 }
 /**
@@ -27,6 +30,9 @@ function AnInterface() { }
 exports.AnInterface = AnInterface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     AnInterface.prototype.shouldBeANumber;
 }

@@ -15,6 +15,9 @@ function NeverTyped() { }
 exports.NeverTyped = NeverTyped;
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     NeverTyped.prototype.foo;
 }

@@ -11,6 +11,7 @@ var module = module || { id: 'test_files/tuple_types/tuple_functions.ts' };
 goog.require('tslib');
 class Clazz {
     /**
+     * @public
      * @param {!Array<?>} __0
      */
     constructor([a__tsickle_destructured_1, b__tsickle_destructured_2]) {
@@ -20,6 +21,7 @@ class Clazz {
         this.field = a + b;
     }
     /**
+     * @public
      * @param {!Array<?>} __0
      * @return {string}
      */
@@ -29,6 +31,7 @@ class Clazz {
         return a + b;
     }
     /**
+     * @public
      * @param {!Array<?>} __0
      * @return {void}
      */
@@ -40,7 +43,10 @@ class Clazz {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     Clazz.prototype.field;
 }
 /**
@@ -52,6 +58,7 @@ class AbstractClazz {
 if (false) {
     /**
      * @abstract
+     * @public
      * @param {!Array<?>} __0
      * @return {string}
      */

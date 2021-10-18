@@ -13,7 +13,10 @@ class UnrelatedClass {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     UnrelatedClass.prototype.a;
 }
 class MethodsReturnThis {
@@ -21,6 +24,7 @@ class MethodsReturnThis {
         this.b = 1;
     }
     /**
+     * @public
      * @template THIS
      * @this {THIS}
      * @return {THIS}
@@ -29,6 +33,7 @@ class MethodsReturnThis {
         return (/** @type {!MethodsReturnThis} */ (this));
     }
     /**
+     * @public
      * @template THIS
      * @this {THIS}
      * @return {THIS}
@@ -37,6 +42,7 @@ class MethodsReturnThis {
         return (/** @type {!MethodsReturnThis} */ (this));
     }
     /**
+     * @public
      * @template THIS,T
      * @this {THIS}
      * @param {T} t
@@ -47,6 +53,7 @@ class MethodsReturnThis {
     }
     // Ensures that access to `this` is cast to the precise type.
     /**
+     * @public
      * @template THIS
      * @this {THIS}
      * @return {THIS}
@@ -57,6 +64,7 @@ class MethodsReturnThis {
     }
     // Ensures that nested access to a differently scoped `this` is not cast.
     /**
+     * @public
      * @template THIS
      * @this {THIS}
      * @return {THIS}
@@ -74,6 +82,7 @@ class MethodsReturnThis {
                 this.c = 3;
             }
             /**
+             * @public
              * @return {void}
              */
             method() {
@@ -82,13 +91,17 @@ class MethodsReturnThis {
         }
         /* istanbul ignore if */
         if (false) {
-            /** @type {number} */
+            /**
+             * @type {number}
+             * @public
+             */
             NestedClass.prototype.c;
         }
         return (/** @type {!MethodsReturnThis} */ (this));
     }
     // Ensures that arrow functions inherit the parent's `this` type.
     /**
+     * @public
      * @template THIS
      * @this {THIS}
      * @return {THIS}
@@ -105,6 +118,7 @@ class MethodsReturnThis {
         return (/** @type {!MethodsReturnThis} */ (this));
     }
     /**
+     * @public
      * @template THIS,T
      * @this {THIS}
      * @param {T} t
@@ -116,7 +130,10 @@ class MethodsReturnThis {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MethodsReturnThis.prototype.b;
 }
 /**
@@ -124,6 +141,7 @@ if (false) {
  */
 class SubclassReturnsThis extends MethodsReturnThis {
     /**
+     * @public
      * @template THIS
      * @this {THIS}
      * @return {THIS}

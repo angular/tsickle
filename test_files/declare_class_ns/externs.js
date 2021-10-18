@@ -11,6 +11,7 @@
 function ClassAndNamespace() {}
 
 /**
+ * @public
  * @param {string} x
  * @return {void}
  */

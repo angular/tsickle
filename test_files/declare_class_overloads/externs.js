@@ -8,6 +8,7 @@
 /**
  * @constructor
  * @struct
+ * @public
  * @param {number=} a
  */
 function MultipleConstructorsOptional(a) {}
@@ -15,6 +16,7 @@ function MultipleConstructorsOptional(a) {}
 /**
  * @constructor
  * @struct
+ * @public
  * @param {boolean|number} a
  */
 function MultipleConstructorsTypes(a) {}
@@ -22,6 +24,7 @@ function MultipleConstructorsTypes(a) {}
 /**
  * @constructor
  * @struct
+ * @public
  * @param {boolean|number} a_or_b
  */
 function MultipleConstructorsNamesAndTypes(a_or_b) {}
@@ -29,6 +32,7 @@ function MultipleConstructorsNamesAndTypes(a_or_b) {}
 /**
  * @constructor
  * @struct
+ * @public
  * @param {number} a
  * @param {number} b
  * @param {number} c
@@ -41,6 +45,7 @@ function MultipleConstructorsComplexMatrix(a, b, c, normal_or_vertexNormals, col
 /**
  * @constructor
  * @struct
+ * @public
  * @param {...number|!Array<number>} a
  */
 function MultipleConstructorsVariadic(a) {}
@@ -48,6 +53,7 @@ function MultipleConstructorsVariadic(a) {}
 /**
  * @constructor
  * @struct
+ * @public
  * @param {...!Array<string>|!Array<number>|string|number} points
  */
 function MultipleConstructorsVariadicNames(points) {}
@@ -58,6 +64,7 @@ function MultipleConstructorsVariadicNames(points) {}
 function OverloadSimpleArgs() {}
 
 /**
+ * @public
  * @param {string|number} a
  * @param {boolean=} b
  * @param {number=} c
@@ -72,6 +79,7 @@ OverloadSimpleArgs.prototype.overloaded = function(a, b, c, d) {};
 function OverloadNameVariants() {}
 
 /**
+ * @public
  * @param {string|boolean|number} a_or_b_or_c
  * @return {void}
  */
@@ -83,6 +91,7 @@ OverloadNameVariants.prototype.overloaded = function(a_or_b_or_c) {};
 function OverloadReturnTypesNoVoid() {}
 
 /**
+ * @public
  * @param {string} a
  * @param {boolean} b
  * @param {number=} c
@@ -96,6 +105,7 @@ OverloadReturnTypesNoVoid.prototype.overloaded = function(a, b, c) {};
 function OverloadReturnTypesWithVoid() {}
 
 /**
+ * @public
  * @param {string} a
  * @param {boolean=} b
  * @param {number=} c
@@ -109,6 +119,7 @@ OverloadReturnTypesWithVoid.prototype.overloaded = function(a, b, c) {};
 function OverloadBigMix() {}
 
 /**
+ * @public
  * @param {string|number|!Array<!OverloadBigMix>} a_or_c_or_e
  * @param {number=} b
  * @return {void|number|boolean}
@@ -121,6 +132,7 @@ OverloadBigMix.prototype.overloaded = function(a_or_c_or_e, b) {};
 function OverloadValueOf() {}
 
 /**
+ * @public
  * @return {string}
  */
 OverloadValueOf.prototype.valueOf = function() {};
@@ -131,6 +143,7 @@ OverloadValueOf.prototype.valueOf = function() {};
 function Merged() {}
 
 /**
+ * @public
  * @param {(string|number|!Array<!OverloadBigMix>)} a_or_c_or_e_or_f
  * @param {number} opt_b
  * @return {(number|boolean|void)}
@@ -138,6 +151,7 @@ function Merged() {}
 Merged.prototype.overloaded = function(a_or_c_or_e_or_f, opt_b) {};
 
 /**
+ * @public
  * @param {...number} test
  * @return {void}
  */
@@ -149,6 +163,7 @@ Merged.prototype.variadic = function(test) {};
 function OverloadTypeArgs() {}
 
 /**
+ * @public
  * @template T, U
  * @param {number|T} a
  * @param {T|U} b

@@ -15,11 +15,15 @@ class ClassInImplements {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|string)} */
+    /**
+     * @type {(undefined|string)}
+     * @public
+     */
     ClassInImplements.prototype.foo;
 }
 class ClassInExtends {
     /**
+     * @public
      * @return {string}
      */
     bar() {
@@ -34,6 +38,9 @@ class ExtendsAndImplementsClass extends ClassInExtends {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ExtendsAndImplementsClass.prototype.foo;
 }

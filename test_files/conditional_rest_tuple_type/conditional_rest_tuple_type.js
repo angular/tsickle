@@ -21,6 +21,7 @@ function conditionalRestTupleType(...args) { }
 /** @type {{conditionalRestTupleType: function(...?): void}} */
 exports.x = {
     /**
+     * @public
      * @template T
      * @param {...?} args
      * @return {void}

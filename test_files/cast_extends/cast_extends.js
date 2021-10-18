@@ -20,7 +20,10 @@ class Someclass {
 function MixedIn() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     MixedIn.prototype.x;
 }
 /**
@@ -48,7 +51,10 @@ function mix(baseclazz) {
     }
     /* istanbul ignore if */
     if (false) {
-        /** @type {string} */
+        /**
+         * @type {string}
+         * @public
+         */
         WithMixedIn.prototype.x;
     }
     return (/** @type {!Ctor<?>} */ ((/** @type {!Ctor<!Someclass>} */ (WithMixedIn))));

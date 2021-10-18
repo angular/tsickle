@@ -15,6 +15,7 @@ test_files$export_as_namespace$export_as_namespace.foo = {};
 test_files$export_as_namespace$export_as_namespace.foo.Bar = function() {};
 
 /**
+ * @public
  * @return {void}
  */
 test_files$export_as_namespace$export_as_namespace.foo.Bar.prototype.baz = function() {};

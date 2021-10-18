@@ -16,6 +16,7 @@ let __foo = 3;
 exports.__bar = __foo;
 class __Class {
     /**
+     * @public
      * @param {string} __arg is __underscored
      * @return {string}
      */
@@ -25,7 +26,10 @@ class __Class {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     __Class.prototype.__member;
 }
 /**

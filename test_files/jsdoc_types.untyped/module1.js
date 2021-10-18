@@ -18,7 +18,10 @@ function Interface() { }
 exports.Interface = Interface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     Interface.prototype.x;
     /* Skipping unnamed member:
     "quoted-bad-name": string;*/

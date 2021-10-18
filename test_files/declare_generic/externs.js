@@ -12,6 +12,7 @@
 function WithGeneric() {}
 
 /**
+ * @public
  * @param {T} t
  * @return {U}
  */

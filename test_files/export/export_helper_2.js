@@ -23,7 +23,10 @@ function Interface() { }
 exports.Interface = Interface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     Interface.prototype.x;
 }
 /** @enum {number} */

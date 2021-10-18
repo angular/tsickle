@@ -30,6 +30,9 @@ class Test {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     Test.prototype.fooStr;
 }

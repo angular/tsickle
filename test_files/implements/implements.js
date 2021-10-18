@@ -23,7 +23,10 @@ class RecordImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     RecordImpl.prototype.a;
 }
 /** @typedef {{a: string}} */
@@ -38,7 +41,10 @@ class RecordAliasImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     RecordAliasImpl.prototype.a;
 }
 /**
@@ -47,7 +53,10 @@ if (false) {
 function MyInterface() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     MyInterface.prototype.a;
 }
 /**
@@ -60,7 +69,10 @@ class InterfaceImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     InterfaceImpl.prototype.a;
 }
 /** @typedef {!MyInterface} */
@@ -75,7 +87,10 @@ class InterfaceAliasImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     InterfaceAliasImpl.prototype.a;
 }
 /**
@@ -85,9 +100,15 @@ if (false) {
 function Generic() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {A} */
+    /**
+     * @type {A}
+     * @public
+     */
     Generic.prototype.a;
-    /** @type {B} */
+    /**
+     * @type {B}
+     * @public
+     */
     Generic.prototype.b;
 }
 /**
@@ -101,9 +122,15 @@ class GenericImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     GenericImpl.prototype.a;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     GenericImpl.prototype.b;
 }
 // GenericPartialImpl is a generic implementing a generic.
@@ -119,9 +146,15 @@ class GenericPartialImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     GenericPartialImpl.prototype.a;
-    /** @type {T} */
+    /**
+     * @type {T}
+     * @public
+     */
     GenericPartialImpl.prototype.b;
 }
 /** @typedef {!Generic<string, ?>} */
@@ -137,8 +170,14 @@ class GenericIndirectImpl {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     GenericIndirectImpl.prototype.a;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     GenericIndirectImpl.prototype.b;
 }

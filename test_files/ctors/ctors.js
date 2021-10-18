@@ -10,6 +10,7 @@ goog.require('tslib');
 let x = Document;
 class X {
     /**
+     * @public
      * @param {number} a
      */
     constructor(a) {
@@ -28,6 +29,7 @@ if (false) {
 let y = X;
 class OverloadedCtor {
     /**
+     * @public
      * @param {(string|number)} a
      */
     constructor(a) {

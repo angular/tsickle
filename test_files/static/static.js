@@ -14,7 +14,10 @@ Static.bar = 3;
 Static.baz = 3;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     Static.bar;
     /**
      * @type {number}

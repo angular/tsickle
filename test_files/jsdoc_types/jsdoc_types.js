@@ -61,7 +61,10 @@ class ImplementsNeverTyped {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     ImplementsNeverTyped.prototype.foo;
 }
 /**
@@ -72,6 +75,9 @@ class ImplementsNeverTypedTemplated {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {T} */
+    /**
+     * @type {T}
+     * @public
+     */
     ImplementsNeverTypedTemplated.prototype.foo;
 }

@@ -19,9 +19,15 @@ var _a;
 function T() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|number)} */
+    /**
+     * @type {(undefined|number)}
+     * @public
+     */
     T.prototype.a;
-    /** @type {(undefined|number)} */
+    /**
+     * @type {(undefined|number)}
+     * @public
+     */
     T.prototype.b;
 }
 /** @type {!T} */

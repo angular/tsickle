@@ -13,11 +13,13 @@ function Type() {}
 /* TODO: PropertySignature: ['computedProp'] */
 
 /**
+ * @public
  * @return {!Iterator<string, ?, undefined>}
  */
 Type.prototype[Symbol.iterator] = function() {};
 
 /**
+ * @public
  * @return {number}
  */
 Type.prototype['computedMethod'] = function() {};

@@ -12,6 +12,7 @@ const tslib_1 = goog.require('tslib');
  */
 class ContainsPrivateField {
     /**
+     * @public
      * @param {string} arg
      */
     constructor(arg) {
@@ -19,6 +20,7 @@ class ContainsPrivateField {
         (0, tslib_1.__classPrivateFieldSet)(this, _ContainsPrivateField_someField, arg, "f");
     }
     /**
+     * @public
      * @param {string} value
      * @return {void}
      */
@@ -26,6 +28,7 @@ class ContainsPrivateField {
         (0, tslib_1.__classPrivateFieldSet)(this, _ContainsPrivateField_someField, value, "f");
     }
     /**
+     * @public
      * @return {string}
      */
     getSomeField() {

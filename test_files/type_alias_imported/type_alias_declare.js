@@ -16,6 +16,9 @@ function X() { }
 exports.X = X;
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     X.prototype.x;
 }

@@ -13,9 +13,15 @@ class OptionalMethod {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|function(): void)} */
+    /**
+     * @type {(undefined|function(): void)}
+     * @public
+     */
     OptionalMethod.staticOptionalMethod;
-    /** @type {(undefined|function(): void)} */
+    /**
+     * @type {(undefined|function(): void)}
+     * @public
+     */
     OptionalMethod.prototype.optionalMethod;
 }
 // For comparison, these should generate the same type signatures as the
@@ -24,8 +30,14 @@ class OptionalArrowFnProperty {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|function(): void)} */
+    /**
+     * @type {(undefined|function(): void)}
+     * @public
+     */
     OptionalArrowFnProperty.staticArrowFnProperty;
-    /** @type {(undefined|function(): void)} */
+    /**
+     * @type {(undefined|function(): void)}
+     * @public
+     */
     OptionalArrowFnProperty.prototype.arrowFnProperty;
 }

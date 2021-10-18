@@ -14,7 +14,10 @@ function MyIntrface() { }
 exports.MyIntrface = MyIntrface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyIntrface.prototype.field;
 }
 /** @typedef {string} */
@@ -25,6 +28,9 @@ exports.MyTypeLiteral;
 function MyNotExportedThing() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {boolean} */
+    /**
+     * @type {boolean}
+     * @public
+     */
     MyNotExportedThing.prototype.aFieldOnMyNotExportedThing;
 }

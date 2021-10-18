@@ -19,7 +19,10 @@ class Class {
 exports.Class = Class;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     Class.prototype.z;
 }
 /** @enum {number} */

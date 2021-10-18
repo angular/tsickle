@@ -19,7 +19,10 @@ function Interface() { }
 exports.Interface = Interface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     Interface.prototype.x;
 }
 /**

@@ -28,12 +28,14 @@ function Interface() { }
 /* istanbul ignore if */
 if (false) {
     /**
+     * @public
      * @return {void}
      */
     Interface.prototype.interfaceFunc = function () { };
 }
 class Class {
     /**
+     * @public
      * @return {void}
      */
     classFunc() { }
@@ -43,6 +45,7 @@ class Class {
  */
 class AbstractClass {
     /**
+     * @public
      * @return {void}
      */
     nonAbstractFunc() { }
@@ -51,6 +54,7 @@ class AbstractClass {
 if (false) {
     /**
      * @abstract
+     * @public
      * @return {void}
      */
     AbstractClass.prototype.abstractFunc = function () { };
@@ -63,15 +67,18 @@ function InterfaceExtendsInterface() { }
 /* istanbul ignore if */
 if (false) {
     /**
+     * @public
      * @return {void}
      */
     InterfaceExtendsInterface.prototype.interfaceFunc2 = function () { };
 }
 /** @type {!InterfaceExtendsInterface} */
 let interfaceExtendsInterface = { /**
+     * @public
      * @return {void}
      */
     interfaceFunc() { }, /**
+     * @public
      * @return {void}
      */
     interfaceFunc2() { } };
@@ -83,6 +90,7 @@ function InterfaceExtendsClass() { }
 /* istanbul ignore if */
 if (false) {
     /**
+     * @public
      * @return {void}
      */
     InterfaceExtendsClass.prototype.interfaceFunc3 = function () { };
@@ -93,6 +101,7 @@ if (false) {
  */
 class ClassImplementsInterface {
     /**
+     * @public
      * @return {void}
      */
     interfaceFunc() { }
@@ -102,6 +111,7 @@ class ClassImplementsInterface {
  */
 class ClassImplementsClass {
     /**
+     * @public
      * @return {void}
      */
     classFunc() { }
@@ -111,12 +121,14 @@ class ClassImplementsClass {
  */
 class ClassImplementsAbstractClass {
     /**
+     * @public
      * @return {void}
      */
     abstractFunc() { }
     // Note: because this class *implements* AbstractClass, it must also implement
     // nonAbstractFunc despite that already having an implementation.
     /**
+     * @public
      * @return {void}
      */
     nonAbstractFunc() { }
@@ -129,6 +141,7 @@ class ClassImplementsAbstractClass {
  */
 class ClassExtendsClass extends Class {
     /**
+     * @public
      * @return {void}
      */
     classFunc() { }
@@ -138,6 +151,7 @@ class ClassExtendsClass extends Class {
  */
 class ClassExtendsAbstractClass extends AbstractClass {
     /**
+     * @public
      * @return {void}
      */
     abstractFunc() { }
@@ -149,6 +163,7 @@ class ClassExtendsAbstractClass extends AbstractClass {
  */
 class AbstractClassImplementsInterface {
     /**
+     * @public
      * @return {void}
      */
     interfaceFunc() { }
@@ -159,6 +174,7 @@ class AbstractClassImplementsInterface {
  */
 class AbstractClassImplementsClass {
     /**
+     * @public
      * @return {void}
      */
     classFunc() { }
@@ -171,10 +187,12 @@ class AbstractClassImplementsAbstractClass {
     // Note: because this class *implements* AbstractClass, it must also implement
     // abstractFunc and nonAbstractFunc despite that already having an implementation.
     /**
+     * @public
      * @return {void}
      */
     abstractFunc() { }
     /**
+     * @public
      * @return {void}
      */
     nonAbstractFunc() { }
@@ -188,6 +206,7 @@ class AbstractClassImplementsAbstractClass {
  */
 class AbstractClassExtendsClass extends Class {
     /**
+     * @public
      * @return {void}
      */
     classFunc() { }
@@ -206,10 +225,12 @@ var TypeAlias;
  */
 class ImplementsTypeAlias {
     /**
+     * @public
      * @return {void}
      */
     interfaceFunc() { }
     /**
+     * @public
      * @return {void}
      */
     classFunc() { }
@@ -243,7 +264,10 @@ class ZoneImplementsInterface {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ZoneImplementsInterface.prototype.zone;
 }
 /** @typedef {?} */
@@ -255,7 +279,10 @@ class ZoneImplementsAlias {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ZoneImplementsAlias.prototype.zone;
 }
 class WithOptionalField {
@@ -265,6 +292,9 @@ class WithOptionalField {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|string)} */
+    /**
+     * @type {(undefined|string)}
+     * @public
+     */
     WithOptionalField.prototype.optionalField;
 }

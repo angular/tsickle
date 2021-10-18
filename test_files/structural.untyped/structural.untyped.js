@@ -10,13 +10,17 @@ goog.require('tslib');
 // with the same fields.
 class StructuralTest {
     /**
+     * @public
      * @return {?}
      */
     method() { return this.field1; }
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {?} */
+    /**
+     * @type {?}
+     * @public
+     */
     StructuralTest.prototype.field1;
 }
 // The function expects a StructuralTest, but we pass it an object

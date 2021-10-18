@@ -12,7 +12,10 @@ goog.require('tslib');
 function LocalInterface() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     LocalInterface.prototype.field;
 }
 /** @typedef {!LocalInterface} */

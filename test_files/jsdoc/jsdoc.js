@@ -63,11 +63,13 @@ if (false) {
     /**
      * \@internal
      * @type {!Array<string>}
+     * @public
      */
     JSDocTest.X;
     /**
      * \@internal
      * @type {!Array<string>}
+     * @public
      */
     JSDocTest.prototype.x;
     /**
@@ -75,17 +77,35 @@ if (false) {
      * @type {string}
      */
     JSDocTest.prototype.exported;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     JSDocTest.prototype.badExport;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     JSDocTest.prototype.stringWithoutJSDoc;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     JSDocTest.prototype.typedThing;
-    /** @type {{A: string}} */
+    /**
+     * @type {{A: string}}
+     * @public
+     */
     JSDocTest.prototype.badEnumThing;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     JSDocTest.prototype.badConstThing;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     JSDocTest.prototype.badTypeDef;
 }
 /**
@@ -124,6 +144,9 @@ function x() { }
  * @see Nothing.
  */
 class RedundantJSDocShouldBeStripped {
+    /**
+     * @public
+     */
     constructor() { }
 }
 /**

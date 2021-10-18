@@ -13,6 +13,9 @@ function Foo() { }
 exports.Foo = Foo;
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     Foo.prototype.fooStr;
 }

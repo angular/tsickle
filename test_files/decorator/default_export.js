@@ -12,6 +12,9 @@ class DefaultExport {
 exports.default = DefaultExport;
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     DefaultExport.prototype.field;
 }

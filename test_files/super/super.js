@@ -7,10 +7,14 @@ goog.module('test_files.super.super');
 var module = module || { id: 'test_files/super/super.ts' };
 goog.require('tslib');
 class SuperTestBaseNoArg {
+    /**
+     * @public
+     */
     constructor() { }
 }
 class SuperTestBaseOneArg {
     /**
+     * @public
      * @param {number} x
      */
     constructor(x) {
@@ -19,7 +23,10 @@ class SuperTestBaseOneArg {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     SuperTestBaseOneArg.prototype.x;
 }
 // A ctor with a parameter property.
@@ -28,6 +35,7 @@ if (false) {
  */
 class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
     /**
+     * @public
      * @param {string} y
      */
     constructor(y) {
@@ -37,7 +45,10 @@ class SuperTestDerivedParamProps extends SuperTestBaseOneArg {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     SuperTestDerivedParamProps.prototype.y;
 }
 // A ctor with an initialized property.
@@ -45,6 +56,9 @@ if (false) {
  * @extends {SuperTestBaseOneArg}
  */
 class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
+    /**
+     * @public
+     */
     constructor() {
         super(3);
         this.y = 'foo';
@@ -52,7 +66,10 @@ class SuperTestDerivedInitializedProps extends SuperTestBaseOneArg {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     SuperTestDerivedInitializedProps.prototype.y;
 }
 // A ctor with a super() but none of the above two details.
@@ -60,6 +77,9 @@ if (false) {
  * @extends {SuperTestBaseOneArg}
  */
 class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
+    /**
+     * @public
+     */
     constructor() {
         super(3);
     }
@@ -82,7 +102,10 @@ class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {
 function SuperTestInterface() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     SuperTestInterface.prototype.foo;
 }
 // A class implementing an interface.
@@ -93,7 +116,10 @@ class SuperTestDerivedInterface {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     SuperTestDerivedInterface.prototype.foo;
 }
 /**
@@ -104,6 +130,9 @@ class SuperTestStaticProp extends SuperTestBaseOneArg {
 SuperTestStaticProp.foo = 3;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     SuperTestStaticProp.foo;
 }

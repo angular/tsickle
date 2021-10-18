@@ -385,16 +385,29 @@ function createClosurePropertyDeclaration(
   const tags = mtt.getJSDoc(prop, /* reportWarnings */ false);
   tags.push({tagName: 'type', type});
   const flags = ts.getCombinedModifierFlags(prop);
-  if (flags & ts.ModifierFlags.Protected) {
+  if (hasExportingDecorator(prop, mtt.typeChecker)) {
+    tags.push({tagName: 'export'});
+  } else if (flags & ts.ModifierFlags.Protected) {
     tags.push({tagName: 'protected'});
   } else if (flags & ts.ModifierFlags.Private) {
     tags.push({tagName: 'private'});
+  } else if (!tags.find(
+                 (t) => t.tagName === 'export' || t.tagName === 'package')) {
+    // TODO(b/202495167): remove the 'package' check above.
+
+    // TS members are implicitly public if no visibility modifier was specified.
+    // In Closure Compiler, members might inherit their superclass' visiblity.
+    // Always explicitly emitting the visibility makes sure there is no
+    // disagreement.
+    // However we may only do this if there is no @export modifier, as that also
+    // counts as a visibility modifier in Closure Compiler.
+    tags.push({tagName: 'public'});
   }
-  if (hasExportingDecorator(prop, mtt.typeChecker)) {
-    tags.push({tagName: 'export'});
-  }
-  const declStmt =
-      ts.setSourceMapRange(ts.createStatement(ts.createPropertyAccess(expr, name)), prop);
+
+  const declStmt = ts.setSourceMapRange(
+      ts.factory.createExpressionStatement(
+          ts.factory.createPropertyAccessExpression(expr, name)),
+      prop);
   // Avoid printing annotations that can conflict with @type
   // This avoids Closure's error "type annotation incompatible with other annotations"
   addCommentOn(declStmt, tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);

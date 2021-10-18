@@ -15,6 +15,7 @@ test_files$export_as_namespace_exporteq$export_as_namespace_exporteq_.anamespace
 test_files$export_as_namespace_exporteq$export_as_namespace_exporteq_.anamespace.NamespacedClass = function() {};
 
 /**
+ * @public
  * @return {string}
  */
 test_files$export_as_namespace_exporteq$export_as_namespace_exporteq_.anamespace.NamespacedClass.prototype.method = function() {};

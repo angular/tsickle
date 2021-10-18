@@ -19,6 +19,7 @@ function CallbackMaps() { }
 const p = {
     // should annotate a as {?} and b as {?}
     /**
+     * @public
      * @param {?} a
      * @param {?} b
      * @return {!Array<?>}

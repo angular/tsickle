@@ -8,19 +8,23 @@ var module = module || { id: 'test_files/methods/methods.ts' };
 goog.require('tslib');
 class HasMethods {
     /**
+     * @public
      * @return {void}
      */
     one() { }
     /**
+     * @public
      * @param {string} a
      * @return {number}
      */
     two(a) { return 1; }
     /**
+     * @public
      * @return {number}
      */
     get f() { return this._f + 1; }
     /**
+     * @public
      * @param {number} n
      * @return {void}
      */
@@ -28,6 +32,9 @@ class HasMethods {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     HasMethods.prototype._f;
 }

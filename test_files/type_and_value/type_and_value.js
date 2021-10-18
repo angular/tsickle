@@ -65,7 +65,10 @@ class ImplementsTypeAndValue {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     ImplementsTypeAndValue.prototype.z;
 }
 /**
@@ -76,6 +79,7 @@ if (false) {
  */
 class ImplementsTypeAndValueBuiltin {
     /**
+     * @public
      * @return {boolean}
      */
     valueOf() {

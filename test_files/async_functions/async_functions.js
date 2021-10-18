@@ -52,6 +52,7 @@ class Container {
         this.field = 'y';
     }
     /**
+     * @public
      * @return {!Promise<string>}
      */
     asyncMethod() {
@@ -62,6 +63,7 @@ class Container {
         });
     }
     /**
+     * @public
      * @return {void}
      */
     containerMethod() {
@@ -89,6 +91,7 @@ class Container {
         }
     }
     /**
+     * @public
      * @return {!Promise<string>}
      */
     static asyncStaticMethod() {
@@ -102,9 +105,15 @@ class Container {
 Container.staticField = 's';
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     Container.staticField;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     Container.prototype.field;
 }
 // TODO(#1099): uncomment this test after the async emit is fixed.

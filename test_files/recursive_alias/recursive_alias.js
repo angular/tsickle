@@ -16,7 +16,10 @@ goog.require('tslib');
 function Tree() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|!Tree)} */
+    /**
+     * @type {(undefined|!Tree)}
+     * @public
+     */
     Tree.prototype.child;
 }
 /**
@@ -26,7 +29,10 @@ if (false) {
 function Node() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {T} */
+    /**
+     * @type {T}
+     * @public
+     */
     Node.prototype.value;
 }
 /** @typedef {!Tree<?>} */
@@ -39,7 +45,10 @@ var NumberNodeTree;
 function NodeTreeInline() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(undefined|!NodeTreeInline)} */
+    /**
+     * @type {(undefined|!NodeTreeInline)}
+     * @public
+     */
     NodeTreeInline.prototype.child;
 }
 /** @typedef {{child: (undefined|?)}} */
@@ -53,9 +62,15 @@ var NodeTreeTree;
 function Pair() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {A} */
+    /**
+     * @type {A}
+     * @public
+     */
     Pair.prototype.a;
-    /** @type {B} */
+    /**
+     * @type {B}
+     * @public
+     */
     Pair.prototype.b;
 }
 /** @typedef {!Pair<!Tree<number>, !Tree<number>>} */

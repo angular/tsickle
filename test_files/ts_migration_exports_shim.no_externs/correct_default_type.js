@@ -14,6 +14,9 @@ function MyDefaultType() { }
 exports.MyDefaultType = MyDefaultType;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyDefaultType.prototype.field;
 }

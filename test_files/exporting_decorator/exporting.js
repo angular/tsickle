@@ -39,6 +39,7 @@ class MyClass {
         return false;
     }
     /**
+     * @public
      * @return {number}
      */
     doNotExportThisOneEither() {
@@ -60,12 +61,14 @@ class MyClass {
         console.log(`I don't really care about ${x}.`);
     }
     /**
+     * @public
      * @return {number}
      */
     get doNotExportThisGetter() {
         return 42;
     }
     /**
+     * @public
      * @param {number} x
      * @return {void}
      */
@@ -120,6 +123,9 @@ if (false) {
      * @export
      */
     MyClass.prototype.exportMe;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     MyClass.prototype.doNotExportMe;
 }

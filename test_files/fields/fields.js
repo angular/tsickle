@@ -9,6 +9,7 @@ var module = module || { id: 'test_files/fields/fields.ts' };
 goog.require('tslib');
 class FieldsTest {
     /**
+     * @public
      * @param {number} field3
      */
     constructor(field3) {
@@ -29,6 +30,7 @@ class FieldsTest {
         this.field5;
     }
     /**
+     * @public
      * @return {string}
      */
     getF1() {
@@ -38,16 +40,26 @@ class FieldsTest {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     FieldsTest.prototype.field1;
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     FieldsTest.prototype.field2;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     FieldsTest.prototype.field4;
     /**
      * A field without an explicit type declaration and some JSDoc
      * \@param some description
      * @type {function(string): string}
+     * @public
      */
     FieldsTest.prototype.field5;
     /**

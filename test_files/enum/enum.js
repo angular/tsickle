@@ -77,9 +77,15 @@ function InterfaceUsingConstEnum() { }
 exports.InterfaceUsingConstEnum = InterfaceUsingConstEnum;
 /* istanbul ignore if */
 if (false) {
-    /** @type {!ConstEnum} */
+    /**
+     * @type {!ConstEnum}
+     * @public
+     */
     InterfaceUsingConstEnum.prototype.field;
-    /** @type {!ConstEnum} */
+    /**
+     * @type {!ConstEnum}
+     * @public
+     */
     InterfaceUsingConstEnum.prototype.field2;
 }
 /** @enum {number} */

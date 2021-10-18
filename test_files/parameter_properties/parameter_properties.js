@@ -9,6 +9,7 @@ goog.require('tslib');
 class ParamProps {
     // The @export below should not show up in the output ctor.
     /**
+     * @public
      * @param {string} publicExportedP
      * @param {string} publicP
      * @param {string} protectedP
@@ -32,7 +33,10 @@ if (false) {
      * @type {string}
      */
     ParamProps.prototype.publicExportedP;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ParamProps.prototype.publicP;
     /**
      * @type {string}
@@ -44,8 +48,14 @@ if (false) {
      * @private
      */
     ParamProps.prototype.privateP;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ParamProps.prototype.readonlyP;
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     ParamProps.prototype.publicReadonlyP;
 }

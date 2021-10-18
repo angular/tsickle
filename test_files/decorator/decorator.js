@@ -54,6 +54,7 @@ function classAnnotation(t) {
 var LocalTypeAlias;
 class DecoratorTest {
     /**
+     * @public
      * @param {!Array<?>} a
      * @param {?} anyDecorated
      * @param {number} n
@@ -75,11 +76,13 @@ class DecoratorTest {
      * @param {{constructor: function(string): void}=} valueWithCtorSignature
      */
     constructor(a, anyDecorated, n, b, promise, arr, aClass, AClass, aRenamedClass, aClassWithGenerics, aType, defaultImport, localTypeAlias, otherClass, anotherClass, anotherType, anotherPrefixed, fnUsingAType, valueWithCtorSignature = { /**
+         * @public
          * @param {string} x
          * @return {void}
          */
         constructor(x) { } }) { }
     /**
+     * @public
      * @return {number}
      */
     get w() {
@@ -157,6 +160,9 @@ DecoratedClass = (0, tslib_1.__decorate)([
 ], DecoratedClass);
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     DecoratedClass.prototype.z;
 }

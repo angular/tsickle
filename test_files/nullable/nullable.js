@@ -10,13 +10,25 @@ class Primitives {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {(null|string)} */
+    /**
+     * @type {(null|string)}
+     * @public
+     */
     Primitives.prototype.nullable;
-    /** @type {(undefined|number)} */
+    /**
+     * @type {(undefined|number)}
+     * @public
+     */
     Primitives.prototype.undefinable;
-    /** @type {(undefined|null|string)} */
+    /**
+     * @type {(undefined|null|string)}
+     * @public
+     */
     Primitives.prototype.nullableUndefinable;
-    /** @type {(undefined|string)} */
+    /**
+     * @type {(undefined|string)}
+     * @public
+     */
     Primitives.prototype.optional;
 }
 class NonPrimitive {
@@ -25,15 +37,30 @@ class NonPrimitives {
 }
 /* istanbul ignore if */
 if (false) {
-    /** @type {!NonPrimitive} */
+    /**
+     * @type {!NonPrimitive}
+     * @public
+     */
     NonPrimitives.prototype.nonNull;
-    /** @type {(null|!NonPrimitive)} */
+    /**
+     * @type {(null|!NonPrimitive)}
+     * @public
+     */
     NonPrimitives.prototype.nullable;
-    /** @type {(undefined|!NonPrimitive)} */
+    /**
+     * @type {(undefined|!NonPrimitive)}
+     * @public
+     */
     NonPrimitives.prototype.undefinable;
-    /** @type {(undefined|null|!NonPrimitive)} */
+    /**
+     * @type {(undefined|null|!NonPrimitive)}
+     * @public
+     */
     NonPrimitives.prototype.nullableUndefinable;
-    /** @type {(undefined|!NonPrimitive)} */
+    /**
+     * @type {(undefined|!NonPrimitive)}
+     * @public
+     */
     NonPrimitives.prototype.optional;
 }
 /**

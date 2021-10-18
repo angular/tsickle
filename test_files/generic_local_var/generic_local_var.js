@@ -11,12 +11,14 @@ goog.require('tslib');
  */
 class Container {
     /**
+     * @public
      * @param {T} tField
      */
     constructor(tField) {
         this.tField = tField;
     }
     /**
+     * @public
      * @template U
      * @param {U} u
      * @return {void}

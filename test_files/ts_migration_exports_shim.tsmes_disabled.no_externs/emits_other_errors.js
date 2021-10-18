@@ -32,7 +32,10 @@ function AnInterface() { }
 exports.AnInterface = AnInterface;
 /* istanbul ignore if */
 if (false) {
-    /** @type {number} */
+    /**
+     * @type {number}
+     * @public
+     */
     AnInterface.prototype.shouldBeANumber;
 }
 /**
@@ -41,7 +44,10 @@ if (false) {
 function AnInterfaceNotExported() { }
 /* istanbul ignore if */
 if (false) {
-    /** @type {string} */
+    /**
+     * @type {string}
+     * @public
+     */
     AnInterfaceNotExported.prototype.shouldBeAString;
 }
 /** @typedef {?} */
@@ -54,6 +60,7 @@ goog.tsMigrationExportsShim('bad.exports', {
     notExported,
     // Method declarations are not module-level exports
     /**
+     * @public
      * @return {number}
      */
     method() {

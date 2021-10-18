@@ -12,12 +12,14 @@ goog.require('tslib');
  */
 class MyIterable {
     /**
+     * @public
      * @return {!IterableIterator<string>}
      */
     [Symbol.iterator]() {
         return this;
     }
     /**
+     * @public
      * @param {...?} args
      * @return {(!IteratorYieldResult<string>|!IteratorReturnResult<string>)}
      */

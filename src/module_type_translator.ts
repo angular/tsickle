@@ -450,11 +450,20 @@ export class ModuleTypeTranslator {
       if (flags & ts.ModifierFlags.Abstract) {
         addTag({tagName: 'abstract'});
       }
-      // Add @protected/@private if present.
-      if (flags & ts.ModifierFlags.Protected) {
-        addTag({tagName: 'protected'});
-      } else if (flags & ts.ModifierFlags.Private) {
-        addTag({tagName: 'private'});
+      // Add @protected/@private if present, but not to function declarations,
+      // function expressions, nor arrow functions (who are not class members,
+      // so visibility does not apply).
+      if (fnDecls.every(
+              d => !ts.isFunctionDeclaration(d) &&
+                  !ts.isFunctionExpression(d) && !ts.isArrowFunction(d))) {
+        if (flags & ts.ModifierFlags.Protected) {
+          addTag({tagName: 'protected'});
+        } else if (flags & ts.ModifierFlags.Private) {
+          addTag({tagName: 'private'});
+        } else if (!tagsByName.has('export') && !tagsByName.has('package')) {
+          // TODO(b/202495167): remove the 'package' check above.
+          addTag({tagName: 'public'});
+        }
       }
 
       // Add any @template tags.

@@ -9,6 +9,7 @@ goog.require('tslib');
 class Foo {
     /**
      * @ngInject
+     * @public
      * @param {string} a
      */
     // Some comment
