@@ -20,3 +20,5 @@ interface __Interface {}
 declare namespace __NS {
   let __ns1: number;
 }
+
+const doubleUnderscoreInAnonymousType: {__doubleUnder?: number} = {};

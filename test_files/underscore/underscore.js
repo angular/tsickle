@@ -36,3 +36,5 @@ if (false) {
  * @record
  */
 function __Interface() { }
+/** @type {{__doubleUnder: (undefined|number)}} */
+const doubleUnderscoreInAnonymousType = {};

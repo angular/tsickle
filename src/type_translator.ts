@@ -800,9 +800,10 @@ export class TypeTranslator {
       }
 
       // members is an ES6 map, but the .d.ts defining it defined their own map
-      // type, so typescript doesn't believe that .keys() is iterable
-      // tslint:disable-next-line:no-any
-      for (const field of (type.symbol.members.keys() as any)) {
+      // type, so typescript doesn't believe that .keys() is iterable.
+      for (const field of (
+               type.symbol.members.keys() as IterableIterator<ts.__String>)) {
+        const fieldName = ts.unescapeLeadingUnderscores(field);
         switch (field) {
           case ts.InternalSymbolName.Call:
             callable = true;
@@ -811,7 +812,7 @@ export class TypeTranslator {
             indexable = true;
             break;
           default:
-            if (!isValidClosurePropertyName(field)) {
+            if (!isValidClosurePropertyName(fieldName)) {
               this.warn(`omitting inexpressible property name: ${field}`);
               continue;
             }
@@ -820,7 +821,7 @@ export class TypeTranslator {
             // a union type.
             const memberType = this.translate(
                 this.typeChecker.getTypeOfSymbolAtLocation(member, this.node));
-            fields.push(`${field}: ${memberType}`);
+            fields.push(`${fieldName}: ${memberType}`);
             break;
         }
       }
