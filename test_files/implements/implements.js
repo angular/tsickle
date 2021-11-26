@@ -75,6 +75,41 @@ if (false) {
      */
     InterfaceImpl.prototype.a;
 }
+/**
+ * @record
+ */
+function MyOtherInterface() { }
+/* istanbul ignore if */
+if (false) {
+    /**
+     * @type {string}
+     * @public
+     */
+    MyOtherInterface.prototype.b;
+}
+/**
+ * @implements {MyInterface}
+ * @implements {MyOtherInterface}
+ */
+class InterfaceMultipleImpl {
+    constructor() {
+        this.a = 'a';
+        this.b = 'b';
+    }
+}
+/* istanbul ignore if */
+if (false) {
+    /**
+     * @type {string}
+     * @public
+     */
+    InterfaceMultipleImpl.prototype.a;
+    /**
+     * @type {string}
+     * @public
+     */
+    InterfaceMultipleImpl.prototype.b;
+}
 /** @typedef {!MyInterface} */
 var Alias;
 /**

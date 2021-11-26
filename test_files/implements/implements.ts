@@ -28,6 +28,15 @@ class InterfaceImpl implements MyInterface {
   a = 'a';
 }
 
+// Class implements multiple interfaces.
+interface MyOtherInterface {
+  b: string;
+}
+class InterfaceMultipleImpl implements MyInterface, MyOtherInterface {
+  a = 'a';
+  b = 'b';
+}
+
 // InterfaceAliasImpl implements the same interface via an alias.
 // We should inline through the alias.
 type Alias = MyInterface;
