@@ -412,6 +412,7 @@ export class ModuleTypeTranslator {
     // De-duplicate tags and docs found for the fnDecls.
     const tagsByName = new Map<string, jsdoc.Tag>();
     function addTag(tag: jsdoc.Tag) {
+      if (tag.tagName === 'implements') return;  // implements cannot be merged.
       const existing = tagsByName.get(tag.tagName);
       tagsByName.set(tag.tagName, existing ? jsdoc.merge([existing, tag]) : tag);
     }
@@ -555,6 +556,10 @@ export class ModuleTypeTranslator {
     }
 
     const newDoc = Array.from(tagsByName.values());
+
+    for (const extraTag of extraTags) {
+      if (extraTag.tagName === 'implements') newDoc.push(extraTag);
+    }
 
     if (thisTags.length > 0) {
       newDoc.push(jsdoc.merge(thisTags));
