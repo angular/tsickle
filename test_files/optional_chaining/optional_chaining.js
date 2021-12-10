@@ -11,7 +11,7 @@ var _a, _b, _c;
  * more information see jsdoc_transformer.ts.
  *
  * Generated from: test_files/optional_chaining/optional_chaining.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @type {(undefined|{a: (undefined|{b: number})})} */
 let basic;

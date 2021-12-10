@@ -1,7 +1,7 @@
 /**
  * @fileoverview Make sure imports are inserted *after* the fileoverview.
  * Generated from: test_files/type_alias_imported/type_alias_imported.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_alias_imported.type_alias_imported');
 var module = module || { id: 'test_files/type_alias_imported/type_alias_imported.ts' };

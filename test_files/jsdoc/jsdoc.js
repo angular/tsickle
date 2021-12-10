@@ -15,7 +15,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/jsdoc/jsdoc.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.jsdoc.jsdoc');
 var module = module || { id: 'test_files/jsdoc/jsdoc.ts' };

@@ -4,7 +4,7 @@
  * @fileoverview Negative test: import type reports errors for conflicting symbols.
  *
  * Generated from: test_files/import_by_path.no_externs/conflicting_multiple_type.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.import_by_path.no_externs.conflicting_multiple_type');
 var module = module || { id: 'test_files/import_by_path.no_externs/conflicting_multiple_type.ts' };

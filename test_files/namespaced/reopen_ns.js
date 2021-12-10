@@ -2,7 +2,7 @@
  *
  * @fileoverview undefined
  * Generated from: test_files/namespaced/reopen_ns.ts
- * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
+ * @suppress {checkTypes,const,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
  *
  */
 goog.module('test_files.namespaced.reopen_ns');

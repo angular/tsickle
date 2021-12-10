@@ -8,7 +8,7 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/class/class.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // This test exercises the various ways classes and interfaces can interact.
 // There are three types of classy things:

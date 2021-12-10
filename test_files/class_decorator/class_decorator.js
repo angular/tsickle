@@ -12,7 +12,7 @@ const tslib_1 = goog.require('tslib');
  * __decorate() calls.
  *
  * Generated from: test_files/class_decorator/class_decorator.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @param {?} t

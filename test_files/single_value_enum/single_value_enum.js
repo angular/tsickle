@@ -6,7 +6,7 @@
  * Closure.
  *
  * Generated from: test_files/single_value_enum/single_value_enum.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.single_value_enum.single_value_enum');
 var module = module || { id: 'test_files/single_value_enum/single_value_enum.ts' };

@@ -81,6 +81,10 @@ function augmentFileoverviewComments(
   suppressions.add('unusedPrivateMembers');
   // * Suppress checking for @override, because TS doesn't model it.
   suppressions.add('missingOverride');
+  // * Suppress const JSCompiler errors in TS file.
+  // a) TypeScript already checks for "const" and
+  // b) there are various JSCompiler false positives
+  suppressions.add('const');
 
   suppressTag.type = Array.from(suppressions.values()).sort().join(',');
 

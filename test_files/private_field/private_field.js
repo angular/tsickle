@@ -8,7 +8,7 @@ const tslib_1 = goog.require('tslib');
  * any externs, as they do not exist on the class themselves when downleveled by TypeScript.
  *
  * Generated from: test_files/private_field/private_field.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ContainsPrivateField {
     /**

@@ -6,7 +6,7 @@
  * of a generic type alias of an underlying interface.
  *
  * Generated from: test_files/implements/implements.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.implements.implements');
 var module = module || { id: 'test_files/implements/implements.ts' };

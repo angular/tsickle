@@ -4,7 +4,7 @@
  * that are not available or use different names in Closure's externs.
  *
  * Generated from: test_files/use_closure_externs/use_closure_externs.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.use_closure_externs.use_closure_externs');
 var module = module || { id: 'test_files/use_closure_externs/use_closure_externs.ts' };

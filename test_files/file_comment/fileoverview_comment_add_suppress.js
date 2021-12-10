@@ -1,7 +1,7 @@
 /**
  * @fileoverview a comment without a suppress tag.
  * Generated from: test_files/file_comment/fileoverview_comment_add_suppress.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // here comes code.
 goog.module('test_files.file_comment.fileoverview_comment_add_suppress');

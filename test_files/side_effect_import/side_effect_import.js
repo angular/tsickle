@@ -4,7 +4,7 @@
  * proper module code from them.
  *
  * Generated from: test_files/side_effect_import/side_effect_import.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // tslint:disable
 goog.module('test_files.side_effect_import.side_effect_import');

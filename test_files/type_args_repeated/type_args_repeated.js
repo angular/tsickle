@@ -4,7 +4,7 @@
  * when type args are repeated.
  *
  * Generated from: test_files/type_args_repeated/type_args_repeated.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_args_repeated.type_args_repeated');
 var module = module || { id: 'test_files/type_args_repeated/type_args_repeated.ts' };

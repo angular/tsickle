@@ -6,7 +6,7 @@
  * signatures mixing both explicit declarations and a rest parameter.
  *
  * Generated from: test_files/rest_parameters_any/rest_parameters_any.ts
- * @suppress {checkTypes,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.rest_parameters_any.rest_parameters_any');
 var module = module || { id: 'test_files/rest_parameters_any/rest_parameters_any.ts' };
