@@ -217,8 +217,10 @@ function generateClutzAliases(
     // These ExportSpecifiers are the `foo as bar` bits as found in a larger
     // `export {foo as bar}` statement, which is constructed after this loop.
     globalExports.push(ts.createExportSpecifier(
-        ts.createIdentifier(localName), ts.createIdentifier(mangledName)));
+        /* isTypeOnly */ false, ts.createIdentifier(localName),
+        ts.createIdentifier(mangledName)));
     nestedExports.push(ts.createExportSpecifier(
+        /* isTypeOnly */ false,
         localName === symbol.name ? undefined : localName,
         ts.createIdentifier(symbol.name)));
   }

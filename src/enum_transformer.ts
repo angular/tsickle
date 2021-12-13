@@ -181,7 +181,8 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
         // type annotations within the file.
         resultNodes.push(ts.createExportDeclaration(
             undefined, undefined,
-            ts.createNamedExports([ts.createExportSpecifier(undefined, name)])));
+            ts.createNamedExports([ts.createExportSpecifier(
+                /* isTypeOnly */ false, undefined, name)])));
       }
 
       if (hasModifierFlag(node, ts.ModifierFlags.Const)) {

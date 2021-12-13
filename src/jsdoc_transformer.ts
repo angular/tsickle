@@ -1064,7 +1064,8 @@ export function jsdocTransformer(
             // Only create an export specifier for values that are exported. For types, the code
             // below creates specific export statements that match Closure's expectations.
             if (shouldEmitValueExportForSymbol(sym)) {
-              exportSpecifiers.push(ts.createExportSpecifier(undefined, sym.name));
+              exportSpecifiers.push(ts.createExportSpecifier(
+                  /* isTypeOnly */ false, undefined, sym.name));
             } else {
               typesToExport.push([sym.name, sym]);
             }
