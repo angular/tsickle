@@ -687,6 +687,12 @@ export class TypeTranslator {
       if (typeStr === '?') return '?';
       let typeArgs: readonly ts.Type[] =
           this.typeChecker.getTypeArguments(referenceType) ?? [];
+      // Nested types have references to type parameters of all enclosing types.
+      // Those are always at the beginning of the list of type arguments.
+      const outerTypeParameters = referenceType.target.outerTypeParameters;
+      if (outerTypeParameters) {
+        typeArgs = typeArgs.slice(outerTypeParameters.length);
+      }
       if (this.dropFinalTypeArgument) {
         typeArgs = typeArgs.slice(0, typeArgs.length - 1);
       }
