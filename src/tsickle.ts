@@ -17,6 +17,7 @@ import {enumTransformer} from './enum_transformer';
 import {generateExterns} from './externs';
 import {transformFileoverviewCommentFactory} from './fileoverview_comment_transformer';
 import * as googmodule from './googmodule';
+import {inlineReexportModuleValidationTransformer} from './inline_reexport_module_transformer';  // LINE-INTERNAL
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {isDtsFileName} from './transformer_util';
@@ -193,6 +194,11 @@ export function emit(
     tsickleSourceTransformers.push(
         decoratorDownlevelTransformer(typeChecker, tsickleDiagnostics));
   }
+  // BEGIN-INTERNAL
+  // This transformer is specific to JSPB and thus only makes sense in google3.
+  tsickleSourceTransformers.push(inlineReexportModuleValidationTransformer(
+      typeChecker, tsickleDiagnostics));
+  // END-INTERNAL
   const tsTransformers: ts.CustomTransformers = {
     before: [
       ...(tsickleSourceTransformers || [])
