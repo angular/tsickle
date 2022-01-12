@@ -247,19 +247,36 @@ function literalTypeOfSymbol(symbol: ts.Symbol): string|boolean|undefined {
 }
 
 /**
+ * Returns the name of the goog.module, from which the given source file has
+ * been generated.
+ */
+export function getOriginalGoogModuleFromComment(sf: ts.SourceFile): string|
+    null {
+  const leadingComments =
+      sf.getFullText().substring(sf.getFullStart(), sf.getLeadingTriviaWidth());
+  const match = /^\/\/ Original goog.module name: (.*)$/m.exec(leadingComments);
+  if (match) {
+    return match[1];
+  }
+  return null;
+}
+
+/**
  * For a given import URL, extracts or finds the namespace to pass to
- * `goog.require` in two special cases:
+ * `goog.require` in three special cases:
  *
- * 1) modules can contain a special marker symbol (`__clutz_actual_namespace`)
- *    that overrides the namespace to import.
- * 2) tsickle handles specially encoded URLs starting with `goog:`, e.g. for
+ * 1) tsickle handles specially encoded URLs starting with `goog:`, e.g. for
  *    `import 'goog:foo.Bar';`, returns `foo.Bar`.
+ * 2) source files can contain a special comment, which contains the goog.module
+ *    name.
+ * 3) ambient modules can contain a special marker symbol
+ *    (`__clutz_actual_namespace`) that overrides the namespace to import.
  *
  * This is used to mark imports of Closure JavaScript sources and map them back
  * to the correct goog.require namespace.
  *
  * If the given moduleSymbol is undefined, e.g. because tsickle runs with no
- * type information available, (1) is disabled, but (2) works.
+ * type information available, (2) and (3) are disabled, but (1) works.
  *
  * If there's no special cased namespace, namespaceForImportUrl returns null.
  *
@@ -272,6 +289,10 @@ export function namespaceForImportUrl(
   if (tsImport.match(/^goog:/)) return tsImport.substring('goog:'.length);
   if (!moduleSymbol) {
     return null;  // No type information available, skip symbol resolution.
+  }
+  if (moduleSymbol.valueDeclaration &&
+      ts.isSourceFile(moduleSymbol.valueDeclaration)) {
+    return getOriginalGoogModuleFromComment(moduleSymbol.valueDeclaration);
   }
   const actualNamespaceSymbol =
       findLocalInDeclarations(moduleSymbol, '__clutz_actual_namespace');

@@ -281,12 +281,12 @@ function generateClutzAliases(
 }
 
 /**
- * moduleSymbolFromClutz returns the module's symbol if and only if it is a
- * module that uses tsickle's support for namespace imports (using goog: or
- * declaring the namespace to import in a special __clutz_actual_namespace
- * field).
+ * ambientModuleSymbolFromClutz returns the module's symbol if and only if it is
+ * an ambient module that uses tsickle's support for namespace imports (using
+ * goog: or declaring the namespace to import in a special
+ * __clutz_actual_namespace field).
  */
-function moduleSymbolFromClutz(
+function ambientModuleSymbolFromClutz(
     typeChecker: ts.TypeChecker, stmt: ts.Statement): ts.Symbol|undefined {
   if (!ts.isImportDeclaration(stmt) && !ts.isExportDeclaration(stmt)) {
     return undefined;
@@ -295,6 +295,10 @@ function moduleSymbolFromClutz(
     return undefined;  // can be absent on 'export' statements.
   }
   const moduleSymbol = typeChecker.getSymbolAtLocation(stmt.moduleSpecifier);
+  if (moduleSymbol?.valueDeclaration &&
+      ts.isSourceFile(moduleSymbol.valueDeclaration)) {
+    return undefined;
+  }
   const ignoredDiagnostics: ts.Diagnostic[] = [];
   const namespace = googmodule.namespaceForImportUrl(
       stmt, ignoredDiagnostics, (stmt.moduleSpecifier as ts.StringLiteral).text,
@@ -389,7 +393,7 @@ function gatherNecessaryClutzImports(typeChecker: ts.TypeChecker, sf: ts.SourceF
     ts.forEachChild(stmt, visit);
 
     // Then handle explicit import/export statements.
-    const moduleSymbol = moduleSymbolFromClutz(typeChecker, stmt);
+    const moduleSymbol = ambientModuleSymbolFromClutz(typeChecker, stmt);
     if (!moduleSymbol) continue;
     const importPath = importPathForSymbol(moduleSymbol);
     if (importPath) imports.add(importPath);
