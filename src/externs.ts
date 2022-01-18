@@ -132,8 +132,10 @@ export function getGeneratedExterns(
     externs: {[fileName: string]: string}, rootDir?: string): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
-    const srcPath = rootDir ? path.relative(rootDir, fileName) :
-                              'ERROR: getGeneratedExterns called without rootDir';
+    const srcPath = rootDir ?
+        path.relative(rootDir, fileName) :
+        `ERROR: getGeneratedExterns called without rootDir for file name ${
+            fileName}`;
     allExterns += `// ${jsdoc.createGeneratedFromComment(srcPath)}\n`;
     allExterns += externs[fileName];
   }
