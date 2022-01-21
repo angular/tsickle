@@ -122,18 +122,17 @@ const EXTERNS_HEADER = `/**
 `;
 
 /**
- * Concatenate all generated externs definitions together into a string, including a file comment
- * header.
+ * Concatenate all generated externs definitions together into a string,
+ * including a file comment header.
  *
- * @param rootDir Project root.  Emitted comments will reference paths relative to this root.
- *    This param is effectively required, but made optional here until Angular is fixed.
+ * @param rootDir Project root.  Emitted comments will reference paths relative
+ *     to this root.
  */
 export function getGeneratedExterns(
-    externs: {[fileName: string]: string}, rootDir?: string): string {
+    externs: {[fileName: string]: string}, rootDir: string): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
-    const srcPath = rootDir ? path.relative(rootDir, fileName) :
-                              'ERROR: getGeneratedExterns called without rootDir';
+    const srcPath = path.relative(rootDir, fileName);
     allExterns += `// ${jsdoc.createGeneratedFromComment(srcPath)}\n`;
     allExterns += externs[fileName];
   }
