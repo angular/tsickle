@@ -199,7 +199,8 @@ function extractRequire(call: ts.CallExpression): ts.StringLiteral|null {
 export function extractModuleMarker(
     symbol: ts.Symbol,
     name: '__clutz_actual_namespace'|'__clutz_multiple_provides'|
-    '__clutz_actual_path'|'__clutz_strip_property'): string|boolean|undefined {
+    '__clutz_actual_path'|'__clutz_strip_property'|
+    '__clutz2_actual_path'): string|boolean|undefined {
   const localSymbol = findLocalInDeclarations(symbol, name);
   if (!localSymbol) return undefined;
   return literalTypeOfSymbol(localSymbol);

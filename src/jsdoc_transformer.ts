@@ -960,6 +960,11 @@ export function jsdocTransformer(
         // positions, the JSDoc comments still reference a valid Closure level
         // symbol.
 
+        const resolveModuleNameOptions = {
+          options: tsOptions,
+          moduleResolutionHost: host.moduleResolutionHost
+        };
+
         // No need to requireType side effect imports.
         // Note that this means tsickle does not report diagnostics for
         // side-effect path imports of JavaScript modules with conflicting
@@ -980,11 +985,7 @@ export function jsdocTransformer(
         if (!sym) return importDecl;
 
         const importPath = googmodule.resolveModuleName(
-            {
-              options: tsOptions,
-              moduleResolutionHost: host.moduleResolutionHost
-            },
-            sourceFile.fileName,
+            resolveModuleNameOptions, sourceFile.fileName,
             (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
         moduleTypeTranslator.requireType(
@@ -1064,17 +1065,17 @@ export function jsdocTransformer(
             // Only create an export specifier for values that are exported. For types, the code
             // below creates specific export statements that match Closure's expectations.
             if (shouldEmitValueExportForSymbol(sym)) {
-              exportSpecifiers.push(ts.createExportSpecifier(
+              exportSpecifiers.push(ts.factory.createExportSpecifier(
                   /* isTypeOnly */ false, undefined, sym.name));
             } else {
               typesToExport.push([sym.name, sym]);
             }
           }
           const isTypeOnlyExport = false;
-          exportDecl = ts.updateExportDeclaration(
+          exportDecl = ts.factory.updateExportDeclaration(
               exportDecl, exportDecl.decorators, exportDecl.modifiers,
-              ts.createNamedExports(exportSpecifiers), exportDecl.moduleSpecifier,
-              isTypeOnlyExport);
+              isTypeOnlyExport, ts.factory.createNamedExports(exportSpecifiers),
+              exportDecl.moduleSpecifier, exportDecl.assertClause);
         } else if (ts.isNamedExports(exportDecl.exportClause)) {
           // export {a, b, c} from 'abc';
           for (const exp of exportDecl.exportClause.elements) {
@@ -1097,8 +1098,9 @@ export function jsdocTransformer(
           if (!isTypeAlias) continue;
           const typeName =
               moduleTypeTranslator.symbolsToAliasedNames.get(aliasedSymbol) || aliasedSymbol.name;
-          const stmt = ts.createStatement(
-              ts.createPropertyAccess(ts.createIdentifier('exports'), exportedName));
+          const stmt = ts.factory.createExpressionStatement(
+              ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier('exports'), exportedName));
           addCommentOn(stmt, [{tagName: 'typedef', type: '!' + typeName}]);
           ts.addSyntheticTrailingComment(
               stmt, ts.SyntaxKind.SingleLineCommentTrivia, ' re-export typedef', true);
