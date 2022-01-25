@@ -15,7 +15,7 @@
     "@types/node": "^10.5.6"
   },
   "scripts": {
-    "build": "(cd ../ && yarn build) && node_modules/typescript/bin/tsc",
+    "build": "(cd ../ && yarn build) && tsc",
     "demo": "node --preserve-symlinks build/demo.js -- --outDir `pwd`/tsickle-out"
   }
 }
