@@ -31,10 +31,11 @@
     "typescript": "h-joo/TypeScript#ts45-no-double-comments"
   },
   "scripts": {
-    "build": "tsc ",
+    "build": "tsc",
     "clean": "rm -r out",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "jasmine out/test/*.js && (cd demo && yarn && tsc) && npm run lint"
+    "test": "jasmine out/test/*.js && (cd demo && yarn && tsc) && yarn run lint",
+    "prepack": "yarn run clean && yarn run build && yarn run test"
   },
   "repository": {
     "type": "git",
