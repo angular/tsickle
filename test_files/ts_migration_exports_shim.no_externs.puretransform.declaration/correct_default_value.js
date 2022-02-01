@@ -11,4 +11,3 @@ class MyDefaultClass {
     }
 }
 exports.MyDefaultClass = MyDefaultClass;
-goog.loadedModules_['project.MyDefaultClass'] = { exports: MyDefaultClass, type: goog.ModuleType.GOOG, moduleId: 'project.MyDefaultClass' };

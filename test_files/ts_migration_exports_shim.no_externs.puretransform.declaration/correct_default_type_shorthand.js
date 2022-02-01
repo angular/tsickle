@@ -8,4 +8,3 @@ goog.require('tslib');
 class MyDefaultType {
 }
 exports.MyDefaultType = MyDefaultType;
-goog.loadedModules_['project.MyDefaultType.shorthand'] = { exports: MyDefaultType, type: goog.ModuleType.GOOG, moduleId: 'project.MyDefaultType.shorthand' };

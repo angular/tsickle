@@ -11,4 +11,3 @@ class MyNamedClass {
     }
 }
 exports.MyNamedClass = MyNamedClass;
-goog.loadedModules_['project.named'] = { exports: { MyRenamedClass: MyNamedClass }, type: goog.ModuleType.GOOG, moduleId: 'project.named' };

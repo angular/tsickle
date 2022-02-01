@@ -11,4 +11,3 @@ class MyDefaultClass {
     }
 }
 exports.MyDefaultClass = MyDefaultClass;
-goog.loadedModules_['project.MyDefaultClass.shorthand'] = { exports: MyDefaultClass, type: goog.ModuleType.GOOG, moduleId: 'project.MyDefaultClass.shorthand' };
