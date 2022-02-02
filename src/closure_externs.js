@@ -52,26 +52,14 @@ var NodeListOf;
  */
 var RegExpExecArray;
 
-/**
- * @record
- * @template T
- * @extends {Array<T>}
- */
-function ReadonlyArray() {}
+/** @typedef {!Array} */
+var ReadonlyArray;
 
-/**
- * @constructor
- * @template K, V
- * @extends {Map<K, V>}
- */
-function ReadonlyMap() {}
+/** @typedef {!Map} */
+var ReadonlyMap;
 
-/**
- * @constructor
- * @template T
- * @extends {Set<T>}
- */
-function ReadonlySet() {}
+/** @typedef {!Set} */
+var ReadonlySet;
 
 /**
  * @record
