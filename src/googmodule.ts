@@ -206,6 +206,11 @@ export function extractModuleMarker(
   return literalTypeOfSymbol(localSymbol);
 }
 
+/** Internal TypeScript APIs on ts.Declaration. */
+declare interface InternalTsDeclaration {
+  locals?: ts.SymbolTable;
+}
+
 /**
  * findLocalInDeclarations searches for a local name with the given name in all
  * declarations of the given symbol. Note that not all declarations are
@@ -221,7 +226,8 @@ function findLocalInDeclarations(symbol: ts.Symbol, name: string): ts.Symbol|
     // This accesses a TypeScript internal API, "locals" of a container.
     // This allows declaring special symbols in e.g. d.ts modules as locals
     // that cannot be accessed from user code.
-    const locals = (decl as {locals?: ts.SymbolTable}).locals;
+    const internalDecl = decl as InternalTsDeclaration;
+    const locals = internalDecl.locals;
     if (!locals) continue;
     const sym = locals.get(ts.escapeLeadingUnderscores(name));
     if (sym) return sym;
