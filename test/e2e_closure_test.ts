@@ -46,6 +46,9 @@ describe('golden file tests', () => {
         'test_files/import_from_goog.no_externs/closure_LegacyModule.js',
         'test_files/import_from_goog.no_externs/closure_Module.js',
         'test_files/import_from_goog.no_externs/closure_OtherModule.js',
+        'test_files/reexport_type_from_goog.no_externs/closure_LegacyModule.js',
+        'test_files/reexport_type_from_goog.no_externs/closure_Module.js',
+        'test_files/reexport_type_from_goog.no_externs/closure_OtherModule.js',
         'test_files/type_propaccess.no_externs/nested_clazz.js',
     );
     const externs = tests.map(t => t.externsPath()).filter(fs.existsSync);
