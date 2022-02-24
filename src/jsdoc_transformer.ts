@@ -997,9 +997,10 @@ export function jsdocTransformer(
             resolveModuleNameOptions, sourceFile.fileName,
             (importDecl.moduleSpecifier as ts.StringLiteral).text);
 
+        const localSymbols = localSymbolsFromImport(typeChecker, importDecl);
         moduleTypeTranslator.requireType(
             importDecl.moduleSpecifier, importPath, sym,
-            /* default import? */ !!importDecl.importClause.name);
+            /* default import? */ !!importDecl.importClause.name, localSymbols);
         return importDecl;
       }
 
@@ -1045,9 +1046,10 @@ export function jsdocTransformer(
           // requireType all explicitly imported modules, so that symbols can be referenced and
           // type only modules are usable from type declarations.
           moduleTypeTranslator.requireType(
-              exportDecl.moduleSpecifier!, (exportDecl.moduleSpecifier as ts.StringLiteral).text,
+              exportDecl.moduleSpecifier!,
+              (exportDecl.moduleSpecifier as ts.StringLiteral).text,
               importedModuleSymbol,
-              /* default import? */ false);
+              /* default import? */ false, new Map());
         }
 
         const typesToExport: Array<[string, ts.Symbol]> = [];
@@ -1402,4 +1404,49 @@ export function jsdocTransformer(
       return moduleTypeTranslator.insertAdditionalImports(sourceFile);
     };
   };
+}
+
+/**
+ * localSymbols maps the exported name of a symbol onto the local symbol
+ * in scope of the current module. E.g. for an import:
+ *     import {X as Y} from 'z';
+ * localSymbols will contain a mapping 'X' -> symbol(Y).
+ * This allows moduleTypeTranslator to emit the correct local alias
+ * when printing the type for symbol(Y) later on.
+ */
+export function localSymbolsFromImport(
+    typeChecker: ts.TypeChecker,
+    importDeclaration: ts.ImportDeclaration): Map<string, ts.Symbol[]> {
+  if (!importDeclaration.importClause) {
+    return new Map<string, ts.Symbol[]>();
+  }
+  const localSymbols = new Map<string, ts.Symbol[]>();
+  function addSymbol(name: string, node: ts.Node) {
+    const sym = typeChecker.getSymbolAtLocation(node);
+    if (!sym) throw new Error('import without symbol');
+    let syms = localSymbols.get(name);
+    if (!syms) {
+      syms = [];
+      localSymbols.set(name, syms);
+    }
+    syms.push(sym);
+  }
+  if (importDeclaration.importClause.name) {
+    // import Foo from ...
+    addSymbol('default', importDeclaration.importClause.name);
+  }
+  const namedBindings = importDeclaration.importClause.namedBindings;
+  if (namedBindings) {
+    if (ts.isNamedImports(namedBindings)) {
+      // import {X as Y}
+      for (const n of namedBindings.elements) {
+        // n.propertyName is the local alias Y.
+        addSymbol((n.propertyName ?? n.name).getText(), n.name);
+      }
+    } else {
+      // import * as prefix, special cased as the '*' symbol.
+      addSymbol('*', namedBindings.name);
+    }
+  }
+  return localSymbols;
 }

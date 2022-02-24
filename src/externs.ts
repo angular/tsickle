@@ -71,7 +71,7 @@ import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
 import {namespaceForImportUrl, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
-import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
+import {escapeForComment, localSymbolsFromImport, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as path from './path';
 import {getEntityNameText, getIdentifierText, hasModifierFlag, isAmbient, isDtsFileName, reportDiagnostic} from './transformer_util';
@@ -611,12 +611,16 @@ export function generateExterns(
         moduleUri, importDiagnostics, moduleUri.text, moduleSymbol);
     const isDefaultImport =
         ts.isImportDeclaration(decl) && !!decl.importClause?.name;
+    const localSymbols = ts.isImportEqualsDeclaration(decl) ?
+        new Map<string, ts.Symbol[]>() :
+        localSymbolsFromImport(typeChecker, decl);
     if (googNamespace) {
       mtt.registerImportAliases(
-          googNamespace, isDefaultImport, moduleSymbol, () => googNamespace);
+          googNamespace, isDefaultImport, moduleSymbol, localSymbols,
+          () => googNamespace);
     } else {
       mtt.registerImportAliases(
-          null, isDefaultImport, moduleSymbol,
+          null, isDefaultImport, moduleSymbol, localSymbols,
           (symbol) => getAliasPrefixForEsModule(moduleUri, symbol));
     }
   }

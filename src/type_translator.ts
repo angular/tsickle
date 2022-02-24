@@ -322,12 +322,7 @@ export class TypeTranslator {
       } else {
         identifier = name as IdentifierWithSymbol;
       }
-      let symbol = identifier.symbol;
-      // When writing a symbol, check if there is an alias for it in the current scope that should
-      // take precedence, e.g. from a goog.requireType.
-      if (symbol.flags & ts.SymbolFlags.Alias) {
-        symbol = this.typeChecker.getAliasedSymbol(symbol);
-      }
+      const symbol = identifier.symbol;
       const alias = this.symbolsToAliasedNames.get(symbol);
       if (alias) {
         // If so, discard the entire current text and only use the alias - otherwise if a symbol has

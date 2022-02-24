@@ -248,7 +248,9 @@ export class ModuleTypeTranslator {
    * @param isDefaultImport True if the import statement is a default import, e.g.
    *     `import Foo from ...;`, which matters for adjusting whether we emit a `.default`.
    */
-  requireType(context: ts.Node, importPath: string, moduleSymbol: ts.Symbol, isDefaultImport = false) {
+  requireType(
+      context: ts.Node, importPath: string, moduleSymbol: ts.Symbol,
+      isDefaultImport: boolean, localSymbols: Map<string, ts.Symbol[]>) {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
@@ -284,7 +286,8 @@ export class ModuleTypeTranslator {
     this.requireTypeModules.add(moduleSymbol);
 
     this.registerImportAliases(
-        nsImport, isDefaultImport, moduleSymbol, () => requireTypePrefix);
+        nsImport, isDefaultImport, moduleSymbol, localSymbols,
+        () => requireTypePrefix);
   }
 
   /**
@@ -302,7 +305,8 @@ export class ModuleTypeTranslator {
    */
   registerImportAliases(
       googNamespace: string|null, isDefaultImport: boolean,
-      moduleSymbol: ts.Symbol, getAliasPrefix: (symbol: ts.Symbol) => string) {
+      moduleSymbol: ts.Symbol, localSymbols: Map<string, ts.Symbol[]>,
+      getAliasPrefix: (symbol: ts.Symbol) => string) {
     if (googmodule.extractModuleMarker(
             moduleSymbol, '__clutz_strip_property')) {
       // Symbols using import-by-path with strip property should be mapped to a
@@ -316,21 +320,59 @@ export class ModuleTypeTranslator {
       // Some users import {default as SomeAlias} from 'goog:...';
       // The code below must recognize this as a default import to alias the
       // symbol to just the blank module name.
-      const namedDefaultImport = sym.name === 'default';
+      const exportedName = sym.name;
+      const namedDefaultImport = exportedName === 'default';
       // goog: imports don't actually use the .default property that TS thinks
       // they have.
       const qualifiedName =
           googNamespace && (isDefaultImport || namedDefaultImport) ?
           aliasPrefix :
           aliasPrefix + '.' + sym.name;
+      // ts.Type.symbol, as returned by the type checker, is the symbol after
+      // alias resolution. The code below resolves aliases to match that
+      // behavior.
       if (sym.flags & ts.SymbolFlags.Alias) {
         sym = this.typeChecker.getAliasedSymbol(sym);
       }
+      // Special case: a type alias, `type A = B`, is *not* considered an alias
+      // in the sense of ts.SymbolFlags.Alias. However ts.Type.symbol does
+      // actually resolve through type aliases. That means tsickle needs to
+      // special case ts.SymbolFlags.TypeAlias below, so that correct local
+      // aliases are emitted for imported type aliases. See
+      // test_files/reexport_type_from_goog.no_externs/import_from_goog.ts for
+      // an accompanying test.
+      if ((sym.flags & ts.SymbolFlags.TypeAlias) && sym.declarations &&
+          sym.declarations.length) {
+        const type = this.typeChecker.getTypeAtLocation(sym.declarations[0]);
+        if (type.symbol) {
+          this.symbolsToAliasedNames.set(type.symbol, qualifiedName);
+        }
+      }
       this.symbolsToAliasedNames.set(sym, qualifiedName);
+
+      // Also register aliases for the local symbols of imports.
+      // E.g. for import {X as Y} from 'z', the symbol for Y needs to point to
+      // requireTypePrefix.X.
+      const localSymbolsForSymbol = localSymbols.get(exportedName);
+      if (!localSymbolsForSymbol) continue;
+      for (const sym of localSymbolsForSymbol) {
+        this.symbolsToAliasedNames.set(sym, qualifiedName);
+      }
+    }
+    // import * as foo from ...
+    const localForModule = localSymbols.get('*');
+    if (localForModule) {
+      for (const sym of localForModule) {
+        this.symbolsToAliasedNames.set(sym, getAliasPrefix(sym));
+      }
     }
   }
 
   protected ensureSymbolDeclared(sym: ts.Symbol) {
+    // Early exit if we already have a local alias.
+    // This also prevents "ensureSymbolDeclared" from clobbering local aliases
+    // set up for imports.
+    if (this.symbolsToAliasedNames.has(sym)) return;
     const decl = this.findExportedDeclaration(sym);
     if (!decl) return;
     if (this.isForExterns) {
@@ -344,7 +386,7 @@ export class ModuleTypeTranslator {
     // A source file might not have a symbol if it's not a module (no ES6 im/exports).
     if (!moduleSymbol) return;
     // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    this.requireType(decl, sourceFile.fileName, moduleSymbol);
+    this.requireType(decl, sourceFile.fileName, moduleSymbol, false, new Map());
   }
 
   insertAdditionalImports(sourceFile: ts.SourceFile) {
