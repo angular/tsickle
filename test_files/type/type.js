@@ -104,3 +104,7 @@ typeGenericCallback((/**
  * @return {*}
  */
 val => val));
+/** @typedef {function(new:?, number, *)} */
+var ConstructorObj;
+/** @typedef {function(new:?, ...*)} */
+var ConstructorUnknown;

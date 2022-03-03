@@ -54,3 +54,6 @@ function typeCallback(callback: (val: number) => number) { }
 typeCallback(val => val + 1);
 function typeGenericCallback<T>(callback: (val: T) => T) { }
 typeGenericCallback(val => val);
+
+type ConstructorObj = new (a: number, b: {}) => {};
+type ConstructorUnknown = new (...args: unknown[]) => unknown;

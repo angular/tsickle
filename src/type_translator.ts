@@ -792,9 +792,22 @@ export class TypeTranslator {
         const params = this.convertParams(ctors[0], decl.parameters);
         const paramsStr = params.length ? (', ' + params.join(', ')) : '';
         const constructedType = this.translate(ctors[0].getReturnType());
-        const constructedTypeStr = constructedType[0] === '!' ?
+        let constructedTypeStr = constructedType[0] === '!' ?
             constructedType.substring(1) :
             constructedType;
+        // TypeScript also allows {} and unknown as return types of construct
+        // signatures, though it will make sure that no primitive types are
+        // returned.
+        //
+        // Normally Tsickle translates {}/unknown to {*}. But Closure Compiler
+        // expects an ObjectType for constructed types, which roughly
+        // corresponds to "a singular non-primitive type". {*} includes
+        // primitive types, so it is not allowed here.
+        //
+        // There is no 100% correct type for that, so fall back to {?}.
+        if (constructedTypeStr === '*') {
+          constructedTypeStr = '?';
+        }
         // In the specific case of the "new" in a function, the correct Closure
         // type is:
         //
