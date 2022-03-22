@@ -74,4 +74,11 @@ declare namespace goog {
    * See go/tsjs-migration-independent-javascript-imports
    */
   export function tsMigrationNamedExportsShim(moduleId: string): void;
+
+  /**
+   * Works in conjunction with the previous TS Migration Exports Shim methods to
+   * indicate the exported goog.module ID should also be made available as per
+   * `goog.module.declareLegacyNamespace`.
+   */
+  export function tsMigrationExportsShimDeclareLegacyNamespace(): void;
 }

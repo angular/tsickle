@@ -4,3 +4,4 @@ export interface MyDefaultType {
 }
 
 goog.tsMigrationDefaultExportsShim('project.CorrectDefaultShorthand');
+goog.tsMigrationExportsShimDeclareLegacyNamespace();

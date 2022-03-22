@@ -348,6 +348,16 @@ export function isTsmesShorthandCall(n: ts.Node): n is ts.CallExpression {
 }
 
 /**
+ * Returns true if the given call executes
+ * `goog.tsMigrationExportsShimDeclareLegacyNamespace`.
+ */
+export function isTsmesDeclareLegacyNamespaceCall(n: ts.Node):
+    n is ts.CallExpression {
+  return isGoogCallExpressionOf(
+      n, 'tsMigrationExportsShimDeclareLegacyNamespace');
+}
+
+/**
  * Create code like:
  *
  * goog.loadedModules_['foo.bar'] = {

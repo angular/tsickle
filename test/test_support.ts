@@ -247,7 +247,7 @@ export class GoldenFileTest {
         .map(
             (p) =>
                 [p.replace('.ts', '.tsmes.d.ts'),
-                 p.replace('.ts', '.tsmes.closure.js')])
+                 p.replace('.ts', '.tsmes.js')])
         .flat()
         .map((p) => path.join(this.root, p))
         .filter((p) => fs.existsSync(p));

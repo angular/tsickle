@@ -8,3 +8,4 @@ export class MyNamedClass {
 }
 
 goog.tsMigrationExportsShim('project.named', {MyRenamedClass: MyNamedClass});
+goog.tsMigrationExportsShimDeclareLegacyNamespace();
