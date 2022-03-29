@@ -188,8 +188,9 @@ class Generator {
     } else if (!this.host.generateTsMigrationExportsShim) {
       this.report(
           tsmesCallStatement,
-          'calls to goog.tsMigration*ExportsShim are not enabled. Did you' +
-              ' remember to set generate_ts_migration_exports_shim?');
+          'calls to goog.tsMigration*ExportsShim are not enabled. Please set' +
+              ' generate_ts_migration_exports_shim = True' +
+              ' in the BUILD file to enable this feature.');
       return undefined;
     }
     const tsmesCall = tsmesCallStatement.expression as ts.CallExpression;

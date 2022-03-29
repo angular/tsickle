@@ -1,6 +1,6 @@
 // test_files/ts_migration_exports_shim.tsmes_disabled.no_externs/emits_other_errors.ts(35,1): error TS0: at most one call to any of goog.tsMigrationExportsShim, goog.tsMigrationDefaultExportsShim, goog.tsMigrationNamedExportsShim is allowed per file
 // test_files/ts_migration_exports_shim.tsmes_disabled.no_externs/emits_other_errors.ts(62,3): error TS0: goog.tsMigrationExportsShim is only allowed in top level statements
-// test_files/ts_migration_exports_shim.tsmes_disabled.no_externs/emits_other_errors.ts(35,1): error TS0: calls to goog.tsMigration*ExportsShim are not enabled. Did you remember to set generate_ts_migration_exports_shim?
+// test_files/ts_migration_exports_shim.tsmes_disabled.no_externs/emits_other_errors.ts(35,1): error TS0: calls to goog.tsMigration*ExportsShim are not enabled. Please set generate_ts_migration_exports_shim = True in the BUILD file to enable this feature.
 /**
  *
  * @fileoverview negative tests for the tsMigrationExportsShim transformation.
