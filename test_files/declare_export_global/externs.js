@@ -28,4 +28,4 @@ globalParentNamespace.globalNestedNamespace.x;
  * export = globalParentNamespace.globalNestedNamespace
  * @const
  */
-var test_files$declare_export_global$declare_export_global_nested = test_files$declare_export_global$declare_export_global_nested_;
+var test_files$declare_export_global$declare_export_global_nested = globalParentNamespace.globalNestedNamespace;

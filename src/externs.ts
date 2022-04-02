@@ -74,7 +74,7 @@ import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as path from './path';
-import {getEntityNameText, getIdentifierText, hasModifierFlag, isAmbient, isDtsFileName, reportDiagnostic} from './transformer_util';
+import {getEntityNameText, getIdentifierText, hasModifierFlag, isAmbient, isEntityNameExpression, isDtsFileName, reportDiagnostic, getEntityNameExpressionText} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
 /**
@@ -140,14 +140,17 @@ export function getGeneratedExterns(
 }
 
 /**
- * isInGlobalAugmentation returns true if declaration is the immediate child of a 'declare global'
+ * isInGlobalAugmentation returns true if declaration is the descendent of a 'declare global'
  * block.
  */
 function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
   // declare global { ... } creates a ModuleDeclaration containing a ModuleBlock containing the
   // declaration, with the ModuleDeclaration having the GlobalAugmentation flag set.
-  if (!declaration.parent || !declaration.parent.parent) return false;
-  return (declaration.parent.parent.flags & ts.NodeFlags.GlobalAugmentation) !== 0;
+  let node: ts.Node = declaration;
+  while (node = node.parent) {
+    if ((node.flags & ts.NodeFlags.GlobalAugmentation) !== 0) return true;
+  }
+  return false;
 }
 
 /**
@@ -218,9 +221,11 @@ export function generateExterns(
    * If `someName` is `declare global { namespace someName {...} }`, tsickle must not qualify access
    * to it with the mangled module namespace as it is emitted in the global namespace. Similarly, if
    * the symbol is declared in a non-module context, it must not be mangled.
+   * Typescript parses `someName` as an EntityNameExpression for `export`, and as `EntityName` for
+   * `import`.
    */
-  function qualifiedNameToMangledIdentifier(name: ts.Identifier|ts.QualifiedName) {
-    const entityName = getEntityNameText(name);
+  function qualifiedNameToMangledIdentifier(
+    name: ts.EntityName|ts.EntityNameExpression, entityName: string) {
     let symbol = typeChecker.getSymbolAtLocation(name);
     if (symbol) {
       // If this is an aliased name (e.g. from an import), use the alias to refer to it.
@@ -229,7 +234,9 @@ export function generateExterns(
       }
       const alias = mtt.symbolsToAliasedNames.get(symbol);
       if (alias) return alias;
-      const isGlobalSymbol = symbol && symbol.declarations && symbol.declarations.some(d => {
+      // If at least one declaration is local to a module, we can always use that and there won't be
+      // any name clash in generating externs for `export as namespace ${output}`. See test_files/underscore.
+      const isGlobalSymbol = symbol && symbol.declarations && symbol.declarations.every(d => {
         if (isInGlobalAugmentation(d)) return true;
         // If the declaration's source file is not a module, it must be global.
         // If it is a module, the identifier must be local to this file, or handled above via the
@@ -241,6 +248,22 @@ export function generateExterns(
     return rootNamespace + '.' + entityName;
   }
 
+  function extractExportedNamespaceFromExportAssignment(exportAssignment:ts.ExportAssignment) {
+    const {expression} = exportAssignment;
+    if (isEntityNameExpression(expression)) {
+        // E.g. export = someName, export default someName;
+        // If someName is "declare global { namespace someName {...} }", tsickle must not qualify
+        // access to it with module namespace as it is emitted in the global namespace.
+        return qualifiedNameToMangledIdentifier(expression, getEntityNameExpressionText(expression));
+      } else {
+        reportDiagnostic(
+            diagnostics, expression,
+            `export =/default expression must be a qualified name, got ${
+                ts.SyntaxKind[exportAssignment.expression.kind]}.`);
+        return rootNamespace;
+      }
+  }
+
   if (output && isExternalModule) {
     // If tsickle generated any externs and this is an external module, prepend the namespace
     // declaration for it.
@@ -248,18 +271,7 @@ export function generateExterns(
 
     let exportedNamespace = rootNamespace;
     if (exportAssignment && hasExportEquals) {
-      if (ts.isIdentifier(exportAssignment.expression) ||
-          ts.isQualifiedName(exportAssignment.expression)) {
-        // E.g. export = someName;
-        // If someName is "declare global { namespace someName {...} }", tsickle must not qualify
-        // access to it with module namespace as it is emitted in the global namespace.
-        exportedNamespace = qualifiedNameToMangledIdentifier(exportAssignment.expression);
-      } else {
-        reportDiagnostic(
-            diagnostics, exportAssignment.expression,
-            `export = expression must be a qualified name, got ${
-                ts.SyntaxKind[exportAssignment.expression.kind]}.`);
-      }
+      exportedNamespace = extractExportedNamespaceFromExportAssignment(exportAssignment);
       // Assign the actually exported namespace object (which lives somewhere under rootNamespace)
       // into the module's namespace.
       emit(`/**\n * export = ${exportAssignment.expression.getText()}\n * @const\n */\n`);
@@ -538,6 +550,18 @@ export function generateExterns(
     }
   }
 
+  function writeExportAssignment(
+    exportAssignment: ts.ExportAssignment, namespace:ReadonlyArray<string>) {
+    // export = ... is handled at the file level.
+    if (exportAssignment.isExportEquals) return;
+    // export default
+    emit('/** @const */\n');
+    writeVariableStatement(
+      "default", namespace,
+      extractExportedNamespaceFromExportAssignment(exportAssignment)
+    );
+  }
+  
   /**
    * Adds aliases for the symbols imported in the given declaration, so that their types get
    * printed as the fully qualified name, and not just as a reference to the local import alias.
@@ -767,7 +791,8 @@ export function generateExterns(
           addImportAliases(importEquals);
           break;
         }
-        const qn = qualifiedNameToMangledIdentifier(importEquals.moduleReference);
+        const qn = qualifiedNameToMangledIdentifier(importEquals.moduleReference,
+          getEntityNameText(importEquals.moduleReference));
         // @const so that Closure Compiler understands this is an alias.
         emit('/** @const */\n');
         writeVariableStatement(localName, namespace, qn);
@@ -806,8 +831,11 @@ export function generateExterns(
         addImportAliases(node as ts.ImportDeclaration);
         break;
       case ts.SyntaxKind.NamespaceExportDeclaration:
-      case ts.SyntaxKind.ExportAssignment:
         // Handled on the file level.
+        break;
+      case ts.SyntaxKind.ExportAssignment:
+        const exportAssignment = node as ts.ExportAssignment;
+        writeExportAssignment(exportAssignment, namespace);
         break;
       case ts.SyntaxKind.ExportDeclaration:
         const exportDeclaration = node as ts.ExportDeclaration;
