@@ -39,6 +39,8 @@ describe('golden file tests', () => {
         'test_files/declare_export_dts/shim.js',
         'test_files/declare/shim.js',
         'test_files/export_equals.shim/shim.js',
+        'test_files/export_star_dts/shim_1.js',
+        'test_files/export_star_dts/shim_2.js',
         'test_files/fake_goog_reflect.js',
         'test_files/googmodule_esmodule.declaration.no_externs/some_module.js',
         'test_files/googmodule_esmodule.no_externs/some_module.js',
