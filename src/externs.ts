@@ -69,7 +69,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
-import {namespaceForImportUrl, resolveModuleName} from './googmodule';
+import {extractModuleMarker, namespaceForImportUrl, resolveModuleName} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
@@ -206,6 +206,9 @@ export function generateExterns(
   }
 
   for (const stmt of sourceFile.statements) {
+    // Always collect alises for imported symbols.
+    importsVisitor(stmt);
+
     if (!isDts && !hasModifierFlag(stmt as ts.DeclarationStatement, ts.ModifierFlags.Ambient)) {
       continue;
     }
@@ -585,7 +588,9 @@ export function generateExterns(
     if (ts.isNamedImports(namedBindings)) {
       // import {A as B}, map to module.name.A
       for (const namedBinding of namedBindings.elements) {
-        addImportAlias(namedBinding.name, moduleUri, namedBinding.name);
+        addImportAlias(
+            namedBinding.name, moduleUri,
+            namedBinding.propertyName ?? namedBinding.name);
       }
     }
   }
@@ -597,9 +602,12 @@ export function generateExterns(
   function addImportAlias(
       node: ts.Node, moduleUri: ts.StringLiteral,
       name: ts.Identifier|string|undefined) {
+    // Only report diagnostics for .d.ts files. Diagnostics for .ts files have
+    // already been reported during JS emit.
+    const importDiagnostics = isDts ? diagnostics : [];
     let symbol = typeChecker.getSymbolAtLocation(node);
     if (!symbol) {
-      reportDiagnostic(diagnostics, node, `named import has no symbol`);
+      reportDiagnostic(importDiagnostics, node, `named import has no symbol`);
       return;
     }
     if (symbol.flags & ts.SymbolFlags.Alias) {
@@ -608,14 +616,28 @@ export function generateExterns(
 
     const moduleSymbol = typeChecker.getSymbolAtLocation(moduleUri);
     if (!moduleSymbol) {
-      reportDiagnostic(diagnostics, moduleUri, `imported module has no symbol`);
+      reportDiagnostic(
+          importDiagnostics, moduleUri, `imported module has no symbol`);
       return;
     }
-    const googNamespace =
-        namespaceForImportUrl(moduleUri, diagnostics, moduleUri.text, moduleSymbol);
+    const googNamespace = namespaceForImportUrl(
+        moduleUri, importDiagnostics, moduleUri.text, moduleSymbol);
+
+    let nameStr: string|undefined;
+    if (typeof name === 'string') {
+      nameStr = name;
+    } else if (name) {
+      nameStr = getIdentifierText(name);
+    }
+
     let aliasName: string;
     if (googNamespace) {
       aliasName = googNamespace;
+      const isDefaultImport = name === 'default' ||
+          !!extractModuleMarker(moduleSymbol, '__clutz_strip_property');
+      if (!isDefaultImport && nameStr) {
+        aliasName += '.' + nameStr;
+      }
     } else {
       // While type_translator does add the mangled prefix for ambient declarations, it only does so
       // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
@@ -633,10 +655,8 @@ export function generateExterns(
         aliasName = host.pathToModuleName(
             sourceFile.fileName, resolveModuleName(host, sourceFile.fileName, fullUri));
       }
-      if (typeof name === 'string') {
-        aliasName += '.' + name;
-      } else if (name) {
-        aliasName += '.' + getIdentifierText(name);
+      if (nameStr) {
+        aliasName += '.' + nameStr;
       }
     }
 
@@ -703,6 +723,24 @@ export function generateExterns(
     return namespace.join('.') || node.getSourceFile().fileName.replace(/.*[/\\]/, '');
   }
 
+  function importsVisitor(node: ts.Node) {
+    switch (node.kind) {
+      case ts.SyntaxKind.ImportEqualsDeclaration:
+        const importEquals = node as ts.ImportEqualsDeclaration;
+        if (importEquals.moduleReference.kind ===
+            ts.SyntaxKind.ExternalModuleReference) {
+          addImportAliases(importEquals);
+        }
+        break;
+      case ts.SyntaxKind.ImportDeclaration:
+        addImportAliases(node as ts.ImportDeclaration);
+        break;
+      default:
+        // Ignore. This visitor is only concerned with imports.
+        break;
+    }
+  }
+
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
     if (node.parent === sourceFile) {
       namespace = getNamespaceForTopLevelDeclaration(node as ts.DeclarationStatement, namespace);
@@ -762,11 +800,10 @@ export function generateExterns(
         break;
       case ts.SyntaxKind.ImportEqualsDeclaration:
         const importEquals = node as ts.ImportEqualsDeclaration;
-        const localName = getIdentifierText(importEquals.name);
         if (importEquals.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference) {
-          addImportAliases(importEquals);
           break;
         }
+        const localName = getIdentifierText(importEquals.name);
         const qn = qualifiedNameToMangledIdentifier(importEquals.moduleReference);
         // @const so that Closure Compiler understands this is an alias.
         emit('/** @const */\n');
@@ -803,7 +840,7 @@ export function generateExterns(
         writeTypeAlias(node as ts.TypeAliasDeclaration, namespace);
         break;
       case ts.SyntaxKind.ImportDeclaration:
-        addImportAliases(node as ts.ImportDeclaration);
+        // Handled in `importsVisitor`.
         break;
       case ts.SyntaxKind.NamespaceExportDeclaration:
       case ts.SyntaxKind.ExportAssignment:
