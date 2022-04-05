@@ -52,9 +52,6 @@ var NodeListOf;
  */
 var RegExpExecArray;
 
-/** @typedef {!Array} */
-var ReadonlyArray;
-
 /** @typedef {!Map} */
 var ReadonlyMap;
 
