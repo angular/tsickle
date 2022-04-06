@@ -116,3 +116,5 @@ class WindowEventMap {}
 class GlobalEventHandlersEventMap {}
 /** @interface */
 class DocumentAndElementEventHandlersEventMap {}
+/** @interface */
+class EventSourceEventMap {}
