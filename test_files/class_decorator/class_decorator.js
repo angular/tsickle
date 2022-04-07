@@ -29,7 +29,7 @@ let ClassyFoo = /**
  */
 class ClassyFoo {
 };
-ClassyFoo = (0, tslib_1.__decorate)([
+ClassyFoo = tslib_1.__decorate([
     classyClass
 ], ClassyFoo);
 /**
@@ -45,7 +45,7 @@ class ClassyBar {
 /**
  * Non-synthetic comment
  */
-ClassyBar = (0, tslib_1.__decorate)([
+ClassyBar = tslib_1.__decorate([
     classyClass
 ], ClassyBar);
 /**
@@ -56,7 +56,7 @@ let AbstractBar = /**
  */
 class AbstractBar {
 };
-AbstractBar = (0, tslib_1.__decorate)([
+AbstractBar = tslib_1.__decorate([
     classyClass
 ], AbstractBar);
 /**
@@ -83,7 +83,7 @@ class AnotherClassyBar extends ClassyBar {
  * @final
  * @suppress {visibility}
  */
-AnotherClassyBar = (0, tslib_1.__decorate)([
+AnotherClassyBar = tslib_1.__decorate([
     classyClass
 ], AnotherClassyBar);
 exports.AnotherClassyBar = AnotherClassyBar;
