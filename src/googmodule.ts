@@ -1049,24 +1049,7 @@ export function commonJsToGoogmoduleTransformer(
           createGoogCall('module', createSingleQuoteStringLiteral(moduleName)));
       headerStmts.push(googModule);
 
-      // Allow code to use `module.id` to discover its module URL, e.g. to
-      // resolve a template URL against. Uses 'var', as this code is inserted in
-      // ES6 and ES5 modes. The following pattern ensures closure doesn't throw
-      // an error in advanced optimizations mode. var module = module || {id:
-      // 'path/to/module.ts'};
-      const moduleId = host.fileNameToModuleId(sf.fileName);
-      const moduleVarInitializer = ts.factory.createBinaryExpression(
-          ts.factory.createIdentifier('module'), ts.SyntaxKind.BarBarToken,
-          ts.factory.createObjectLiteralExpression(
-              [ts.factory.createPropertyAssignment(
-                  'id', createSingleQuoteStringLiteral(moduleId))]));
-      const modAssign = ts.factory.createVariableStatement(
-          /* modifiers= */ undefined,
-          ts.factory.createVariableDeclarationList(
-              [ts.factory.createVariableDeclaration(
-                  'module', /* exclamationToken= */ undefined,
-                  /* type= */ undefined, moduleVarInitializer)]));
-      headerStmts.push(modAssign);
+      maybeAddModuleId(host, typeChecker, sf, headerStmts);
 
       // Add `goog.require('tslib');` if not JS transpilation, and it hasn't
       // already been required. Rationale: TS gets compiled to Development mode
@@ -1121,4 +1104,48 @@ function isModule(sourceFile: ts.SourceFile): boolean {
     externalModuleIndicator?: ts.Node;
   }
   return Boolean((sourceFile as InternalSourceFile).externalModuleIndicator);
+}
+
+/**
+ * Allow code to use `module.id` to discover its module URL, e.g. to resolve a
+ * template URL against. Does not add `module.id` if a `module` symbol is
+ * already declared at the top-level in `sourceFile`.
+ *
+ * Uses 'var', as this code is inserted in ES6 and ES5 modes. The following
+ * pattern ensures closure doesn't throw an error in advanced optimizations
+ * mode:
+ *
+ * ```
+ * var module = module || {id: 'path/to/module.ts'};
+ * ```
+ */
+function maybeAddModuleId(
+    host: GoogModuleProcessorHost, typeChecker: ts.TypeChecker,
+    sourceFile: ts.SourceFile, headerStmts: ts.Statement[]): void {
+  // See if a top-level 'module' symbol exists in the source file.
+  const moduleSymbol: ts.Symbol|undefined =
+      typeChecker.getSymbolsInScope(sourceFile, ts.SymbolFlags.ModuleMember)
+          ?.find(s => s.name === 'module');
+  if (moduleSymbol) {
+    const declaration =
+        moduleSymbol.valueDeclaration ?? moduleSymbol.declarations?.[0];
+
+    // If a top-level symbol with the name `module` exists whose value is
+    // declared in sourceFile, don't add the `module.id` symbol.
+    if (sourceFile.fileName === declaration?.getSourceFile().fileName) return;
+  }
+
+  const moduleId = host.fileNameToModuleId(sourceFile.fileName);
+  const moduleVarInitializer = ts.factory.createBinaryExpression(
+      ts.factory.createIdentifier('module'), ts.SyntaxKind.BarBarToken,
+      ts.factory.createObjectLiteralExpression(
+          [ts.factory.createPropertyAssignment(
+              'id', createSingleQuoteStringLiteral(moduleId))]));
+  const modAssign = ts.factory.createVariableStatement(
+      /* modifiers= */ undefined,
+      ts.factory.createVariableDeclarationList(
+          [ts.factory.createVariableDeclaration(
+              'module', /* exclamationToken= */ undefined,
+              /* type= */ undefined, moduleVarInitializer)]));
+  headerStmts.push(modAssign);
 }
