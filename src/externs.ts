@@ -426,18 +426,12 @@ export function generateExterns(
       maybeAddHeritageClauses(jsdocTags, mtt, decl);
       maybeAddTemplateClause(jsdocTags, decl);
       if (decl.kind === ts.SyntaxKind.ClassDeclaration) {
-        // TODO: it appears you can just write 'class Foo { ...' in externs.
-        // This code instead tries to translate it to a function.
+        // Translate class to a function to avoid redeclaration issues.
         jsdocTags.push({tagName: 'constructor'}, {tagName: 'struct'});
-        const ctors = (decl as ts.ClassDeclaration)
-                          .members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
+        // Check for constructors in current and base classes
+        const ctors = getCtors(decl);
         if (ctors.length) {
-          const firstCtor: ts.ConstructorDeclaration = ctors[0] as ts.ConstructorDeclaration;
-          if (ctors.length > 1) {
-            paramNames = emitFunctionType(ctors as ts.ConstructorDeclaration[], jsdocTags);
-          } else {
-            paramNames = emitFunctionType([firstCtor], jsdocTags);
-          }
+          paramNames = emitFunctionType(ctors, jsdocTags);
           wroteJsDoc = true;
         }
       } else {
@@ -539,6 +533,40 @@ export function generateExterns(
           exportSpecifier.name.text, namespace,
           namespace.join('.') + '.' + exportSpecifier.propertyName.text);
     }
+  }
+
+  /**
+   * Returns the first non-zero argument constructor that can be found going
+   * down the inheritance chain. This should work as a class can only extends a
+   * single class and can only have one default constructor.
+   */
+  function getCtors(decl: ts.ClassDeclaration): ts.ConstructorDeclaration[] {
+    // Get ctors from current class
+    const currentCtors =
+        decl.members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
+    if (currentCtors.length) {
+      return currentCtors as ts.ConstructorDeclaration[];
+    }
+
+    // Or look at base classes
+    if (decl.heritageClauses) {
+      const baseSymbols =
+          decl.heritageClauses
+              .filter((h) => h.token === ts.SyntaxKind.ExtendsKeyword)
+              .flatMap((h) => h.types)
+              .filter((t) => t.expression.kind === ts.SyntaxKind.Identifier);
+      for (const base of baseSymbols) {
+        const sym = typeChecker.getSymbolAtLocation(base.expression);
+        if (!sym || !sym.declarations) return [];
+        for (const d of sym.declarations) {
+          if (d.kind === ts.SyntaxKind.ClassDeclaration) {
+            return getCtors(d as ts.ClassDeclaration);
+          }
+        }
+      }
+    }
+
+    return [];
   }
 
   /**
