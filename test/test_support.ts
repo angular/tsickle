@@ -343,17 +343,20 @@ function diffStrings(
   }
 
   let message =
-      '\nStrings differ:\n⌊missing expected content⌋ / ⌈new actual content⌉\n\n';
+      '\nStrings differ:\n\x1B[37;41m⌊missing expected content⌋\x1b[0m ' +
+      '/ \x1B[90;42m⌈new actual content⌉\x1b[0m\n\n';
   for (const [diffKind, text] of diff) {
     switch (diffKind) {
       case DIFF_EQUAL:
         message += text;
         break;
       case DIFF_DELETE:
-        message += `⌊${text}⌋`;
+        // light gray on red.
+        message += '\x1B[37;41m⌊' + text + '⌋\x1B[0m';
         break;
       case DIFF_INSERT:
-        message += `⌈${text}⌉`;
+        // dark gray on green.
+        message += '\x1B[90;42m⌈' + text + '⌉\x1B[0m';
         break;
       default:
         throw new Error('unexpected diff result: ' + [diffKind, text]);
