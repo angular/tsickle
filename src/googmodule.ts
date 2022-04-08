@@ -1055,14 +1055,17 @@ export function commonJsToGoogmoduleTransformer(
       // an error in advanced optimizations mode. var module = module || {id:
       // 'path/to/module.ts'};
       const moduleId = host.fileNameToModuleId(sf.fileName);
-      const moduleVarInitializer = ts.createBinary(
-          ts.createIdentifier('module'), ts.SyntaxKind.BarBarToken,
-          ts.createObjectLiteral([ts.createPropertyAssignment(
-              'id', createSingleQuoteStringLiteral(moduleId))]));
-      const modAssign = ts.createVariableStatement(
-          /* modifiers */ undefined,
-          ts.createVariableDeclarationList([ts.createVariableDeclaration(
-              'module', /* type */ undefined, moduleVarInitializer)]));
+      const moduleVarInitializer = ts.factory.createBinaryExpression(
+          ts.factory.createIdentifier('module'), ts.SyntaxKind.BarBarToken,
+          ts.factory.createObjectLiteralExpression(
+              [ts.factory.createPropertyAssignment(
+                  'id', createSingleQuoteStringLiteral(moduleId))]));
+      const modAssign = ts.factory.createVariableStatement(
+          /* modifiers= */ undefined,
+          ts.factory.createVariableDeclarationList(
+              [ts.factory.createVariableDeclaration(
+                  'module', /* exclamationToken= */ undefined,
+                  /* type= */ undefined, moduleVarInitializer)]));
       headerStmts.push(modAssign);
 
       // Add `goog.require('tslib');` if not JS transpilation, and it hasn't
