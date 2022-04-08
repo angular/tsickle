@@ -8,7 +8,7 @@
   "dependencies": {
     "minimist": "^1.2.3",
     "tsickle": "file:../",
-    "typescript": "h-joo/TypeScript#ts45-no-double-comments"
+    "typescript": "4.6.3"
   },
   "devDependencies": {
     "@types/minimist": "1.2.0",
