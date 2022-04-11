@@ -134,6 +134,7 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'unrestricted',
   'version',
   'wizaction',
+  'wizcallback',
   'wizmodule',
 ]);
 
