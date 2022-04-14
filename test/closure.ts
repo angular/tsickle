@@ -81,6 +81,8 @@ export function compile(options: Options, flags: Flags): Promise<Result> {
   return new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
+    if (!compilerProcess.stdout) throw new Error('missing stdout');
+    if (!compilerProcess.stderr) throw new Error('missing stderr');
     compilerProcess.stdout.on('data', data => {
       stdout += data;
     });
@@ -88,7 +90,7 @@ export function compile(options: Options, flags: Flags): Promise<Result> {
       stderr += data;
     });
     compilerProcess.on('close', exitCode => {
-      resolve({stdout, stderr, exitCode});
+      resolve({stdout, stderr, exitCode: exitCode || 0});
     });
     compilerProcess.on('error', err => {
       reject(err);
