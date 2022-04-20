@@ -408,6 +408,27 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
 }
 
 /**
+ * Checks whether expr is of the form `exports.abc = identifier` and if so,
+ * returns the string abc, otherwise returns null.
+ */
+function isExportsAssignment(expr: ts.Expression): string|null {
+  // Verify this looks something like `exports.abc = ...`.
+  if (!ts.isBinaryExpression(expr)) return null;
+  if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return null;
+
+  // Verify the left side of the expression is an access on `exports`.
+  if (!ts.isPropertyAccessExpression(expr.left)) return null;
+  if (!ts.isIdentifier(expr.left.expression)) return null;
+  if (expr.left.expression.escapedText !== 'exports') return null;
+
+  // Check whether right side of assignment is an identifier.
+  if (!ts.isIdentifier(expr.right)) return null;
+
+  // Return the property name as string.
+  return expr.left.name.escapedText.toString();
+}
+
+/**
  * Convert a series of comma-separated expressions
  *   x = foo, y(), z.bar();
  * with statements
@@ -866,11 +887,14 @@ export function commonJsToGoogmoduleTransformer(
         return exportStmt;
       }
 
+      // Set of all property names already seen on `exports`.
+      const exportsSeen = new Set<string>();
+
       /**
        * visitTopLevelStatement implements the main CommonJS to goog.module
        * conversion. It visits a SourceFile level statement and adds a
-       * (possibly) transformed representation of it into statements. It adds at
-       * least one node per statement to statements.
+       * (possibly) transformed representation of it into stmts. It adds at
+       * least one node per statement to stmts.
        *
        * visitTopLevelStatement:
        * - converts require() calls to goog.require() calls, with or w/o var
@@ -884,9 +908,8 @@ export function commonJsToGoogmoduleTransformer(
        * variables later on
        */
       function visitTopLevelStatement(
-          statements: ts.Statement[], sf: ts.SourceFile,
-          node: ts.Statement): void {
-        // Handle each particular case by adding node to statements, then
+          stmts: ts.Statement[], sf: ts.SourceFile, node: ts.Statement): void {
+        // Handle each particular case by adding node to stmts, then
         // return. For unhandled cases, break to jump to the default handling
         // below.
 
@@ -895,7 +918,7 @@ export function commonJsToGoogmoduleTransformer(
         if (host.isJsTranspilation) {
           const rewrittenTsLib = maybeRewriteRequireTslib(node);
           if (rewrittenTsLib) {
-            statements.push(rewrittenTsLib);
+            stmts.push(rewrittenTsLib);
             return;
           }
         }
@@ -956,6 +979,20 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
+            // Checks whether node is an assignment of the form
+            //   exports.xyz = ...;
+            // If so, whether there is already a previous assignment
+            // to the same property. If so, remove all subsequent assignments
+            // to the property to avoid EXPORT_REPEATED_ERROR from JSCompiler.
+            const exportName = isExportsAssignment(exprStmt.expression);
+            if (exportName) {
+              if (exportsSeen.has(exportName)) {
+                stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
+                return;
+              }
+              exportsSeen.add(exportName);
+            }
+
             // The rest of this block handles only some function call forms:
             //   goog.declareModuleId(...);
             //   require('foo');
@@ -968,7 +1005,7 @@ export function commonJsToGoogmoduleTransformer(
             const declaredModuleId =
                 maybeRewriteDeclareModuleId(exprStmt, callExpr);
             if (declaredModuleId) {
-              statements.push(declaredModuleId);
+              stmts.push(declaredModuleId);
               return;
             }
 
@@ -993,7 +1030,7 @@ export function commonJsToGoogmoduleTransformer(
             const require =
                 maybeCreateGoogRequire(exprStmt, callExpr, newIdent);
             if (!require) break;
-            statements.push(require);
+            stmts.push(require);
 
             // If this was an export star, split it up into the import (created
             // by the maybe call above), and the export operation. This avoids a
@@ -1001,8 +1038,9 @@ export function commonJsToGoogmoduleTransformer(
             if (isExportStar) {
               const args: ts.Expression[] = [newIdent!];
               if (expr.arguments.length > 1) args.push(expr.arguments[1]);
-              statements.push(ts.createExpressionStatement(
-                  ts.createCall(expr.expression, undefined, args)));
+              stmts.push(ts.factory.createExpressionStatement(
+                  ts.factory.createCallExpression(
+                      expr.expression, undefined, args)));
             }
             return;
           }
@@ -1022,13 +1060,13 @@ export function commonJsToGoogmoduleTransformer(
             const require =
                 maybeCreateGoogRequire(varStmt, decl.initializer, decl.name);
             if (!require) break;
-            statements.push(require);
+            stmts.push(require);
             return;
           }
           default:
             break;
         }
-        statements.push(node);
+        stmts.push(node);
       }
 
       const moduleName = host.pathToModuleName('', sf.fileName);
