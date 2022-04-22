@@ -36,3 +36,5 @@ if (false) {
      */
     AnInterface.prototype.shouldBeANumber;
 }
+/** @type {string} */
+exports.notDelete = '';

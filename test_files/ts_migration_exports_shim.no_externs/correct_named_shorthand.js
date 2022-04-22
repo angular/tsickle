@@ -34,3 +34,6 @@ if (false) {
      */
     MyNotExportedThing.prototype.aFieldOnMyNotExportedThing;
 }
+/** @type {string} */
+const notDelete = 'actually delete';
+exports.delete = notDelete;

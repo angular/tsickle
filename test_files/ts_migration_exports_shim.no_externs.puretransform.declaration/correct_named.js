@@ -11,3 +11,4 @@ class MyNamedClass {
     }
 }
 exports.MyNamedClass = MyNamedClass;
+exports.notDelete = 'actually delete';

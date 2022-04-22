@@ -4,5 +4,5 @@
  * pintomodule absent in original_file
  */
 goog.module('project.MyDefaultTypeLiteral');
-const { DefaultTypeLiteral } = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_default_type_literal');
-exports = DefaultTypeLiteral;
+const mainModule = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_default_type_literal');
+exports = mainModule.DefaultTypeLiteral;

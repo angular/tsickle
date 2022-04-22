@@ -3,8 +3,8 @@
  * @suppress {visibility} :test_files_compilation_test
  */
 
-export class MyDefaultClass {
-  field = 1;
-}
+const notExport = 'actually export';
+// Test exporting using a reserved keyword as a name.
+export {notExport as export};
 
-goog.tsMigrationDefaultExportsShim('project.MyDefaultClass.shorthand');
+goog.tsMigrationDefaultExportsShim('project.export');

@@ -5,9 +5,5 @@
 goog.module('test_files.ts_migration_exports_shim.no_externs.puretransform.declaration.correct_default_value_shorthand');
 var module = module || { id: 'test_files/ts_migration_exports_shim.no_externs.puretransform.declaration/correct_default_value_shorthand.ts' };
 goog.require('tslib');
-class MyDefaultClass {
-    constructor() {
-        this.field = 1;
-    }
-}
-exports.MyDefaultClass = MyDefaultClass;
+const notExport = 'actually export';
+exports.export = notExport;

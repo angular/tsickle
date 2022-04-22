@@ -13,10 +13,11 @@
  * same.
  */
 
-import {DefaultExportClassFromJs, DefaultExportTypeFromJs, NamedExportClassFromJs, RenamedExportedTypeFromJs} from 'goog:goog.module.ref';
+import {DefaultExportClassFromJs, DefaultExportTypeFromJs, deleteFromJs, NamedExportClassFromJs, RenamedExportedTypeFromJs} from 'goog:goog.module.ref';
+import notConst from 'goog:migrated.module.default.const';
 import DefaultExportType from 'goog:migrated.module.default.type';
 import DefaultExportClass from 'goog:migrated.module.default.value';
-import {NamedExportClassRenamed, RenamedExportedType} from 'goog:migrated.module.named';
+import {NamedExportClassRenamed, RenamedExportedType, delete as namedDelete} from 'goog:migrated.module.named';
 
 // tslint:disable
 
@@ -139,3 +140,7 @@ n.someMethod(n);
 n.someMethod(r);
 r.someMethod(r);
 r.someMethod(n);
+
+const s1: string = deleteFromJs;
+const s2: string = namedDelete;
+const s3: string = notConst;

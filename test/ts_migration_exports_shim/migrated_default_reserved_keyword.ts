@@ -8,9 +8,10 @@
 
 /**
  * See what happens when we use the shorthand syntax for shimming a named export
- * as a default export in JS.
+ * as a default export in JS but with a reserved keyword.
  */
 
-export const SomeConstant = 42;
+const notConst = 'actually const';
+export {notConst as const};
 
-goog.tsMigrationDefaultExportsShim('migrated.module.default_shorthand');
+goog.tsMigrationDefaultExportsShim('migrated.module.default.const');

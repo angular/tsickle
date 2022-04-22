@@ -11,6 +11,9 @@
  * exports.
  */
 
-export const SomeConstant = 42;
+export const someConstant = 42;
+
+const notDelete = 'actually delete';
+export {notDelete as delete};
 
 goog.tsMigrationNamedExportsShim('migrated.module.named_shorthand');

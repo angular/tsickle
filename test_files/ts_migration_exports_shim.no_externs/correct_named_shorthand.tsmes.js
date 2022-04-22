@@ -4,8 +4,7 @@
  * pintomodule absent in original_file
  */
 goog.module('project.CorrectNamedShorthand');
-const { MyIntrface, MyTypeLiteral } = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_named_shorthand');
-exports = {
-  MyIntrface: MyIntrface,
-  MyTypeLiteral: MyTypeLiteral,
-};
+const mainModule = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_named_shorthand');
+exports.MyIntrface = mainModule.MyIntrface;
+exports.MyTypeLiteral = mainModule.MyTypeLiteral;
+exports.delete = mainModule.delete;
