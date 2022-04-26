@@ -73,7 +73,7 @@ describe('emitWithTsickle', () => {
 
         function visitNode(node: ts.Node): ts.Node {
           if (node.kind === ts.SyntaxKind.NumericLiteral) {
-            return ts.createLiteral(2);
+            return ts.factory.createNumericLiteral(2);
           }
           return ts.visitEachChild(node, visitNode, context);
         }

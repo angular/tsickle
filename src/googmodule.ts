@@ -401,8 +401,8 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
   if (!isPropertyAccess(expr.expression.left, 'module', 'exports')) return null;
   return ts.setOriginalNode(
       ts.setTextRange(
-          ts.createStatement(ts.createAssignment(
-              ts.createIdentifier('exports'), expr.expression.right)),
+          ts.factory.createExpressionStatement(ts.factory.createAssignment(
+              ts.factory.createIdentifier('exports'), expr.expression.right)),
           expr),
       expr);
 }
@@ -467,7 +467,8 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
       // TODO(blickly): Simplify using flatMap once node 11 available
       return ([] as ts.Statement[]).concat(...expr.elements.map(visit));
     }
-    return [ts.setOriginalNode(ts.createExpressionStatement(expr), expr)];
+    return [ts.setOriginalNode(
+        ts.factory.createExpressionStatement(expr), expr)];
   }
 }
 
@@ -656,11 +657,12 @@ export function commonJsToGoogmoduleTransformer(
           // Create a statement like one of:
           //   var foo = goog.require('bar');
           //   var foo = existingImport;
-          const varDecl = ts.createVariableDeclaration(
-              newIdent, /* type */ undefined, initializer);
-          const newStmt = ts.createVariableStatement(
+          const varDecl = ts.factory.createVariableDeclaration(
+              newIdent, /* exclamationToken */ undefined, /* type */ undefined,
+              initializer);
+          const newStmt = ts.factory.createVariableStatement(
               /* modifiers */ undefined,
-              ts.createVariableDeclarationList(
+              ts.factory.createVariableDeclarationList(
                   [varDecl],
                   // Use 'const' in ES6 mode so Closure properly forwards type
                   // aliases.
@@ -670,7 +672,7 @@ export function commonJsToGoogmoduleTransformer(
         } else if (!newIdent && !existingImport) {
           // Create a statement like:
           //   goog.require('bar');
-          const newStmt = ts.createExpressionStatement(initializer);
+          const newStmt = ts.factory.createExpressionStatement(initializer);
           return ts.setOriginalNode(
               ts.setTextRange(newStmt, original), original);
         }
@@ -714,7 +716,7 @@ export function commonJsToGoogmoduleTransformer(
           return null;
         }
         const newStmt = createGoogLoadedModulesRegistration(
-            arg.text, ts.createIdentifier('exports'));
+            arg.text, ts.factory.createIdentifier('exports'));
         return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
       }
 
@@ -736,7 +738,9 @@ export function commonJsToGoogmoduleTransformer(
         if (!ts.isStringLiteral(arg) || arg.text !== 'tslib') return null;
         return ts.setOriginalNode(
             ts.setTextRange(
-                ts.createStatement(createGoogCall('require', arg)), stmt),
+                ts.factory.createExpressionStatement(
+                    createGoogCall('require', arg)),
+                stmt),
             stmt);
       }
 
@@ -877,10 +881,12 @@ export function commonJsToGoogmoduleTransformer(
         // node returned by the getter function.
         const exportStmt = ts.setOriginalNode(
             ts.setTextRange(
-                ts.createExpressionStatement(ts.createAssignment(
-                    ts.createPropertyAccess(
-                        ts.createIdentifier('exports'), objDefArg2.text),
-                    realExportValue)),
+                ts.factory.createExpressionStatement(
+                    ts.factory.createAssignment(
+                        ts.factory.createPropertyAccessExpression(
+                            ts.factory.createIdentifier('exports'),
+                            objDefArg2.text),
+                        realExportValue)),
                 stmt),
             stmt);
 
@@ -1022,7 +1028,7 @@ export function commonJsToGoogmoduleTransformer(
               // Extract the goog.require() from the call. (It will be verified
               // as a goog.require() below.)
               callExpr = expr.arguments[0] as ts.CallExpression;
-              newIdent = ts.createIdentifier(nextModuleVar());
+              newIdent = ts.factory.createIdentifier(nextModuleVar());
             }
 
             // Check whether the call is actually a require() and translate
@@ -1083,7 +1089,7 @@ export function commonJsToGoogmoduleTransformer(
       const headerStmts: ts.Statement[] = [];
 
       // Emit: goog.module('moduleName');
-      const googModule = ts.createStatement(
+      const googModule = ts.factory.createExpressionStatement(
           createGoogCall('module', createSingleQuoteStringLiteral(moduleName)));
       headerStmts.push(googModule);
 
@@ -1110,8 +1116,9 @@ export function commonJsToGoogmoduleTransformer(
 
         // Only add the extra require if it hasn't already been required
         if (resolvedModuleNames.indexOf(tslibModuleName) === -1) {
-          const tslibImport = ts.createExpressionStatement(createGoogCall(
-              'require', createSingleQuoteStringLiteral(tslibModuleName)));
+          const tslibImport =
+              ts.factory.createExpressionStatement(createGoogCall(
+                  'require', createSingleQuoteStringLiteral(tslibModuleName)));
 
           // Place the goog.require('tslib') statement right after the
           // goog.module statements
@@ -1129,8 +1136,9 @@ export function commonJsToGoogmoduleTransformer(
         stmts.splice(insertionIdx, 0, ...headerStmts);
       }
 
-      return ts.updateSourceFileNode(
-          sf, ts.setTextRange(ts.createNodeArray(stmts), sf.statements));
+      return ts.factory.updateSourceFile(
+          sf,
+          ts.setTextRange(ts.factory.createNodeArray(stmts), sf.statements));
     };
   };
 }

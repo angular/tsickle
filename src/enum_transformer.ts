@@ -90,7 +90,7 @@ export function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclar
 /**
  * Transformer factory for the enum transformer. See fileoverview for details.
  */
-export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Diagnostic[]):
+export function enumTransformer(typeChecker: ts.TypeChecker):
     (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext) => {
     function visitor<T extends ts.Node>(node: T): T|ts.Node[] {
@@ -117,14 +117,14 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
           const enumConstValue = typeChecker.getConstantValue(member);
           if (typeof enumConstValue === 'number') {
             enumIndex = enumConstValue + 1;
-            enumValue = ts.createLiteral(enumConstValue);
+            enumValue = ts.factory.createNumericLiteral(enumConstValue);
           } else if (typeof enumConstValue === 'string') {
             // tsickle does not care about string enum values. However TypeScript expects compile
             // time constant enum values to be replaced with their constant expression, and e.g.
             // doesn't emit imports for modules referenced in them. Because tsickle replaces the
             // enum with an object literal, i.e. handles the enum transform, it must thus also do
             // the const value substitution for strings.
-            enumValue = ts.createLiteral(enumConstValue);
+            enumValue = ts.factory.createStringLiteral(enumConstValue);
           } else {
             // Non-numeric enum value (string or an expression).
             // Emit this initializer expression as-is.
@@ -145,22 +145,27 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
             enumValue = visitor(member.initializer) as ts.Expression;
           }
         } else {
-          enumValue = ts.createLiteral(enumIndex);
+          enumValue = ts.factory.createNumericLiteral(enumIndex);
           enumIndex++;
         }
         values.push(ts.setOriginalNode(
-            ts.setTextRange(ts.createPropertyAssignment(member.name, enumValue), member), member));
+            ts.setTextRange(
+                ts.factory.createPropertyAssignment(member.name, enumValue),
+                member),
+            member));
       }
 
-      const varDecl = ts.createVariableDeclaration(
-          node.name, /* type */ undefined,
-          ts.createObjectLiteral(
-              ts.setTextRange(ts.createNodeArray(values, true), node.members), true));
+      const varDecl = ts.factory.createVariableDeclaration(
+          node.name, /* exclamationToken */ undefined, /* type */ undefined,
+          ts.factory.createObjectLiteralExpression(
+              ts.setTextRange(
+                  ts.factory.createNodeArray(values, true), node.members),
+              true));
       const varDeclStmt = ts.setOriginalNode(
           ts.setTextRange(
-              ts.createVariableStatement(
+              ts.factory.createVariableStatement(
                   /* modifiers */ undefined,
-                  ts.createVariableDeclarationList(
+                  ts.factory.createVariableDeclarationList(
                       [varDecl],
                       /* create a const var */ ts.NodeFlags.Const)),
               node),
@@ -179,9 +184,10 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
       if (isExported) {
         // Create a separate export {...} statement, so that the enum name can be used in local
         // type annotations within the file.
-        resultNodes.push(ts.createExportDeclaration(
-            undefined, undefined,
-            ts.createNamedExports([ts.createExportSpecifier(
+        resultNodes.push(ts.factory.createExportDeclaration(
+            /* decorators */ undefined, /* modifiers */ undefined,
+            /* isTypeOnly */ false,
+            ts.factory.createNamedExports([ts.factory.createExportSpecifier(
                 /* isTypeOnly */ false, undefined, name)])));
       }
 
@@ -211,15 +217,21 @@ export function enumTransformer(typeChecker: ts.TypeChecker, diagnostics: ts.Dia
           // Foo[Foo.ABC] = "ABC";
           nameExpr = createSingleQuoteStringLiteral(memberName.text);
           // Make sure to create a clean, new identifier, so comments do not get emitted twice.
-          const ident = ts.createIdentifier(getIdentifierText(memberName));
-          memberAccess = ts.createPropertyAccess(ts.createIdentifier(name), ident);
+          const ident =
+              ts.factory.createIdentifier(getIdentifierText(memberName));
+          memberAccess = ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier(name), ident);
         } else {
           // Foo[Foo["A B C"]] = "A B C"; or Foo[Foo[expression]] = expression;
           nameExpr = ts.isComputedPropertyName(memberName) ? memberName.expression : memberName;
-          memberAccess = ts.createElementAccess(ts.createIdentifier(name), nameExpr);
+          memberAccess = ts.factory.createElementAccessExpression(
+              ts.factory.createIdentifier(name), nameExpr);
         }
-        resultNodes.push(ts.createStatement(ts.createAssignment(
-            ts.createElementAccess(ts.createIdentifier(name), memberAccess), nameExpr)));
+        resultNodes.push(
+            ts.factory.createExpressionStatement(ts.factory.createAssignment(
+                ts.factory.createElementAccessExpression(
+                    ts.factory.createIdentifier(name), memberAccess),
+                nameExpr)));
       }
       return resultNodes;
     }

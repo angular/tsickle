@@ -31,7 +31,7 @@ export function rootDir(): string {
   if (!runfiles) {
     return path.join(__dirname, '..', '..');
   }
-  return path.join(runfiles!, 'tsickle');
+  return path.join(runfiles, 'tsickle');
 }
 
 /**
@@ -359,7 +359,7 @@ function diffStrings(
         message += '\x1B[90;42m⌈' + text + '⌉\x1B[0m';
         break;
       default:
-        throw new Error('unexpected diff result: ' + [diffKind, text]);
+        throw new Error(`unexpected diff result: [${diffKind}, ${text}]`);
     }
   }
   return {pass: false, message};

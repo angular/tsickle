@@ -14,8 +14,7 @@ import * as ts from 'typescript';
  */
 export function createAstPrintingTransform(files: Map<string, string>) {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
-    return (node: ts.SourceFile): ts.SourceFile => {
-      const sf = node as ts.SourceFile;
+    return (sf: ts.SourceFile): ts.SourceFile => {
       files.set(sf.fileName, ts.createPrinter().printFile(sf));
       return sf;
     };

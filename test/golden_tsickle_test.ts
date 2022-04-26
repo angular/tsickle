@@ -21,8 +21,7 @@ import * as testSupport from './test_support';
 // Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
 const TEST_FILTER = (() => {
   if (!process.env['TEST_FILTER']) return null;
-  const [testName, fileName] =
-      (process.env['TEST_FILTER'] as string).split('/', 2);
+  const [testName, fileName] = process.env['TEST_FILTER'].split('/', 2);
   return {
     testName: new RegExp(testName + (fileName ? '$' : '')),
     fileName: fileName ? new RegExp('/' + fileName) : null
@@ -304,7 +303,8 @@ testFn('golden tests', () => {
             continue;
           }
           expect(testSupport.formatDiagnostics(diags))
-              .toBe('', `unhandled diagnostics for ${path}`);
+              .withContext(`unhandled diagnostics for ${path}`)
+              .toBe('');
         }
       }
       if (dtsDiags.length) {

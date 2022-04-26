@@ -53,11 +53,11 @@ export function makeDeclarationTransformerFactory(
         if (imports.length > 0) {
           importStmts = imports.map(fileName => {
             fileName = path.relative(options.rootDir!, fileName);
-            return ts.createImportDeclaration(
+            return ts.factory.createImportDeclaration(
                 /* decorators */ undefined,
                 /* modifiers */ undefined,
                 /* importClause */ undefined,
-                /* moduleSpecifier */ ts.createStringLiteral(fileName),
+                /* moduleSpecifier */ ts.factory.createStringLiteral(fileName),
             );
           });
         }
@@ -70,7 +70,7 @@ export function makeDeclarationTransformerFactory(
         // Only need to transform file if we needed one of the above additions.
         if (!importStmts && !globalBlock) return file;
 
-        return ts.updateSourceFileNode(file, [
+        return ts.factory.updateSourceFile(file, [
           ...(importStmts ?? []),
           ...file.statements,
           ...(globalBlock ? [globalBlock] : []),
@@ -216,13 +216,13 @@ function generateClutzAliases(
     const mangledName = `module$contents$${clutzModuleName}_${symbol.name}`;
     // These ExportSpecifiers are the `foo as bar` bits as found in a larger
     // `export {foo as bar}` statement, which is constructed after this loop.
-    globalExports.push(ts.createExportSpecifier(
-        /* isTypeOnly */ false, ts.createIdentifier(localName),
-        ts.createIdentifier(mangledName)));
-    nestedExports.push(ts.createExportSpecifier(
+    globalExports.push(ts.factory.createExportSpecifier(
+        /* isTypeOnly */ false, ts.factory.createIdentifier(localName),
+        ts.factory.createIdentifier(mangledName)));
+    nestedExports.push(ts.factory.createExportSpecifier(
         /* isTypeOnly */ false,
         localName === symbol.name ? undefined : localName,
-        ts.createIdentifier(symbol.name)));
+        ts.factory.createIdentifier(symbol.name)));
   }
 
   // Create two export statements that will be used to contribute to the
@@ -230,39 +230,36 @@ function generateClutzAliases(
   const globalDeclarations: ts.Statement[] = [
     // 1) For globalExports,
     //      export {...};
-    ts.createExportDeclaration(
+    ts.factory.createExportDeclaration(
         /* decorators */ undefined,
         /* modifiers */ undefined,
-        ts.createNamedExports(globalExports),
-        ),
+        /* isTypeOnly */ false, ts.factory.createNamedExports(globalExports)),
     // 2) For nestedExports
     //      namespace module$exports$module$name$here {
     //        export {...};
     //      }
-    ts.createModuleDeclaration(
+    ts.factory.createModuleDeclaration(
         /* decorators */ undefined,
-        /* modifiers */[ts.createModifier(ts.SyntaxKind.ExportKeyword)],
-        ts.createIdentifier(`module$exports$${clutzModuleName}`),
-        ts.createModuleBlock([
-          ts.createExportDeclaration(
+        /* modifiers */[ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        ts.factory.createIdentifier(`module$exports$${clutzModuleName}`),
+        ts.factory.createModuleBlock([
+          ts.factory.createExportDeclaration(
               /* decorators */ undefined,
               /* modifiers */ undefined,
-              ts.createNamedExports(nestedExports),
-              ),
+              /* isTypeOnly */ false,
+              ts.factory.createNamedExports(nestedExports)),
         ]),
-        ts.NodeFlags.Namespace,
-        ),
+        ts.NodeFlags.Namespace),
   ];
 
 
   // Wrap a `declare global { namespace ಠ_ಠ.clutz { ... } }` around
   // the statements in globalDeclarations.
-  return ts.createModuleDeclaration(
+  return ts.factory.createModuleDeclaration(
       /* decorators */ undefined,
-      /* modifiers */[ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
-      ts.createIdentifier('global'),
-      ts.createModuleBlock([
-        ts.createModuleDeclaration(
+      /* modifiers */[ts.factory.createModifier(ts.SyntaxKind.DeclareKeyword)],
+      ts.factory.createIdentifier('global'), ts.factory.createModuleBlock([
+        ts.factory.createModuleDeclaration(
             /* decorators */ undefined,
             /* modifiers */ undefined,
             // Note: it's not exactly right to use a '.' within an identifier
@@ -271,13 +268,11 @@ function generateClutzAliases(
             // ModuleDeclaration, but nesting another ModuleDeclaration in here
             // always created a new {} block, despite trying the
             // 'NestedNamespace' flag.
-            ts.createIdentifier('ಠ_ಠ.clutz'),
-            ts.createModuleBlock(globalDeclarations),
-            ts.NodeFlags.Namespace | ts.NodeFlags.NestedNamespace,
-            ),
+            ts.factory.createIdentifier('ಠ_ಠ.clutz'),
+            ts.factory.createModuleBlock(globalDeclarations),
+            ts.NodeFlags.Namespace | ts.NodeFlags.NestedNamespace),
       ]),
-      ts.NodeFlags.GlobalAugmentation,
-  );
+      ts.NodeFlags.GlobalAugmentation);
 }
 
 /**

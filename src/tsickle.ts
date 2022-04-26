@@ -186,8 +186,7 @@ export function emit(
         transformFileoverviewCommentFactory(tsOptions, tsickleDiagnostics));
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
-    tsickleSourceTransformers.push(
-        enumTransformer(typeChecker, tsickleDiagnostics));
+    tsickleSourceTransformers.push(enumTransformer(typeChecker));
   }
   if (host.transformDecorators) {
     tsickleSourceTransformers.push(
