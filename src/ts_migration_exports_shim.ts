@@ -92,8 +92,8 @@ const SUPPORTED_EXTENSIONS = /(?<!\.d)\.ts$/;
 class Generator {
   private readonly mainExports: ts.Symbol[];
 
-  private tsmesBreakdown: TsmesCallBreakdown|undefined;
-  private outputIds: FileIdGroup|undefined;
+  private readonly tsmesBreakdown: TsmesCallBreakdown|undefined;
+  private readonly outputIds: FileIdGroup|undefined;
 
   constructor(
       private readonly src: ts.SourceFile,

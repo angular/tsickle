@@ -248,8 +248,9 @@ function createMemberTypeDeclaration(
   }
 
   const className = transformerUtil.getIdentifierText(typeDecl.name);
-  const staticPropAccess = ts.createIdentifier(className);
-  const instancePropAccess = ts.createPropertyAccess(staticPropAccess, 'prototype');
+  const staticPropAccess = ts.factory.createIdentifier(className);
+  const instancePropAccess =
+      ts.factory.createPropertyAccessExpression(staticPropAccess, 'prototype');
   // Closure Compiler will report conformance errors about this being unknown type when emitting
   // class properties as {?|undefined}, instead of just {?}. So make sure to only emit {?|undefined}
   // on interfaces.
@@ -276,31 +277,33 @@ function createMemberTypeDeclaration(
     const {tags, parameterNames} = mtt.getFunctionTypeJSDoc([fnDecl], []);
     if (hasExportingDecorator(fnDecl, mtt.typeChecker)) tags.push({tagName: 'export'});
     // Use element access instead of property access for computed names.
-    const lhs = typeof name === 'string' ? ts.createPropertyAccess(instancePropAccess, name) :
-                                           ts.createElementAccess(instancePropAccess, name);
+    const lhs = typeof name === 'string' ?
+        ts.factory.createPropertyAccessExpression(instancePropAccess, name) :
+        ts.factory.createElementAccessExpression(instancePropAccess, name);
     // memberNamespace because abstract methods cannot be static in TypeScript.
-    const abstractFnDecl = ts.createStatement(ts.createAssignment(
-        lhs,
-        ts.createFunctionExpression(
-            /* modifiers */ undefined,
-            /* asterisk */ undefined,
-            /* name */ undefined,
-            /* typeParameters */ undefined,
-            parameterNames.map(
-                n => ts.createParameter(
-                    /* decorators */ undefined, /* modifiers */ undefined,
-                    /* dotDotDot */ undefined, n)),
-            undefined,
-            ts.createBlock([]),
-            )));
+    const abstractFnDecl =
+        ts.factory.createExpressionStatement(ts.factory.createAssignment(
+            lhs,
+            ts.factory.createFunctionExpression(
+                /* modifiers */ undefined,
+                /* asterisk */ undefined,
+                /* name */ undefined,
+                /* typeParameters */ undefined,
+                parameterNames.map(
+                    n => ts.factory.createParameterDeclaration(
+                        /* decorators */ undefined, /* modifiers */ undefined,
+                        /* dotDotDot */ undefined, n)),
+                undefined,
+                ts.factory.createBlock([]),
+                )));
     ts.setSyntheticLeadingComments(abstractFnDecl, [jsdoc.toSynthesizedComment(tags)]);
     propertyDecls.push(ts.setSourceMapRange(abstractFnDecl, fnDecl));
   }
 
   // Wrap the property declarations in an 'if (false)' block.
   // See test_files/fields/fields.ts:BaseThatThrows for a note on this wrapper.
-  const ifStmt =
-      ts.createIf(ts.createLiteral(false), ts.createBlock(propertyDecls, true));
+  const ifStmt = ts.factory.createIfStatement(
+      ts.factory.createFalse(), ts.factory.createBlock(propertyDecls, true));
   // Also add a comment above the block to exclude it from coverage.
   ts.addSyntheticLeadingComment(
       ifStmt, ts.SyntaxKind.MultiLineCommentTrivia, ' istanbul ignore if ',
@@ -313,11 +316,11 @@ function propertyName(prop: ts.NamedDeclaration): string|null {
 
   switch (prop.name.kind) {
     case ts.SyntaxKind.Identifier:
-      return transformerUtil.getIdentifierText(prop.name as ts.Identifier);
+      return transformerUtil.getIdentifierText(prop.name);
     case ts.SyntaxKind.StringLiteral:
       // E.g. interface Foo { 'bar': number; }
       // If 'bar' is a name that is not valid in Closure then there's nothing we can do.
-      const text = (prop.name as ts.StringLiteral).text;
+      const text = prop.name.text;
       if (!isValidClosurePropertyName(text)) return null;
       return text;
     default:
@@ -573,8 +576,9 @@ export function jsdocTransformer(
                ts.isAssertionExpression(expr)) {
           expr = expr.expression;
         }
-        return ts.updateHeritageClause(heritageClause, [ts.updateExpressionWithTypeArguments(
-                                                           type, type.typeArguments || [], expr)]);
+        return ts.factory.updateHeritageClause(
+            heritageClause, [ts.factory.updateExpressionWithTypeArguments(
+                                type, expr, type.typeArguments || [])]);
       }
 
       function visitInterfaceDeclaration(iface: ts.InterfaceDeclaration): ts.Statement[] {
@@ -599,11 +603,12 @@ export function jsdocTransformer(
           maybeAddHeritageClauses(tags, moduleTypeTranslator, iface);
         }
         const name = transformerUtil.getIdentifierText(iface.name);
-        const modifiers = transformerUtil.hasModifierFlag(iface, ts.ModifierFlags.Export) ?
-            [ts.createToken(ts.SyntaxKind.ExportKeyword)] :
+        const modifiers =
+            transformerUtil.hasModifierFlag(iface, ts.ModifierFlags.Export) ?
+            [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)] :
             undefined;
         const decl = ts.setSourceMapRange(
-            ts.createFunctionDeclaration(
+            ts.factory.createFunctionDeclaration(
                 /* decorators */ undefined,
                 modifiers,
                 /* asterisk */ undefined,
@@ -611,7 +616,7 @@ export function jsdocTransformer(
                 /* typeParameters */ undefined,
                 /* parameters */[],
                 /* type */ undefined,
-                /* body */ ts.createBlock([]),
+                /* body */ ts.factory.createBlock([]),
                 ),
             iface);
         addCommentOn(decl, tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
@@ -896,17 +901,20 @@ export function jsdocTransformer(
           // clean, but would require a two pass emit to first find all type alias names, mangle
           // them, and emit the use sites only later.
           // So we produce: exports.T;
-          decl = ts.createStatement(ts.createPropertyAccess(
-              ts.createIdentifier('exports'), ts.createIdentifier(typeName)));
+          decl = ts.factory.createExpressionStatement(
+              ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier('exports'),
+                  ts.factory.createIdentifier(typeName)));
         } else {
           // Given: type T = ...;
           // We produce: var T;
           // Note: not const, because 'const Foo;' is illegal;
           // not let, because we want hoisting behavior for types.
-          decl = ts.createVariableStatement(
+          decl = ts.factory.createVariableStatement(
               /* modifiers */ undefined,
-              ts.createVariableDeclarationList(
-                  [ts.createVariableDeclaration(ts.createIdentifier(typeName))]));
+              ts.factory.createVariableDeclarationList(
+                  [ts.factory.createVariableDeclaration(
+                      ts.factory.createIdentifier(typeName))]));
         }
         decl = ts.setSourceMapRange(decl, typeAlias);
         addCommentOn(decl, tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
@@ -915,11 +923,12 @@ export function jsdocTransformer(
 
       /** Emits a parenthesized Closure cast: `(/** \@type ... * / (expr))`. */
       function createClosureCast(context: ts.Node, expression: ts.Expression, type: ts.Type) {
-        const inner = ts.createParen(expression);
+        const inner = ts.factory.createParenthesizedExpression(expression);
         const comment = addCommentOn(
             inner, [{tagName: 'type', type: moduleTypeTranslator.typeToClosure(context, type)}]);
         comment.hasTrailingNewLine = false;
-        return ts.setSourceMapRange(ts.createParen(inner), context);
+        return ts.setSourceMapRange(
+            ts.factory.createParenthesizedExpression(inner), context);
       }
 
       /** Converts a TypeScript type assertion into a Closure Cast. */
@@ -1165,8 +1174,9 @@ export function jsdocTransformer(
             if (node.kind === ts.SyntaxKind.ModuleDeclaration) continue;
             const mangledName = moduleNameAsIdentifier(host, sourceFile.fileName);
             const declName = transformerUtil.getIdentifierText(decl);
-            const stmt = ts.createStatement(
-                ts.createPropertyAccess(ts.createIdentifier('exports'), declName));
+            const stmt = ts.factory.createExpressionStatement(
+                ts.factory.createPropertyAccessExpression(
+                    ts.factory.createIdentifier('exports'), declName));
             addCommentOn(stmt, [{tagName: 'typedef', type: `!${mangledName}.${declName}`}]);
             result.push(stmt);
           }

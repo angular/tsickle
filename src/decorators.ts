@@ -96,7 +96,7 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
     const result: ts.Transformer<ts.SourceFile> = (sourceFile: ts.SourceFile) => {
       let nodeNeedingGoogReflect: undefined|ts.Node = undefined;
       const visitor: ts.Visitor = (node) => {
-        const replacementNode = rewriteDecorator(node, context);
+        const replacementNode = rewriteDecorator(node);
         if (replacementNode) {
           nodeNeedingGoogReflect = node;
           return replacementNode;
@@ -113,16 +113,19 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
               'Internal tsickle error: could not find goog.module statement to import __tsickle_googReflect for decorator compilation.');
           return sourceFile;
         }
-        const googRequireReflectObjectProperty = ts.createVariableStatement(
-            undefined,
-            ts.createVariableDeclarationList(
-                [ts.createVariableDeclaration(
-                    '__tsickle_googReflect', undefined,
-
-                    ts.createCall(
-                        ts.createPropertyAccess(ts.createIdentifier('goog'), 'require'), undefined,
-                        [ts.createStringLiteral('goog.reflect')]))],
-                ts.NodeFlags.Const));
+        const googRequireReflectObjectProperty =
+            ts.factory.createVariableStatement(
+                undefined,
+                ts.factory.createVariableDeclarationList(
+                    [ts.factory.createVariableDeclaration(
+                        '__tsickle_googReflect',
+                        /* exclamationToken */ undefined, /* type */ undefined,
+                        ts.factory.createCallExpression(
+                            ts.factory.createPropertyAccessExpression(
+                                ts.factory.createIdentifier('goog'), 'require'),
+                            undefined,
+                            [ts.factory.createStringLiteral('goog.reflect')]))],
+                    ts.NodeFlags.Const));
         // The boilerplate we produce has a goog.module line, then two related
         // lines dealing with the `module` variable. Insert our goog.require
         // after that to avoid visually breaking up the module info, and to be
@@ -131,7 +134,8 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
         updatedSourceFile = ts.factory.updateSourceFile(
             updatedSourceFile,
             ts.setTextRange(
-                ts.createNodeArray(statements), updatedSourceFile.statements),
+                ts.factory.createNodeArray(statements),
+                updatedSourceFile.statements),
             updatedSourceFile.isDeclarationFile,
             updatedSourceFile.referencedFiles,
             updatedSourceFile.typeReferenceDirectives,
@@ -151,7 +155,7 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
  *
  * Returns undefined if no modification is necessary.
  */
-function rewriteDecorator(node: ts.Node, context: ts.TransformationContext): ts.Node|undefined {
+function rewriteDecorator(node: ts.Node): ts.Node|undefined {
   if (!ts.isCallExpression(node)) {
     return;
   }
@@ -178,10 +182,14 @@ function rewriteDecorator(node: ts.Node, context: ts.TransformationContext): ts.
     return;
   }
   const fieldNameLiteral = untypedFieldNameLiteral;
-  args[2] = ts.createCall(
-      ts.createPropertyAccess(ts.createIdentifier('__tsickle_googReflect'), 'objectProperty'),
-      undefined, [ts.createStringLiteral(fieldNameLiteral.text), ts.getMutableClone(args[1])]);
-  return ts.updateCall(node, node.expression, node.typeArguments, args);
+  args[2] = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier('__tsickle_googReflect'),
+          'objectProperty'),
+      undefined,
+      [ts.factory.createStringLiteral(fieldNameLiteral.text), args[1]]);
+  return ts.factory.updateCallExpression(
+      node, node.expression, node.typeArguments, args);
 }
 
 function isGoogModuleStatement(statement: ts.Node) {
@@ -235,7 +243,7 @@ function sanitizeDecorateComments(comments: ts.SynthesizedComment[]):
  */
 export function transformDecoratorJsdoc():
     ts.TransformerFactory<ts.SourceFile> {
-  return (context: ts.TransformationContext) => {
+  return () => {
     const transformer: ts.Transformer<ts.SourceFile> =
         (sourceFile: ts.SourceFile) => {
           for (const stmt of sourceFile.statements) {

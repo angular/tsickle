@@ -141,14 +141,15 @@ export function transformFileoverviewCommentFactory(
           // preceding comments) as a file-level comment. Split them off and attach them onto a
           // NotEmittedStatement, so that they do not get lost later on.
           const synthesizedComments = jsdoc.synthesizeLeadingComments(firstStatement);
-          const notEmitted = ts.createNotEmittedStatement(sourceFile);
+          const notEmitted = ts.factory.createNotEmittedStatement(sourceFile);
           // Modify the comments on the firstStatement in place by removing the file-level comments.
           fileComments = synthesizedComments.splice(0, i + 1);
           // Move the fileComments onto notEmitted.
           ts.setSyntheticLeadingComments(notEmitted, fileComments);
-          sourceFile = updateSourceFileNode(
-              sourceFile,
-              ts.createNodeArray([notEmitted, firstStatement, ...sourceFile.statements.slice(1)]));
+          sourceFile =
+              updateSourceFileNode(sourceFile, ts.factory.createNodeArray([
+                notEmitted, firstStatement, ...sourceFile.statements.slice(1)
+              ]));
           break;
         }
 
@@ -210,5 +211,7 @@ function addNewFileoverviewComment(sf: ts.SourceFile, commentText: string): ts.S
   let syntheticFirstStatement = createNotEmittedStatement(sf);
   syntheticFirstStatement = ts.addSyntheticTrailingComment(
       syntheticFirstStatement, ts.SyntaxKind.MultiLineCommentTrivia, commentText, true);
-  return updateSourceFileNode(sf, ts.createNodeArray([syntheticFirstStatement, ...sf.statements]));
+  return updateSourceFileNode(
+      sf,
+      ts.factory.createNodeArray([syntheticFirstStatement, ...sf.statements]));
 }

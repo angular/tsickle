@@ -26,7 +26,8 @@ import * as typeTranslator from './type_translator';
  */
 export class MutableJSDoc {
   constructor(
-      private node: ts.Node, private sourceComment: ts.SynthesizedComment|null,
+      private readonly node: ts.Node,
+      private sourceComment: ts.SynthesizedComment|null,
       public tags: jsdoc.Tag[]) {}
 
   updateComment(escapeExtraTags?: Set<string>) {
@@ -64,7 +65,7 @@ export class MutableJSDoc {
 function getParameterName(param: ts.ParameterDeclaration, index: number): string {
   switch (param.name.kind) {
     case ts.SyntaxKind.Identifier:
-      let name = getIdentifierText(param.name as ts.Identifier);
+      let name = getIdentifierText(param.name);
       // TypeScript allows parameters named "arguments", but Closure
       // disallows this, even in externs.
       if (name === 'arguments') name = 'tsickle_arguments';
@@ -101,28 +102,29 @@ export class ModuleTypeTranslator {
    * A cache for expensive symbol lookups, see TypeTranslator.symbolToString. Maps symbols to their
    * Closure name in this file scope.
    */
-  private symbolToNameCache = new Map<ts.Symbol, string>();
+  private readonly symbolToNameCache = new Map<ts.Symbol, string>();
 
   /**
    * The set of module symbols requireTyped in the local namespace.  This tracks which imported
    * modules we've already added to additionalImports below.
    */
-  private requireTypeModules = new Set<ts.Symbol>();
+  private readonly requireTypeModules = new Set<ts.Symbol>();
 
   /**
    * The list of generated goog.requireType statements for this module. These are inserted into
    * the module's body statements after translation.
    */
-  private additionalImports: ts.Statement[] = [];
+  private readonly additionalImports: ts.Statement[] = [];
 
   constructor(
-      public sourceFile: ts.SourceFile,
-      public typeChecker: ts.TypeChecker,
-      private host: AnnotatorHost,
-      private diagnostics: ts.Diagnostic[],
-      private isForExterns: boolean,
+      readonly sourceFile: ts.SourceFile,
+      readonly typeChecker: ts.TypeChecker,
+      private readonly host: AnnotatorHost,
+      private readonly diagnostics: ts.Diagnostic[],
+      private readonly isForExterns: boolean,
   ) {
     // TODO: remove once AnnotatorHost.typeBlackListPaths is removed.
+    // tslint:disable-next-line:deprecation
     this.host.unknownTypesPaths = this.host.unknownTypesPaths ?? this.host.typeBlackListPaths;
   }
 
@@ -140,8 +142,6 @@ export class ModuleTypeTranslator {
    * @param context The ts.Node containing the type reference; used for resolving symbols
    *     in context.
    * @param type The type to translate; if not provided, the Node's type will be used.
-   * @param resolveAlias If true, do not emit aliases as their symbol, but rather as the resolved
-   *     type underlying the alias. This should be true only when emitting the typedef itself.
    */
   typeToClosure(context: ts.Node, type?: ts.Type): string {
     if (this.host.untyped) {
@@ -172,11 +172,12 @@ export class ModuleTypeTranslator {
     const translationContext = this.isForExterns ? this.sourceFile : context;
 
     const translator = new typeTranslator.TypeTranslator(
-        this.host, this.typeChecker, translationContext, this.host.unknownTypesPaths || new Set(),
-        this.symbolsToAliasedNames, this.symbolToNameCache,
-        (sym: ts.Symbol) => this.ensureSymbolDeclared(sym));
+        this.host, this.typeChecker, translationContext,
+        this.host.unknownTypesPaths || new Set(), this.symbolsToAliasedNames,
+        this.symbolToNameCache,
+        (sym: ts.Symbol) => void this.ensureSymbolDeclared(sym));
     translator.isForExterns = this.isForExterns;
-    translator.warn = msg => this.debugWarn(context, msg);
+    translator.warn = msg => void this.debugWarn(context, msg);
     return translator;
   }
 
@@ -275,14 +276,17 @@ export class ModuleTypeTranslator {
     // Instead, goog.requireType types, which allows using them in type annotations without
     // causing a load.
     //   const requireTypePrefix = goog.requireType(moduleNamespace)
-    this.additionalImports.push(ts.createVariableStatement(
+    this.additionalImports.push(ts.factory.createVariableStatement(
         undefined,
-        ts.createVariableDeclarationList(
-            [ts.createVariableDeclaration(
-                requireTypePrefix, undefined,
-                ts.createCall(
-                    ts.createPropertyAccess(ts.createIdentifier('goog'), 'requireType'), undefined,
-                    [ts.createLiteral(moduleNamespace)]))],
+        ts.factory.createVariableDeclarationList(
+            [ts.factory.createVariableDeclaration(
+                requireTypePrefix, /* exclamationToken */ undefined,
+                /* type */ undefined,
+                ts.factory.createCallExpression(
+                    ts.factory.createPropertyAccessExpression(
+                        ts.factory.createIdentifier('goog'), 'requireType'),
+                    undefined,
+                    [ts.factory.createStringLiteral(moduleNamespace)]))],
             ts.NodeFlags.Const)));
     this.requireTypeModules.add(moduleSymbol);
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
@@ -325,7 +329,7 @@ export class ModuleTypeTranslator {
         sourceFile.statements[0].kind === ts.SyntaxKind.NotEmittedStatement) {
       insertion++;
     }
-    return ts.updateSourceFileNode(sourceFile, [
+    return ts.factory.updateSourceFile(sourceFile, [
       ...sourceFile.statements.slice(0, insertion),
       ...this.additionalImports,
       ...sourceFile.statements.slice(insertion),

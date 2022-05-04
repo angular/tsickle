@@ -73,6 +73,7 @@ export function typeValueConflictHandled(symbol: ts.Symbol) {
           n => isDeclaredInBuiltinLibDTS(n) || isDeclaredInClutzDts(n));
 }
 
+/** Returns a string describing the type for usage in debug logs. */
 export function typeToDebugString(type: ts.Type): string {
   let debugString = `flags:0x${type.flags.toString(16)}`;
 
@@ -139,6 +140,7 @@ export function typeToDebugString(type: ts.Type): string {
   return `{type ${debugString}}`;
 }
 
+/** Returns a string describing the symbol for usage in debug logs. */
 export function symbolToDebugString(sym: ts.Symbol): string {
   let debugString =
       `${JSON.stringify(sym.name)} flags:0x${sym.flags.toString(16)}`;
@@ -523,7 +525,7 @@ export class TypeTranslator {
           // represent in Closure's type-system, and in this case we fall
           // back to '?' (the old behavior).
           if (type.aliasTypeArguments?.[0]) {
-            innerSymbol = this.translate(type.aliasTypeArguments![0]);
+            innerSymbol = this.translate(type.aliasTypeArguments[0]);
           } else {
             const srcFile = this.node.getSourceFile().fileName;
             const start = this.node.getStart();
@@ -655,7 +657,7 @@ export class TypeTranslator {
           return '?';
         }
       }
-      return '!' + this.symbolToString(type.symbol);
+      return '!' + this.symbolToString(type.symbol)!;
     } else if (type.objectFlags & ts.ObjectFlags.Reference) {
       // A reference to another type, e.g. Array<number> refers to Array.
       // Emit the referenced type and any type arguments.

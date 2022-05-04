@@ -329,7 +329,7 @@ export function generateExterns(
   function writeVariableDeclaration(
       decl: ts.VariableDeclaration, namespace: ReadonlyArray<string>) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
-      const name = getIdentifierText(decl.name as ts.Identifier);
+      const name = getIdentifierText(decl.name);
       if (PREDECLARED_CLOSURE_EXTERNS_LIST.indexOf(name) >= 0) return;
       emit(jsdoc.toString([{tagName: 'type', type: mtt.typeToClosure(decl)}]));
       emit('\n');
@@ -379,10 +379,10 @@ export function generateExterns(
       let memberName: string|undefined;
       switch (member.name.kind) {
         case ts.SyntaxKind.Identifier:
-          memberName = getIdentifierText(member.name as ts.Identifier);
+          memberName = getIdentifierText(member.name);
           break;
         case ts.SyntaxKind.StringLiteral:
-          const text = (member.name as ts.StringLiteral).text;
+          const text = member.name.text;
           if (isValidClosurePropertyName(text)) memberName = text;
           break;
         default:
@@ -784,7 +784,7 @@ export function generateExterns(
               namespace = [];
             } else {
               // E.g. "declare namespace foo {"
-              const name = getIdentifierText(decl.name as ts.Identifier);
+              const name = getIdentifierText(decl.name);
               if (isFirstValueDeclaration(decl)) {
                 emit('/** @const */\n');
                 writeVariableStatement(name, namespace, '{}');
@@ -800,7 +800,7 @@ export function generateExterns(
             // The mangled namespace (after resolving files) matches the emit for an original module
             // file, so effectively this augments any existing module.
 
-            const importName = (decl.name as ts.StringLiteral).text;
+            const importName = decl.name.text;
             const importedModuleName =
                 resolveModuleName({moduleResolutionHost, options}, sourceFile.fileName, importName);
             const mangled = moduleNameAsIdentifier(host, importedModuleName);

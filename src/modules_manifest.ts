@@ -13,9 +13,9 @@ export interface FileMap<T> {
 /** A class that maintains the module dependency graph of output JS files. */
 export class ModulesManifest {
   /** Map of googmodule module name to file name */
-  private moduleToFileName: FileMap<string> = {};
+  private readonly moduleToFileName: FileMap<string> = {};
   /** Map of file name to arrays of imported googmodule module names */
-  private referencedModules: FileMap<string[]> = {};
+  private readonly referencedModules: FileMap<string[]> = {};
 
   addManifest(other: ModulesManifest) {
     Object.assign(this.moduleToFileName, other.moduleToFileName);
