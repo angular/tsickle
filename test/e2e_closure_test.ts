@@ -46,6 +46,7 @@ describe('golden file tests', () => {
         'test_files/googmodule_esmodule.declaration.no_externs/some_module.js',
         'test_files/googmodule_esmodule.no_externs/some_module.js',
         'test_files/import_by_path.no_externs/jsprovides.js',
+        'test_files/import_equals/exporter.js',
         'test_files/import_from_goog.no_externs/closure_LegacyModule.js',
         'test_files/import_from_goog.no_externs/closure_Module.js',
         'test_files/import_from_goog.no_externs/closure_OtherModule.js',

@@ -3,6 +3,7 @@
  * thing here is to correctly name module contained (mangled) and global (non-mangled) symbols.
  */
 
+import * as exporter from './exporter';
 import {exportedSymbol} from './exporter';
 
 export = namespaceInModule;
@@ -10,10 +11,15 @@ export = namespaceInModule;
 // Make sure a local, mangled alias is emitted and references the mangled name for mynamespace.
 import alias = namespaceInModule;
 
+// "Exported" does not use "declare". Reference emitted here should still use
+// mangled name.
+import Exported = exporter.Exported;
+
 declare namespace namespaceInModule {
   export class InNamespace {}
   // Use alias to refer to the type above.
   export const myVar: alias.InNamespace;
+  export const otherVar: Exported.Nested;
 }
 
 declare global {

@@ -257,13 +257,6 @@ export class ModuleTypeTranslator {
     }
     const nsImport =
         googmodule.namespaceForImportUrl(context, this.diagnostics, importPath, moduleSymbol);
-    if (googmodule.extractModuleMarker(
-            moduleSymbol, '__clutz_strip_property')) {
-      // Symbols using import-by-path with strip property should be mapped to a
-      // default import. This makes sure that type annotations get emitted as
-      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
-      isDefaultImport = true;
-    }
     const requireTypePrefix =
         this.generateModulePrefix(importPath) + String(this.requireTypeModules.size + 1);
     const moduleNamespace = nsImport !== null ?
@@ -289,15 +282,47 @@ export class ModuleTypeTranslator {
                     [ts.factory.createStringLiteral(moduleNamespace)]))],
             ts.NodeFlags.Const)));
     this.requireTypeModules.add(moduleSymbol);
+
+    this.registerImportAliases(
+        nsImport, isDefaultImport, moduleSymbol, () => requireTypePrefix);
+  }
+
+  /**
+   * Registers aliases for the given import.
+   *
+   * @param googNamespace The goog: namespace as returned from
+   *     googmodule.namespaceForImportUrl.
+   * @param isDefaultImport True if the import statement is a default import,
+   *     e.g. `import Foo from ...;`, which matters for adjusting whether we
+   *     emit a `.default`.
+   * @param moduleSymbol Symbol of the imported module, e.g. as returned from
+   *     typeChecker.getSymbolAtLocation(importDeclaration.moduleSpecifier).
+   * @param getAliasPrefix Should return the alias prefix. Called for each
+   *     exported symbol. The registered alias is <aliasPrefix>.<exportedName>.
+   */
+  registerImportAliases(
+      googNamespace: string|null, isDefaultImport: boolean,
+      moduleSymbol: ts.Symbol, getAliasPrefix: (symbol: ts.Symbol) => string) {
+    if (googmodule.extractModuleMarker(
+            moduleSymbol, '__clutz_strip_property')) {
+      // Symbols using import-by-path with strip property should be mapped to a
+      // default import. This makes sure that type annotations get emitted as
+      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
+      isDefaultImport = true;
+    }
+
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
+      const aliasPrefix = getAliasPrefix(sym);
       // Some users import {default as SomeAlias} from 'goog:...';
-      // The code below must recognize this as a default import to alias the symbol to just the
-      // blank module name.
+      // The code below must recognize this as a default import to alias the
+      // symbol to just the blank module name.
       const namedDefaultImport = sym.name === 'default';
-      // goog: imports don't actually use the .default property that TS thinks they have.
-      const qualifiedName = nsImport && (isDefaultImport || namedDefaultImport) ?
-          requireTypePrefix :
-          requireTypePrefix + '.' + sym.name;
+      // goog: imports don't actually use the .default property that TS thinks
+      // they have.
+      const qualifiedName =
+          googNamespace && (isDefaultImport || namedDefaultImport) ?
+          aliasPrefix :
+          aliasPrefix + '.' + sym.name;
       if (sym.flags & ts.SymbolFlags.Alias) {
         sym = this.typeChecker.getAliasedSymbol(sym);
       }
