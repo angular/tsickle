@@ -95,6 +95,12 @@ function CryptoKeyPair() {};
 /** @typedef {!{handleEvent: function(Event):void}} */
 var EventListenerObject;
 
+/** @typedef {!ITemplateArray} */
+var TemplateStringsArray;
+
+/** @typedef {!RegExpResult} */
+var RegExpMatchArray;
+
 /** @record */
 function ImportMeta() {};
 
