@@ -617,7 +617,7 @@ export function generateExterns(
     } else {
       mtt.registerImportAliases(
           null, isDefaultImport, moduleSymbol,
-          (symbol) => getAliasPrefixForEsModule(moduleUri, symbol));
+          getAliasPrefixForEsModule(moduleUri));
     }
   }
 
@@ -626,25 +626,30 @@ export function generateExterns(
    * contrast to a goog module/provide file). The prefix may then be used to
    * reference the type in externs where import statements aren't allowed.
    */
-  function getAliasPrefixForEsModule(moduleUri: ts.StringLiteral, exportedSymbol: ts.Symbol) {
-    // While type_translator does add the mangled prefix for ambient declarations, it only does so
-    // for non-aliased (i.e. not imported) symbols. That's correct for its use in regular modules,
-    // which will have a local symbol for the imported ambient symbol. However within an externs
-    // file, there are no imports, so we need to make sure the alias already contains the correct
-    // module name, which means the mangled module name in case of imports symbols.
-    // This only applies to non-Closure ('goog:') imports.
-    const isAmbientModuleDeclaration = exportedSymbol.declarations &&
-        exportedSymbol.declarations.some(
-            d => isAmbient(d) || d.getSourceFile().isDeclarationFile);
+  function getAliasPrefixForEsModule(moduleUri: ts.StringLiteral) {
+    // Calls to resolveModuleName, moduleNameAsIdentifier and
+    // host.pathToModuleName can incur file system accesses, which are slow.
+    // Make sure they are only called once and if/when needed.
     const fullUri =
         resolveModuleName(host, sourceFile.fileName, moduleUri.text);
-    if (isAmbientModuleDeclaration) {
-      return moduleNameAsIdentifier(host, fullUri);
-    } else {
-      return host.pathToModuleName(
-          sourceFile.fileName,
-          resolveModuleName(host, sourceFile.fileName, fullUri));
-    }
+    const ambientModulePrefix = moduleNameAsIdentifier(host, fullUri);
+    const defaultPrefix = host.pathToModuleName(
+        sourceFile.fileName,
+        resolveModuleName(host, sourceFile.fileName, fullUri));
+    return (exportedSymbol: ts.Symbol) => {
+      // While type_translator does add the mangled prefix for ambient
+      // declarations, it only does so for non-aliased (i.e. not imported)
+      // symbols. That's correct for its use in regular modules, which will have
+      // a local symbol for the imported ambient symbol. However within an
+      // externs file, there are no imports, so we need to make sure the alias
+      // already contains the correct module name, which means the mangled
+      // module name in case of imports symbols. This only applies to
+      // non-Closure ('goog:') imports.
+      const isAmbientModuleDeclaration = exportedSymbol.declarations &&
+          exportedSymbol.declarations.some(
+              d => isAmbient(d) || d.getSourceFile().isDeclarationFile);
+      return isAmbientModuleDeclaration ? ambientModulePrefix : defaultPrefix;
+    };
   }
 
   /**
