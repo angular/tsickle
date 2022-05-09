@@ -19,8 +19,11 @@ describe('emitWithTsickle', () => {
       tsSources: {[fileName: string]: string}, tsConfigOverride: Partial<ts.CompilerOptions> = {},
       tsickleHostOverride: Partial<tsickle.TsickleHost> = {},
       customTransformers?: tsickle.EmitTransformers): {[fileName: string]: string} {
-    const tsCompilerOptions:
-        ts.CompilerOptions = {...testSupport.compilerOptions, ...tsConfigOverride};
+    const tsCompilerOptions: ts.CompilerOptions = {
+      ...testSupport.compilerOptions,
+      target: ts.ScriptTarget.ES5,
+      ...tsConfigOverride,
+    };
 
     const sources = new Map<string, string>();
     for (const fileName of Object.keys(tsSources)) {
@@ -29,7 +32,6 @@ describe('emitWithTsickle', () => {
     const {program, host: tsHost} = testSupport.createProgramAndHost(sources, tsCompilerOptions);
     testSupport.expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
     const tsickleHost: tsickle.TsickleHost = {
-      es5Mode: true,
       googmodule: false,
       convertIndexImportShorthand: true,
       transformDecorators: true,
@@ -103,7 +105,7 @@ describe('emitWithTsickle', () => {
           preserveConstEnums: true,
           module: ts.ModuleKind.ES2015,
         },
-        {es5Mode: false, googmodule: false});
+        {googmodule: false});
 
     expect(jsSources['b.js']).toContain(`export { Foo } from './a';`);
   });
@@ -137,7 +139,7 @@ export function f() { return f; }
                declaration: true,
                module: ts.ModuleKind.ES2015,
              },
-             {es5Mode: false, googmodule: false});
+             {googmodule: false});
 
          expect(jsSources['b.d.ts']).toEqual(`export * from './a';\n`);
        });

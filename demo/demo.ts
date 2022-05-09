@@ -164,13 +164,13 @@ export function toClosureJS(
     pathToModuleName: (context, fileName) =>
         tsickle.pathToModuleName(rootModulePath, context, fileName),
     fileNameToModuleId: (fileName) => path.relative(rootModulePath, fileName),
-    es5Mode: true,
     googmodule: true,
     transformDecorators: true,
     transformTypesToClosure: true,
     typeBlackListPaths: new Set(),
     untyped: false,
-    logWarning: (warning) => console.error(ts.formatDiagnostics([warning], compilerHost)),
+    logWarning: (warning) =>
+        console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
     moduleResolutionHost: compilerHost,
   };

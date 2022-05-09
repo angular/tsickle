@@ -23,15 +23,17 @@ function processES5(fileName: string, content: string, {
       {}, testSupport.compilerOptions, {allowJs: isJsTranspilation});
   options.outDir = 'fakeOutDir';
   const rootDir = options.rootDir!;
+  options.target = isES5 ? ts.ScriptTarget.ES5 : options.target;
   fileName = path.join(rootDir, fileName);
   const tsHost =
       testSupport.createSourceCachingHost(new Map([[fileName, content]]));
+
+
   const host: googmodule.GoogModuleProcessorHost = {
     fileNameToModuleId: (fn: string) => path.relative(rootDir, fn),
     pathToModuleName: (context, fileName) =>
         testSupport.pathToModuleName(rootDir, context, fileName),
-    es5Mode: isES5,
-    options: testSupport.compilerOptions,
+    options,
     moduleResolutionHost: tsHost,
     isJsTranspilation,
   };
@@ -202,7 +204,7 @@ goog.module('a');
 var module = module || { id: 'a.ts' };
 goog.require('tslib');
 // Only uses the import as a type.
-const x = 1;
+var x = 1;
 console.log('in mod_a', x);
 `);
   });
@@ -441,8 +443,10 @@ exports.boff = 4;
   describe('processing transpiled JS output', () => {
     function expectJsTranspilation(
         content: string, filename = 'project/file.js') {
-      return expect(
-          processES5(filename, content, {isJsTranspilation: true}).output);
+      return expect(processES5(filename, content, {
+                      isES5: true,
+                      isJsTranspilation: true
+                    }).output);
     }
 
     it('does not insert goog.module() or module = ... in JS transpilation outputs',
@@ -532,7 +536,7 @@ exports.ns = tsickle_module_1_;
       `;
       expectJsTranspilation(before).toBe(`goog.module('project.file');
 var module = module || { id: 'project/file.js' };
-const math = goog.require('goog.math');
+var math = goog.require('goog.math');
 exports.qux = math.PI * 10;
 `);
     });
