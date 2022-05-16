@@ -331,6 +331,10 @@ export class ModuleTypeTranslator {
   }
 
   protected ensureSymbolDeclared(sym: ts.Symbol) {
+    // Early exit if we already have a local alias.
+    // This also prevents "ensureSymbolDeclared" from clobbering local aliases
+    // set up for imports.
+    if (this.symbolsToAliasedNames.has(sym)) return;
     const decl = this.findExportedDeclaration(sym);
     if (!decl) return;
     if (this.isForExterns) {
