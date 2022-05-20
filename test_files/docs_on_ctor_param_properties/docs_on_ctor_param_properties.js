@@ -21,13 +21,13 @@ exports.Clazz = Clazz;
 /* istanbul ignore if */
 if (false) {
     /**
-     * @type {!Array<string>}
+     * @const {!Array<string>}
      * @public
      */
     Clazz.prototype.id;
     /**
      * Here is a docstring for the parameter property.
-     * @type {!Array<string>}
+     * @const {!Array<string>}
      * @public
      */
     Clazz.prototype.parameterProperty;

@@ -386,8 +386,9 @@ function createClosurePropertyDeclaration(
   // Don't report warnings here to avoid duplicate warnings. We already warn
   // once when visiting this ts.PropertyDeclaration in jsdocTransformer.visitor
   const tags = mtt.getJSDoc(prop, /* reportWarnings */ false);
-  tags.push({tagName: 'type', type});
   const flags = ts.getCombinedModifierFlags(prop);
+  const isReadonly = !!(flags & ts.ModifierFlags.Readonly);
+  tags.push({tagName: isReadonly ? 'const' : 'type', type});
   if (hasExportingDecorator(prop, mtt.typeChecker)) {
     tags.push({tagName: 'export'});
   } else if (flags & ts.ModifierFlags.Protected) {

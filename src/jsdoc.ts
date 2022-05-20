@@ -169,6 +169,12 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
 ]);
 
 /**
+ * Tags that, if they are the only tag, should be printed in a single line JSDoc
+ * comment.
+ */
+const ONE_LINER_TAGS = new Set(['type', 'typedef', 'nocollapse', 'const']);
+
+/**
  * Result of parsing a JSDoc comment. Such comments essentially are built of a list of tags.
  * In addition to the tags, this might also contain warnings to indicate non-fatal problems
  * while finding the tags.
@@ -437,7 +443,7 @@ function serialize(
   if (tags.length === 0) return '';
   if (tags.length === 1) {
     const tag = tags[0];
-    if ((tag.tagName === 'type' || tag.tagName === 'typedef' || tag.tagName === 'nocollapse') &&
+    if (ONE_LINER_TAGS.has(tag.tagName) &&
         (!tag.text || !tag.text.match('\n'))) {
       // Special-case one-liner "type" and "nocollapse" tags to fit on one line, e.g.
       //   /** @type {foo} */

@@ -455,7 +455,9 @@ export function generateExterns(
               // An optional 'any' type translates to '?|undefined' in Closure.
               type = '?|undefined';
             }
-            emit(jsdoc.toString([{tagName: 'type', type}]));
+            const isReadonly = hasModifierFlag(prop, ts.ModifierFlags.Readonly);
+            emit(jsdoc.toString(
+                [{tagName: isReadonly ? 'const' : 'type', type}]));
             if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
               emit(`\n${typeName}.${prop.name.getText()};\n`);
             } else {

@@ -45,7 +45,7 @@ class SomeComponent {
 /* istanbul ignore if */
 if (false) {
     /**
-     * @type {{A: number, B: number}}
+     * @const {{A: number, B: number}}
      * @public
      */
     SomeComponent.prototype.MY_ENUM;

@@ -49,12 +49,12 @@ if (false) {
      */
     ParamProps.prototype.privateP;
     /**
-     * @type {string}
+     * @const {string}
      * @public
      */
     ParamProps.prototype.readonlyP;
     /**
-     * @type {string}
+     * @const {string}
      * @public
      */
     ParamProps.prototype.publicReadonlyP;
