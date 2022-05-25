@@ -1,6 +1,6 @@
 {
   "name": "tsickle",
-  "version": "0.46.1",
+  "version": "0.46.2",
   "description": "Transpile TypeScript code to JavaScript with Closure annotations.",
   "main": "out/src/tsickle.js",
   "typings": "out/src/tsickle.d.ts",
@@ -11,7 +11,7 @@
     "out/src/*"
   ],
   "peerDependencies": {
-    "typescript": "~4.6.3"
+    "typescript": "~4.7.2"
   },
   "devDependencies": {
     "@types/diff-match-patch": "^1.0.32",

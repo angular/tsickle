@@ -69,7 +69,7 @@ const ConstEnum = {
 };
 exports.ConstEnum = ConstEnum;
 /** @type {!ConstEnum} */
-let constEnumValue = 0 /* EMITTED_ENUM_VALUE */;
+let constEnumValue = 0 /* ConstEnum.EMITTED_ENUM_VALUE */;
 /**
  * @record
  */

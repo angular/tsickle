@@ -21,4 +21,4 @@ if (false) {
     EnumUsingIf.prototype.field;
 }
 /** @type {!tsickle_enum_1.ConstEnum} */
-const fieldUsingConstEnum = 0 /* EMITTED_ENUM_VALUE */;
+const fieldUsingConstEnum = 0 /* ConstEnum.EMITTED_ENUM_VALUE */;
