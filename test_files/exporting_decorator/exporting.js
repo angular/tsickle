@@ -1,12 +1,14 @@
-/**
- * @fileoverview added by tsickle
- * Generated from: test_files/exporting_decorator/exporting.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
- */
 goog.module('test_files.exporting_decorator.exporting');
 var module = module || { id: 'test_files/exporting_decorator/exporting.ts' };
 const tslib_1 = goog.require('tslib');
 const __tsickle_googReflect = goog.require("goog.reflect");
+/**
+ *
+ * @fileoverview
+ * Generated from: test_files/exporting_decorator/exporting.ts
+ * @suppress {uselessCode}
+ *
+ */
 /**
  * \@ExportDecoratedItems
  * @return {function(?, (string|symbol)): void}

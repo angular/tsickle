@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/debugger/user.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 // TODO: the type below should be emitted as `outer.debugger.Foo`. However
 // TypeScript does not take the re-export in the outer namespace into account,

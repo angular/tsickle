@@ -1,15 +1,15 @@
-/**
- * @fileoverview added by tsickle
- * Generated from: test_files/async_functions/async_functions.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
- */
 goog.module('test_files.async_functions.async_functions');
 var module = module || { id: 'test_files/async_functions/async_functions.ts' };
 const tslib_1 = goog.require('tslib');
 /**
- * Exercises various forms of async functions.  When TypeScript downlevels these functions, it
- * inserts a reference to 'this' which then tickles a Closure check around whether 'this' has a
- * known type.
+ *
+ * @fileoverview
+ * Exercises various forms of async functions.  When TypeScript downlevels these
+ * functions, it inserts a reference to 'this' which then tickles a Closure
+ * check around whether 'this' has a known type.
+ * Generated from: test_files/async_functions/async_functions.ts
+ * @suppress {uselessCode}
+ *
  */
 /**
  * @param {string} param

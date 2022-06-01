@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/abstract/abstract.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.abstract.abstract');
 var module = module || { id: 'test_files/abstract/abstract.ts' };
@@ -92,7 +94,9 @@ class Derived extends Base {
      * @public
      * @return {number}
      */
-    hasReturnType() { return 3; }
+    hasReturnType() {
+        return 3;
+    }
 }
 /** @type {!Base} */
 let x = new Derived();

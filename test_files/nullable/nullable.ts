@@ -1,3 +1,7 @@
+/**
+ * @fileoverview
+ * @suppress {checkTypes,uselessCode}
+ */
 
 class Primitives {
   nullable: string|null;
@@ -18,7 +22,7 @@ class NonPrimitives {
 
 function takesNonNullable(val: string|number) {}
 
-let x: {field: string | null | number} = {field: null};
+let x: {field: string|null|number} = {field: null};
 takesNonNullable(x.field!);
 takesNonNullable(`${x.field!}`);
 let ctx: any;

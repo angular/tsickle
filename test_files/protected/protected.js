@@ -1,9 +1,11 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview This test checks that we emit \\@private/\\@protected where
+ * necessary.
  * Generated from: test_files/protected/protected.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
-/** This test checks that we emit \@private/\@protected where necessary. */
 goog.module('test_files.protected.protected');
 var module = module || { id: 'test_files/protected/protected.ts' };
 goog.require('tslib');

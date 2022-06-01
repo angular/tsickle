@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 class Comments {
   /** @export */
   export1: string;

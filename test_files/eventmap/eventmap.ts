@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {checkTypes}
+ */
+
 export {};
 
 declare global {

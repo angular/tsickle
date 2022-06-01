@@ -1,8 +1,8 @@
 /**
  *
- * @fileoverview undefined
+ * @fileoverview
  * Generated from: test_files/namespaced/reopen_ns.ts
- * @suppress {checkTypes,const,constantProperty,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode}
+ * @suppress {checkTypes,constantProperty}
  *
  */
 goog.module('test_files.namespaced.reopen_ns');

@@ -6,7 +6,7 @@
  *
  * Suppress expected errors for :test_files_compilation_test
  * Generated from: test_files/ts_migration_exports_shim.no_externs/bad_default_shorthand_with_no_exports.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode,visibility}
+ * @suppress {checkTypes,visibility}
  *
  */
 goog.module('test_files.ts_migration_exports_shim.no_externs.bad_default_shorthand_with_no_exports');

@@ -5,7 +5,6 @@
  * conflicting namespaces by path, which is an error.
  *
  * Generated from: test_files/import_by_path.no_externs/conflicting_multiple.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.import_by_path.no_externs.conflicting_multiple');
 var module = module || { id: 'test_files/import_by_path.no_externs/conflicting_multiple.ts' };

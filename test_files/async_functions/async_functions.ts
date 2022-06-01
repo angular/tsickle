@@ -1,7 +1,9 @@
 /**
- * Exercises various forms of async functions.  When TypeScript downlevels these functions, it
- * inserts a reference to 'this' which then tickles a Closure check around whether 'this' has a
- * known type.
+ * @fileoverview
+ * Exercises various forms of async functions.  When TypeScript downlevels these
+ * functions, it inserts a reference to 'this' which then tickles a Closure
+ * check around whether 'this' has a known type.
+ * @suppress {uselessCode}
  */
 
 export {};
@@ -14,7 +16,8 @@ async function asyncTopLevelFunction(param: string): Promise<string> {
 // Note: some Closure checks are only triggered when functions are exported.
 export {asyncTopLevelFunction, asyncTopLevelFunctionWithThisType};
 
-async function asyncTopLevelFunctionWithThisType(this: Container, param: string): Promise<number> {
+async function asyncTopLevelFunctionWithThisType(
+    this: Container, param: string): Promise<number> {
   const s = await 3;
   return s;
 }
@@ -33,7 +36,8 @@ class Container {
   }
 
   containerMethod() {
-    const asyncArrowFunctionInMethod = async(param: string): Promise<number> => {
+    const asyncArrowFunctionInMethod =
+        async(param: string): Promise<number> => {
       const s = await 3;
       return s;
     };

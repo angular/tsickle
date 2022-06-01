@@ -1,20 +1,22 @@
-// test_files/decorator/decorator.ts(13,66): warning TS0: should not emit a 'never' type
-/**
- * @fileoverview added by tsickle
- * Generated from: test_files/decorator/decorator.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
- */
+// test_files/decorator/decorator.ts(19,10): warning TS0: should not emit a 'never' type
 goog.module('test_files.decorator.decorator');
 var module = module || { id: 'test_files/decorator/decorator.ts' };
 const tslib_1 = goog.require('tslib');
 const __tsickle_googReflect = goog.require("goog.reflect");
+/**
+ *
+ * @fileoverview OtherClass is reachable via the imports for './external' and
+ * './external2'. Test that were using it from the right import, and not just
+ * the first that allows access to the value. That is important when imports are
+ * elided.
+ * Generated from: test_files/decorator/decorator.ts
+ * @suppress {uselessCode}
+ *
+ */
 const tsickle_default_export_1 = goog.requireType("test_files.decorator.default_export");
 const tsickle_external_2 = goog.requireType("test_files.decorator.external");
 const tsickle_external2_3 = goog.requireType("test_files.decorator.external2");
 const tsickle_only_types_4 = goog.requireType("test_files.decorator.only_types");
-// OtherClass is reachable via the imports for './external' and './external2'.
-// Test that were using it from the right import, and not just the first
-// that allows access to the value. That is important when imports are elided.
 const default_export_1 = goog.require('test_files.decorator.default_export');
 const external_1 = goog.require('test_files.decorator.external');
 const external2_1 = goog.require('test_files.decorator.external2');
@@ -31,7 +33,9 @@ function decorator(a, b) { }
  * @param {string} b
  * @return {?}
  */
-function annotationDecorator(a, b) { return (/** @type {?} */ (null)); }
+function annotationDecorator(a, b) {
+    return (/** @type {?} */ (null));
+}
 /**
  * @param {?} t
  * @return {?}

@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/augment/user.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 goog.module('test_files.augment.user');
 var module = module || { id: 'test_files/augment/user.ts' };
@@ -9,6 +11,10 @@ goog.require('tslib');
 const tsickle_angular_1 = goog.requireType("test_files.augment.angular.index");
 const ng = goog.require('test_files.augment.angular.index');
 /** @type {!tsickle_angular_1.Scope} */
-const fakeScope = { name: ng.version };
+const fakeScope = {
+    name: ng.version
+};
 /** @type {!tsickle_angular_1.sub.AugmentSubType} */
-const usingAugment = { prop: fakeScope.name };
+const usingAugment = {
+    prop: fakeScope.name
+};

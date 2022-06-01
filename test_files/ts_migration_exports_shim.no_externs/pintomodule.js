@@ -5,7 +5,6 @@
  * Generated from: test_files/ts_migration_exports_shim.no_externs/pintomodule.ts
  * @pintomodule
  *
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.ts_migration_exports_shim.no_externs.pintomodule');
 var module = module || { id: 'test_files/ts_migration_exports_shim.no_externs/pintomodule.ts' };

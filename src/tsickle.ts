@@ -67,6 +67,11 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
    * goog.require() calls.
    */
   googmodule: boolean;
+
+  /**
+   * Whether to disable adding suppressions by default.
+   */
+  disableSuppressInTests: boolean;
 }
 
 export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
@@ -179,11 +184,12 @@ export function emit(
       tsmes.createTsMigrationExportsShimTransformerFactory(
           typeChecker, host, modulesManifest, tsickleDiagnostics,
           tsMigrationExportsShimFiles));
+
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type
     // annotations.
-    tsickleSourceTransformers.push(
-        transformFileoverviewCommentFactory(tsOptions, tsickleDiagnostics));
+    tsickleSourceTransformers.push(transformFileoverviewCommentFactory(
+        tsOptions, tsickleDiagnostics, host.disableSuppressInTests));
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(enumTransformer(typeChecker));

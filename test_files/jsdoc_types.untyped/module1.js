@@ -1,9 +1,11 @@
-// test_files/jsdoc_types.untyped/module1.ts(4,3): warning TS0: handle unnamed member:
-// "quoted-bad-name": string;
+// test_files/jsdoc_types.untyped/module1.ts(9,3): warning TS0: handle unnamed member:
+// 'quoted-bad-name': string;
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/jsdoc_types.untyped/module1.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.jsdoc_types.untyped.module1');
 var module = module || { id: 'test_files/jsdoc_types.untyped/module1.ts' };
@@ -24,5 +26,5 @@ if (false) {
      */
     Interface.prototype.x;
     /* Skipping unnamed member:
-    "quoted-bad-name": string;*/
+    'quoted-bad-name': string;*/
 }

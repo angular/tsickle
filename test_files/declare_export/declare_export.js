@@ -1,7 +1,6 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/declare_export/declare_export.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // All of the types/values declared in this file should
 // 1) generate externs

@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/optional_method/optional_method.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.optional_method.optional_method');
 var module = module || { id: 'test_files/optional_method/optional_method.ts' };

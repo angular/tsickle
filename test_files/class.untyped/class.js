@@ -1,8 +1,10 @@
-// test_files/class.untyped/class.ts(43,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class.untyped/class.ts(48,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/class.untyped/class.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.class.untyped.class');
 var module = module || { id: 'test_files/class.untyped/class.ts' };

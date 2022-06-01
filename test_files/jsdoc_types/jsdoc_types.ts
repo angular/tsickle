@@ -1,6 +1,7 @@
 /**
- * This test tests importing a type across module boundaries,
+ * @fileoverview This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
+ * @suppress {uselessCode}
  */
 
 import DefaultClass from './default';
@@ -32,7 +33,10 @@ let useDefaultClassAsType: DefaultClass;
 let useNeverTyped: NeverTyped;
 let useNeverTyped2: string|NeverTyped;
 let useNeverTypedTemplated: NeverTypedTemplated<string>;
-/** Note: JSDoc should not reference NeverTyped because the type is set to always be unknown. */
+/**
+ * Note: JSDoc should not reference NeverTyped because the type is set to
+ * always be unknown.
+ */
 class ImplementsNeverTyped implements NeverTyped {
   foo: number;
 }

@@ -5,6 +5,8 @@
  * "ExportedInterface", not "!ExportedInterface", which would then crash Closure
  * Compiler as it creates a union type, which is unexpected for super
  * interfaces.
+ *
+ * @suppress {uselessCode}
  */
 
 import {ExportedInterface} from './exporter';

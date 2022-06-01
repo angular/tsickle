@@ -1,4 +1,9 @@
 /**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
+/**
  * @param foo a string.
  * @return return comment.
  */
@@ -63,7 +68,10 @@ class BadDict {}
 /** @lends {BadDict} */
 class BadLends {}
 
-/** @throws {Error} JSCompiler treats this as pure documentation, no need to ban it. */
+/**
+ * @throws {Error} JSCompiler treats this as pure documentation, no need to ban
+ *     it.
+ */
 function fnThrows() {}
 
 /** @this {string} */

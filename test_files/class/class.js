@@ -1,23 +1,22 @@
-// test_files/class/class.ts(44,1): warning TS0: dropped extends: interface cannot extend/implement class
-// test_files/class/class.ts(124,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(128,42): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(128,1): warning TS0: dropped implements: {?} type
-// test_files/class/class.ts(131,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(132,38): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(132,1): warning TS0: dropped implements: {?} type
+// test_files/class/class.ts(46,1): warning TS0: dropped extends: interface cannot extend/implement class
+// test_files/class/class.ts(127,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(131,42): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(131,1): warning TS0: dropped implements: {?} type
+// test_files/class/class.ts(134,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(135,38): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(135,1): warning TS0: dropped implements: {?} type
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview This test exercises the various ways classes and interfaces can
+ * interact. There are three types of classy things: interface, class, abstract
+ * class And there are two keywords for relating them: extends, implements You
+ * can legally use them in almost any configuration the cross product implies;
+ * for example, you can "implements" a class though it's more rare than the
+ * other options.
  * Generated from: test_files/class/class.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
-// This test exercises the various ways classes and interfaces can interact.
-// There are three types of classy things:
-//   interface, class, abstract class
-// And there are two keywords for relating them:
-//   extends, implements
-// You can legally use them in almost any configuration the cross product implies;
-// for example, you can "implements" a class though it's more rare than the
-// other options.
 goog.module('test_files.class.class');
 var module = module || { id: 'test_files/class/class.ts' };
 goog.require('tslib');
@@ -185,7 +184,8 @@ class AbstractClassImplementsClass {
  */
 class AbstractClassImplementsAbstractClass {
     // Note: because this class *implements* AbstractClass, it must also implement
-    // abstractFunc and nonAbstractFunc despite that already having an implementation.
+    // abstractFunc and nonAbstractFunc despite that already having an
+    // implementation.
     /**
      * @public
      * @return {void}

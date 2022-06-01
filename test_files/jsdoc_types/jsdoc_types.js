@@ -1,9 +1,12 @@
-// test_files/jsdoc_types/jsdoc_types.ts(36,1): warning TS0: dropped implements: {?} type
-// test_files/jsdoc_types/jsdoc_types.ts(39,1): warning TS0: dropped implements: {?} type
+// test_files/jsdoc_types/jsdoc_types.ts(40,1): warning TS0: dropped implements: {?} type
+// test_files/jsdoc_types/jsdoc_types.ts(43,1): warning TS0: dropped implements: {?} type
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview This test tests importing a type across module boundaries,
+ * ensuring that the type gets the proper name in JSDoc comments.
  * Generated from: test_files/jsdoc_types/jsdoc_types.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.jsdoc_types.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types/jsdoc_types.ts' };
@@ -11,10 +14,6 @@ goog.require('tslib');
 const tsickle_default_1 = goog.requireType("test_files.jsdoc_types.default");
 const tsickle_module1_2 = goog.requireType("test_files.jsdoc_types.module1");
 const tsickle_module2_3 = goog.requireType("test_files.jsdoc_types.module2");
-/**
- * This test tests importing a type across module boundaries,
- * ensuring that the type gets the proper name in JSDoc comments.
- */
 const default_1 = goog.require('test_files.jsdoc_types.default');
 const module1 = goog.require('test_files.jsdoc_types.module1');
 const module2_1 = goog.require('test_files.jsdoc_types.module2');
@@ -54,7 +53,8 @@ let useNeverTyped2;
 /** @type {?} */
 let useNeverTypedTemplated;
 /**
- * Note: JSDoc should not reference NeverTyped because the type is set to always be unknown.
+ * Note: JSDoc should not reference NeverTyped because the type is set to
+ * always be unknown.
  * tsickle: dropped implements: {?} type
  */
 class ImplementsNeverTyped {

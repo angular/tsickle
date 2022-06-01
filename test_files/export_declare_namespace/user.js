@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/export_declare_namespace/user.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 goog.module('test_files.export_declare_namespace.user');
 var module = module || { id: 'test_files/export_declare_namespace/user.ts' };

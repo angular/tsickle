@@ -1,6 +1,6 @@
 /**
  * @fileoverview
- * @suppress {constantProperty}
+ * @suppress {checkTypes,constantProperty}
  */
 
 // TODO(#132): 'export namespace' currently don't emit properly.

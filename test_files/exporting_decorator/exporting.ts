@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 export {}
 
 /** @ExportDecoratedItems */
@@ -11,19 +16,16 @@ function nonExportingDecorator() {
 
 class MyClass {
 
-  @exportingDecorator()
-  exportMe: boolean;
+  @exportingDecorator() exportMe: boolean;
 
   @nonExportingDecorator()
   doNotExportMe: number;
 
-  @exportingDecorator()
-  exportThisOneToo() {
-    return false;  
+  @exportingDecorator() exportThisOneToo() {
+    return false;
   }
 
-  @nonExportingDecorator()
-  doNotExportThisOneEither() {
+  @nonExportingDecorator() doNotExportThisOneEither() {
     return 42;
   }
 

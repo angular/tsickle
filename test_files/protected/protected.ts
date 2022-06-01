@@ -1,4 +1,8 @@
-/** This test checks that we emit \@private/\@protected where necessary. */
+/**
+ * @fileoverview This test checks that we emit \@private/\@protected where
+ * necessary.
+ * @suppress {uselessCode}
+ */
 
 export {};
 

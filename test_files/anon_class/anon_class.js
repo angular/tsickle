@@ -1,7 +1,6 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/anon_class/anon_class.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // Verify we don't produce a type mentioning 'anonymous class'
 // for variables that involve anonymous classes.  Instead we just

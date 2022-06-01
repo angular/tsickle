@@ -1,6 +1,7 @@
 /**
- * @fileoverview Tests that tsickle emits goog namespace references when importing modules by path,
- * and handles named to default export conversion.
+ * @fileoverview Tests that tsickle emits goog namespace references when
+ * importing modules by path, and handles named to default export conversion.
+ * @suppress {checkTypes}
  */
 
 import {MyClassDefaultExport} from 'google3/path/to/file';

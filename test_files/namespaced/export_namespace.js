@@ -1,7 +1,6 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/namespaced/export_namespace.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // tslint:disable:no-namespace
 goog.module('test_files.namespaced.export_namespace');

@@ -3,7 +3,6 @@
  * @fileoverview A module that re-exports a Closure module.
  *
  * Generated from: test_files/reexport_type_from_goog.no_externs/reexport_from_goog.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.reexport_type_from_goog.no_externs.reexport_from_goog');
 var module = module || { id: 'test_files/reexport_type_from_goog.no_externs/reexport_from_goog.ts' };

@@ -1,11 +1,13 @@
-// This test exercises the various ways classes and interfaces can interact.
-// There are three types of classy things:
-//   interface, class, abstract class
-// And there are two keywords for relating them:
-//   extends, implements
-// You can legally use them in almost any configuration the cross product implies;
-// for example, you can "implements" a class though it's more rare than the
-// other options.
+/**
+ * @fileoverview This test exercises the various ways classes and interfaces can
+ * interact. There are three types of classy things: interface, class, abstract
+ * class And there are two keywords for relating them: extends, implements You
+ * can legally use them in almost any configuration the cross product implies;
+ * for example, you can "implements" a class though it's more rare than the
+ * other options.
+ * @suppress {uselessCode}
+ */
+
 
 export {};
 
@@ -78,7 +80,8 @@ abstract class AbstractClassImplementsClass implements Class {
 }
 abstract class AbstractClassImplementsAbstractClass implements AbstractClass {
   // Note: because this class *implements* AbstractClass, it must also implement
-  // abstractFunc and nonAbstractFunc despite that already having an implementation.
+  // abstractFunc and nonAbstractFunc despite that already having an
+  // implementation.
   abstractFunc(): void {}
   nonAbstractFunc(): void {}
 }

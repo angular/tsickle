@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 class SuperTestBaseNoArg {
   constructor() {}
 }
@@ -29,8 +34,7 @@ class SuperTestDerivedOrdinary extends SuperTestBaseOneArg {
 }
 
 // A class without a ctor, extending a one-arg ctor parent.
-class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {
-}
+class SuperTestDerivedNoCTorNoArg extends SuperTestBaseNoArg {}
 
 // A class without a ctor, extending a no-arg ctor parent.
 class SuperTestDerivedNoCTorOneArg extends SuperTestBaseOneArg {

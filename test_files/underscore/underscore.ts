@@ -1,5 +1,9 @@
-// Verify that double-underscored names in various places don't get corrupted.
-// See getIdentifierText() in tsickle.ts.
+/**
+ * @fileoverview Verify that double-underscored names in various places don't
+ * get corrupted. See getIdentifierText() in tsickle.ts.
+ * @suppress {uselessCode}
+ */
+
 
 export * from './export_underscore';
 

@@ -143,6 +143,7 @@ testFn('golden tests', () => {
       }
       const allDiagnostics = new Set<ts.Diagnostic>();
       const transformerHost: tsickle.TsickleHost = {
+        disableSuppressInTests: true,
         googmodule: true,
         // See test_files/jsdoc_types/nevertyped.ts and
         // test_files/ignored_ambient_external_module/ignored.d.ts

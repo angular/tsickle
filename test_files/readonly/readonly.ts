@@ -1,5 +1,6 @@
 /**
  * @fileoverview Tests `readonly` properties are annotated with `@const`.
+ * @suppress {uselessCode}
  */
 
 export class Class {

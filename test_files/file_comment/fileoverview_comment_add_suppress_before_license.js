@@ -3,7 +3,6 @@
  * @fileoverview a comment with a license tag.
  *
  * Generated from: test_files/file_comment/fileoverview_comment_add_suppress_before_license.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  * @license
  * Some license
  *

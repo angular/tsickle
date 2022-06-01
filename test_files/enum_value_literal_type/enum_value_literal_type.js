@@ -1,7 +1,6 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/enum_value_literal_type/enum_value_literal_type.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 // Note: if you only have one value in the enum, then the type of "x" below
 // is just ExportedEnum, regardless of the annotation.  This might be a bug

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 class FieldsTest {
   field1: string;
   field2: number;

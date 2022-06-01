@@ -5,7 +5,6 @@
  * instantiated in a context where it creates a zero-argument function.
  *
  * Generated from: test_files/rest_parameters_generic_empty/rest_parameters_generic_empty.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.rest_parameters_generic_empty.rest_parameters_generic_empty');
 var module = module || { id: 'test_files/rest_parameters_generic_empty/rest_parameters_generic_empty.ts' };

@@ -1,6 +1,7 @@
 /**
  * @fileoverview Checks that JSDoc `@enum` tags on an `enum` are flagged as
  * warnings.
+ * @suppress {uselessCode}
  */
 
 /**

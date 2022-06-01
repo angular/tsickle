@@ -1,12 +1,16 @@
+// test_files/symbol/symbol.ts(1,1): warning TS0: file comments must be at the top of the file, separated from the file body by an empty line.
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/symbol/symbol.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.symbol.symbol');
 var module = module || { id: 'test_files/symbol/symbol.ts' };
 goog.require('tslib');
-/** @type {symbol} */
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ * @type {symbol}
+ */
 const uniqueSymbol = Symbol('my symbol');
 /**
  * @param {symbol} symbolTyped

@@ -1,6 +1,7 @@
 /**
  * @fileoverview Tests various types of 'implements' clauses, e.g. 'implements'
  * of a generic type alias of an underlying interface.
+ * @suppress {uselessCode}
  */
 
 export {};

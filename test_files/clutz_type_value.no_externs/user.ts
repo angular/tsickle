@@ -1,6 +1,7 @@
 /**
  * @fileoverview This test verifies that a type/value-conflict symbol that
  * occurs in a clutz file still can be used in a heritage clause.
+ * @suppress {uselessCode}
  */
 
 import IFace from 'goog:type_value';

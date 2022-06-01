@@ -4,7 +4,6 @@
  * attach Closure types to.
  *
  * Generated from: test_files/tuple_types/tuple_types.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.tuple_types.tuple_types');
 var module = module || { id: 'test_files/tuple_types/tuple_types.ts' };

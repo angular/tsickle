@@ -8,7 +8,6 @@ var _a, _b;
  * statements, which are illegal under Closure and must be rewritten.
  *
  * Generated from: test_files/export_multi/export_multi.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @enum {string} */
 const Fruit = {

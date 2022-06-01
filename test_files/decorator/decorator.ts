@@ -1,16 +1,23 @@
-// OtherClass is reachable via the imports for './external' and './external2'.
-// Test that were using it from the right import, and not just the first
-// that allows access to the value. That is important when imports are elided.
+/**
+ * @fileoverview OtherClass is reachable via the imports for './external' and
+ * './external2'. Test that were using it from the right import, and not just
+ * the first that allows access to the value. That is important when imports are
+ * elided.
+ * @suppress {uselessCode}
+ */
+
 import DefaultImport from './default_export';
 import {AClass, AClass as ARenamedClass, AClassWithGenerics, AType, ReexportedOtherClass} from './external';
 import {OtherClass} from './external2';
-import {AnotherType} from './only_types';
 import * as api from './only_types';
+import {AnotherType} from './only_types';
 
 function decorator(a: Object, b: string) {}
 
 /** @Annotation */
-function annotationDecorator(a: Object, b: string): any { return null!; }
+function annotationDecorator(a: Object, b: string): any {
+  return null!;
+}
 
 function classDecorator(t: any) {
   return t;

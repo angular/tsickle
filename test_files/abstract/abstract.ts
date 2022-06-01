@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 abstract class Base {
   abstract simple(): void;
 
@@ -29,9 +34,11 @@ class Derived extends Base {
   }
   simple() {}
   publicAbstract() {}
-  params(x: number[]): void { }
+  params(x: number[]): void {}
   noReturnType() {}
-  hasReturnType(): number { return 3; }
+  hasReturnType(): number {
+    return 3;
+  }
 }
 
 let x: Base = new Derived();

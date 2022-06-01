@@ -16,9 +16,11 @@ import * as testSupport from './test_support';
 
 describe('emitWithTsickle', () => {
   function emitWithTsickle(
-      tsSources: {[fileName: string]: string}, tsConfigOverride: Partial<ts.CompilerOptions> = {},
+      tsSources: {[fileName: string]: string},
+      tsConfigOverride: Partial<ts.CompilerOptions> = {},
       tsickleHostOverride: Partial<tsickle.TsickleHost> = {},
-      customTransformers?: tsickle.EmitTransformers): {[fileName: string]: string} {
+      customTransformers?: tsickle.EmitTransformers):
+      {[fileName: string]: string} {
     const tsCompilerOptions: ts.CompilerOptions = {
       ...testSupport.compilerOptions,
       target: ts.ScriptTarget.ES5,
@@ -27,11 +29,14 @@ describe('emitWithTsickle', () => {
 
     const sources = new Map<string, string>();
     for (const fileName of Object.keys(tsSources)) {
-      sources.set(path.join(tsCompilerOptions.rootDir!, fileName), tsSources[fileName]);
+      sources.set(
+          path.join(tsCompilerOptions.rootDir!, fileName), tsSources[fileName]);
     }
-    const {program, host: tsHost} = testSupport.createProgramAndHost(sources, tsCompilerOptions);
+    const {program, host: tsHost} =
+        testSupport.createProgramAndHost(sources, tsCompilerOptions);
     testSupport.expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
     const tsickleHost: tsickle.TsickleHost = {
+      disableSuppressInTests: true,
       googmodule: false,
       convertIndexImportShorthand: true,
       transformDecorators: true,
@@ -63,36 +68,38 @@ describe('emitWithTsickle', () => {
           jsSources[path.relative(tsCompilerOptions.rootDir!, fileName)] = data;
         },
         /* sourceFile */ undefined,
-        /* cancellationToken */ undefined, /* emitOnlyDtsFiles */ undefined, customTransformers);
+        /* cancellationToken */ undefined, /* emitOnlyDtsFiles */ undefined,
+        customTransformers);
     return jsSources;
   }
 
 
-  it('should run custom transformers for files with skipTsickleProcessing', () => {
-    function transformValue(context: ts.TransformationContext) {
-      return (sourceFile: ts.SourceFile): ts.SourceFile => {
-        return visitNode(sourceFile) as ts.SourceFile;
+  it('should run custom transformers for files with skipTsickleProcessing',
+     () => {
+       function transformValue(context: ts.TransformationContext) {
+         return (sourceFile: ts.SourceFile): ts.SourceFile => {
+           return visitNode(sourceFile) as ts.SourceFile;
 
-        function visitNode(node: ts.Node): ts.Node {
-          if (node.kind === ts.SyntaxKind.NumericLiteral) {
-            return ts.factory.createNumericLiteral(2);
-          }
-          return ts.visitEachChild(node, visitNode, context);
-        }
-      };
-    }
+           function visitNode(node: ts.Node): ts.Node {
+             if (node.kind === ts.SyntaxKind.NumericLiteral) {
+               return ts.factory.createNumericLiteral(2);
+             }
+             return ts.visitEachChild(node, visitNode, context);
+           }
+         };
+       }
 
-    const tsSources = {
-      'a.ts': `export const x = 1;`,
-    };
-    const jsSources = emitWithTsickle(
-        tsSources, undefined, {
-          shouldSkipTsickleProcessing: () => true,
-        },
-        {beforeTs: [transformValue]});
+       const tsSources = {
+         'a.ts': `export const x = 1;`,
+       };
+       const jsSources = emitWithTsickle(
+           tsSources, undefined, {
+             shouldSkipTsickleProcessing: () => true,
+           },
+           {beforeTs: [transformValue]});
 
-    expect(jsSources['a.js']).toContain('exports.x = 2;');
-  });
+       expect(jsSources['a.js']).toContain('exports.x = 2;');
+     });
 
   it('should export const enums when preserveConstEnums is true', () => {
     const tsSources = {
