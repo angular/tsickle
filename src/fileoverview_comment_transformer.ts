@@ -13,15 +13,17 @@ import * as path from './path';
 import {createNotEmittedStatement, reportDiagnostic, synthesizeCommentRanges, updateSourceFileNode} from './transformer_util';
 
 /**
- * A set of JSDoc tags that mark a comment as a fileoverview comment. These are recognized by other
- * pieces of infrastructure (Closure Compiler, module system, ...).
+ * A set of JSDoc tags that mark a comment as a fileoverview comment. These are
+ * recognized by other pieces of infrastructure (Closure Compiler, module
+ * system, ...).
  */
 const FILEOVERVIEW_COMMENT_MARKERS: ReadonlySet<string> =
     new Set(['fileoverview', 'externs', 'modName', 'mods', 'pintomodule']);
 
 /**
- * Given a parsed \@fileoverview comment, ensures it has all the attributes we need.
- * This function can be called to modify an existing comment or to make a new one.
+ * Given a parsed \@fileoverview comment, ensures it has all the attributes we
+ * need. This function can be called to modify an existing comment or to make a
+ * new one.
  *
  * @param source Original TS source file. Its path is added in \@fileoverview.
  * @param tags Comment as parsed list of tags; modified in-place.
@@ -41,12 +43,13 @@ function augmentFileoverviewComments(
   }
 
   // Find or create a @suppress tag.
-  // Closure compiler barfs if there's a duplicated @suppress tag in a file, so the tag must
-  // only appear once and be merged.
+  // Closure compiler barfs if there's a duplicated @suppress tag in a file, so
+  // the tag must only appear once and be merged.
   let suppressTag = tags.find(t => t.tagName === 'suppress');
   let suppressions: Set<string>;
   if (suppressTag) {
-    suppressions = new Set((suppressTag.type || '').split(',').map(s => s.trim()));
+    suppressions =
+        new Set((suppressTag.type || '').split(',').map(s => s.trim()));
   } else {
     suppressTag = {tagName: 'suppress', text: 'checked by tsc'};
     // Special case the @license tag because all text following this tag is
@@ -92,20 +95,26 @@ function augmentFileoverviewComments(
 }
 
 /**
- * A transformer that ensures the emitted JS file has an \@fileoverview comment that contains an
- * \@suppress {checkTypes} annotation by either adding or updating an existing comment.
+ * A transformer that ensures the emitted JS file has an \@fileoverview comment
+ * that contains an
+ * \@suppress {checkTypes} annotation by either adding or updating an existing
+ * comment.
  */
 export function transformFileoverviewCommentFactory(
     options: ts.CompilerOptions, diagnostics: ts.Diagnostic[]) {
   return (): (sourceFile: ts.SourceFile) => ts.SourceFile => {
     function checkNoFileoverviewComments(
-        context: ts.Node, comments: jsdoc.SynthesizedCommentWithOriginal[], message: string) {
+        context: ts.Node, comments: jsdoc.SynthesizedCommentWithOriginal[],
+        message: string) {
       for (const comment of comments) {
         const parse = jsdoc.parse(comment);
-        if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
-          // Report a warning; this should not break compilation in third party code.
+        if (parse !== null &&
+            parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+          // Report a warning; this should not break compilation in third party
+          // code.
           reportDiagnostic(
-              diagnostics, context, message, comment.originalRange, ts.DiagnosticCategory.Warning);
+              diagnostics, context, message, comment.originalRange,
+              ts.DiagnosticCategory.Warning);
         }
       }
     }
@@ -120,16 +129,18 @@ export function transformFileoverviewCommentFactory(
       const text = sourceFile.getFullText();
 
       let fileComments: ts.SynthesizedComment[] = [];
-      const firstStatement = sourceFile.statements.length && sourceFile.statements[0] || null;
+      const firstStatement =
+          sourceFile.statements.length && sourceFile.statements[0] || null;
 
       const originalComments = ts.getLeadingCommentRanges(text, 0) || [];
       if (!firstStatement) {
         // In an empty source file, all comments are file-level comments.
         fileComments = synthesizeCommentRanges(sourceFile, originalComments);
       } else {
-        // Search for the last comment split from the file with a \n\n. All comments before that are
-        // considered fileoverview comments, all comments after that belong to the next
-        // statement(s). If none found, comments remains empty, and the code below will insert a new
+        // Search for the last comment split from the file with a \n\n. All
+        // comments before that are considered fileoverview comments, all
+        // comments after that belong to the next statement(s). If none found,
+        // comments remains empty, and the code below will insert a new
         // fileoverview comment.
         for (let i = originalComments.length - 1; i >= 0; i--) {
           const end = originalComments[i].end;
@@ -137,12 +148,15 @@ export function transformFileoverviewCommentFactory(
               !text.substring(end).startsWith('\r\n\r\n')) {
             continue;
           }
-          // This comment is separated from the source file with a double break, marking it (and any
-          // preceding comments) as a file-level comment. Split them off and attach them onto a
-          // NotEmittedStatement, so that they do not get lost later on.
-          const synthesizedComments = jsdoc.synthesizeLeadingComments(firstStatement);
+          // This comment is separated from the source file with a double break,
+          // marking it (and any preceding comments) as a file-level comment.
+          // Split them off and attach them onto a NotEmittedStatement, so that
+          // they do not get lost later on.
+          const synthesizedComments =
+              jsdoc.synthesizeLeadingComments(firstStatement);
           const notEmitted = ts.factory.createNotEmittedStatement(sourceFile);
-          // Modify the comments on the firstStatement in place by removing the file-level comments.
+          // Modify the comments on the firstStatement in place by removing the
+          // file-level comments.
           fileComments = synthesizedComments.splice(0, i + 1);
           // Move the fileComments onto notEmitted.
           ts.setSyntheticLeadingComments(notEmitted, fileComments);
@@ -154,9 +168,9 @@ export function transformFileoverviewCommentFactory(
         }
 
 
-        // Now walk every top level statement and escape/drop any @fileoverview comments found.
-        // Closure ignores all @fileoverview comments but the last, so tsickle must make sure not to
-        // emit duplicated ones.
+        // Now walk every top level statement and escape/drop any @fileoverview
+        // comments found. Closure ignores all @fileoverview comments but the
+        // last, so tsickle must make sure not to emit duplicated ones.
         for (let i = 0; i < sourceFile.statements.length; i++) {
           const stmt = sourceFile.statements[i];
           // Accept the NotEmittedStatement inserted above.
@@ -171,15 +185,18 @@ export function transformFileoverviewCommentFactory(
         }
       }
 
-      // Closure Compiler considers the *last* comment with @fileoverview (or #externs or
-      // @nocompile) that has not been attached to some other tree node to be the file overview
-      // comment, and only applies @suppress tags from it. Google-internal tooling considers *any*
-      // comment mentioning @fileoverview.
+      // Closure Compiler considers the *last* comment with @fileoverview (or
+      // #externs or
+      // @nocompile) that has not been attached to some other tree node to be
+      // the file overview comment, and only applies @suppress tags from it.
+      // Google-internal tooling considers *any* comment
+      // mentioning @fileoverview.
       let fileoverviewIdx = -1;
       let tags: jsdoc.Tag[] = [];
       for (let i = fileComments.length - 1; i >= 0; i--) {
         const parse = jsdoc.parseContents(fileComments[i].text);
-        if (parse !== null && parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
+        if (parse !== null &&
+            parse.tags.some(t => FILEOVERVIEW_COMMENT_MARKERS.has(t.tagName))) {
           fileoverviewIdx = i;
           tags = parse.tags;
           break;
@@ -188,7 +205,8 @@ export function transformFileoverviewCommentFactory(
 
       if (fileoverviewIdx !== -1) {
         checkNoFileoverviewComments(
-            firstStatement || sourceFile, fileComments.slice(0, fileoverviewIdx),
+            firstStatement || sourceFile,
+            fileComments.slice(0, fileoverviewIdx),
             `duplicate file level comment`);
       }
 
@@ -207,10 +225,12 @@ export function transformFileoverviewCommentFactory(
   };
 }
 
-function addNewFileoverviewComment(sf: ts.SourceFile, commentText: string): ts.SourceFile {
+function addNewFileoverviewComment(
+    sf: ts.SourceFile, commentText: string): ts.SourceFile {
   let syntheticFirstStatement = createNotEmittedStatement(sf);
   syntheticFirstStatement = ts.addSyntheticTrailingComment(
-      syntheticFirstStatement, ts.SyntaxKind.MultiLineCommentTrivia, commentText, true);
+      syntheticFirstStatement, ts.SyntaxKind.MultiLineCommentTrivia,
+      commentText, true);
   return updateSourceFileNode(
       sf,
       ts.factory.createNodeArray([syntheticFirstStatement, ...sf.statements]));

@@ -26,8 +26,9 @@ describe('decorator_downlevel_transformer', () => {
     const rootDir = testSupport.compilerOptions.rootDir!;
     const sources = new Map<string, string>([
       [path.join(rootDir, testCaseFileName), sourceText],
-      // Provides a rename of any 'FakeDecorator' that we can use as an annotator
-      // without the compiler complaining we didn't actually provide a value
+      // Provides a rename of any 'FakeDecorator' that we can use as an
+      // annotator without the compiler complaining we didn't actually provide a
+      // value
       [
         path.join(rootDir, 'bar.d.ts'), `declare module "bar" {
           export class BarService {}
@@ -36,7 +37,8 @@ describe('decorator_downlevel_transformer', () => {
       ]
     ]);
 
-    const {host, program} = testSupport.createProgramAndHost(sources, testSupport.compilerOptions);
+    const {host, program} =
+        testSupport.createProgramAndHost(sources, testSupport.compilerOptions);
     if (!allowErrors) {
       const diagnostics = ts.getPreEmitDiagnostics(program);
       testSupport.expectDiagnosticsEmpty(diagnostics);
@@ -59,14 +61,17 @@ describe('decorator_downlevel_transformer', () => {
 
     const files = new Map<string, string>();
     const {diagnostics} = tsickle.emit(
-        program, transformerHost, (path, contents) => {}, undefined, undefined, undefined,
-        {beforeTs: [createAstPrintingTransform(files)]});
+        program, transformerHost, (path, contents) => {}, undefined, undefined,
+        undefined, {beforeTs: [createAstPrintingTransform(files)]});
 
     if (!allowErrors) {
       testSupport.expectDiagnosticsEmpty(diagnostics);
     }
 
-    return {output: files.get(path.join(rootDir, testCaseFileName))!, diagnostics};
+    return {
+      output: files.get(path.join(rootDir, testCaseFileName))!,
+      diagnostics
+    };
   }
 
   function expectUnchanged(sourceText: string) {
