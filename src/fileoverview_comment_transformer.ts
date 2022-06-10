@@ -68,7 +68,8 @@ function augmentFileoverviewComments(
   // * Suppress checkTypes.  We believe the code has already been type-checked
   // by TypeScript, and we cannot model all the TypeScript type decisions in
   // Closure syntax.
-  suppressions.add('checkTypes');
+  suppressions.add('typeMismatch');
+  // suppressions.add('checkTypes');
   // * Suppress extraRequire.  We remove extra requires at the TypeScript level,
   // so any require that gets to the JS level is a load-bearing require.
   suppressions.add('extraRequire');
