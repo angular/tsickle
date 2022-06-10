@@ -7,5 +7,12 @@ export class MyNamedClass {
   field = 1;
 }
 
-goog.tsMigrationExportsShim('project.named', {MyRenamedClass: MyNamedClass});
+export const notDelete = 'actually delete';
+
+goog.tsMigrationExportsShim('project.named', {
+  /* Comments should be ignored. */
+  MyRenamedClass: MyNamedClass,
+  // Test renaming symbol to a reserved keyword.
+  delete: notDelete,
+});
 goog.tsMigrationExportsShimDeclareLegacyNamespace();

@@ -10,7 +10,9 @@ goog.module('goog.module.ref');
 
 const DefaultExportClass = goog.require('migrated.module.default.value');
 const DefaultExportType = goog.require('migrated.module.default.type');
-const {NamedExportClassRenamed, RenamedExportedType} = goog.require('migrated.module.named');
+const notConst = goog.require('migrated.module.default.const');
+const {NamedExportClassRenamed, RenamedExportedType, delete: notDelete} = goog.require('migrated.module.named');
+const {someConstant, delete: alsoNotDelete} = goog.require('migrated.module.named_shorthand');
 
 // Check that passing default export types works.
 DefaultExportClass.use(new DefaultExportClass());
@@ -47,10 +49,18 @@ let /** !RenamedExportedType */ d = {
 };
 testRenamedExportedType(d);
 
+const /** number */ n1 = someConstant;
+
+const /** string */ s1 = notDelete;
+const /** string */ s2 = alsoNotDelete;
+const /** string */ s3 = notConst;
+
 // Reexport these imports so we can confirm the types are identical downstream.
 exports = {
   DefaultExportClassFromJs: DefaultExportClass,
   NamedExportClassFromJs: NamedExportClassRenamed,
   RenamedExportedTypeFromJs: RenamedExportedType,
   DefaultExportTypeFromJs: DefaultExportType,
+  deleteFromJs: notDelete,
+  someConstantFromJs: someConstant,
 };

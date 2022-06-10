@@ -26,8 +26,11 @@ export interface ExportedType {
   someMethod: (x: ExportedType) => void;
 }
 
+export const notDelete = 'actually delete';
+
 /** See what happens when we use the syntax for shimming named exports. */
 goog.tsMigrationExportsShim('migrated.module.named', {
   NamedExportClassRenamed: NamedExportClass,
   RenamedExportedType: {} as ExportedType,
+  delete: notDelete,
 });

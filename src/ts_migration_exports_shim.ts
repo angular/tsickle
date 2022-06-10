@@ -398,23 +398,19 @@ class Generator {
       maybeDeclareLegacyNameCall = 'goog.module.declareLegacyNamespace();';
     }
 
-    const mainRequireImports = this.mainExports.map((e) => e.name).join(', ');
-    const mainModuleRequire = `const { ${mainRequireImports} } = ` +
-        `goog.require('${this.srcIds.googModuleId}');`;
+    const mainModuleRequire =
+        `const mainModule = goog.require('${this.srcIds.googModuleId}');`;
 
     let exportsAssignment: string;
     if (this.tsmesBreakdown.googExports instanceof Map) {
       // In the case that tsmes was passed named exports.
-      const bindings = Array.from(this.tsmesBreakdown.googExports)
-                           .map(([k, v]) => `  ${k}: ${v},`);
-      exportsAssignment = lines(
-          `exports = {`,
-          ...bindings,
-          `};`,
-      );
+      const exports = Array.from(this.tsmesBreakdown.googExports)
+                           .map(([k, v]) => `exports.${k} = mainModule.${v};`);
+      exportsAssignment = lines(...exports);
     } else {
       // In the case that tsmes was passed a default export.
-      exportsAssignment = `exports = ${this.tsmesBreakdown.googExports};`;
+      exportsAssignment =
+          `exports = mainModule.${this.tsmesBreakdown.googExports};`;
     }
 
     this.manifest.addModule(
@@ -466,16 +462,23 @@ class Generator {
     if (this.tsmesBreakdown.googExports instanceof Map) {
       // In the case that tsmes was passed named exports.
 
-      const clutzNamespace = this.srcIds.clutzNamespace();
-      const clutzNamespaceReexports =
+      const clutzContentsNamespace = this.srcIds.clutzContentsNamespace();
+      const clutzNamespaceImports =
           Array.from(this.tsmesBreakdown.googExports)
               .map(
-                  ([k, v]) => `  export import ${k} = ${clutzNamespace}.${v};`);
+                  ([renamedExport, originalExport]) =>
+                      `  import ${renamedExport}_x = ${
+                          clutzContentsNamespace}_${originalExport};`);
+      const clutzNamespaceExports = `  export {${
+          Array.from(this.tsmesBreakdown.googExports.keys())
+              .map(renamedExport => `${renamedExport}_x as ${renamedExport}`)
+              .join(', ')}};`;
 
       clutzNamespaceDeclaration = lines(
           generatedFromComment,
           `declare namespace ${this.outputIds.clutzNamespace()} {`,
-          ...clutzNamespaceReexports,
+          ...clutzNamespaceImports,
+          clutzNamespaceExports,
           `}`,
       );
       googColonModuleDeclaration = lines(
@@ -491,8 +494,8 @@ class Generator {
       clutzNamespaceDeclaration = lines(
           generatedFromComment,
           `declare namespace ಠ_ಠ.clutz {`,
-          `  export import ${this.outputIds.googModuleRewrittenId()} =`,
-          `      ${this.srcIds.clutzNamespace()}.${
+          `  export import ${this.outputIds.googModuleRewrittenId()} = ${
+              this.srcIds.clutzContentsNamespace()}_${
               this.tsmesBreakdown.googExports};`,
           `}`,
       );
@@ -617,6 +620,11 @@ class FileIdGroup {
 
   clutzNamespace(): string {
     return 'ಠ_ಠ.clutz.' + this.googModuleRewrittenId();
+  }
+
+  clutzContentsNamespace(): string {
+    return `ಠ_ಠ.clutz.module$contents$${
+        this.googModuleId.replace(/\./g, '$')}`;
   }
 
   clutzModuleId(): string {
