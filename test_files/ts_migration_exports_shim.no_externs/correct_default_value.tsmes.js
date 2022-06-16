@@ -4,5 +4,5 @@
  * pintomodule absent in original_file
  */
 goog.module('project.MyDefaultClass');
-const { MyDefaultClass } = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_default_value');
-exports = MyDefaultClass;
+var mainModule = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_default_value');
+exports = mainModule.MyDefaultClass;

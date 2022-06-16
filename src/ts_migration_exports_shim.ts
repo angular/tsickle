@@ -387,6 +387,8 @@ class Generator {
   /**
    * Generate the JS file that other JS files will goog.require to use the
    * shimmed export layout.
+   *
+   * NOTE: This code must be written to be compatible as-is with IE11.
    */
   generateExportShimJavaScript(): string {
     if (!this.outputIds || !this.tsmesBreakdown) {
@@ -398,23 +400,20 @@ class Generator {
       maybeDeclareLegacyNameCall = 'goog.module.declareLegacyNamespace();';
     }
 
-    const mainRequireImports = this.mainExports.map((e) => e.name).join(', ');
-    const mainModuleRequire = `const { ${mainRequireImports} } = ` +
-        `goog.require('${this.srcIds.googModuleId}');`;
+    // Note: We don't do a destructure here as that's not compatible with IE11.
+    const mainModuleRequire =
+        `var mainModule = goog.require('${this.srcIds.googModuleId}');`;
 
     let exportsAssignment: string;
     if (this.tsmesBreakdown.googExports instanceof Map) {
       // In the case that tsmes was passed named exports.
-      const bindings = Array.from(this.tsmesBreakdown.googExports)
-                           .map(([k, v]) => `  ${k}: ${v},`);
-      exportsAssignment = lines(
-          `exports = {`,
-          ...bindings,
-          `};`,
-      );
+      const exports = Array.from(this.tsmesBreakdown.googExports)
+                           .map(([k, v]) => `exports.${k} = mainModule.${v};`);
+      exportsAssignment = lines(...exports);
     } else {
       // In the case that tsmes was passed a default export.
-      exportsAssignment = `exports = ${this.tsmesBreakdown.googExports};`;
+      exportsAssignment =
+          `exports = mainModule.${this.tsmesBreakdown.googExports};`;
     }
 
     this.manifest.addModule(
