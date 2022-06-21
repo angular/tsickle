@@ -455,7 +455,7 @@ export class TypeTranslator {
     // can emit a precise type.
     if (this.isForExterns && isModule && !isAmbient) return '?';
 
-    const lastFlag = ts.TypeFlags.Substitution;
+    const lastFlag = ts.TypeFlags.StringMapping;
     const mask = (lastFlag << 1) - 1;
     switch (type.flags & mask) {
       case ts.TypeFlags.Any:
@@ -464,6 +464,7 @@ export class TypeTranslator {
         return '*';
       case ts.TypeFlags.String:
       case ts.TypeFlags.StringLiteral:
+      case ts.TypeFlags.StringMapping:
         return 'string';
       case ts.TypeFlags.Number:
       case ts.TypeFlags.NumberLiteral:
