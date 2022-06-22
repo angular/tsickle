@@ -1,13 +1,14 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview This test is just a random collection of typed code, to ensure
+ * the output is all with {?} annotations.
  * Generated from: test_files/basic.untyped/basic.untyped.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.basic.untyped.basic.untyped');
 var module = module || { id: 'test_files/basic.untyped/basic.untyped.ts' };
 goog.require('tslib');
-// This test is just a random collection of typed code, to
-// ensure the output is all with {?} annotations.
 /**
  * @param {?} arg1
  * @return {?}

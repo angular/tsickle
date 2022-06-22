@@ -1,19 +1,22 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview Ensure that a class is structurally equivalent to an object
+ * literal with the same fields.
  * Generated from: test_files/structural.untyped/structural.untyped.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.structural.untyped.structural.untyped');
 var module = module || { id: 'test_files/structural.untyped/structural.untyped.ts' };
 goog.require('tslib');
-// Ensure that a class is structurally equivalent to an object literal
-// with the same fields.
 class StructuralTest {
     /**
      * @public
      * @return {?}
      */
-    method() { return this.field1; }
+    method() {
+        return this.field1;
+    }
 }
 /* istanbul ignore if */
 if (false) {

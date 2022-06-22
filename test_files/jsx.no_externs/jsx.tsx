@@ -1,5 +1,9 @@
+/**
+ * @fileoverview Fake a subcomponent, just to exercise components within
+ * components.
+ * @suppress {checkTypes}
+ */
 
-// Fake a subcomponent, just to exercise components within components.
 declare var Component: any;
 
 let simple = <div></div>;

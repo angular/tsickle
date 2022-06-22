@@ -1,6 +1,7 @@
 /**
  * @fileoverview This test checks that tsickle breaks out of recursive type
  * definitions where the type being declared is used as a type parameter.
+ * @suppress {uselessCode}
  */
 
 export {};

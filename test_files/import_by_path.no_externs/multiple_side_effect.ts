@@ -3,6 +3,7 @@
  * side-effect import. tsickle only reports an error when code imports a symbol
  * from a module with conflicting symbol exports, but not for a side effect
  * import.
+ * @suppress {checkTypes}
  */
 
 // This import produces a require for any of the provides defined in the given

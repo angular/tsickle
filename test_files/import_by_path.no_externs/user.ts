@@ -1,5 +1,7 @@
 /**
- * @fileoverview Tests that tsickle emits goog namespace references when importing modules by path.
+ * @fileoverview Tests that tsickle emits goog namespace references when
+ * importing modules by path.
+ * @suppress {checkTypes}
  */
 
 import * as ns from 'google3/path/to/otherfile';

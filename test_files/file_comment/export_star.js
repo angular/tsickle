@@ -5,7 +5,6 @@
  * tests the export * case.
  *
  * Generated from: test_files/file_comment/export_star.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.export_star');
 var module = module || { id: 'test_files/file_comment/export_star.ts' };

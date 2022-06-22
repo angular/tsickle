@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/enum/enum_user.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,uselessCode}
+ *
  */
 goog.module('test_files.enum.enum_user');
 var module = module || { id: 'test_files/enum/enum_user.ts' };

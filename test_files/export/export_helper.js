@@ -1,14 +1,15 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview This file isn't itself a test case, but it is imported by the
+ * export.in.ts test case.
  * Generated from: test_files/export/export_helper.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.export.export_helper');
 var module = module || { id: 'test_files/export/export_helper.ts' };
 goog.require('tslib');
 const tsickle_export_helper_2_1 = goog.requireType("test_files.export.export_helper_2");
-// This file isn't itself a test case, but it is imported by the
-// export.in.ts test case.
 const export_helper_2_1 = goog.require('test_files.export.export_helper_2');
 exports.export4 = export_helper_2_1.export4;
 /** @typedef {!tsickle_export_helper_2_1.TypeDef} */

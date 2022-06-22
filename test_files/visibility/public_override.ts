@@ -3,6 +3,7 @@
  * visibility, whereas Closure Compiler implicitly inherits the parent's class
  * visibility, leading to a mismatch and warning generated in Closure Compiler
  * for code that compiles fine in TS.
+ * @suppress {uselessCode}
  */
 
 export class A {

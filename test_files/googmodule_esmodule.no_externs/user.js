@@ -1,7 +1,6 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/googmodule_esmodule.no_externs/user.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.googmodule_esmodule.no_externs.user');
 var module = module || { id: 'test_files/googmodule_esmodule.no_externs/user.ts' };

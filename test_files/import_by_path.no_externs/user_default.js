@@ -1,10 +1,10 @@
 /**
  *
- * @fileoverview Tests that tsickle emits goog namespace references when importing modules by path,
- * and handles named to default export conversion.
- *
+ * @fileoverview Tests that tsickle emits goog namespace references when
+ * importing modules by path, and handles named to default export conversion.
  * Generated from: test_files/import_by_path.no_externs/user_default.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 goog.module('test_files.import_by_path.no_externs.user_default');
 var module = module || { id: 'test_files/import_by_path.no_externs/user_default.ts' };

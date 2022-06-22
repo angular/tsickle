@@ -1,14 +1,13 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview An example export to be re-exported.
  * Generated from: test_files/ts_migration_exports_shim.no_externs/correct_named.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.ts_migration_exports_shim.no_externs.correct_named');
 var module = module || { id: 'test_files/ts_migration_exports_shim.no_externs/correct_named.ts' };
 goog.require('tslib');
-/**
- * An example export to be re-exported.
- */
 class MyNamedClass {
     constructor() {
         this.field = 1;

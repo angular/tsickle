@@ -4,9 +4,9 @@
  * visibility, whereas Closure Compiler implicitly inherits the parent's class
  * visibility, leading to a mismatch and warning generated in Closure Compiler
  * for code that compiles fine in TS.
- *
  * Generated from: test_files/visibility/public_override.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.visibility.public_override');
 var module = module || { id: 'test_files/visibility/public_override.ts' };

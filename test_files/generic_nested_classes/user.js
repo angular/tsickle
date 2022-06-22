@@ -4,7 +4,6 @@
  * another generic class.
  *
  * Generated from: test_files/generic_nested_classes/user.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.generic_nested_classes.user');
 var module = module || { id: 'test_files/generic_nested_classes/user.ts' };

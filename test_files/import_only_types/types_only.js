@@ -1,9 +1,11 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview Exports only types, but must still be goog.require'd for
+ * Closure Compiler.
  * Generated from: test_files/import_only_types/types_only.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
-// Exports only types, but must still be goog.require'd for Closure Compiler.
 goog.module('test_files.import_only_types.types_only');
 var module = module || { id: 'test_files/import_only_types/types_only.ts' };
 goog.require('tslib');

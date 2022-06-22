@@ -1,7 +1,6 @@
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/arrow_fn/arrow_fn.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.arrow_fn.arrow_fn');
 var module = module || { id: 'test_files/arrow_fn/arrow_fn.ts' };

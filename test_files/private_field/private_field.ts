@@ -1,6 +1,8 @@
 /**
- * @fileoverview Tests the generation of private field accessors from Tsickle. They do not generate
- * any externs, as they do not exist on the class themselves when downleveled by TypeScript.
+ * @fileoverview Tests the generation of private field accessors from Tsickle.
+ * They do not generate any externs, as they do not exist on the class
+ * themselves when downleveled by TypeScript.
+ * @suppress {checkTypes,uselessCode}
  */
 
 export {};

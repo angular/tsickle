@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 class Foo {
   /** @ngInject */
   // Some comment

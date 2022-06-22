@@ -4,7 +4,6 @@
  * must be kept.
  *
  * Generated from: test_files/file_comment/comment_before_elided_import.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.file_comment.comment_before_elided_import');
 var module = module || { id: 'test_files/file_comment/comment_before_elided_import.ts' };

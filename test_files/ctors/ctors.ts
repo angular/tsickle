@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 let x = Document;
 class X {
   constructor(private a: number) {}

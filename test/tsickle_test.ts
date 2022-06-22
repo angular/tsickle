@@ -36,6 +36,7 @@ describe('emitWithTsickle', () => {
         testSupport.createProgramAndHost(sources, tsCompilerOptions);
     testSupport.expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
     const tsickleHost: tsickle.TsickleHost = {
+      generateExtraSuppressions: false,
       googmodule: false,
       convertIndexImportShorthand: true,
       transformDecorators: true,

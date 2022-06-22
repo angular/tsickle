@@ -1,6 +1,7 @@
 /**
  * @fileoverview Tests that destructured parameters get aliased into more
  * specific local variables.
+ * @suppress {uselessCode}
  */
 
 class Clazz {

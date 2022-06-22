@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/type_propaccess.no_externs/type_propaccess.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 goog.module('test_files.type_propaccess.no_externs.type_propaccess');
 var module = module || { id: 'test_files/type_propaccess.no_externs/type_propaccess.ts' };

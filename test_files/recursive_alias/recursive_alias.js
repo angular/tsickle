@@ -2,9 +2,9 @@
  *
  * @fileoverview This test checks that tsickle breaks out of recursive type
  * definitions where the type being declared is used as a type parameter.
- *
  * Generated from: test_files/recursive_alias/recursive_alias.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {uselessCode}
+ *
  */
 goog.module('test_files.recursive_alias.recursive_alias');
 var module = module || { id: 'test_files/recursive_alias/recursive_alias.ts' };

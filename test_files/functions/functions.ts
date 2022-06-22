@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {checkTypes}
+ */
+
 function Test1(a: number) {
   return a;
 }
@@ -42,8 +47,8 @@ testRest7(1, 'a');
 function defaultBeforeRequired(x = 1, y: number, ...z: any[]) {}
 defaultBeforeRequired(undefined, 2, 'h', 3);
 
-// The array reference below happens on the template parameter constraint, not on the parameter
-// itself. Make sure tsickle unwraps the right type.
+// The array reference below happens on the template parameter constraint, not
+// on the parameter itself. Make sure tsickle unwraps the right type.
 function templatedBoundRestArg<T extends string[]>(...str: T) {
   return str.length;
 }

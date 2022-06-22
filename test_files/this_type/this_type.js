@@ -1,7 +1,9 @@
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/this_type/this_type.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,uselessCode}
+ *
  */
 goog.module('test_files.this_type.this_type');
 var module = module || { id: 'test_files/this_type/this_type.ts' };
@@ -31,9 +33,9 @@ function foo() {
 class UnrelatedType {
 }
 class ThisThisReturnsThisAsThis {
-    // This (!) reproduces a situtation where tsickle would erroneously produce an @THIS tag for the
-    // explicitly passed this type, plus one for the template'd this type, which is an error in
-    // Closure.
+    // This (!) reproduces a situtation where tsickle would erroneously produce
+    // an @THIS tag for the explicitly passed this type, plus one for the
+    // template'd this type, which is an error in Closure.
     /**
      * @public
      * @this {!UnrelatedType}

@@ -1,6 +1,9 @@
+/**
+ * @fileoverview This test deals with symbols that are simultaneously types and
+ * values.
+ * @suppress {checkTypes,uselessCode}
+ */
 import * as conflict from './module';
-
-// This test deals with symbols that are simultaneously types and values.
 
 // Use a browser built-in as both a type and a value.
 let useBuiltInAsValue = Document;

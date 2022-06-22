@@ -1,10 +1,12 @@
-// test_files/enum/enum.ts(2,7): warning TS0: should not emit a 'never' type
+// test_files/enum/enum.ts(7,7): warning TS0: should not emit a 'never' type
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview Line with a missing semicolon should not break the following
+ * enum.
  * Generated from: test_files/enum/enum.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,uselessCode}
+ *
  */
-// Line with a missing semicolon should not break the following enum.
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
 goog.require('tslib');
@@ -16,8 +18,8 @@ const EnumTest1 = {
 };
 EnumTest1[EnumTest1.XYZ] = 'XYZ';
 EnumTest1[EnumTest1.PI] = 'PI';
-// Verify that the resulting TypeScript still allows you to index into the enum with all the various
-// ways allowed of enums.
+// Verify that the resulting TypeScript still allows you to index into the enum
+// with all the various ways allowed of enums.
 /** @type {!EnumTest1} */
 let enumTestValue = EnumTest1.XYZ;
 /** @type {!EnumTest1} */
@@ -35,15 +37,16 @@ let nullableEnum = null;
 function enumTestFunction(val) { }
 enumTestFunction(enumTestValue);
 /** @type {!EnumTest1} */
-let enumTestLookup = EnumTest1["XYZ"];
+let enumTestLookup = EnumTest1['XYZ'];
 /** @type {?} */
-let enumTestLookup2 = EnumTest1["xyz".toUpperCase()];
+let enumTestLookup2 = EnumTest1['xyz'.toUpperCase()];
 // Verify that unions of enum members and other values are handled correctly.
 /** @type {(boolean|!EnumTest1)} */
 let enumUnionType = EnumTest1.XYZ;
 /** @enum {number} */
 const EnumTest2 = {
-    XYZ: 0, PI: 3.14159,
+    XYZ: 0,
+    PI: 3.14159,
 };
 exports.EnumTest2 = EnumTest2;
 EnumTest2[EnumTest2.XYZ] = 'XYZ';

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 export class Clazz {
   constructor(
       readonly id: string[],

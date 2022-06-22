@@ -4,9 +4,9 @@
  * side-effect import. tsickle only reports an error when code imports a symbol
  * from a module with conflicting symbol exports, but not for a side effect
  * import.
- *
  * Generated from: test_files/import_by_path.no_externs/multiple_side_effect.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 goog.module('test_files.import_by_path.no_externs.multiple_side_effect');
 var module = module || { id: 'test_files/import_by_path.no_externs/multiple_side_effect.ts' };

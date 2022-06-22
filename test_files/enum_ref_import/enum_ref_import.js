@@ -14,7 +14,6 @@
  * import.
  *
  * Generated from: test_files/enum_ref_import/enum_ref_import.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.enum_ref_import.enum_ref_import');
 var module = module || { id: 'test_files/enum_ref_import/enum_ref_import.ts' };

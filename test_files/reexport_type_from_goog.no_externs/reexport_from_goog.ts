@@ -1,5 +1,6 @@
 /**
  * @fileoverview A module that re-exports a Closure module.
+ * @suppress {checkTypes}
  */
 
 import ClosureModule from 'goog:closure.types.Module';

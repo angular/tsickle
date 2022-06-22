@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 import {Point, User} from './interface';
 
 class MyPoint implements Point {

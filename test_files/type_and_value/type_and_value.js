@@ -1,22 +1,26 @@
-// test_files/type_and_value/type_and_value.ts(19,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
-// test_files/type_and_value/type_and_value.ts(22,5): warning TS0: anonymous type has no symbol
-// test_files/type_and_value/type_and_value.ts(28,5): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(31,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(38,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(41,5): warning TS0: anonymous type has no symbol
-// test_files/type_and_value/type_and_value.ts(46,41): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(46,1): warning TS0: dropped implements: {?} type
+// test_files/type_and_value/type_and_value.ts(22,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
+// test_files/type_and_value/type_and_value.ts(25,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(31,5): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(34,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(41,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(44,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(49,41): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(49,1): warning TS0: dropped implements: {?} type
+// test_files/type_and_value/type_and_value.ts(1,1): warning TS0: file comments must be at the top of the file, separated from the file body by an empty line.
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/type_and_value/type_and_value.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.type_and_value.type_and_value');
 var module = module || { id: 'test_files/type_and_value/type_and_value.ts' };
 goog.require('tslib');
 const tsickle_module_1 = goog.requireType("test_files.type_and_value.module");
+/**
+ * @fileoverview This test deals with symbols that are simultaneously types and
+ * values.
+ * @suppress {checkTypes,uselessCode}
+ */
 const conflict = goog.require('test_files.type_and_value.module');
-// This test deals with symbols that are simultaneously types and values.
 // Use a browser built-in as both a type and a value.
 /** @type {function(new:Document)} */
 let useBuiltInAsValue = Document;

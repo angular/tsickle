@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 /** Used by implement_import.ts */
 export interface Point {
   x: number;
@@ -5,7 +10,9 @@ export interface Point {
 }
 
 /** Used by implement_import.ts */
-export class User { shoeSize: number; }
+export class User {
+  shoeSize: number;
+}
 
 function usePoint(p: Point): number {
   return p.x + p.y;

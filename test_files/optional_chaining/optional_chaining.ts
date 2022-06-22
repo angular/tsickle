@@ -1,9 +1,11 @@
 /**
- * @fileoverview Tests that tsickle handles non-nullable assertions in optional chains correctly.
- * The correct behavior is not emitting any special casts because Closure Compiler will not check
- * possibly-undefined property access. If we did want to add a cast for maximum type correctness, it
- * would require adding parentheses, which would change the semantics of the optional chain. For
- * more information see jsdoc_transformer.ts.
+ * @fileoverview Tests that tsickle handles non-nullable assertions in optional
+ * chains correctly. The correct behavior is not emitting any special casts
+ * because Closure Compiler will not check possibly-undefined property access.
+ * If we did want to add a cast for maximum type correctness, it would require
+ * adding parentheses, which would change the semantics of the optional chain.
+ * For more information see jsdoc_transformer.ts.
+ * @suppress {checkTypes}
  */
 
 export {};

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
+
 export {};
 
 // This test ensures that we generate declarations for optional methods (note

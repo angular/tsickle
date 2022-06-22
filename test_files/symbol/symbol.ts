@@ -1,3 +1,7 @@
+/**
+ * @fileoverview
+ * @suppress {uselessCode}
+ */
 const uniqueSymbol: unique symbol = Symbol('my symbol');
 
 function usingSymbol(symbolTyped: symbol) {

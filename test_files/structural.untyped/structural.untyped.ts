@@ -1,8 +1,14 @@
-// Ensure that a class is structurally equivalent to an object literal
-// with the same fields.
+/**
+ * @fileoverview Ensure that a class is structurally equivalent to an object
+ * literal with the same fields.
+ * @suppress {uselessCode}
+ */
+
 class StructuralTest {
   field1: string;
-  method(): string { return this.field1; }
+  method(): string {
+    return this.field1;
+  }
 }
 
 // The function expects a StructuralTest, but we pass it an object

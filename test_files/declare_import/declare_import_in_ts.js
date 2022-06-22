@@ -12,7 +12,6 @@
  * uniformly generated.
  *
  * Generated from: test_files/declare_import/declare_import_in_ts.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 goog.module('test_files.declare_import.declare_import_in_ts');
 var module = module || { id: 'test_files/declare_import/declare_import_in_ts.ts' };

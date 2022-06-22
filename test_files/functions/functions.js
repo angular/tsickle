@@ -1,8 +1,10 @@
-// test_files/functions/functions.ts(33,20): warning TS0: failed to resolve rest parameter type, emitting ?
+// test_files/functions/functions.ts(38,20): warning TS0: failed to resolve rest parameter type, emitting ?
 /**
- * @fileoverview added by tsickle
+ *
+ * @fileoverview
  * Generated from: test_files/functions/functions.ts
- * @suppress {checkTypes,const,extraRequire,missingOverride,missingRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes}
+ *
  */
 goog.module('test_files.functions.functions');
 var module = module || { id: 'test_files/functions/functions.ts' };
@@ -119,8 +121,8 @@ testRest7(1, 'a');
  */
 function defaultBeforeRequired(x = 1, y, ...z) { }
 defaultBeforeRequired(undefined, 2, 'h', 3);
-// The array reference below happens on the template parameter constraint, not on the parameter
-// itself. Make sure tsickle unwraps the right type.
+// The array reference below happens on the template parameter constraint, not
+// on the parameter itself. Make sure tsickle unwraps the right type.
 /**
  * @template T
  * @param {...string} str

@@ -2,6 +2,7 @@
  * @fileoverview Reproduces an issue where tsickle would emit a cast for the
  * "extends" clause, and Closure would report an error due to the extends
  * expression not resolving to a plain identifier.
+ * @suppress {checkTypes,uselessCode}
  */
 
 class Someclass {}

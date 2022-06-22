@@ -1,3 +1,8 @@
-/** @fileoverview See user.ts for the actual test. */
+/**
+ * @fileoverview See user.ts for the actual test.
+ * @suppress {uselessCode}
+ */
 
-export interface ExportedInterface { fooStr: string; }
+export interface ExportedInterface {
+  fooStr: string;
+}

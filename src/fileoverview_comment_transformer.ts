@@ -29,7 +29,8 @@ const FILEOVERVIEW_COMMENT_MARKERS: ReadonlySet<string> =
  * @param tags Comment as parsed list of tags; modified in-place.
  */
 function augmentFileoverviewComments(
-    options: ts.CompilerOptions, source: ts.SourceFile, tags: jsdoc.Tag[]) {
+    options: ts.CompilerOptions, source: ts.SourceFile, tags: jsdoc.Tag[],
+    generateExtraSuppressions: boolean) {
   // Ensure we start with a @fileoverview.
   let fileOverview = tags.find(t => t.tagName === 'fileoverview');
   if (!fileOverview) {
@@ -37,21 +38,25 @@ function augmentFileoverviewComments(
     tags.splice(0, 0, fileOverview);
   }
   if (options.rootDir != null) {
-    fileOverview.text += `\n${
+    const GENERATED_FROM_COMMENT_TEXT = `\n${
         jsdoc.createGeneratedFromComment(
             path.relative(options.rootDir, source.fileName))}`;
+
+    fileOverview.text = fileOverview.text ?
+        fileOverview.text + GENERATED_FROM_COMMENT_TEXT :
+        GENERATED_FROM_COMMENT_TEXT;
   }
 
   // Find or create a @suppress tag.
-  // Closure compiler barfs if there's a duplicated @suppress tag in a file, so
-  // the tag must only appear once and be merged.
+  // TODO(b/235529020): Allow generating @fileoverview blocks with multiple
+  // different @suppress tags to make tsickle output more readable.
   let suppressTag = tags.find(t => t.tagName === 'suppress');
   let suppressions: Set<string>;
   if (suppressTag) {
     suppressions =
-        new Set((suppressTag.type || '').split(',').map(s => s.trim()));
-  } else {
-    suppressTag = {tagName: 'suppress', text: 'checked by tsc'};
+        new Set((suppressTag!.type || '').split(',').map(s => s.trim()));
+  } else if (generateExtraSuppressions) {
+    suppressTag = {tagName: 'suppress', text: ''};
     // Special case the @license tag because all text following this tag is
     // treated by the compiler as part of the license, so we need to place the
     // new @suppress tag before @license.
@@ -64,32 +69,39 @@ function augmentFileoverviewComments(
     suppressions = new Set();
   }
 
-  // Ensure our suppressions are included in the @suppress tag:
-  // * Suppress checkTypes.  We believe the code has already been type-checked
-  // by TypeScript, and we cannot model all the TypeScript type decisions in
-  // Closure syntax.
-  suppressions.add('checkTypes');
-  // * Suppress extraRequire.  We remove extra requires at the TypeScript level,
-  // so any require that gets to the JS level is a load-bearing require.
-  suppressions.add('extraRequire');
-  // * Types references are propagated between files even when they are not
-  // directly imported. While these are violations of the "missing require"
-  // rules they are believed to be safe.
-  suppressions.add('missingRequire');
-  // * Suppress uselessCode.  We emit an "if (false)" around type declarations,
-  // which is flagged as unused code unless we suppress it.
-  suppressions.add('uselessCode');
-  // * Suppress some checks for user errors that TS already checks.
-  suppressions.add('missingReturn');
-  suppressions.add('unusedPrivateMembers');
-  // * Suppress checking for @override, because TS doesn't model it.
-  suppressions.add('missingOverride');
-  // * Suppress const JSCompiler errors in TS file.
-  // a) TypeScript already checks for "const" and
-  // b) there are various JSCompiler false positives
-  suppressions.add('const');
+  if (generateExtraSuppressions) {
+    // Ensure our suppressions are included in the @suppress tag:
+    // * Suppress checkTypes.  We believe the code has already been type-checked
+    // by TypeScript, and we cannot model all the TypeScript type decisions in
+    // Closure syntax.
+    suppressions!.add('checkTypes');
+    // * Suppress extraRequire.  We remove extra requires at the TypeScript
+    // level, so any require that gets to the JS level is a load-bearing
+    // require.
+    suppressions!.add('extraRequire');
+    // * Types references are propagated between files even when they are not
+    // directly imported. While these are violations of the "missing require"
+    // rules they are believed to be safe.
+    suppressions!.add('missingRequire');
+    // * Suppress uselessCode.  We emit an "if (false)" around type
+    // declarations, which is flagged as unused code unless we suppress it.
+    suppressions!.add('uselessCode');
+    // * Suppress some checks for user errors that TS already checks.
+    suppressions!.add('missingReturn');
+    suppressions!.add('unusedPrivateMembers');
+    // * Suppress checking for @override, because TS doesn't model it.
+    suppressions!.add('missingOverride');
+    // * Suppress const JSCompiler errors in TS file.
+    // a) TypeScript already checks for "const" and
+    // b) there are various JSCompiler false positives
+    suppressions!.add('const');
+  }
 
-  suppressTag.type = Array.from(suppressions.values()).sort().join(',');
+
+  if (suppressTag) {
+    suppressTag!.type = Array.from(suppressions!.values()).sort().join(',');
+  }
+
 
   return tags;
 }
@@ -101,7 +113,8 @@ function augmentFileoverviewComments(
  * comment.
  */
 export function transformFileoverviewCommentFactory(
-    options: ts.CompilerOptions, diagnostics: ts.Diagnostic[]) {
+    options: ts.CompilerOptions, diagnostics: ts.Diagnostic[],
+    generateExtraSuppressions: boolean) {
   return (): (sourceFile: ts.SourceFile) => ts.SourceFile => {
     function checkNoFileoverviewComments(
         context: ts.Node, comments: jsdoc.SynthesizedCommentWithOriginal[],
@@ -210,7 +223,7 @@ export function transformFileoverviewCommentFactory(
             `duplicate file level comment`);
       }
 
-      augmentFileoverviewComments(options, sourceFile, tags);
+      augmentFileoverviewComments(options, sourceFile, tags, generateExtraSuppressions);
       const commentText = jsdoc.toStringWithoutStartEnd(tags);
 
       if (fileoverviewIdx < 0) {
