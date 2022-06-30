@@ -8,6 +8,6 @@
 goog.module('test_files.ts_migration_exports_shim.no_externs.correct_default_with_re_export');
 var module = module || { id: 'test_files/ts_migration_exports_shim.no_externs/correct_default_with_re_export.ts' };
 goog.require('tslib');
-/** @type {number} */
-exports.Foo = 42;
-exports.Bar = exports.Foo;
+class Foo {
+}
+exports.Bar = Foo;

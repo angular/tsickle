@@ -5,4 +5,4 @@
  */
 goog.module('works.with.rexport.of.Bar');
 var mainModule = goog.require('test_files.ts_migration_exports_shim.no_externs.correct_default_with_re_export');
-exports = mainModule.Foo;
+exports = mainModule.Bar;

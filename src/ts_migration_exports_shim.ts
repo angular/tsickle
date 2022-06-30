@@ -208,11 +208,8 @@ class Generator {
               getGoogFunctionName(tsmesCall)} requires exactly one argument`);
       return undefined;
     }
-
-    const mainExportsForTsmesDefault =
-        filterOutImportByPathReExport(this.mainExports);
     if (isGoogCallExpressionOf(tsmesCall, 'tsMigrationDefaultExportsShim') &&
-        mainExportsForTsmesDefault.length !== 1) {
+        this.mainExports.length !== 1) {
       this.report(
           tsmesCall,
           'can only call goog.tsMigrationDefaultExportsShim when there is' +
@@ -233,7 +230,7 @@ class Generator {
       case 'tsMigrationDefaultExportsShim':
         // Export the one and only export as an unnamed export.
         // vis. export = foo;
-        googExports = mainExportsForTsmesDefault[0].name;
+        googExports = this.mainExports[0].name;
         break;
       case 'tsMigrationNamedExportsShim':
         // Export all exports as named exports
@@ -411,7 +408,7 @@ class Generator {
     if (this.tsmesBreakdown.googExports instanceof Map) {
       // In the case that tsmes was passed named exports.
       const exports = Array.from(this.tsmesBreakdown.googExports)
-                          .map(([k, v]) => `exports.${k} = mainModule.${v};`);
+                           .map(([k, v]) => `exports.${k} = mainModule.${v};`);
       exportsAssignment = lines(...exports);
     } else {
       // In the case that tsmes was passed a default export.
@@ -630,61 +627,4 @@ function containsAtPintoModule(file: ts.SourceFile): boolean {
   const leadingTrivia =
       file.getFullText().substring(0, file.getLeadingTriviaWidth());
   return /\s@pintomodule\s/.test(leadingTrivia);
-}
-
-/**
- * Given a set of exported symbols, filters out a re-export that was present
- * solely for the purpose of making the older goog.module symbol name available.
- *
- * For example, suppose we have a JS file like so:
- *
- *     library/foo.js
- *
- *     goog.module('ns.Foo');
- *     class Bar {}
- *     exports = Bar;
- *
- * Which is then migrated to TS like so:
- *
- *    library/foo.ts
- *
- *    export class Bar {}
- *    export {Bar as Foo}
- *    goog.tsMigrationDefaultExportsShim('ns.Foo');
- *
- * The extra re-export is to ensure that any TS code which was importing the
- * original JS file like so will continue to work:
- *
- *    import {Foo} from 'google3/library/foo';
- *
- * This function will remove the re-exported symbol `Foo` from the passed-in
- * `symbols` to make sure `tsMigrationDefaultExportsShim` works as expected.
- */
-function filterOutImportByPathReExport(symbols: ts.Symbol[]): ts.Symbol[] {
-  if (symbols.length !== 2) return symbols;
-
-  let primarySymbol: ts.Symbol;
-  let reExportDecl: ts.ExportSpecifier;
-  {
-    const firstDecl = symbols[0].declarations?.[0];
-    const secondDecl = symbols[1].declarations?.[0];
-    if (firstDecl && ts.isExportSpecifier(firstDecl) &&
-        firstDecl.propertyName) {
-      reExportDecl = firstDecl;
-      primarySymbol = symbols[1];
-    } else if (
-        secondDecl && ts.isExportSpecifier(secondDecl) &&
-        secondDecl.propertyName) {
-      reExportDecl = secondDecl;
-      primarySymbol = symbols[0];
-    } else {
-      return symbols;
-    }
-  }
-
-  if (primarySymbol.escapedName === reExportDecl.propertyName?.escapedText) {
-    return [primarySymbol];
-  }
-
-  return symbols;
 }

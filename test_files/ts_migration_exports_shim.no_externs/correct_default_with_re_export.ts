@@ -3,9 +3,8 @@
  * @suppress {uselessCode}
  */
 
-export const Foo = 42;
+class Foo {}
 
-// This re-export under a different name is acceptable to TSMES.
 export {Foo as Bar};
 
 goog.tsMigrationDefaultExportsShim('works.with.rexport.of.Bar');
