@@ -1,12 +1,12 @@
 /**
  * @fileoverview added by tsickle
- * Generated from: test_files/anon_class/anon_class.ts
+ * Generated from: test_files/anon_class.no_nstransform/anon_class.ts
  */
 // Verify we don't produce a type mentioning 'anonymous class'
 // for variables that involve anonymous classes.  Instead we just
 // produce {?}.
-goog.module('test_files.anon_class.anon_class');
-var module = module || { id: 'test_files/anon_class/anon_class.ts' };
+goog.module('test_files.anon_class.no_nstransform.anon_class');
+var module = module || { id: 'test_files/anon_class.no_nstransform/anon_class.ts' };
 goog.require('tslib');
 /** @type {?} */
 const anonClassInstance = new class {

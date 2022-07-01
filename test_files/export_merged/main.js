@@ -15,19 +15,7 @@ goog.require('tslib');
 class A {
 }
 exports.A = A;
-(function (A) {
-    class B {
-    }
-    A.B = B;
-    ;
-})(A || (A = {}));
-// Ensure that the export of a namespace without a merged class does
-// not get eliminated.
-var X;
-(function (X) {
-    class B {
-    }
-    X.B = B;
-    ;
-})(X || (X = {}));
-exports.X = X;
+class A$B {
+}
+/** @const */
+A.B = A$B;

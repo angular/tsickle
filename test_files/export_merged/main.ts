@@ -12,10 +12,3 @@ namespace A {
   export class B {};
 }
 export {A};
-
-// Ensure that the export of a namespace without a merged class does
-// not get eliminated.
-namespace X {
-  export class B {};
-}
-export {X};

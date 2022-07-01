@@ -360,7 +360,7 @@ export interface SynthesizedCommentWithOriginal extends ts.SynthesizedComment {
 export function synthesizeLeadingComments(node: ts.Node): SynthesizedCommentWithOriginal[] {
   const existing = ts.getSyntheticLeadingComments(node);
   if (existing) return existing;
-  const text = node.getFullText();
+  const text = ts.getOriginalNode(node).getFullText();
   const synthComments = getLeadingCommentRangesSynthesized(text, node.getFullStart());
   if (synthComments.length) {
     ts.setSyntheticLeadingComments(node, synthComments);

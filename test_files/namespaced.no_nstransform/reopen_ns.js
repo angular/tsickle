@@ -1,12 +1,12 @@
 /**
  *
  * @fileoverview
- * Generated from: test_files/namespaced/reopen_ns.ts
+ * Generated from: test_files/namespaced.no_nstransform/reopen_ns.ts
  * @suppress {checkTypes,constantProperty}
  *
  */
-goog.module('test_files.namespaced.reopen_ns');
-var module = module || { id: 'test_files/namespaced/reopen_ns.ts' };
+goog.module('test_files.namespaced.no_nstransform.reopen_ns');
+var module = module || { id: 'test_files/namespaced.no_nstransform/reopen_ns.ts' };
 goog.require('tslib');
 // TODO(#132): 'export namespace' currently don't emit properly.
 // This workaround at least makes them compile.

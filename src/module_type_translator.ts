@@ -371,6 +371,7 @@ export class ModuleTypeTranslator {
    *     this is not the "main" location dealing with a node to avoid duplicated warnings.
    */
   getJSDoc(node: ts.Node, reportWarnings: boolean): jsdoc.Tag[] {
+    if (!ts.getParseTreeNode(node)) return [];
     const [tags, ] = this.parseJSDoc(node, reportWarnings);
     return tags;
   }

@@ -1,9 +1,9 @@
 /**
  * @fileoverview added by tsickle
- * Generated from: test_files/namespaced/local_namespace.ts
+ * Generated from: test_files/namespaced.no_nstransform/local_namespace.ts
  */
-goog.module('test_files.namespaced.local_namespace');
-var module = module || { id: 'test_files/namespaced/local_namespace.ts' };
+goog.module('test_files.namespaced.no_nstransform.local_namespace');
+var module = module || { id: 'test_files/namespaced.no_nstransform/local_namespace.ts' };
 goog.require('tslib');
 /**
  * \@someTag

@@ -376,3 +376,19 @@ export function createGoogLoadedModulesRegistration(
             'moduleId', createSingleQuoteStringLiteral(moduleId)),
       ])));
 }
+
+/**
+ * Returns true if the namespace is a declaration merging namespace that has
+ * been transformed by namespaceTransformer.
+ */
+ export function isTransformedDeclMergeNs(ns: ts.ModuleDeclaration): boolean {
+  return (ns as {isTransformedNs?: boolean}).isTransformedNs === true;
+}
+
+/**
+ * Mark the given namespace as being a transformed declaration merging
+ * namespace.
+ */
+export function markAsTransformedDeclMergeNs(ns: ts.ModuleDeclaration) {
+  (ns as {isTransformedNs?: boolean}).isTransformedNs = true;
+}

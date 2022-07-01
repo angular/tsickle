@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import * as path from './path';
-import {getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
+import {getIdentifierText, hasModifierFlag, isAmbient, isTransformedDeclMergeNs} from './transformer_util';
 
 /**
  * TypeScript allows you to write identifiers quoted, like:
@@ -432,7 +432,7 @@ export class TypeTranslator {
     if (this.seenTypes.indexOf(type) !== -1) return '?';
 
     let isAmbient = false;
-    let isInNamespace = false;
+    let isInUnsupportedNamespace = false;
     let isModule = false;
     if (type.symbol) {
       for (const decl of type.symbol.declarations || []) {
@@ -441,14 +441,21 @@ export class TypeTranslator {
         let current: ts.Declaration|undefined = decl;
         while (current) {
           if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
-          if (current.kind === ts.SyntaxKind.ModuleDeclaration) isInNamespace = true;
+          if (current.kind === ts.SyntaxKind.ModuleDeclaration &&
+              !isTransformedDeclMergeNs(current as ts.ModuleDeclaration)) {
+            isInUnsupportedNamespace = true;
+          }
           current = current.parent as ts.Declaration | undefined;
         }
       }
     }
 
-    // tsickle cannot generate types for non-ambient namespaces nor any symbols contained in them.
-    if (isInNamespace && !isAmbient) return '?';
+    // tsickle cannot generate types for most non-ambient namespaces nor any
+    // symbols contained in them. Only types from declaration merging namespaces
+    // are supported.
+    if (isInUnsupportedNamespace && !isAmbient) {
+      return '?';
+    }
 
     // Types in externs cannot reference types from external modules.
     // However ambient types in modules get moved to externs, too, so type references work and we

@@ -385,7 +385,7 @@ function createClosurePropertyDeclaration(
 
   // Don't report warnings here to avoid duplicate warnings. We already warn
   // once when visiting this ts.PropertyDeclaration in jsdocTransformer.visitor
-  const tags = mtt.getJSDoc(prop, /* reportWarnings */ false);
+  const tags: jsdoc.Tag[] = mtt.getJSDoc(prop, /* reportWarnings */ false);
   const flags = ts.getCombinedModifierFlags(prop);
   const isReadonly = !!(flags & ts.ModifierFlags.Readonly);
   tags.push({tagName: isReadonly ? 'const' : 'type', type});
@@ -1014,6 +1014,7 @@ export function jsdocTransformer(
        * transformation.
        */
       function escapeIllegalJSDoc(node: ts.Node) {
+        if (!ts.getParseTreeNode(node)) return;
         // TODO(b/139687753): support escaping multiple pieces of JSDoc attached
         // to a single ts.Node instead of just the last JSDoc or ban them
         const mjsdoc = moduleTypeTranslator.getMutableJSDoc(node);

@@ -19,6 +19,7 @@ import {transformFileoverviewCommentFactory} from './fileoverview_comment_transf
 import * as googmodule from './googmodule';
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
+import {namespaceTransformer} from './ns_transformer';
 import {isDtsFileName} from './transformer_util';
 import * as tsmes from './ts_migration_exports_shim';
 
@@ -67,6 +68,11 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
    * goog.require() calls.
    */
   googmodule: boolean;
+
+  /**
+   * Whether to transform declaration merging namespaces.
+   */
+  useDeclarationMergingTransformation?: boolean;
 
   /**
    * Whether to add suppressions by default.
@@ -190,6 +196,10 @@ export function emit(
     // annotations.
     tsickleSourceTransformers.push(transformFileoverviewCommentFactory(
         tsOptions, tsickleDiagnostics, host.generateExtraSuppressions));
+    if (host.useDeclarationMergingTransformation) {
+      tsickleSourceTransformers.push(namespaceTransformer(
+          host, tsOptions, typeChecker, tsickleDiagnostics));
+    }
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
     tsickleSourceTransformers.push(enumTransformer(typeChecker));

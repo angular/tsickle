@@ -21,16 +21,20 @@
 
 import * as ts from 'typescript';
 
-import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient} from './transformer_util';
+import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient, isTransformedDeclMergeNs} from './transformer_util';
 
-/** isInNamespace returns true if any of node's ancestors is a namespace (ModuleDeclaration). */
-function isInNamespace(node: ts.Node) {
+/**
+ * isInUnsupportedNamespace returns true if any of node's ancestors is a
+ * namespace (ModuleDeclaration) that is not a transformed declaration merging
+ * namespace.
+ */
+function isInUnsupportedNamespace(node: ts.Node) {
   // Must use the original node because node might have already been transformed, with node.parent
   // no longer being set.
   let parent = ts.getOriginalNode(node).parent;
   while (parent) {
     if (parent.kind === ts.SyntaxKind.ModuleDeclaration) {
-      return true;
+      return !isTransformedDeclMergeNs(parent as ts.ModuleDeclaration);
     }
     parent = parent.parent;
   }
@@ -100,7 +104,9 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
       // because TS does not support splitting export and declaration ("export {Foo};") in
       // namespaces. tsickle's emit for namespaces is unintelligible for Closure in any case, so
       // this is left to fix for another day.
-      if (isInNamespace(node)) return ts.visitEachChild(node, visitor, context);
+      if (isInUnsupportedNamespace(node)) {
+        return ts.visitEachChild(node, visitor, context);
+      }
 
       // TypeScript does not emit any code for ambient enums, so early exit here to prevent the code
       // below from producing runtime values for an ambient structure.
@@ -179,7 +185,7 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
       };
       ts.setSyntheticLeadingComments(varDeclStmt, [comment]);
 
-      const name = node.name.getText();
+      const name = getIdentifierText(node.name);
       const resultNodes: ts.Node[] = [varDeclStmt];
       if (isExported) {
         // Create a separate export {...} statement, so that the enum name can be used in local
