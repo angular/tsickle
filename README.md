@@ -170,7 +170,7 @@ Set the environment variable `TEST_FILTER=<REGEX>` to limit the golden tests
 
 ### Releasing
 
-On a new branch, run
+On a new branch, run:
 
 ```
 # tsickle releases are all minor releases for now, see npm help version.
@@ -180,27 +180,23 @@ $ npm version minor
 This will update the version in `package.json`, commit the changes, and
 create a git tag.
 
-Push the branch and get it reviewed, but _do not merge_. If you click
-the "rebase and merge" button in the Github UI it changes the commit,
-so the git tag that was created would point at the wrong commit.
+Push the branch, open a pull request, get it reviewed, and wait for it to be merged.
 
-Instead, push the branch to master directly via:
+Checkout and pull the latest version from master:
 
 ```
-$ git push origin mybranch:master
+$ git checkout master && git pull
 ```
 
-Note that Github will block non-fast-forward pushes to master, so if
-there have been other intervening commits you'll need to recreate the
-release.
-
-Also push the tag.
+Check if the tag exists. If not, re-tag the commit and push the tag.
 
 ```
-$ git push origin v0.32.0  # but use correct version
+$ git tag
+# Does this show the tag already? If not, proceed with:
+$ git tag v0.32.0 && git push origin v0.32.0  # but use correct version
 ```
 
-Once the versioned tag is pushed to Github the release (as found on
+Once the versioned tag is pushed to GitHub the release (as found on
 https://github.com/angular/tsickle/releases) will be implicitly created.
 
 From the master branch run:
