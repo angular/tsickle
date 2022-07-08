@@ -1,6 +1,7 @@
 /**
  * @fileoverview
- * @suppress {uselessCode}
+ * TODO(b/195232797): remove the checkTypes suppression
+ * @suppress {checkTypes,uselessCode}
  */
 
 export {}

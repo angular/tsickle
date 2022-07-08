@@ -1,8 +1,9 @@
 /**
  *
  * @fileoverview
+ * TODO(b/195232797): remove the checkTypes suppression
  * Generated from: test_files/scope_collision/collision.ts
- * @suppress {uselessCode}
+ * @suppress {checkTypes,uselessCode}
  *
  */
 goog.module('test_files.scope_collision.collision');
