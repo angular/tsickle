@@ -446,6 +446,23 @@ export function generateExterns(
     const methods = new Map<string, ts.MethodDeclaration[]>();
     for (const member of decl.members) {
       switch (member.kind) {
+        case ts.SyntaxKind.GetAccessor:
+        case ts.SyntaxKind.SetAccessor:
+          const accessor = member as ts.GetAccessorDeclaration;
+          let type = mtt.typeToClosure(accessor);
+          if (accessor.questionToken && type === '?') {
+            // An optional 'any' type translates to '?|undefined' in Closure.
+            type = '?|undefined';
+          }
+          const isReadonly = hasModifierFlag(accessor, ts.ModifierFlags.Readonly);
+          emit(jsdoc.toString(
+              [{tagName: isReadonly ? 'const' : 'type', type}]));
+          if (hasModifierFlag(accessor, ts.ModifierFlags.Static)) {
+            emit(`\n${typeName}.${accessor.name.getText()};\n`);
+          } else {
+            emit(`\n${typeName}.prototype.${accessor.name.getText()};\n`);
+          }
+          continue;
         case ts.SyntaxKind.PropertySignature:
         case ts.SyntaxKind.PropertyDeclaration:
           const prop = member as ts.PropertySignature;
