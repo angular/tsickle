@@ -151,7 +151,13 @@ function generateClutzAliases(
       // more stable compared to implementing our own version.
       // tslint:disable-next-line:no-any
       const isInternalDeclaration = (ts as any)['isInternalDeclaration'];
-      if (options.stripInternal && isInternalDeclaration(d, origSourceFile)) {
+
+      // When determining whether a VariableDeclaration is internal, the
+      // isInternalDeclaration API expects to be provided the grandparent
+      // VariableStatement.
+      const node = ts.isVariableDeclaration(d) ? d.parent.parent : d;
+      if (options.stripInternal &&
+          isInternalDeclaration(node, origSourceFile)) {
         return false;
       }
 
