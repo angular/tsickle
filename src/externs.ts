@@ -442,8 +442,10 @@ export function generateExterns(
       writeFunction(name, paramNames, namespace);
     }
 
-    // Process everything except (MethodSignature|MethodDeclaration|Constructor)
+    // Process everything except
+    // (MethodSignature|MethodDeclaration|Constructor|AccessorDeclaration)
     const methods = new Map<string, ts.MethodDeclaration[]>();
+    const accessors = new Map<string, ts.AccessorDeclaration>();
     for (const member of decl.members) {
       switch (member.kind) {
         case ts.SyntaxKind.PropertySignature:
@@ -467,6 +469,23 @@ export function generateExterns(
           }
           // TODO: For now property names other than Identifiers are not handled; e.g.
           //    interface Foo { "123bar": number }
+          break;
+        case ts.SyntaxKind.GetAccessor:
+        case ts.SyntaxKind.SetAccessor:
+          const accessor = member as ts.AccessorDeclaration;
+          if (accessor.name.kind === ts.SyntaxKind.Identifier) {
+            const name = accessor.name.getText();
+            // A setter may take a more general type than the return type of the
+            // getter, but we always use the getter return type as the type
+            // of the extern property, if a getter exists. Both the setter and
+            // getter should give the same type when we query the compiler,
+            // but prefer the getter to ensure consistency.
+            if (!accessors.has(name) ||
+                accessor.kind === ts.SyntaxKind.GetAccessor) {
+              accessors.set(name, accessor);
+            }
+            continue;
+          }
           break;
         case ts.SyntaxKind.MethodSignature:
         case ts.SyntaxKind.MethodDeclaration:
@@ -494,6 +513,21 @@ export function generateExterns(
         memberName = memberName.concat([member.name.getText()]);
       }
       emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]}: ${memberName.join('.')} */\n`);
+    }
+
+    // Handle accessors (get/set) separately so that we only emit one property
+    // even if both are defined.
+    for (const [name, accessor] of accessors.entries()) {
+      const type = mtt.typeToClosure(accessor);
+      // Even for getter-only properties, we use @type. @const would imply that
+      // the property is not assignable *and doesn't change*. That is not true
+      // in general for getters.
+      emit(jsdoc.toString([{tagName: 'type', type}]));
+      if (hasModifierFlag(accessor, ts.ModifierFlags.Static)) {
+        emit(`\n${typeName}.${name};\n`);
+      } else {
+        emit(`\n${typeName}.prototype.${name};\n`);
+      }
     }
 
     // Handle method declarations/signatures separately, since we need to deal with overloads.
