@@ -689,8 +689,9 @@ export function jsdocTransformer(
             continue;
           }
           hasUpdatedParams = true;
+          const modifiers = param.modifiers?.filter(ts.isModifier);
           updatedParams.push(ts.factory.updateParameterDeclaration(
-              param, param.decorators, param.modifiers, param.dotDotDotToken,
+              param, param.decorators, modifiers, param.dotDotDotToken,
               updatedParamName, param.questionToken, param.type,
               param.initializer));
         }
@@ -711,30 +712,33 @@ export function jsdocTransformer(
           body = ts.factory.updateBlock(body, stmts);
         }
 
+        const modifiers =
+            fnDecl.modifiers?.filter(ts.isModifier) as readonly ts.Modifier[] |
+            undefined;
         switch (fnDecl.kind) {
           case ts.SyntaxKind.FunctionDeclaration:
             fnDecl =
                 ts.factory.updateFunctionDeclaration(
-                    fnDecl, fnDecl.decorators, fnDecl.modifiers,
-                    fnDecl.asteriskToken, fnDecl.name, fnDecl.typeParameters,
-                    updatedParams, fnDecl.type, body) as T;
+                    fnDecl, fnDecl.decorators, modifiers, fnDecl.asteriskToken,
+                    fnDecl.name, fnDecl.typeParameters, updatedParams,
+                    fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.MethodDeclaration:
-            fnDecl = ts.factory.updateMethodDeclaration(
-                         fnDecl, fnDecl.decorators, fnDecl.modifiers,
-                         fnDecl.asteriskToken, fnDecl.name,
-                         fnDecl.questionToken, fnDecl.typeParameters,
-                         updatedParams, fnDecl.type, body) as T;
+            fnDecl =
+                ts.factory.updateMethodDeclaration(
+                    fnDecl, fnDecl.decorators, modifiers, fnDecl.asteriskToken,
+                    fnDecl.name, fnDecl.questionToken, fnDecl.typeParameters,
+                    updatedParams, fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.SetAccessor:
             fnDecl = ts.factory.updateSetAccessorDeclaration(
-                         fnDecl, fnDecl.decorators, fnDecl.modifiers,
-                         fnDecl.name, updatedParams, body) as T;
+                         fnDecl, fnDecl.decorators, modifiers, fnDecl.name,
+                         updatedParams, body) as T;
             break;
           case ts.SyntaxKind.Constructor:
             fnDecl = ts.factory.updateConstructorDeclaration(
-                         fnDecl, fnDecl.decorators, fnDecl.modifiers,
-                         updatedParams, body) as T;
+                         fnDecl, fnDecl.decorators, modifiers, updatedParams,
+                         body) as T;
             break;
           case ts.SyntaxKind.FunctionExpression:
             fnDecl = ts.factory.updateFunctionExpression(

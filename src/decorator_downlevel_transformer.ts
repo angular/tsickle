@@ -386,26 +386,27 @@ export function decoratorDownlevelTransformer(
           ts.setTextRange(
               ts.factory.createNodeArray(decoratorsToKeep), element.decorators) :
           undefined;
+      const modifiers = element.modifiers?.filter(ts.isModifier);
       switch (element.kind) {
         case ts.SyntaxKind.PropertyDeclaration:
           newNode = ts.factory.updatePropertyDeclaration(
-              element, decorators, element.modifiers, element.name,
+              element, decorators, modifiers, element.name,
               element.questionToken ?? element.exclamationToken, element.type,
               element.initializer);
           break;
         case ts.SyntaxKind.GetAccessor:
           newNode = ts.factory.updateGetAccessorDeclaration(
-              element, decorators, element.modifiers, element.name,
-              element.parameters, element.type, element.body);
+              element, decorators, modifiers, element.name, element.parameters,
+              element.type, element.body);
           break;
         case ts.SyntaxKind.SetAccessor:
           newNode = ts.factory.updateSetAccessorDeclaration(
-              element, decorators, element.modifiers, element.name,
-              element.parameters, element.body);
+              element, decorators, modifiers, element.name, element.parameters,
+              element.body);
           break;
         case ts.SyntaxKind.MethodDeclaration:
           newNode = ts.factory.updateMethodDeclaration(
-              element, decorators, element.modifiers, element.asteriskToken,
+              element, decorators, modifiers, element.asteriskToken,
               element.name, element.questionToken, element.typeParameters,
               element.parameters, element.type, element.body);
           break;
@@ -445,11 +446,13 @@ export function decoratorDownlevelTransformer(
           paramInfo!.type = param.type;
         }
         parametersInfo.push(paramInfo);
+        const modifiers = param.modifiers?.filter(ts.isModifier);
         const newParam = ts.factory.updateParameterDeclaration(
             param,
             // Must pass 'undefined' to avoid emitting decorator metadata.
-            decoratorsToKeep.length ? decoratorsToKeep : undefined, param.modifiers,
-            param.dotDotDotToken, param.name, param.questionToken, param.type, param.initializer);
+            decoratorsToKeep.length ? decoratorsToKeep : undefined, modifiers,
+            param.dotDotDotToken, param.name, param.questionToken, param.type,
+            param.initializer);
         newParameters.push(newParam);
       }
       const updated = ts.factory.updateConstructorDeclaration(
@@ -526,8 +529,9 @@ export function decoratorDownlevelTransformer(
       const newDecorators = decoratorsToKeep.length ?
           ts.factory.createNodeArray(decoratorsToKeep) :
           undefined;
+      const modifiers = classDecl.modifiers?.filter(ts.isModifier);
       return ts.factory.updateClassDeclaration(
-          classDecl, newDecorators, classDecl.modifiers, classDecl.name,
+          classDecl, newDecorators, modifiers, classDecl.name,
           classDecl.typeParameters, classDecl.heritageClauses,
           ts.setTextRange(
               ts.factory.createNodeArray(
