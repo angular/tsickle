@@ -392,3 +392,18 @@ export function createGoogLoadedModulesRegistration(
 export function markAsTransformedDeclMergeNs(ns: ts.ModuleDeclaration) {
   (ns as {isTransformedNs?: boolean}).isTransformedNs = true;
 }
+
+/**
+ * Returns true if node is contained inside a namespace that has been
+ * transformed by namespaceTransformer.
+ */
+export function nodeIsInTransformedNs(node: ts.Node): boolean {
+  let parent = node.parent;
+  while (parent) {
+    if (ts.isModuleDeclaration(parent) && isTransformedDeclMergeNs(parent)) {
+      return true;
+    }
+    parent = parent.parent;
+  }
+  return false;
+}

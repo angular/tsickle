@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import * as path from './path';
-import {getIdentifierText, hasModifierFlag, isAmbient, isTransformedDeclMergeNs} from './transformer_util';
+import {getIdentifierText, hasModifierFlag, isAmbient, isTransformedDeclMergeNs, nodeIsInTransformedNs} from './transformer_util';
 
 /**
  * TypeScript allows you to write identifiers quoted, like:
@@ -300,8 +300,18 @@ export class TypeTranslator {
       this.ensureSymbolDeclared(sym);
     }
 
+    // symbolToEntityName returns an unqualified name for a symbol
+    // that is declared in a namespace and is resolved from inside that
+    // namespace (despite requesting a qualified name with
+    // UseFullyQualifiedType). Declarations inside transformed namespaces have
+    // been hoisted to the source file level, so we must resolve the type in
+    // that context to get a qualified name. (b/239894067).
+    const context = nodeIsInTransformedNs(this.node) ?
+        this.node.getSourceFile() :
+        this.node;
+
     const name = this.typeChecker.symbolToEntityName(
-        sym, ts.SymbolFlags.Type, this.node,
+        sym, ts.SymbolFlags.Type, context,
         ts.NodeBuilderFlags.UseFullyQualifiedType |
             ts.NodeBuilderFlags.UseOnlyExternalAliasing);
     // name might be undefined, e.g. for anonymous classes.

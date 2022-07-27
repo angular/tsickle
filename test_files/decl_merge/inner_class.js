@@ -16,5 +16,12 @@ class SomeClass$Inner {
 }
 /** @const */
 SomeClass.Inner = SomeClass$Inner;
+/**
+ * @extends {SomeClass.Inner}
+ */
+class SomeClass$Another extends SomeClass.Inner {
+}
+/** @const */
+SomeClass.Another = SomeClass$Another;
 /** @type {!SomeClass.Inner} */
 let x;
