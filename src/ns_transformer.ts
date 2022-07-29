@@ -14,8 +14,24 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
-import {getIdentifierText, hasModifierFlag, isAmbient, markAsTransformedDeclMergeNs, reportDiagnostic} from './transformer_util';
+import {getIdentifierText, hasModifierFlag, isAmbient, markAsMergedDeclaration, reportDiagnostic} from './transformer_util';
 
+/**
+ * Returns first non-ambient declaration of given symbol before textual position
+ * of 'ns'.
+ */
+function getPreviousDeclaration(
+    sym: ts.Symbol, ns: ts.ModuleDeclaration): ts.Declaration|null {
+  if (!sym.declarations) return null;
+  const sf = ns.getSourceFile();
+  for (const decl of sym.declarations) {
+    if (!isAmbient(decl) && (decl.getSourceFile()) === sf &&
+        (decl.pos < ns.pos)) {
+      return decl;
+    }
+  }
+  return null;
+}
 
 /**
  * Transforms declaration merging namespaces.
@@ -67,13 +83,14 @@ export function namespaceTransformer(
 
       // Local functions follow.
 
-      // Namespace `ns` has the same name as `mergedClass`. Their declarations
-      // are merged. Attaches the declarations defined in ns to mergedClass.
+      // Namespace `ns` has the same name as `mergedDecl`. Their declarations
+      // are merged. Attaches the declarations defined in ns to mergedDecl.
       // Returns the transformed module body statements, or [ns] if the
       // transformation fails.
       function transformNamespace(
           ns: ts.ModuleDeclaration,
-          mergedClass: ts.ClassDeclaration): ts.Statement[] {
+          mergedDecl: ts.ClassDeclaration|
+          ts.InterfaceDeclaration): ts.Statement[] {
         if (!ns.body || !ts.isModuleBlock(ns.body)) {
           return [ns];
         }
@@ -82,14 +99,33 @@ export function namespaceTransformer(
         for (const stmt of ns.body!.statements) {
           if (ts.isEmptyStatement(stmt)) continue;
           if (ts.isClassDeclaration(stmt)) {
-            transformInnerClass(stmt);
+            transformInnerDeclaration(
+                stmt, (classDecl, notExported, hoistedIdent) => {
+                  return ts.factory.updateClassDeclaration(
+                      classDecl, classDecl.decorators, notExported,
+                      hoistedIdent, classDecl.typeParameters,
+                      classDecl.heritageClauses, classDecl.members);
+                });
           } else if (ts.isEnumDeclaration(stmt)) {
-            transformInnerEnum(stmt);
+            transformInnerDeclaration(
+                stmt, (enumDecl, notExported, hoistedIdent) => {
+                  return ts.factory.updateEnumDeclaration(
+                      enumDecl, enumDecl.decorators, notExported, hoistedIdent,
+                      enumDecl.members);
+                });
+          } else if (ts.isInterfaceDeclaration(stmt)) {
+            transformInnerDeclaration(
+                stmt, (interfDecl, notExported, hoistedIdent) => {
+                  return ts.factory.updateInterfaceDeclaration(
+                      interfDecl, interfDecl.decorators, notExported,
+                      hoistedIdent, interfDecl.typeParameters,
+                      interfDecl.heritageClauses, interfDecl.members);
+                });
           } else {
             error(
                 stmt,
                 `unsupported statement in declaration merging namespace '${
-                    nsName}'`);
+                    nsName}' (go/ts-merged-namespaces)`);
           }
         }
         if (haveSeenError) {
@@ -99,60 +135,50 @@ export function namespaceTransformer(
         // The namespace is now essentially empty. All the declarations have
         // been hoisted out of it. Wrap it in a NotEmittedStatement to
         // prevent the compiler from emitting an iife.
-        markAsTransformedDeclMergeNs(ns);
+        markAsMergedDeclaration(ns);
+        markAsMergedDeclaration(mergedDecl);
         haveTransformedNs = true;
         transformedNsStmts.push(ts.factory.createNotEmittedStatement(ns));
         return transformedNsStmts;
 
         // Local functions follow.
 
-        function transformInnerClass(classDecl: ts.ClassDeclaration) {
-          checkReferences(classDecl);
-          checkIsExported(classDecl);
-          if (!classDecl.name || !ts.isIdentifier(classDecl.name)) {
-            error(classDecl, "Expected class name");
+        type DeclarationStatement = ts.Declaration&ts.DeclarationStatement;
+
+        function transformInnerDeclaration<T extends DeclarationStatement>(
+            decl: T,
+            factory: (
+                decl: T, modifiers: ts.Modifier[]|undefined,
+                newIdent: ts.Identifier) => T) {
+          if (!decl.name || !ts.isIdentifier(decl.name)) {
+            error(
+                decl,
+                'Anonymous declaration cannot be merged. (go/ts-merged-namespaces)');
             return;
           }
-          const className = getIdentifierText(classDecl.name);
-          const hoistedClassName = `${nsName}$${className}`;
-          const hoistedClassIdent =
-              ts.factory.createIdentifier(hoistedClassName);
-          // The hoisted class is not directly exported.
-          const notExported = ts.factory.createModifiersFromModifierFlags(
-              ts.getCombinedModifierFlags(classDecl) &
-              (~ts.ModifierFlags.Export));
-          const hoistedClassDecl = ts.factory.updateClassDeclaration(
-              classDecl, classDecl.decorators, notExported, hoistedClassIdent,
-              classDecl.typeParameters, classDecl.heritageClauses,
-              classDecl.members);
-          ts.setOriginalNode(hoistedClassDecl, classDecl);
-          ts.setTextRange(hoistedClassDecl, classDecl);
-          transformedNsStmts.push(hoistedClassDecl);
-          // Add alias `/** @const */ nsName.className = hoistedClassName;`
-          transformedNsStmts.push(
-              createInnerNameAlias(className, hoistedClassIdent, classDecl));
-        }
+          checkReferences(decl);
+          // Check that the inner declaration is exported.
+          const originalName = getIdentifierText(decl.name);
+          if (!hasModifierFlag(decl, ts.ModifierFlags.Export)) {
+            error(
+                decl,
+                `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
+          }
 
-        function transformInnerEnum(enumDecl: ts.EnumDeclaration) {
-          checkReferences(enumDecl);
-          checkIsExported(enumDecl);
-          // Hoist enum to top level and rename to ns$enumName.
-          const enumName = getIdentifierText(enumDecl.name);
-          const hoistedEnumName = `${nsName}$${enumName}`;
-          const hoistedEnumIdent = ts.factory.createIdentifier(hoistedEnumName);
-          // The hoisted enum is not directly exported.
+          const hoistedName = `${nsName}$${originalName}`;
+          const hoistedIdent = ts.factory.createIdentifier(hoistedName);
+          ts.setOriginalNode(hoistedIdent, decl.name);
+
+          // The hoisted declaration is not directly exported.
           const notExported = ts.factory.createModifiersFromModifierFlags(
-              ts.getCombinedModifierFlags(enumDecl) &
-              (~ts.ModifierFlags.Export));
-          const hoistedEnumDecl = ts.factory.updateEnumDeclaration(
-              enumDecl, enumDecl.decorators, notExported, hoistedEnumIdent,
-              enumDecl.members);
-          ts.setOriginalNode(hoistedEnumDecl, enumDecl);
-          ts.setTextRange(hoistedEnumDecl, enumDecl);
-          transformedNsStmts.push(hoistedEnumDecl);
-          // Add alias `/** @const */ nsName.enumName = hoistedEnumName;`
+              ts.getCombinedModifierFlags(decl) & (~ts.ModifierFlags.Export));
+          const hoistedDecl = factory(decl, notExported, hoistedIdent);
+          ts.setOriginalNode(hoistedDecl, decl);
+          ts.setTextRange(hoistedDecl, decl);
+          transformedNsStmts.push(hoistedDecl);
+          // Add alias `/** @const */ nsName.originalName = hoistedName;`
           transformedNsStmts.push(
-              createInnerNameAlias(enumName, hoistedEnumIdent, enumDecl));
+              createInnerNameAlias(originalName, hoistedIdent, decl));
         }
 
         function createInnerNameAlias(
@@ -161,7 +187,7 @@ export function namespaceTransformer(
           const prop =
               ts.factory.createExpressionStatement(ts.factory.createAssignment(
                   ts.factory.createPropertyAccessExpression(
-                      mergedClass.name!, propName),
+                      mergedDecl.name!, propName),
                   initializer));
           ts.setTextRange(prop, original);
           ts.setOriginalNode(prop, original);
@@ -170,24 +196,17 @@ export function namespaceTransformer(
               /* hasTrailingNewLine */ true);
         }
 
-        function checkIsExported(decl: ts.ClassDeclaration|ts.EnumDeclaration) {
-          if (!hasModifierFlag(decl, ts.ModifierFlags.Export)) {
-            error(decl, `'${getIdentifierText(decl.name!)}' must be exported`);
-          }
-        }
-
         function checkNamespaceRef(ref: ts.EntityName) {
           if (ts.isQualifiedName(ref)) {
             checkNamespaceRef(ref.left);
             return;
           }
-          // ref is an unqulaified name. If it refers to a symbol that is
+          // ref is an unqualified name. If it refers to a symbol that is
           // defined in the namespace, it is missing a qualifier.
           const sym = typeChecker.getSymbolAtLocation(ref);
           // Property 'parent' is marked @internal, need to cast to access.
           const parent = sym && (sym as {parent?: ts.Symbol}).parent;
-          if (sym && parent &&
-              ((parent.flags & ts.SymbolFlags.ValueModule) !== 0)) {
+          if (parent && (parent.flags & ts.SymbolFlags.Module) !== 0) {
             const parentName = parent.getName();
             if (parentName === nsName) {
               // This identifier should be qualified with the parentName.
@@ -195,7 +214,7 @@ export function namespaceTransformer(
               error(
                   ref,
                   `Name '${name}' must be qualified as '${parentName}.${
-                      name}'.`);
+                      name}'. (go/ts-merged-namespaces)`);
             }
           }
         }
@@ -219,8 +238,9 @@ export function namespaceTransformer(
             // node is a ts.Identifier.
             if (node.parent &&
                 (ts.isClassDeclaration(node.parent) ||
-                 ts.isEnumDeclaration(node.parent))) {
-              // Do not check the name of the class or enum declaration.
+                 ts.isEnumDeclaration(node.parent) ||
+                 ts.isInterfaceDeclaration(node.parent))) {
+              // Do not check the name of the local declaration.
               return node;
             }
             checkNamespaceRef(node);
@@ -243,24 +263,29 @@ export function namespaceTransformer(
           transformedStmts.push(ns);
           return;
         }
+
+        const mergedDecl = getPreviousDeclaration(sym, ns);
         // For a merged namespace, the symbol must already have been declared
         // prior to the namespace declaration, or the compiler reports TS2434.
-        const isMergedNs =
-            sym.valueDeclaration && sym.valueDeclaration.pos !== ns.pos;
-        if (!isMergedNs) {
+        if (!mergedDecl) {
           transformedStmts.push(ns);  // Nothing to do here.
-          error(ns.name, 'transformation of plain namespace not supported.');
+          error(
+              ns.name,
+              'transformation of plain namespace not supported. (go/ts-merged-namespaces)');
           return;
         }
 
-        if (!ts.isClassDeclaration(sym.valueDeclaration!) ||
-            isAmbient(sym.valueDeclaration)) {
-          // The previous declaration is not a class.
+        if (!ts.isInterfaceDeclaration(mergedDecl) &&
+            !ts.isClassDeclaration(mergedDecl)) {
+          // The previous declaration is not a class or interface.
           transformedStmts.push(ns);  // Nothing to do here.
-          error(ns.name, 'declaration merging with non-class is not supported');
+          error(
+              ns.name,
+              'merged declaration must be local class or interface. (go/ts-merged-namespaces)');
           return;
         }
-        transformedStmts.push(...transformNamespace(ns, sym.valueDeclaration));
+
+        transformedStmts.push(...transformNamespace(ns, mergedDecl));
       }
 
       function error(node: ts.Node, message: string) {

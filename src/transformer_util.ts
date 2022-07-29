@@ -378,20 +378,19 @@ export function createGoogLoadedModulesRegistration(
 }
 
 /**
- * Returns true if the namespace is a declaration merging namespace that has
- * been transformed by namespaceTransformer.
+ * Returns true if the declaration has been transformed by namespaceTransformer.
  */
- export function isTransformedDeclMergeNs(ns: ts.ModuleDeclaration): boolean {
-  return (ns as {isTransformedNs?: boolean}).isTransformedNs === true;
+export function isMergedDeclaration(decl: ts.Declaration): boolean {
+  return (decl as {isMergedDecl?: boolean}).isMergedDecl === true;
 }
 
 /**
- * Mark the given namespace as being a transformed declaration merging
- * namespace.
+ * Mark the declaration as being transformed by namespaceTransformer.
  */
-export function markAsTransformedDeclMergeNs(ns: ts.ModuleDeclaration) {
-  (ns as {isTransformedNs?: boolean}).isTransformedNs = true;
+export function markAsMergedDeclaration(decl: ts.Declaration) {
+  (decl as {isMergedDecl?: boolean}).isMergedDecl = true;
 }
+
 
 /**
  * Returns true if node is contained inside a namespace that has been
@@ -400,7 +399,7 @@ export function markAsTransformedDeclMergeNs(ns: ts.ModuleDeclaration) {
 export function nodeIsInTransformedNs(node: ts.Node): boolean {
   let parent = node.parent;
   while (parent) {
-    if (ts.isModuleDeclaration(parent) && isTransformedDeclMergeNs(parent)) {
+    if (ts.isModuleDeclaration(parent) && isMergedDeclaration(parent)) {
       return true;
     }
     parent = parent.parent;

@@ -34,7 +34,7 @@ import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
-import {symbolIsValue} from './transformer_util';
+import {isMergedDeclaration, symbolIsValue} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
 function addCommentOn(
@@ -589,8 +589,8 @@ export function jsdocTransformer(
           return [];
         }
         // If this symbol is both a type and a value, we cannot emit both into Closure's
-        // single namespace.
-        if (symbolIsValue(typeChecker, sym)) {
+        // single namespace, unless the interface is merged with a namespace.
+        if (symbolIsValue(typeChecker, sym) && !isMergedDeclaration(iface)) {
           moduleTypeTranslator.debugWarn(
               iface, `type/symbol conflict for ${sym.name}, using {?} for now`);
           return [transformerUtil.createSingleLineComment(

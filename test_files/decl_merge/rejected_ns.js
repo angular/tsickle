@@ -1,6 +1,6 @@
-// test_files/decl_merge/rejected_ns.ts(9,11): error TS0: transformation of plain namespace not supported.
-// test_files/decl_merge/rejected_ns.ts(13,11): error TS0: declaration merging with non-class is not supported
-// test_files/decl_merge/rejected_ns.ts(21,11): error TS0: declaration merging with non-class is not supported
+// test_files/decl_merge/rejected_ns.ts(9,11): error TS0: transformation of plain namespace not supported. (go/ts-merged-namespaces)
+// test_files/decl_merge/rejected_ns.ts(13,11): error TS0: merged declaration must be local class or interface. (go/ts-merged-namespaces)
+// test_files/decl_merge/rejected_ns.ts(21,11): error TS0: merged declaration must be local class or interface. (go/ts-merged-namespaces)
 /**
  *
  * @fileoverview Test namespace transformations that are not supported

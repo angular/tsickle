@@ -10,7 +10,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import * as path from './path';
-import {getIdentifierText, hasModifierFlag, isAmbient, isTransformedDeclMergeNs, nodeIsInTransformedNs} from './transformer_util';
+import {getIdentifierText, hasModifierFlag, isAmbient, isMergedDeclaration, nodeIsInTransformedNs} from './transformer_util';
 
 /**
  * TypeScript allows you to write identifiers quoted, like:
@@ -452,7 +452,7 @@ export class TypeTranslator {
         while (current) {
           if (ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient) isAmbient = true;
           if (current.kind === ts.SyntaxKind.ModuleDeclaration &&
-              !isTransformedDeclMergeNs(current as ts.ModuleDeclaration)) {
+              !isMergedDeclaration(current as ts.ModuleDeclaration)) {
             isInUnsupportedNamespace = true;
           }
           current = current.parent as ts.Declaration | undefined;

@@ -21,7 +21,7 @@
 
 import * as ts from 'typescript';
 
-import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient, isTransformedDeclMergeNs} from './transformer_util';
+import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient, isMergedDeclaration} from './transformer_util';
 
 /**
  * isInUnsupportedNamespace returns true if any of node's ancestors is a
@@ -34,7 +34,7 @@ function isInUnsupportedNamespace(node: ts.Node) {
   let parent = ts.getOriginalNode(node).parent;
   while (parent) {
     if (parent.kind === ts.SyntaxKind.ModuleDeclaration) {
-      return !isTransformedDeclMergeNs(parent as ts.ModuleDeclaration);
+      return !isMergedDeclaration(parent as ts.ModuleDeclaration);
     }
     parent = parent.parent;
   }
