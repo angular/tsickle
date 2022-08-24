@@ -537,6 +537,7 @@ export class TypeTranslator {
         return this.translateUnion(type as ts.UnionType);
       case ts.TypeFlags.Conditional:
       case ts.TypeFlags.Substitution:
+        // TODO(chinthoorie) : remove NonNullable logic after the TS 4.8 upgrade
         if (type.aliasSymbol?.escapedName === 'NonNullable' &&
             isDeclaredInBuiltinLibDTS(type.aliasSymbol.declarations?.[0])) {
           let innerSymbol = undefined;
@@ -560,6 +561,26 @@ export class TypeTranslator {
         this.warn(`emitting ? for conditional/substitution type`);
         return '?';
       case ts.TypeFlags.Intersection:
+        if (type.aliasSymbol?.escapedName === 'NonNullable' &&
+            isDeclaredInBuiltinLibDTS(type.aliasSymbol.declarations?.[0])) {
+          let innerSymbol = undefined;
+          // Pretend that NonNullable<T> is really just T, as this doesn't
+          // tend to affect optimization. T might not be a symbol we can
+          // represent in Closure's type-system, and in this case we fall
+          // back to '?' (the old behavior).
+          if (type.aliasTypeArguments?.[0]) {
+            innerSymbol = this.translate(type.aliasTypeArguments[0]);
+          } else {
+            const srcFile = this.node.getSourceFile().fileName;
+            const start = this.node.getStart();
+            const end = this.node.getEnd();
+            throw new Error(`NonNullable missing expected type argument:
+                ${srcFile}(${start}-${end})`);
+          }
+          return innerSymbol ?? '?';
+        }
+        this.warn(`unhandled type flags: ${ts.TypeFlags[type.flags]}`);
+        return '?';
       case ts.TypeFlags.Index:
       case ts.TypeFlags.IndexedAccess:
         // TODO(ts2.1): handle these special types.

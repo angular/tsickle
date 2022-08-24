@@ -35,6 +35,7 @@ import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {isMergedDeclaration, symbolIsValue} from './transformer_util';
+import {getDecorators, getModifiers} from './ts_utils';
 import {isValidClosurePropertyName} from './type_translator';
 
 function addCommentOn(
@@ -689,7 +690,7 @@ export function jsdocTransformer(
             continue;
           }
           hasUpdatedParams = true;
-          const modifiers = param.modifiers?.filter(ts.isModifier);
+          const modifiers = getModifiers(param);
           updatedParams.push(ts.factory.updateParameterDeclaration(
               param, param.decorators, modifiers, param.dotDotDotToken,
               updatedParamName, param.questionToken, param.type,
@@ -711,44 +712,42 @@ export function jsdocTransformer(
           stmts.push(...body.statements);
           body = ts.factory.updateBlock(body, stmts);
         }
+        const decorators = getDecorators(fnDecl);
+        const modifiers = getModifiers(fnDecl);
 
-        const modifiers =
-            fnDecl.modifiers?.filter(ts.isModifier) as readonly ts.Modifier[] |
-            undefined;
         switch (fnDecl.kind) {
           case ts.SyntaxKind.FunctionDeclaration:
-            fnDecl =
-                ts.factory.updateFunctionDeclaration(
-                    fnDecl, fnDecl.decorators, modifiers, fnDecl.asteriskToken,
-                    fnDecl.name, fnDecl.typeParameters, updatedParams,
-                    fnDecl.type, body) as T;
+            fnDecl = ts.factory.updateFunctionDeclaration(
+                         fnDecl, decorators, modifiers, fnDecl.asteriskToken,
+                         fnDecl.name, fnDecl.typeParameters, updatedParams,
+                         fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.MethodDeclaration:
             fnDecl =
                 ts.factory.updateMethodDeclaration(
-                    fnDecl, fnDecl.decorators, modifiers, fnDecl.asteriskToken,
+                    fnDecl, decorators, modifiers, fnDecl.asteriskToken,
                     fnDecl.name, fnDecl.questionToken, fnDecl.typeParameters,
                     updatedParams, fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.SetAccessor:
             fnDecl = ts.factory.updateSetAccessorDeclaration(
-                         fnDecl, fnDecl.decorators, modifiers, fnDecl.name,
+                         fnDecl, decorators, modifiers, fnDecl.name,
                          updatedParams, body) as T;
             break;
           case ts.SyntaxKind.Constructor:
-            fnDecl = ts.factory.updateConstructorDeclaration(
-                         fnDecl, fnDecl.decorators, modifiers, updatedParams,
-                         body) as T;
+            fnDecl =
+                ts.factory.updateConstructorDeclaration(
+                    fnDecl, decorators, modifiers, updatedParams, body) as T;
             break;
           case ts.SyntaxKind.FunctionExpression:
             fnDecl = ts.factory.updateFunctionExpression(
-                         fnDecl, fnDecl.modifiers, fnDecl.asteriskToken,
-                         fnDecl.name, fnDecl.typeParameters, updatedParams,
-                         fnDecl.type, body) as T;
+                         fnDecl, modifiers, fnDecl.asteriskToken, fnDecl.name,
+                         fnDecl.typeParameters, updatedParams, fnDecl.type,
+                         body) as T;
             break;
           case ts.SyntaxKind.ArrowFunction:
             fnDecl = ts.factory.updateArrowFunction(
-                         fnDecl, fnDecl.modifiers, fnDecl.name, updatedParams,
+                         fnDecl, modifiers, fnDecl.name, updatedParams,
                          fnDecl.type, fnDecl.equalsGreaterThanToken, body) as T;
             break;
           case ts.SyntaxKind.GetAccessor:
