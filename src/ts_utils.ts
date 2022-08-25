@@ -33,7 +33,7 @@ export function getModifiers(node: ts.Node): readonly ts.Modifier[]|undefined {
   if ((ts as any).getModifiers) {
     return (ts as any).getModifiers(node);
   }
-  return node.modifiers;
+  return node.modifiers?.filter(ts.isModifier);
 }
 
 // tslint:enable:no-any
