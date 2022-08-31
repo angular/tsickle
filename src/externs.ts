@@ -648,10 +648,10 @@ export function generateExterns(
     const isDefaultImport =
         ts.isImportDeclaration(decl) && !!decl.importClause?.name;
     if (googNamespace) {
-      mtt.registerImportAliases(
+      mtt.registerImportSymbolAliases(
           googNamespace, isDefaultImport, moduleSymbol, () => googNamespace);
     } else {
-      mtt.registerImportAliases(
+      mtt.registerImportSymbolAliases(
           null, isDefaultImport, moduleSymbol,
           getAliasPrefixForEsModule(moduleUri));
     }

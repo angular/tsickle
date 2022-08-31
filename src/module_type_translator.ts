@@ -21,6 +21,24 @@ import {getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic
 import * as typeTranslator from './type_translator';
 
 /**
+ * ts.Symbol to access internal .parent property.
+ */
+declare interface SymbolWithParent extends ts.Symbol {
+  parent?: SymbolWithParent;
+}
+
+function getDefinedModule(symbol: SymbolWithParent|undefined): ts.Symbol|
+    undefined {
+  while (symbol) {
+    if (symbol.flags & ts.SymbolFlags.Module) {
+      return symbol;
+    }
+    symbol = symbol.parent;
+  }
+  return undefined;
+}
+
+/**
  * MutableJSDoc encapsulates a (potential) JSDoc comment on a specific node, and allows code to
  * modify (including delete) it.
  */
@@ -283,8 +301,143 @@ export class ModuleTypeTranslator {
             ts.NodeFlags.Const)));
     this.requireTypeModules.add(moduleSymbol);
 
-    this.registerImportAliases(
+    this.registerImportSymbolAliases(
         nsImport, isDefaultImport, moduleSymbol, () => requireTypePrefix);
+    this.registerImportTypeSymbolAliases(
+        nsImport, isDefaultImport, moduleSymbol, requireTypePrefix);
+  }
+
+  /**
+   * Get qualified name of a symbol by navigating through its parents.
+   */
+  private qualifiedNameFromSymbolChain(
+      leafSymbol: SymbolWithParent,
+      googNamespace: string|null,
+      isDefaultImport: boolean,
+      aliasPrefix: string,
+      namedDefaultImport: boolean,
+      ): string {
+    if (googNamespace && (isDefaultImport || namedDefaultImport)) {
+      return aliasPrefix;
+    }
+    let typeSymbol = leafSymbol;
+    const symbols: SymbolWithParent[] = [typeSymbol];
+    // Here we first try to cover cases which the ts file uses namespaces
+    // itself. For those cases it is not enough just to append the symbol name
+    // to the aliasPrefix, because we actually need to know the namespace
+    // hierarchy and properly append that to the requireType-ed symbol.
+    while (typeSymbol.parent &&
+           typeSymbol.parent.flags & ts.SymbolFlags.NamespaceModule) {
+      typeSymbol = typeSymbol.parent;
+      symbols.push(typeSymbol);
+    }
+    let qualifiedName = '';
+    let aliasResolved = false;
+    for (const symbol of symbols.reverse()) {
+      const alias = this.symbolsToAliasedNames.get(symbol);
+      // For modules which use goog.provide and thus have additional namespace
+      // hierarchy in the code, we try to resolve them by looking up
+      // symbol-to-aliases so that we properly recognize which part of the
+      // namespace corresponds to which qualified name.
+      if (alias) {
+        qualifiedName = alias;
+        aliasResolved = true;
+        continue;
+      }
+      qualifiedName =
+          qualifiedName ? qualifiedName + '.' + symbol.name : symbol.name;
+    }
+    // parent being undefined indicates that this type is the global scope,
+    // thus no need of alias prefix from `requireType`s.
+    if (!aliasResolved && leafSymbol.parent) {
+      qualifiedName = aliasPrefix + '.' + qualifiedName;
+    }
+    return qualifiedName.replace('ಠ_ಠ.clutz.', '');
+  }
+
+  /**
+   * Registers string representation of all exported type symbols from the
+   * existing `requireType`-ed module as a cache so that later we don't have to
+   * do the eager lookup of type through symbol tables to construct the
+   * qualifiedName. This is particularly useful because
+   * ts.typeChecker.symbolToEntityName is pretty expensive.
+   *
+   * The danger in this code is that it is depending on internal ts.Symbol
+   * properties.
+   *
+   * This function looks very similar to registerImportSymbolAliases but cannot
+   * be merged due to registerImportAliases being called while generating
+   * externs. Externs are generated while navigating all files, but string
+   * representation of types differs from file to file, so we simply cannot
+   * reuse the results, because it will start to break builds.
+   */
+  private registerImportTypeSymbolAliases(
+      googNamespace: string|null, isDefaultImport: boolean,
+      moduleSymbol: ts.Symbol, aliasPrefix: string) {
+    if (googmodule.extractModuleMarker(
+            moduleSymbol, '__clutz_strip_property')) {
+      // Symbols using import-by-path with strip property should be mapped to a
+      // default import. This makes sure that type annotations get emitted as
+      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
+      isDefaultImport = true;
+    }
+
+    for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol) as
+         SymbolWithParent[]) {
+      // Some users import {default as SomeAlias} from 'goog:...';
+      // The code below must recognize this as a default import to alias the
+      // symbol to just the blank module name.
+      const namedDefaultImport = sym.name === 'default';
+
+      if (sym.flags & ts.SymbolFlags.Alias) {
+        sym = this.typeChecker.getAliasedSymbol(sym);
+      }
+      // We only put into the cache when it's a class or an interface, because
+      // more complex types (e.g. union) don't map to a single Symbol and
+      // for other simple types it doesn't take much time to generate a string.
+      const typeSymbol: SymbolWithParent|undefined =
+          this.getTypeSymbolOfSymbolIfClassOrInterface(sym);
+      if (!typeSymbol) continue;
+      // In case the type is defined in a different file from the requireType-ed
+      // module, indicating that this is a type alias and thus will either be
+      // covered by other requireType statements, or should have been defined
+      // in the immediate file itself.
+      if (typeSymbol.parent &&
+          getDefinedModule(sym) !== getDefinedModule(typeSymbol)) {
+        continue;
+      }
+      const qualifiedName = this.qualifiedNameFromSymbolChain(
+          typeSymbol,
+          googNamespace,
+          isDefaultImport,
+          aliasPrefix,
+          namedDefaultImport,
+      );
+      const cache = this.symbolToNameCache.get(typeSymbol);
+      // Put in shorter symbols, as a proxy of prefering non-aliases.
+      if (!cache || cache.length > qualifiedName.length) {
+        this.symbolToNameCache.set(typeSymbol, qualifiedName);
+      }
+    }
+  }
+
+  /**
+   * Returns the symbol of the type for the given symbol, if the type is a class
+   * or an interface.
+   */
+  private getTypeSymbolOfSymbolIfClassOrInterface(symbol: ts.Symbol): ts.Symbol
+      |undefined {
+    const type = this.typeChecker.getDeclaredTypeOfSymbol(symbol);
+    const typeSymbol = type.getSymbol();
+    if (!typeSymbol) {
+      return undefined;
+    }
+    if (!(type.flags & ts.TypeFlags.Object)) {
+      return undefined;
+    }
+    const objectFlags = (type as ts.ObjectType).objectFlags;
+    return objectFlags & ts.ObjectFlags.ClassOrInterface ? typeSymbol :
+                                                           undefined;
   }
 
   /**
@@ -300,7 +453,7 @@ export class ModuleTypeTranslator {
    * @param getAliasPrefix Should return the alias prefix. Called for each
    *     exported symbol. The registered alias is <aliasPrefix>.<exportedName>.
    */
-  registerImportAliases(
+  registerImportSymbolAliases(
       googNamespace: string|null, isDefaultImport: boolean,
       moduleSymbol: ts.Symbol, getAliasPrefix: (symbol: ts.Symbol) => string) {
     if (googmodule.extractModuleMarker(
