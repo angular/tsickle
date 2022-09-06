@@ -406,3 +406,20 @@ export function nodeIsInTransformedNs(node: ts.Node): boolean {
   }
   return false;
 }
+
+/**
+ * Returns first non-ambient declaration of given symbol before textual position
+ * of 'thisDecl'.
+ */
+export function getPreviousDeclaration(
+    sym: ts.Symbol, thisDecl: ts.Declaration): ts.Declaration|null {
+  if (!sym.declarations) return null;
+  const sf = thisDecl.getSourceFile();
+  for (const decl of sym.declarations) {
+    if (!isAmbient(decl) && (decl.getSourceFile()) === sf &&
+        (decl.pos < thisDecl.pos)) {
+      return decl;
+    }
+  }
+  return null;
+}

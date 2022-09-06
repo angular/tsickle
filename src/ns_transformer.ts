@@ -14,24 +14,7 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
-import {getIdentifierText, hasModifierFlag, isAmbient, markAsMergedDeclaration, reportDiagnostic} from './transformer_util';
-
-/**
- * Returns first non-ambient declaration of given symbol before textual position
- * of 'ns'.
- */
-function getPreviousDeclaration(
-    sym: ts.Symbol, ns: ts.ModuleDeclaration): ts.Declaration|null {
-  if (!sym.declarations) return null;
-  const sf = ns.getSourceFile();
-  for (const decl of sym.declarations) {
-    if (!isAmbient(decl) && (decl.getSourceFile()) === sf &&
-        (decl.pos < ns.pos)) {
-      return decl;
-    }
-  }
-  return null;
-}
+import {getIdentifierText, getPreviousDeclaration, hasModifierFlag, isAmbient, markAsMergedDeclaration, reportDiagnostic} from './transformer_util';
 
 /**
  * Transforms declaration merging namespaces.

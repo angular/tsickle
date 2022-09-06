@@ -34,7 +34,7 @@ import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
-import {isMergedDeclaration, symbolIsValue} from './transformer_util';
+import {getPreviousDeclaration, isMergedDeclaration, symbolIsValue} from './transformer_util';
 import {getDecorators, getModifiers} from './ts_utils';
 import {isValidClosurePropertyName} from './type_translator';
 
@@ -622,8 +622,12 @@ export function jsdocTransformer(
                 ),
             iface);
         addCommentOn(decl, tags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
+        const isFirstOccurrence = getPreviousDeclaration(sym, iface) === null;
+        const declarations: ts.Statement[] = [];
+        if (isFirstOccurrence) declarations.push(decl);
         const memberDecl = createMemberTypeDeclaration(moduleTypeTranslator, iface);
-        return memberDecl ? [decl, memberDecl] : [decl];
+        if (memberDecl) declarations.push(memberDecl);
+        return declarations;
       }
 
       /** Function declarations are emitted as they are, with only JSDoc added. */
