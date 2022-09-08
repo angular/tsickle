@@ -47,63 +47,48 @@ function augmentFileoverviewComments(
         GENERATED_FROM_COMMENT_TEXT;
   }
 
-  // Find or create a @suppress tag.
-  // TODO(b/235529020): Allow generating @fileoverview blocks with multiple
-  // different @suppress tags to make tsickle output more readable.
-  let suppressTag = tags.find(t => t.tagName === 'suppress');
-  let suppressions: Set<string>;
-  if (suppressTag) {
-    suppressions =
-        new Set((suppressTag!.type || '').split(',').map(s => s.trim()));
-  } else if (generateExtraSuppressions) {
-    suppressTag = {tagName: 'suppress', text: ''};
-    // Special case the @license tag because all text following this tag is
-    // treated by the compiler as part of the license, so we need to place the
-    // new @suppress tag before @license.
-    const licenseTagIndex = tags.findIndex(t => t.tagName === 'license');
-    if (licenseTagIndex !== -1) {
-      tags.splice(licenseTagIndex, 0, suppressTag);
-    } else {
-      tags.push(suppressTag);
-    }
-    suppressions = new Set();
-  }
-
   if (generateExtraSuppressions) {
+    const suppressions = [
     // Ensure our suppressions are included in the @suppress tag:
     // * Suppress checkTypes.  We believe the code has already been type-checked
     // by TypeScript, and we cannot model all the TypeScript type decisions in
     // Closure syntax.
-    suppressions!.add('checkTypes');
+      'checkTypes',
     // * Suppress extraRequire.  We remove extra requires at the TypeScript
     // level, so any require that gets to the JS level is a load-bearing
     // require.
-    suppressions!.add('extraRequire');
+      'extraRequire',
     // * Types references are propagated between files even when they are not
     // directly imported. While these are violations of the "missing require"
     // rules they are believed to be safe.
-    suppressions!.add('missingRequire');
+      'missingRequire',
     // * Suppress uselessCode.  We emit an "if (false)" around type
     // declarations, which is flagged as unused code unless we suppress it.
-    suppressions!.add('uselessCode');
+      'uselessCode',
     // * Suppress some checks for user errors that TS already checks.
-    suppressions!.add('missingReturn');
-    suppressions!.add('unusedPrivateMembers');
+      'missingReturn',
+      'unusedPrivateMembers',
     // * Suppress checking for @override, because TS doesn't model it.
-    suppressions!.add('missingOverride');
+      'missingOverride',
     // * Suppress const JSCompiler errors in TS file.
     // a) TypeScript already checks for "const" and
     // b) there are various JSCompiler false positives
-    suppressions!.add('const');
+      'const',
+    ];
+
+    const suppressTags = suppressions.map(
+        s => ({tagName: 'suppress', text: 'added by tsickle', type: s}));
+
+    // Special case the @license tag because all text following this tag is
+    // treated by the compiler as part of the license, so we need to place the
+    // new @suppress tags before @license.
+    const licenseTagIndex = tags.findIndex(t => t.tagName === 'license');
+    if (licenseTagIndex !== -1) {
+      tags.splice(licenseTagIndex, 0, ...suppressTags);
+    } else {
+      tags.push(...suppressTags);
+    }
   }
-
-
-  if (suppressTag) {
-    suppressTag!.type = Array.from(suppressions!.values()).sort().join(',');
-  }
-
-
-  return tags;
 }
 
 /**
