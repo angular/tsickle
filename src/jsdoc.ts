@@ -8,6 +8,8 @@
 
 import * as ts from 'typescript';
 
+import {reportDiagnostic} from './transformer_util';
+
 /**
  * TypeScript has an API for JSDoc already, but it's not exposed.
  * https://github.com/Microsoft/TypeScript/issues/7393
@@ -172,7 +174,8 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
  * Tags that, if they are the only tag, should be printed in a single line JSDoc
  * comment.
  */
-const ONE_LINER_TAGS = new Set(['type', 'typedef', 'nocollapse', 'const']);
+const ONE_LINER_TAGS =
+    new Set(['type', 'typedef', 'nocollapse', 'const', 'enum']);
 
 /**
  * Result of parsing a JSDoc comment. Such comments essentially are built of a list of tags.
@@ -516,4 +519,107 @@ export function merge(tags: Tag[]): Tag {
  */
 export function createGeneratedFromComment(file: string): string {
   return `Generated from: ${file}`;
+}
+
+/**
+ * MutableJSDoc encapsulates a (potential) JSDoc comment on a specific node, and
+ * allows code to modify (including delete) it.
+ */
+export class MutableJSDoc {
+  constructor(
+      private readonly node: ts.Node,
+      private sourceComment: ts.SynthesizedComment|null, public tags: Tag[]) {}
+
+  updateComment(escapeExtraTags?: Set<string>) {
+    const text = toStringWithoutStartEnd(this.tags, escapeExtraTags);
+    if (this.sourceComment) {
+      if (!text) {
+        // Delete the (now empty) comment.
+        const comments = ts.getSyntheticLeadingComments(this.node)!;
+        const idx = comments.indexOf(this.sourceComment);
+        comments.splice(idx, 1);
+        this.sourceComment = null;
+        return;
+      }
+      this.sourceComment.text = text;
+      return;
+    }
+
+    // Don't add an empty comment.
+    if (!text) return;
+
+    const comment: ts.SynthesizedComment = {
+      kind: ts.SyntaxKind.MultiLineCommentTrivia,
+      text,
+      hasTrailingNewLine: true,
+      pos: -1,
+      end: -1,
+    };
+    const comments = ts.getSyntheticLeadingComments(this.node) || [];
+    comments.push(comment);
+    ts.setSyntheticLeadingComments(this.node, comments);
+  }
+}
+
+/**
+ * Parses and synthesizes comments on node, and returns the JSDoc from it, if
+ * any.
+ * @param diagnostics if set, will report warnings from parsing the JSDoc. Set
+ *     to undefined if this is not the "main" location dealing with a node to
+ *     avoid duplicated warnings.
+ * @param sourceFile if diagnostics is set, will use sourceFile to determine
+ *     diagnostic location.
+ */
+export function getJSDocTags(
+    node: ts.Node, diagnostics?: ts.Diagnostic[],
+    sourceFile?: ts.SourceFile): Tag[] {
+  if (!ts.getParseTreeNode(node)) return [];
+  const [tags, ] = parseJSDoc(node, diagnostics, sourceFile);
+  return tags;
+}
+
+/**
+ * Parses and synthesizes comments on node, and returns a MutableJSDoc from it.
+ * @param diagnostics if set, will report warnings from parsing the JSDoc. Set
+ *     to undefined if this is not the "main" location dealing with a node to
+ *     avoid duplicated warnings.
+ * @param sourceFile if diagnostics is set, will use sourceFile to determine
+ *     diagnostic location.
+ */
+export function getMutableJSDoc(
+    node: ts.Node, diagnostics?: ts.Diagnostic[],
+    sourceFile?: ts.SourceFile): MutableJSDoc {
+  const [tags, comment] = parseJSDoc(node, diagnostics, sourceFile);
+  return new MutableJSDoc(node, comment, tags);
+}
+
+function parseJSDoc(
+    node: ts.Node, diagnostics?: ts.Diagnostic[],
+    sourceFile?: ts.SourceFile): [Tag[], ts.SynthesizedComment|null] {
+  // synthesizeLeadingComments below changes text locations for node, so extract
+  // the location here in case it is needed later to report diagnostics.
+  let nodeCommentRange: ts.TextRange|undefined;
+  if (diagnostics !== undefined) {
+    const pos = node.getFullStart();
+    const length = node.getLeadingTriviaWidth(sourceFile);
+    nodeCommentRange = {pos, end: pos + length};
+  }
+
+  const comments = synthesizeLeadingComments(node);
+  if (!comments || comments.length === 0) return [[], null];
+
+  for (let i = comments.length - 1; i >= 0; i--) {
+    const comment = comments[i];
+    const parsed = parse(comment);
+    if (parsed) {
+      if (diagnostics !== undefined && parsed.warnings) {
+        const range = comment.originalRange || nodeCommentRange;
+        reportDiagnostic(
+            diagnostics, node, parsed.warnings.join('\n'), range,
+            ts.DiagnosticCategory.Warning);
+      }
+      return [parsed.tags, comment];
+    }
+  }
+  return [[], null];
 }

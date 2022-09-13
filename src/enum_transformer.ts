@@ -21,6 +21,7 @@
 
 import * as ts from 'typescript';
 
+import * as jsdoc from './jsdoc';
 import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient, isMergedDeclaration} from './transformer_util';
 
 /**
@@ -176,13 +177,10 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
                       /* create a const var */ ts.NodeFlags.Const)),
               node),
           node);
-      const comment: ts.SynthesizedComment = {
-        kind: ts.SyntaxKind.MultiLineCommentTrivia,
-        text: `* @enum {${enumType}} `,
-        hasTrailingNewLine: true,
-        pos: -1,
-        end: -1
-      };
+
+      const tags = jsdoc.getJSDocTags(ts.getOriginalNode(node));
+      tags.push({tagName: 'enum', type: enumType});
+      const comment = jsdoc.toSynthesizedComment(tags);
       ts.setSyntheticLeadingComments(varDeclStmt, [comment]);
 
       const name = getIdentifierText(node.name);

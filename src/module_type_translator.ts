@@ -38,47 +38,6 @@ function getDefinedModule(symbol: SymbolWithParent|undefined): ts.Symbol|
   return undefined;
 }
 
-/**
- * MutableJSDoc encapsulates a (potential) JSDoc comment on a specific node, and allows code to
- * modify (including delete) it.
- */
-export class MutableJSDoc {
-  constructor(
-      private readonly node: ts.Node,
-      private sourceComment: ts.SynthesizedComment|null,
-      public tags: jsdoc.Tag[]) {}
-
-  updateComment(escapeExtraTags?: Set<string>) {
-    const text = jsdoc.toStringWithoutStartEnd(this.tags, escapeExtraTags);
-    if (this.sourceComment) {
-      if (!text) {
-        // Delete the (now empty) comment.
-        const comments = ts.getSyntheticLeadingComments(this.node)!;
-        const idx = comments.indexOf(this.sourceComment);
-        comments.splice(idx, 1);
-        this.sourceComment = null;
-        return;
-      }
-      this.sourceComment.text = text;
-      return;
-    }
-
-    // Don't add an empty comment.
-    if (!text) return;
-
-    const comment: ts.SynthesizedComment = {
-      kind: ts.SyntaxKind.MultiLineCommentTrivia,
-      text,
-      hasTrailingNewLine: true,
-      pos: -1,
-      end: -1,
-    };
-    const comments = ts.getSyntheticLeadingComments(this.node) || [];
-    comments.push(comment);
-    ts.setSyntheticLeadingComments(this.node, comments);
-  }
-}
-
 /** Returns the Closure name of a function parameter, special-casing destructuring. */
 function getParameterName(param: ts.ParameterDeclaration, index: number): string {
   switch (param.name.kind) {
@@ -524,40 +483,12 @@ export class ModuleTypeTranslator {
    *     this is not the "main" location dealing with a node to avoid duplicated warnings.
    */
   getJSDoc(node: ts.Node, reportWarnings: boolean): jsdoc.Tag[] {
-    if (!ts.getParseTreeNode(node)) return [];
-    const [tags, ] = this.parseJSDoc(node, reportWarnings);
-    return tags;
+    return jsdoc.getJSDocTags(
+        node, reportWarnings ? this.diagnostics : undefined, this.sourceFile);
   }
 
-  getMutableJSDoc(node: ts.Node): MutableJSDoc {
-    const [tags, comment] = this.parseJSDoc(node, /* reportWarnings */ true);
-    return new MutableJSDoc(node, comment, tags);
-  }
-
-  private parseJSDoc(node: ts.Node, reportWarnings: boolean):
-      [jsdoc.Tag[], ts.SynthesizedComment|null] {
-    // synthesizeLeadingComments below changes text locations for node, so extract the location here
-    // in case it is needed later to report diagnostics.
-    const start = node.getFullStart();
-    const length = node.getLeadingTriviaWidth(this.sourceFile);
-
-    const comments = jsdoc.synthesizeLeadingComments(node);
-    if (!comments || comments.length === 0) return [[], null];
-
-    for (let i = comments.length - 1; i >= 0; i--) {
-      const comment = comments[i];
-      const parsed = jsdoc.parse(comment);
-      if (parsed) {
-        if (reportWarnings && parsed.warnings) {
-          const range = comment.originalRange || {pos: start, end: start + length};
-          reportDiagnostic(
-              this.diagnostics, node, parsed.warnings.join('\n'), range,
-              ts.DiagnosticCategory.Warning);
-        }
-        return [parsed.tags, comment];
-      }
-    }
-    return [[], null];
+  getMutableJSDoc(node: ts.Node): jsdoc.MutableJSDoc {
+    return jsdoc.getMutableJSDoc(node, this.diagnostics, this.sourceFile);
   }
 
   /**

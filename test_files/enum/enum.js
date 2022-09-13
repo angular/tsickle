@@ -122,7 +122,10 @@ const MixedEnum = {
 };
 MixedEnum[MixedEnum.NUM] = 'NUM';
 MixedEnum[MixedEnum['string key']] = 'string key';
-/** @enum {number} */
+/**
+ * JSDoc in here.
+ * @enum {number}
+ */
 const EnumWithJSDoc = {
     /**
      * @export
