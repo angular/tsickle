@@ -12,6 +12,8 @@ import {ModulesManifest} from './modules_manifest';
 import * as path from './path';
 import {createGoogCall, createGoogLoadedModulesRegistration, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, reportDiagnostic} from './transformer_util';
 
+// TEST TEST TEST DO NOT SUBMIT
+
 /**
  * Provides dependencies for and configures the behavior of
  * `importPathToGoogNamespace()` and `commonJsToGoogmoduleTransformer()`.
