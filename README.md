@@ -131,8 +131,8 @@ Run `yarn` to install dependencies.
 - Run `tsc --watch` for an interactive, incremental, and continuous build.
 - `yarn lint` checks for lint.
 - `yarn test` runs unit tests, e2e tests and checks for lint (but make sure to
-  `yarn build` first or run tsc!). Set the `TEST_FILTER` environment variable
-  to filter what golden tests to run.
+  `yarn build` first or run tsc!). Set the `TESTBRIDGE_TEST_ONLY` environment
+  variable to filter what golden tests to run.
 
 ### TypeScript AST help
 
@@ -147,7 +147,7 @@ You can debug tests by passing `--node_options=--inspect` or
 For example, to debug a specific golden test:
 
 ```shell
-TEST_FILTER=my_golden_test node --inspect-brk=4332 ./node_modules/.bin/jasmine out/test/*.js
+TESTBRIDGE_TEST_ONLY=my_golden_test node --inspect-brk=4332 ./node_modules/.bin/jasmine out/test/*.js
 ```
 
 Then open [about:inspect] in Chrome and choose "about:inspect". Chrome will
@@ -165,8 +165,9 @@ Run `UPDATE_GOLDENS=y yarn test` to have the test suite update the goldens in
 
 ### Environment variables
 
-Set the environment variable `TEST_FILTER=<REGEX>` to limit the golden tests
-(found in `test_files/...`) to only run tests with a name matching the regex.
+Set the environment variable `TESTBRIDGE_TEST_ONLY=<REGEX>` to limit the golden
+tests (found in `test_files/...`) to only run tests with a name matching the
+regex.
 
 ### Releasing
 

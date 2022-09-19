@@ -17,17 +17,6 @@ import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
 
-// Set TEST_FILTER=foo to only run tests from the foo package.
-// Set TEST_FILTER=foo/bar to also filter for the '/bar' file.
-const TEST_FILTER = (() => {
-  if (!process.env['TEST_FILTER']) return null;
-  const [testName, fileName] = process.env['TEST_FILTER'].split('/', 2);
-  return {
-    testName: new RegExp(testName + (fileName ? '$' : '')),
-    fileName: fileName ? new RegExp('/' + fileName) : null
-  };
-})();
-
 // If true, update all the golden .js files to be whatever tsickle
 // produces from the .ts source. Do not change this code but run as:
 //     UPDATE_GOLDENS=y bazel run test:golden_test
@@ -84,7 +73,7 @@ function compareAgainstGolden(
 }
 
 // Only run golden tests if we filter for a specific one.
-const testFn = TEST_FILTER ? fdescribe : describe;
+const testFn = process.env['TESTBRIDGE_TEST_ONLY'] ? fdescribe : describe;
 
 /**
  * Return the google3 relative name of the filename.
@@ -106,10 +95,6 @@ testFn('golden tests', () => {
   });
 
   for (const test of testSupport.goldenTests()) {
-    if (TEST_FILTER && !TEST_FILTER.testName.test(test.name)) {
-      // do not xit(test.name) as that spams a lot of useless console msgs.
-      continue;
-    }
     let emitDeclarations = true;
     if (test.name === 'fields') {
       emitDeclarations = false;
@@ -190,21 +175,7 @@ testFn('golden tests', () => {
       };
 
       const tscOutput = new Map<string, string>();
-      let targetSource: ts.SourceFile|undefined = undefined;
-      if (TEST_FILTER && TEST_FILTER.fileName) {
-        for (const [path] of tsSources.entries()) {
-          if (!TEST_FILTER.fileName.test(path)) continue;
-          if (targetSource) {
-            throw new Error(`TEST_FILTER matches more than one file: ${
-                targetSource.fileName} vs ${path}`);
-          }
-          targetSource = program.getSourceFile(path);
-        }
-        if (!targetSource) {
-          throw new Error(`TEST_FILTER matched no file: ${
-              TEST_FILTER.fileName} vs ${Array.from(tsSources.keys())}`);
-        }
-      }
+      const targetSource: ts.SourceFile|undefined = undefined;
 
       /** Returns true if we test the emitted output for the given path. */
       function shouldCompareOutputToGolden(fileName: string): boolean {

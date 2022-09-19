@@ -304,7 +304,7 @@ export function goldenTests(): GoldenFileTest[] {
     testDirs = testDirs.filter(
         testDir => !testDir.includes('ts_migration_exports_shim'));
   }
-  const tests = testDirs.map(testDir => {
+  let tests = testDirs.map(testDir => {
     let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.(tsickle|decorated|tsmes)\./));
@@ -313,6 +313,15 @@ export function goldenTests(): GoldenFileTest[] {
     return new GoldenFileTest(testDir, tsFiles);
   });
 
+  if (process.env['TESTBRIDGE_TEST_ONLY']) {
+    const re = new RegExp(process.env['TESTBRIDGE_TEST_ONLY']);
+    tests = tests.filter(t => re.test(t.name));
+    if (tests.length === 0) {
+      console.error(`'--test_filter=${
+          process.env['TESTBRIDGE_TEST_ONLY']}' did not match any tests`);
+      process.exit(1);
+    }
+  }
   return tests;
 }
 
