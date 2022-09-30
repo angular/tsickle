@@ -104,6 +104,19 @@ export function namespaceTransformer(
                       hoistedIdent, interfDecl.typeParameters,
                       interfDecl.heritageClauses, interfDecl.members);
                 });
+          } else if (ts.isVariableStatement(stmt)) {
+            if ((ts.getCombinedNodeFlags(stmt.declarationList) &
+                 ts.NodeFlags.Const) === 0) {
+              error(
+                  stmt,
+                  'non-const values are not supported. (go/ts-merged-namespaces)');
+            }
+            if (!ts.isInterfaceDeclaration(mergedDecl)) {
+              error(
+                  stmt,
+                  'const declaration only allowed when merging with an interface (go/ts-merged-namespaces)');
+            }
+            transformConstDeclaration(stmt);
           } else {
             error(
                 stmt,
@@ -127,6 +140,31 @@ export function namespaceTransformer(
         // Local functions follow.
 
         type DeclarationStatement = ts.Declaration&ts.DeclarationStatement;
+
+        function transformConstDeclaration(varDecl: ts.VariableStatement) {
+          for (const decl of varDecl.declarationList.declarations) {
+            if (!decl.name || !ts.isIdentifier(decl.name)) {
+              error(
+                  decl,
+                  'Destructuring declarations are not supported. (go/ts-merged-namespaces)');
+              return;
+            }
+            const originalName = getIdentifierText(decl.name);
+            if (!hasModifierFlag(decl, ts.ModifierFlags.Export)) {
+              error(
+                  decl,
+                  `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
+              return;
+            }
+            if (!decl.initializer) {
+              error(decl, `'${originalName}' must have an initializer`);
+              return;
+            }
+            checkReferences(decl);
+            transformedNsStmts.push(
+                createInnerNameAlias(originalName, decl.initializer, varDecl));
+          }
+        }
 
         function transformInnerDeclaration<T extends DeclarationStatement>(
             decl: T,
@@ -160,12 +198,16 @@ export function namespaceTransformer(
           ts.setTextRange(hoistedDecl, decl);
           transformedNsStmts.push(hoistedDecl);
           // Add alias `/** @const */ nsName.originalName = hoistedName;`
-          transformedNsStmts.push(
-              createInnerNameAlias(originalName, hoistedIdent, decl));
+          const aliasProp =
+              createInnerNameAlias(originalName, hoistedIdent, decl);
+          // Don't repeat any comments from the original declaration. They
+          // are already on the hoisted declaration.
+          ts.setEmitFlags(aliasProp, ts.EmitFlags.NoLeadingComments);
+          transformedNsStmts.push(aliasProp);
         }
 
         function createInnerNameAlias(
-            propName: string, initializer: ts.Identifier,
+            propName: string, initializer: ts.Expression,
             original: ts.Node): ts.Statement {
           const prop =
               ts.factory.createExpressionStatement(ts.factory.createAssignment(
@@ -222,7 +264,8 @@ export function namespaceTransformer(
             if (node.parent &&
                 (ts.isClassDeclaration(node.parent) ||
                  ts.isEnumDeclaration(node.parent) ||
-                 ts.isInterfaceDeclaration(node.parent))) {
+                 ts.isInterfaceDeclaration(node.parent) ||
+                 ts.isVariableDeclaration(node.parent))) {
               // Do not check the name of the local declaration.
               return node;
             }

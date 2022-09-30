@@ -41,6 +41,7 @@ if (false) {
 function OI() { }
 exports.OI = OI;
 /**
+ * Bla interface
  * @record
  */
 function OC$I() { }
@@ -71,7 +72,10 @@ if (false) {
 }
 /** @const */
 OC.J = OC$J;
-/** @enum {number} */
+/**
+ * Bla enum
+ * @enum {number}
+ */
 const OI$E = {
     a: 0, b: 1,
 };
@@ -79,6 +83,13 @@ OI$E[OI$E.a] = 'a';
 OI$E[OI$E.b] = 'b';
 /** @const */
 OI.E = OI$E;
+/** @const */
+OI.C1 = 0;
+/** @const */
+OI.C2 = 'string const';
+/** Bla const */
+/** @const */
+OI.C3 = OI.E.a;
 /**
  * @param {!OC.J} j
  * @return {!OC.J}

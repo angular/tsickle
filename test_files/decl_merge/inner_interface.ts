@@ -15,6 +15,7 @@ export interface OI {}
 
 // tslint:disable-next-line:no-namespace
 export namespace OC {
+  /** Bla interface */
   export interface I {
     bar(e: OI.E): void;
   }
@@ -25,7 +26,11 @@ export namespace OC {
 
 // tslint:disable-next-line:no-namespace
 export namespace OI {
+  /** Bla enum */
   export enum E {a, b}
+  export const C1 = 0, C2 = 'string const';
+  /** Bla const */
+  export const C3 = OI.E.a;
 }
 
 function f(j: OC.J) {
