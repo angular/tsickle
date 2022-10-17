@@ -393,10 +393,11 @@ export function markAsMergedDeclaration(decl: ts.Declaration) {
 
 
 /**
- * Returns true if node is contained inside a namespace that has been
- * transformed by namespaceTransformer.
+ * Returns true if node (or its original if updated) is contained inside a
+ * namespace that has been transformed by namespaceTransformer.
  */
 export function nodeIsInTransformedNs(node: ts.Node): boolean {
+  node = ts.getOriginalNode(node);
   let parent = node.parent;
   while (parent) {
     if (ts.isModuleDeclaration(parent) && isMergedDeclaration(parent)) {

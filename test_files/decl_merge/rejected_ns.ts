@@ -38,8 +38,6 @@ namespace Inbetween {
   export var v = 0;
   // Merged const values must be exported.
   const K = 0;
-  // Namespace references must be fully qualified.
-  export const FISH = WHAT_FISH.BLUE_FISH;
   // Destructuring declarations are not allowed.
   export const {a, b} = o;
 }

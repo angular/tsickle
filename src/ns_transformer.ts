@@ -142,7 +142,7 @@ export function namespaceTransformer(
         type DeclarationStatement = ts.Declaration&ts.DeclarationStatement;
 
         function transformConstDeclaration(varDecl: ts.VariableStatement) {
-          for (const decl of varDecl.declarationList.declarations) {
+          for (let decl of varDecl.declarationList.declarations) {
             if (!decl.name || !ts.isIdentifier(decl.name)) {
               error(
                   decl,
@@ -156,11 +156,11 @@ export function namespaceTransformer(
                   `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
               return;
             }
+            decl = fixReferences(decl);
             if (!decl.initializer) {
               error(decl, `'${originalName}' must have an initializer`);
               return;
             }
-            checkReferences(decl);
             transformedNsStmts.push(
                 createInnerNameAlias(originalName, decl.initializer, varDecl));
           }
@@ -168,7 +168,7 @@ export function namespaceTransformer(
 
         function transformInnerDeclaration<T extends DeclarationStatement>(
             decl: T,
-            factory: (
+            updateDecl: (
                 decl: T, modifiers: ts.Modifier[]|undefined,
                 newIdent: ts.Identifier) => T) {
           if (!decl.name || !ts.isIdentifier(decl.name)) {
@@ -177,7 +177,6 @@ export function namespaceTransformer(
                 'Anonymous declaration cannot be merged. (go/ts-merged-namespaces)');
             return;
           }
-          checkReferences(decl);
           // Check that the inner declaration is exported.
           const originalName = getIdentifierText(decl.name);
           if (!hasModifierFlag(decl, ts.ModifierFlags.Export)) {
@@ -185,6 +184,7 @@ export function namespaceTransformer(
                 decl,
                 `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
           }
+          decl = fixReferences(decl);
 
           const hoistedName = `${nsName}$${originalName}`;
           const hoistedIdent = ts.factory.createIdentifier(hoistedName);
@@ -193,9 +193,7 @@ export function namespaceTransformer(
           // The hoisted declaration is not directly exported.
           const notExported = ts.factory.createModifiersFromModifierFlags(
               ts.getCombinedModifierFlags(decl) & (~ts.ModifierFlags.Export));
-          const hoistedDecl = factory(decl, notExported, hoistedIdent);
-          ts.setOriginalNode(hoistedDecl, decl);
-          ts.setTextRange(hoistedDecl, decl);
+          const hoistedDecl = updateDecl(decl, notExported, hoistedIdent);
           transformedNsStmts.push(hoistedDecl);
           // Add alias `/** @const */ nsName.originalName = hoistedName;`
           const aliasProp =
@@ -221,58 +219,94 @@ export function namespaceTransformer(
               /* hasTrailingNewLine */ true);
         }
 
-        function checkNamespaceRef(ref: ts.EntityName) {
-          if (ts.isQualifiedName(ref)) {
-            checkNamespaceRef(ref.left);
-            return;
-          }
-          // ref is an unqualified name. If it refers to a symbol that is
-          // defined in the namespace, it is missing a qualifier.
-          const sym = typeChecker.getSymbolAtLocation(ref);
+        function isNamespaceRef(ident: ts.Identifier): boolean {
+          const sym = typeChecker.getSymbolAtLocation(ident);
           // Property 'parent' is marked @internal, need to cast to access.
           const parent = sym && (sym as {parent?: ts.Symbol}).parent;
           if (parent && (parent.flags & ts.SymbolFlags.Module) !== 0) {
             const parentName = parent.getName();
             if (parentName === nsName) {
-              // This identifier should be qualified with the parentName.
-              const name = getIdentifierText(ref);
-              error(
-                  ref,
-                  `Name '${name}' must be qualified as '${parentName}.${
-                      name}'. (go/ts-merged-namespaces)`);
+              return true;
             }
           }
+          return false;
         }
 
-        function checkReferences(node: ts.Node) {
-          // Visitor function that ensures that all references to namespace
-          // local symbols are properly qualified.
+        // Build a property access expression if the identifier refers to a
+        // symbol defined in the transformed namespace.
+        function maybeFixIdentifier(ident: ts.Identifier): ts.Identifier|
+            ts.PropertyAccessExpression {
+          if (isNamespaceRef(ident)) {
+            const nsIdentifier = ts.factory.createIdentifier(nsName);
+            const nsProp =
+                ts.factory.createPropertyAccessExpression(nsIdentifier, ident);
+            ts.setOriginalNode(nsProp, ident);
+            ts.setTextRange(nsProp, ident);
+            return nsProp;
+          }
+          return ident;
+        }
+
+        // Update the property access expression if the leftmost identifier
+        // refers to a symbol defined in the transformed namespace.
+        function maybeFixPropertyAccess(prop: ts.PropertyAccessExpression):
+            ts.PropertyAccessExpression {
+          if (ts.isPropertyAccessExpression(prop.expression)) {
+            const updatedProp = maybeFixPropertyAccess(prop.expression);
+            if (updatedProp !== prop.expression) {
+              return ts.factory.updatePropertyAccessExpression(
+                  prop, updatedProp, prop.name);
+            }
+            return prop;
+          }
+          if (!ts.isIdentifier(prop.expression)) {
+            return prop;
+          }
+          // prop.expression is a ts.Identifier.
+          const nsProp = maybeFixIdentifier(prop.expression);
+          if (nsProp !== prop.expression) {
+            const newPropAccess = ts.factory.updatePropertyAccessExpression(
+                prop, nsProp, prop.name);
+            return newPropAccess;
+          }
+          return prop;
+        }
+
+        // Fix all unqualified references to a symbol defined in the
+        // transformed namespace by adding a qualification.
+        function fixReferences<T extends ts.Node>(node: T): T {
           // TODO: Are there other node types that need to be handled?
+          const rootNode = node;
           function refCheckVisitor(node: ts.Node): ts.Node|undefined {
-            if (ts.isTypeReferenceNode(node)) {
-              checkNamespaceRef(node.typeName);
+            if (ts.isTypeReferenceNode(node) || ts.isTypeQueryNode(node)) {
+              // Type reference nodes are used for explicit type annotations of
+              // properties, parameters, function results etc. References to
+              // types defined in the transformed namespace do not need to be
+              // fixed (qualified) because type checking has already happened in
+              // the compiler before the transformation. The type translator
+              // will produce the correct qualified name based on the symbol
+              // type, not the type reference.
+              // The same is also true for TypeQueryNode, which appears in
+              // type expressions like 'typeof X'
               return node;
             }
             if (ts.isPropertyAccessExpression(node)) {
-              // We only need to look at the right side of the '.'
-              return refCheckVisitor(node.expression);
+              return maybeFixPropertyAccess(node);
             }
             if (!ts.isIdentifier(node)) {
               return ts.visitEachChild(node, refCheckVisitor, context);
             }
             // node is a ts.Identifier.
-            if (node.parent &&
-                (ts.isClassDeclaration(node.parent) ||
-                 ts.isEnumDeclaration(node.parent) ||
-                 ts.isInterfaceDeclaration(node.parent) ||
-                 ts.isVariableDeclaration(node.parent))) {
-              // Do not check the name of the local declaration.
+            if (node.parent === rootNode) {
+              // Do not check or modify the name of the declaration that is
+              // being tranformed.
               return node;
             }
-            checkNamespaceRef(node);
-            return node;
+            // Any remaining identifiers that need qualification are
+            // modified into PropertyAccessExpressions.
+            return maybeFixIdentifier(node);
           }
-          ts.visitEachChild(node, refCheckVisitor, context);
+          return ts.visitEachChild(node, refCheckVisitor, context);
         }
       }
 

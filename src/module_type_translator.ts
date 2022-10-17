@@ -124,7 +124,7 @@ export class ModuleTypeTranslator {
     if (this.host.untyped) {
       return '?';
     }
-
+    context = ts.getOriginalNode(context);
     const typeChecker = this.typeChecker;
     if (!type) {
       type = typeChecker.getTypeAtLocation(context);
