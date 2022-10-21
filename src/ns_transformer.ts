@@ -55,7 +55,7 @@ export function namespaceTransformer(
       for (const stmt of sourceFile.statements) {
         visitTopLevelStatement(stmt);
       }
-      if (!haveTransformedNs) {
+      if (haveSeenError || !haveTransformedNs) {
         return sourceFile;
       }
       return ts.factory.updateSourceFile(
@@ -75,6 +75,11 @@ export function namespaceTransformer(
           mergedDecl: ts.ClassDeclaration|
           ts.InterfaceDeclaration): ts.Statement[] {
         if (!ns.body || !ts.isModuleBlock(ns.body)) {
+          if (ts.isModuleDeclaration(ns)) {
+            error(
+                ns.name,
+                'nested namespaces are not supported.  (go/ts-merged-namespaces)');
+          }
           return [ns];
         }
         const nsName = getIdentifierText(ns.name as ts.Identifier);

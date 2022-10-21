@@ -6,6 +6,7 @@
 // test_files/decl_merge/rejected_ns.ts(38,3): error TS0: non-const values are not supported. (go/ts-merged-namespaces)
 // test_files/decl_merge/rejected_ns.ts(40,9): error TS0: 'K' must be exported. (go/ts-merged-namespaces)
 // test_files/decl_merge/rejected_ns.ts(42,16): error TS0: Destructuring declarations are not supported. (go/ts-merged-namespaces)
+// test_files/decl_merge/rejected_ns.ts(47,11): error TS0: nested namespaces are not supported.  (go/ts-merged-namespaces)
 /**
  *
  * @fileoverview Test namespace transformations that are not supported
@@ -59,3 +60,6 @@ var Inbetween;
     // Destructuring declarations are not allowed.
     Inbetween.a = o.a, Inbetween.b = o.b;
 })(Inbetween || (Inbetween = {}));
+// Nested namespaces are not supported.
+class A {
+}

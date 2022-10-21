@@ -41,3 +41,7 @@ namespace Inbetween {
   // Destructuring declarations are not allowed.
   export const {a, b} = o;
 }
+
+// Nested namespaces are not supported.
+class A {}
+namespace A.B {}
