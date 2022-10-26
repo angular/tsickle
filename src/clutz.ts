@@ -16,8 +16,10 @@
  */
 
 import * as ts from 'typescript';
+
 import * as googmodule from './googmodule';
 import * as path from './path';
+import {isDeclaredInClutzDts} from './type_translator';
 
 /**
  * Constructs a ts.CustomTransformerFactory that postprocesses the .d.ts
@@ -317,25 +319,24 @@ function ambientModuleSymbolFromClutz(
  * because sometimes TS generates AST nodes that don't have a parent.
  */
 function clutzSymbolFromQualifiedName(
-    typeChecker: ts.TypeChecker, qname: ts.QualifiedName): ts.Symbol|undefined {
-  // Verify that the innermost reference is the look of disapproval.
-  let inner = qname;
-  while (ts.isQualifiedName(inner.left)) {
-    inner = inner.left;
-  }
-  if (inner.left.text !== 'ಠ_ಠ' || inner.right.text !== 'clutz') {
-    return undefined;  // Not a look of disapproval.
-  }
-
-  const node = qname.right;
+    typeChecker: ts.TypeChecker, name: ts.EntityName): ts.Symbol|undefined {
+  const node = ts.isQualifiedName(name) ? name.right : name;
   let sym = typeChecker.getSymbolAtLocation(node);
   if (!sym) {
     // When the declarations transformer has synthesized a reference, for
     // example due to inference, the type checker will not return a symbol
     // underlying the node.  Instead we reach through the TS internals for this.
+    // Note: Even though TypeScript declares node.symbol as always defined,
+    // we've seen instances of it being undefined.
     // tslint:disable-next-line:no-any circumventing private API
-    sym = (node as any)['symbol'] as ts.Symbol;
+    sym = (node as any)['symbol'] as ts.Symbol | undefined;
   }
+
+  if (!sym || !sym.declarations || sym.declarations.length === 0 ||
+      !isDeclaredInClutzDts(sym.declarations[0])) {
+    return undefined;
+  }
+
   return sym;
 }
 
@@ -345,11 +346,11 @@ function clutzSymbolFromQualifiedName(
  */
 function clutzSymbolFromNode(
     typeChecker: ts.TypeChecker, node: ts.Node): ts.Symbol|undefined {
-  if (ts.isTypeReferenceNode(node) && ts.isQualifiedName(node.typeName)) {
+  if (ts.isTypeReferenceNode(node)) {
     // Reference in type position.
     return clutzSymbolFromQualifiedName(typeChecker, node.typeName);
   }
-  if (ts.isTypeQueryNode(node) && ts.isQualifiedName(node.exprName)) {
+  if (ts.isTypeQueryNode(node)) {
     // Reference in typeof position.
     return clutzSymbolFromQualifiedName(typeChecker, node.exprName);
   }
@@ -403,9 +404,8 @@ function gatherNecessaryClutzImports(typeChecker: ts.TypeChecker, sf: ts.SourceF
 
 
   /**
-   * Recursively searches a node for references to members of the `ಠ_ಠ.clutz`
-   * namespace, and adds any referenced source files to the `imports` set.
-   * TODO(b/162295026): forbid this pattern and delete this logic.
+   * Recursively searches a node for references to symbols declared in Clutz
+   * .d.ts files and adds any referenced source files to the `imports` set.
    */
   function visit(node: ts.Node) {
     const sym = clutzSymbolFromNode(typeChecker, node);
