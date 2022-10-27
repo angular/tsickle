@@ -80,6 +80,7 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
   generateExtraSuppressions: boolean;
 }
 
+
 export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
   const diagnostics: ts.Diagnostic[] = [];
   let emitSkipped = true;
