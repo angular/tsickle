@@ -42,6 +42,11 @@ export interface GoogModuleProcessorHost {
 
   options: ts.CompilerOptions;
   moduleResolutionHost: ts.ModuleResolutionHost;
+
+  /**
+   * Whether to transform dynamic `import()` to `goog.requireDynamic()`
+   */
+  transformDynamicImport?: boolean;
 }
 
 /**
@@ -478,8 +483,7 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
  */
 export function getAmbientModuleSymbol(
     typeChecker: ts.TypeChecker, moduleUrl: ts.StringLiteral) {
-  let moduleSymbol =
-      typeChecker.getSymbolAtLocation(moduleUrl);
+  let moduleSymbol = typeChecker.getSymbolAtLocation(moduleUrl);
   if (!moduleSymbol) {
     // Angular compiler creates import statements that do not retain the
     // original AST (parse tree nodes). TypeChecker cannot resolve these
@@ -1079,6 +1083,64 @@ export function commonJsToGoogmoduleTransformer(
       const moduleName = host.pathToModuleName('', sf.fileName);
       // Register the namespace this file provides.
       modulesManifest.addModule(sf.fileName, moduleName);
+
+      function rewriteDynamicRequire(node: ts.Node): ts.Node|null {
+        // Promise.resolve().then(() => require(stringLiteral));
+        // goog.requireDynamic(moduleName);
+
+        if (!ts.isCallExpression(node) || node.arguments.length !== 1 ||
+            !ts.isArrowFunction(node.arguments[0]) ||
+            !ts.isCallExpression(node.arguments[0].body)) {
+          return null;
+        }
+
+        const importedUrl = extractRequire(node.arguments[0].body);
+        if (!importedUrl) {
+          return null;
+        }
+
+        const callee = node.expression;
+        if (!ts.isPropertyAccessExpression(callee) ||
+            callee.name.escapedText !== 'then' ||
+            !ts.isCallExpression(callee.expression)) {
+          return null;
+        }
+        const resolveCall = callee.expression;
+        if (resolveCall.arguments.length !== 0 ||
+            !ts.isPropertyAccessExpression(resolveCall.expression) ||
+            !ts.isIdentifier(resolveCall.expression.expression) ||
+            resolveCall.expression.expression.escapedText !== 'Promise' ||
+            !ts.isIdentifier(resolveCall.expression.name) ||
+            resolveCall.expression.name.escapedText !== 'resolve') {
+          return null;
+        }
+        const moduleSymbol = getAmbientModuleSymbol(typeChecker, importedUrl);
+        const ignoredDiagnostics: ts.Diagnostic[] = [];
+        const imp = importPathToGoogNamespace(
+            host, importedUrl, ignoredDiagnostics, sf, importedUrl.text,
+            moduleSymbol);
+        modulesManifest.addReferencedModule(sf.fileName, imp.text);
+
+        const callExp = ts.factory.createCallExpression(
+            ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier('goog'),
+                ts.factory.createIdentifier('requireDynamic')),
+            undefined, [imp]);
+
+        return callExp;
+      }
+
+      const visitForDynamicImport: ts.Visitor = (node) => {
+        const replacementNode = rewriteDynamicRequire(node);
+        if (replacementNode) {
+          return replacementNode;
+        }
+        return ts.visitEachChild(node, visitForDynamicImport, context);
+      };
+
+      if (host.transformDynamicImport) {
+        sf = ts.visitNode(sf, visitForDynamicImport);
+      }
 
       // Convert each top level statement to goog.module.
       const stmts: ts.Statement[] = [];

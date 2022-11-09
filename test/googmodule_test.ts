@@ -515,6 +515,29 @@ console.log(starImport, file_js_1.namedImport, file_js_1.renamedFrom, starImport
 `);
     });
 
+    it('handles dynamic imports', () => {
+      const before = `
+        (async () => {
+          const starImport = await import('./relpath.js');
+        })();
+        export {};
+      `;
+      const beforeLines = (processES5('project/file.js', before, {
+                             isES5: false,
+                             isJsTranspilation: true
+                           }).output as string)
+                              .split(/\n/g);
+
+      expect(beforeLines).toEqual(`goog.module('project.file');
+var module = module || { id: 'project/file.js' };
+const tslib_1 = goog.require('tslib');
+(() => tslib_1.__awaiter(this, void 0, void 0, function* () {
+    const starImport = yield goog.requireDynamic('project.relpath');
+}))();
+`.split(/\n/g));
+    });
+
+
     it('handles ESM namespace exports', () => {
       const before = `
         export * as ns from './exportStarAsNs.js';
