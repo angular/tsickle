@@ -22,14 +22,12 @@ A (non-exhaustive) list of the sorts of transformations Tsickle applies:
 In general the goal is that you write valid TypeScript and Tsickle handles
 making it valid Closure Compiler code.
 
-## Warning: work in progress
+## Warning: unsupported
 
-We already use tsickle within Google to minify our apps (including those using
-Angular), but we have less experience using tsickle with the various JavaScript
-builds that are seen outside of Google.
-
-We would like to make tsickle usable for everyone but right now if you'd like
-to try it you should expect to spend some time debugging and reporting bugs.
+Google uses tsickle internally to minify its apps (including those using
+Angular) using Closure Compiler. We have little experience using tsickle in the
+other JavaScript ecosystems that are seen outside of Google, and there is
+generally no support for using it from our side.
 
 ## Usage
 
