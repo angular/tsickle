@@ -109,6 +109,8 @@ export function namespaceTransformer(
                       hoistedIdent, interfDecl.typeParameters,
                       interfDecl.heritageClauses, interfDecl.members);
                 });
+          } else if (ts.isTypeAliasDeclaration(stmt)) {
+            transformTypeAliasDeclaration(stmt);
           } else if (ts.isVariableStatement(stmt)) {
             if ((ts.getCombinedNodeFlags(stmt.declarationList) &
                  ts.NodeFlags.Const) === 0) {
@@ -169,6 +171,29 @@ export function namespaceTransformer(
             transformedNsStmts.push(
                 createInnerNameAlias(originalName, decl.initializer, varDecl));
           }
+        }
+
+        function transformTypeAliasDeclaration(
+            aliasDecl: ts.TypeAliasDeclaration) {
+          // Check that the inner declaration is exported.
+          const originalName = getIdentifierText(aliasDecl.name);
+          if (!hasModifierFlag(aliasDecl, ts.ModifierFlags.Export)) {
+            error(
+                aliasDecl,
+                `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
+          }
+          aliasDecl = fixReferences(aliasDecl);
+          const notExported = ts.factory.createModifiersFromModifierFlags(
+              ts.getCombinedModifierFlags(aliasDecl) &
+              (~ts.ModifierFlags.Export));
+          aliasDecl = ts.factory.updateTypeAliasDeclaration(
+              aliasDecl, aliasDecl.decorators, notExported, aliasDecl.name,
+              aliasDecl.typeParameters, aliasDecl.type);
+          // visitTypeAliasDeclaration() in jsdocTransformer() recognizes
+          // that the type alias is declared in a transformed namespace and
+          // generates the type alias as a property of the namespace. No
+          // need to generate a name alias here.
+          transformedNsStmts.push(aliasDecl);
         }
 
         function transformInnerDeclaration<T extends DeclarationStatement>(

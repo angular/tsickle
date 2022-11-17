@@ -884,7 +884,7 @@ export function jsdocTransformer(
         if (symbolIsValue(typeChecker, sym)) return [];
         if (!shouldEmitExportsAssignments()) return [];
 
-        const typeName = typeAlias.name.getText();
+        const typeName = transformerUtil.getIdentifierText(typeAlias.name);
 
         // Set any type parameters as unknown, Closure does not support type aliases with type
         // parameters.
@@ -897,21 +897,36 @@ export function jsdocTransformer(
         // that have no value.
         const tags = moduleTypeTranslator.getJSDoc(typeAlias, /* reportWarnings */ true);
         tags.push({tagName: 'typedef', type: typeStr});
-        const isExported = transformerUtil.hasModifierFlag(typeAlias, ts.ModifierFlags.Export);
-        let decl: ts.Statement;
-        if (isExported) {
+        let propertyBase: string|null = null;
+        if (transformerUtil.hasModifierFlag(
+                typeAlias, ts.ModifierFlags.Export)) {
           // Given: export type T = ...;
-          // We cannot emit `export var foo;` and let TS generate from there because TypeScript
-          // drops exports that are never assigned values, and Closure requires us to not assign
-          // values to typedef exports. Introducing a new local variable and exporting it can cause
-          // bugs due to name shadowing and confusing TypeScript's logic on what symbols and types
-          // vs values are exported. Mangling the name to avoid the conflicts would be reasonably
-          // clean, but would require a two pass emit to first find all type alias names, mangle
-          // them, and emit the use sites only later.
+          // We cannot emit `export var foo;` and let TS generate from there
+          // because TypeScript drops exports that are never assigned values,
+          // and Closure requires us to not assign values to typedef exports.
+          // Introducing a new local variable and exporting it can cause bugs
+          // due to name shadowing and confusing TypeScript's logic on what
+          // symbols and types vs values are exported. Mangling the name to
+          // avoid the conflicts would be reasonably clean, but would require
+          // a two pass emit to first find all type alias names, mangle them,
+          // and emit the use sites only later.
           // So we produce: exports.T;
+          propertyBase = 'exports';
+        }
+        const ns = transformerUtil.getTransformedNs(typeAlias);
+        if (ns !== null &&
+            (ts.getOriginalNode(typeAlias).parent?.parent === ns) &&
+            ts.isIdentifier(ns.name)) {
+          // If the type alias T is defined at the top level of a transformed
+          // merged namespace, generate the type alias as a propery of the
+          // merged namespace: ns.T
+          propertyBase = transformerUtil.getIdentifierText(ns.name);
+        }
+        let decl: ts.Statement;
+        if (propertyBase !== null) {
           decl = ts.factory.createExpressionStatement(
               ts.factory.createPropertyAccessExpression(
-                  ts.factory.createIdentifier('exports'),
+                  ts.factory.createIdentifier(propertyBase),
                   ts.factory.createIdentifier(typeName)));
         } else {
           // Given: type T = ...;

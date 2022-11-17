@@ -391,21 +391,29 @@ export function markAsMergedDeclaration(decl: ts.Declaration) {
   (decl as {isMergedDecl?: boolean}).isMergedDecl = true;
 }
 
+/**
+ * Returns the namespace declaration if node is contained inside a
+ * namespace that has been transformed by namespaceTransformer.
+ */
+export function getTransformedNs(node: ts.Node): ts.ModuleDeclaration|null {
+  node = ts.getOriginalNode(node);
+  let parent = node.parent;
+  while (parent) {
+    if (ts.isModuleDeclaration(parent) && isMergedDeclaration(parent)) {
+      return parent;
+    }
+    parent = parent.parent;
+  }
+  return null;
+}
+
 
 /**
  * Returns true if node (or its original if updated) is contained inside a
  * namespace that has been transformed by namespaceTransformer.
  */
 export function nodeIsInTransformedNs(node: ts.Node): boolean {
-  node = ts.getOriginalNode(node);
-  let parent = node.parent;
-  while (parent) {
-    if (ts.isModuleDeclaration(parent) && isMergedDeclaration(parent)) {
-      return true;
-    }
-    parent = parent.parent;
-  }
-  return false;
+  return getTransformedNs(node) !== null;
 }
 
 /**
