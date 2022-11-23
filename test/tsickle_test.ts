@@ -60,6 +60,7 @@ describe('emitWithTsickle', () => {
       options: tsCompilerOptions,
       moduleResolutionHost: tsHost,
       rootDirsRelative: testSupport.relativeToTsickleRoot,
+      transformDynamicImport: 'closure'
     };
     const jsSources: {[fileName: string]: string} = {};
     tsickle.emit(

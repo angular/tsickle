@@ -172,6 +172,7 @@ testFn('golden tests', () => {
         rootDirsRelative,
         // TODO(nickreid): move to rootDirsRelative.
         // rootDirsRelative: testSupport.relativeToTsickleRoot,
+        transformDynamicImport: 'closure',
       };
 
       const tscOutput = new Map<string, string>();

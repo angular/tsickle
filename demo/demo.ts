@@ -174,6 +174,7 @@ export function toClosureJS(
     options,
     moduleResolutionHost: compilerHost,
     generateExtraSuppressions: true,
+    transformDynamicImport: 'nodejs',
   };
   const diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length > 0) {

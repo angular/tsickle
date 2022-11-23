@@ -42,6 +42,13 @@ export interface GoogModuleProcessorHost {
 
   options: ts.CompilerOptions;
   moduleResolutionHost: ts.ModuleResolutionHost;
+
+  /**
+   * What dynamic `import()` should be transformed to.
+   * If 'closure', it's transformed to goog.requireDynamic().
+   * If 'nodejs', it's the default behaviour, which is nodejs require.
+   */
+  transformDynamicImport: 'nodejs'|'closure';
 }
 
 /**
@@ -478,8 +485,7 @@ function rewriteCommaExpressions(expr: ts.Expression): ts.Statement[]|null {
  */
 export function getAmbientModuleSymbol(
     typeChecker: ts.TypeChecker, moduleUrl: ts.StringLiteral) {
-  let moduleSymbol =
-      typeChecker.getSymbolAtLocation(moduleUrl);
+  let moduleSymbol = typeChecker.getSymbolAtLocation(moduleUrl);
   if (!moduleSymbol) {
     // Angular compiler creates import statements that do not retain the
     // original AST (parse tree nodes). TypeChecker cannot resolve these
@@ -1079,6 +1085,69 @@ export function commonJsToGoogmoduleTransformer(
       const moduleName = host.pathToModuleName('', sf.fileName);
       // Register the namespace this file provides.
       modulesManifest.addModule(sf.fileName, moduleName);
+
+      /**
+       * Transforms:
+       * Promise.resolve().then(() => require(stringLiteral));
+       * into
+       * goog.requireDynamic(moduleName);
+       *
+       * Depends on TypeScript's CommonJS transform. With module=commonjs and
+       * esModuleInterop=false, TypeScript converts import(stringLiteral) to
+       * Promise.resolve().then(() => require(stringLiteral));
+       *
+       * Import assertions are not a concern, module=commonjs doesn't support
+       * them.
+       */
+      function rewriteDynamicRequire(node: ts.Node): ts.Node|null {
+        // Look for `???(() => ???(???))`
+        if (!ts.isCallExpression(node) || node.arguments.length !== 1 ||
+            !ts.isArrowFunction(node.arguments[0]) ||
+            !ts.isCallExpression(node.arguments[0].body)) {
+          return null;
+        }
+
+        const importedUrl = extractRequire(node.arguments[0].body);
+        if (!importedUrl) {
+          return null;
+        }
+
+        const callee = node.expression;
+        if (!ts.isPropertyAccessExpression(callee) ||
+            callee.name.escapedText !== 'then' ||
+            !ts.isCallExpression(callee.expression)) {
+          return null;
+        }
+        const resolveCall = callee.expression;
+        if (resolveCall.arguments.length !== 0 ||
+            !ts.isPropertyAccessExpression(resolveCall.expression) ||
+            !ts.isIdentifier(resolveCall.expression.expression) ||
+            resolveCall.expression.expression.escapedText !== 'Promise' ||
+            !ts.isIdentifier(resolveCall.expression.name) ||
+            resolveCall.expression.name.escapedText !== 'resolve') {
+          return null;
+        }
+        const moduleSymbol = getAmbientModuleSymbol(typeChecker, importedUrl);
+        const ignoredDiagnostics: ts.Diagnostic[] = [];
+        const imp = importPathToGoogNamespace(
+            host, importedUrl, ignoredDiagnostics, sf, importedUrl.text,
+            moduleSymbol);
+        modulesManifest.addReferencedModule(sf.fileName, imp.text);
+
+        return createGoogCall('requireDynamic', imp);
+      }
+
+      const visitForDynamicImport: ts.Visitor = (node) => {
+        const replacementNode = rewriteDynamicRequire(node);
+        if (replacementNode) {
+          return replacementNode;
+        }
+        return ts.visitEachChild(node, visitForDynamicImport, context);
+      };
+
+      if (host.transformDynamicImport === 'closure') {
+        sf = ts.visitNode(sf, visitForDynamicImport);
+      }
 
       // Convert each top level statement to goog.module.
       const stmts: ts.Statement[] = [];

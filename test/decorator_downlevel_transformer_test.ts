@@ -58,6 +58,7 @@ describe('decorator_downlevel_transformer', () => {
       moduleResolutionHost: host,
       rootDirsRelative: (filename) => filename,
       generateExtraSuppressions: false,
+      transformDynamicImport: 'closure',
     };
 
     const files = new Map<string, string>();
