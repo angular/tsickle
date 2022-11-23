@@ -120,6 +120,7 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'private',
   'protected',
   'public',
+  'pureOrBreakMyCode',
   'record',
   'requirecss',
   'requires',
