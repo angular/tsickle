@@ -525,6 +525,8 @@ export function jsdocTransformer(
        */
       let contextThisType: ts.Type|null = null;
 
+      let emitNarrowedTypes = true;
+
       function visitClassDeclaration(classDecl: ts.ClassDeclaration): ts.Statement[] {
         const contextThisTypeBackup = contextThisType;
 
@@ -986,6 +988,75 @@ export function jsdocTransformer(
             nonNull, ts.visitEachChild(nonNull, visitor, context), nonNullType);
       }
 
+      function getNarrowedType(node: ts.Expression): ts.Type|undefined {
+        // Don't support narrowing of `this`, `super` and module/class/interface
+        // declarations. JSCompiler doesn't support casts in all locations and
+        // they are rarely used in type guards in practice.
+        if (node.kind === ts.SyntaxKind.SuperKeyword) return undefined;
+        if (node.kind === ts.SyntaxKind.ThisKeyword) return undefined;
+
+        const symbol = typeChecker.getSymbolAtLocation(node);
+        if (symbol?.declarations === undefined ||
+            symbol.declarations.length === 0 ||
+            symbol.declarations.some(
+                (decl) => ts.isClassDeclaration(decl) ||
+                    ts.isInterfaceDeclaration(decl) ||
+                    ts.isModuleDeclaration(decl))) {
+          return undefined;
+        }
+
+        const typeAtUsage = typeChecker.getTypeAtLocation(node);
+        const notNullableType = typeChecker.getNonNullableType(typeAtUsage);
+
+        for (const decl of symbol.declarations) {
+          const declaredType =
+              typeChecker.getTypeOfSymbolAtLocation(symbol, decl);
+          if (typeAtUsage !== declaredType &&
+              notNullableType !==
+                  typeChecker.getNonNullableType(declaredType) &&
+              moduleTypeTranslator.typeToClosure(node, typeAtUsage) !== '?') {
+            return typeAtUsage;
+          }
+        }
+        return undefined;
+      }
+
+      function visitPropertyAccessExpression(
+          node: ts.PropertyAccessExpression) {
+        // Do not emit narrowing casts if it's disabled in current context (e.g.
+        // in deletion expressions) or if the node contains `?.` (see comment in
+        // visitNonNullExpression() why we can't emit casts there).
+        if (!emitNarrowedTypes || containsOptionalChainingOperator(node)) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+        // In case the types were narrowed since declaration, pass additional
+        // types information to JSCompiler.
+        //
+        // Types narrowing works both on objects and their properties. We always
+        // try to emit the cast for objects (`node.expression`). If it
+        // succeeds, then type narrowing information about the property
+        // JSCompiler might had gets lost, so we may have to emit another cast
+        // for the property (`node`).
+        const objType = getNarrowedType(node.expression);
+        if (objType === undefined) {
+          return ts.visitEachChild(node, visitor, context);
+        }
+        const propertyAccessWithCast =
+            ts.factory.updatePropertyAccessExpression(
+                node,
+                createClosureCast(
+                    node.expression,
+                    ts.visitEachChild(node.expression, visitor, context),
+                    objType),
+                node.name);
+
+        const propType = getNarrowedType(node);
+        if (propType === undefined) {
+          return propertyAccessWithCast;
+        }
+        return createClosureCast(node, propertyAccessWithCast, propType);
+      }
+
       function visitImportDeclaration(importDecl: ts.ImportDeclaration) {
         // For each import, insert a goog.requireType for the module, so that if
         // TypeScript does not emit the module because it's only used in type
@@ -1410,11 +1481,21 @@ export function jsdocTransformer(
             return visitAssertionExpression(node as ts.TypeAssertion);
           case ts.SyntaxKind.NonNullExpression:
             return visitNonNullExpression(node as ts.NonNullExpression);
+          case ts.SyntaxKind.PropertyAccessExpression:
+            return visitPropertyAccessExpression(
+                node as ts.PropertyAccessExpression);
           case ts.SyntaxKind.EnumDeclaration:
             visitEnumDeclaration(node as ts.EnumDeclaration);
             break;
           case ts.SyntaxKind.ForOfStatement:
             return visitForOfStatement(node as ts.ForOfStatement);
+          case ts.SyntaxKind.DeleteExpression:
+            // Do not emit narrowing casts in delete expressions as this syntax
+            // is not supported by JSCompiler parser.
+            emitNarrowedTypes = false;
+            const visited = ts.visitEachChild(node, visitor, context);
+            emitNarrowedTypes = true;
+            return visited;
           default:
             break;
         }
