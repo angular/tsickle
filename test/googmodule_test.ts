@@ -538,6 +538,37 @@ const tslib_1 = goog.require('tslib');
 `.split(/\n/g));
     });
 
+    it('handles dynamic imports for ES5', () => {
+      const before = `
+        (async () => {
+          const starImport = await import('./relpath.js');
+        })();
+        export {};
+      `;
+      const beforeLines = (processES5('project/file.js', before, {
+                             isES5: true,
+                             isJsTranspilation: true
+                           }).output as string)
+                              .split(/\n/g);
+
+      expect(beforeLines).toEqual(`goog.module('project.file');
+var module = module || { id: 'project/file.js' };
+var _this = this;
+var tslib_1 = goog.require('tslib');
+(function () { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var starImport;
+    return tslib_1.__generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, goog.requireDynamic('project.relpath')];
+            case 1:
+                starImport = _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); })();
+`.split(/\n/g));
+    });
+
     it('handles dynamic imports with destructuring LHS', () => {
       const before = `
         (async () => {
@@ -557,6 +588,37 @@ const tslib_1 = goog.require('tslib');
 (() => tslib_1.__awaiter(this, void 0, void 0, function* () {
     const { Foo } = yield goog.requireDynamic('project.relpath');
 }))();
+`.split(/\n/g));
+    });
+
+    it('handles dynamic imports for ES5 with destructuring LHS', () => {
+      const before = `
+        (async () => {
+          const {Foo}  = await import('./relpath.js');
+        })();
+        export {};
+      `;
+      const beforeLines = (processES5('project/file.js', before, {
+                             isES5: true,
+                             isJsTranspilation: true
+                           }).output as string)
+                              .split(/\n/g);
+
+      expect(beforeLines).toEqual(`goog.module('project.file');
+var module = module || { id: 'project/file.js' };
+var _this = this;
+var tslib_1 = goog.require('tslib');
+(function () { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var Foo;
+    return tslib_1.__generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, goog.requireDynamic('project.relpath')];
+            case 1:
+                Foo = (_a.sent()).Foo;
+                return [2 /*return*/];
+        }
+    });
+}); })();
 `.split(/\n/g));
     });
 

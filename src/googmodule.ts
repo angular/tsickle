@@ -1092,22 +1092,40 @@ export function commonJsToGoogmoduleTransformer(
        * into
        * goog.requireDynamic(moduleName);
        *
-       * Depends on TypeScript's CommonJS transform. With module=commonjs and
-       * esModuleInterop=false, TypeScript converts import(stringLiteral) to
+       * Note: Depends on TypeScript's CommonJS transform. With module=commonjs
+       * and esModuleInterop=false, TypeScript converts import(stringLiteral) to
        * Promise.resolve().then(() => require(stringLiteral));
-       *
+       * or
+       * Promise.resolve().then(function() { return require(stringLiteral); });
        * Import assertions are not a concern, module=commonjs doesn't support
        * them.
        */
       function rewriteDynamicRequire(node: ts.Node): ts.Node|null {
-        // Look for `???(() => ???(???))`
-        if (!ts.isCallExpression(node) || node.arguments.length !== 1 ||
-            !ts.isArrowFunction(node.arguments[0]) ||
-            !ts.isCallExpression(node.arguments[0].body)) {
+        // Look for  `???( ??? )`
+        if (!ts.isCallExpression(node) || node.arguments.length !== 1) {
           return null;
         }
 
-        const importedUrl = extractRequire(node.arguments[0].body);
+        let importedUrl: ts.StringLiteral|null = null;
+
+        // Look for `???(() => require(???))`
+        if (ts.isArrowFunction(node.arguments[0]) &&
+            ts.isCallExpression(node.arguments[0].body)) {
+          importedUrl = extractRequire(node.arguments[0].body);
+        }
+
+        // Look for `???(function(){ return require(???); })`
+        if (ts.isFunctionExpression(node.arguments[0]) &&
+            ts.isBlock(node.arguments[0].body) &&
+            node.arguments[0].body.statements.length === 1 &&
+            ts.isReturnStatement(node.arguments[0].body.statements[0]) &&
+            node.arguments[0].body.statements[0].expression != null &&
+            ts.isCallExpression(
+                node.arguments[0].body.statements[0].expression)) {
+          importedUrl =
+              extractRequire(node.arguments[0].body.statements[0].expression);
+        }
+
         if (!importedUrl) {
           return null;
         }
