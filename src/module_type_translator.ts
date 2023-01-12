@@ -447,20 +447,51 @@ export class ModuleTypeTranslator {
     // This also prevents "ensureSymbolDeclared" from clobbering local aliases
     // set up for imports.
     if (this.symbolsToAliasedNames.has(sym)) return;
+
     const decl = this.findExportedDeclaration(sym);
-    if (!decl) return;
-    if (this.isForExterns) {
-      this.error(decl, `declaration from module used in ambient type: ${sym.name}`);
-      return;
+    if (decl) {
+      if (this.isForExterns) {
+        this.error(
+            decl, `declaration from module used in ambient type: ${sym.name}`);
+      } else {
+        // Actually import the symbol.
+        const sourceFile = decl.getSourceFile();
+        if (sourceFile === ts.getOriginalNode(this.sourceFile)) return;
+        const moduleSymbol = this.typeChecker.getSymbolAtLocation(sourceFile);
+        // A source file might not have a symbol if it's not a module (no ES6
+        // im/exports).
+        if (!moduleSymbol) return;
+        // TODO(martinprobst): this should possibly use fileNameToModuleId.
+        this.requireType(decl, sourceFile.fileName, moduleSymbol);
+      }
+    } else {
+      const clutzDecl =
+          sym.declarations?.find(typeTranslator.isDeclaredInClutzDts);
+      if (!clutzDecl) return;
+
+      // Special case processing for symbols declared by Clutz.
+      // As we atificially strip Clutz internal namespace prefix ('ಠ_ಠ.clutz.')
+      // from the symbol name, the TypeScript resolution doesn't match our
+      // needs. Instead, we have to find an alias exported within a module.
+      const clutzDts = clutzDecl.getSourceFile();
+      const clutzModule =
+          this.typeChecker.getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
+              .find(
+                  (module: ts.Symbol) =>
+                      module.getName().startsWith('"goog:') &&
+                      this.typeChecker.getExportsOfModule(module).find(
+                          (exported: ts.Symbol) => {
+                            if (exported.flags & ts.SymbolFlags.Alias) {
+                              exported =
+                                  this.typeChecker.getAliasedSymbol(exported);
+                            }
+                            return exported === sym;
+                          }));
+      if (clutzModule) {
+        this.requireType(
+            clutzDecl, clutzModule.getName().slice(1, -1), clutzModule);
+      }
     }
-    // Actually import the symbol.
-    const sourceFile = decl.getSourceFile();
-    if (sourceFile === ts.getOriginalNode(this.sourceFile)) return;
-    const moduleSymbol = this.typeChecker.getSymbolAtLocation(sourceFile);
-    // A source file might not have a symbol if it's not a module (no ES6 im/exports).
-    if (!moduleSymbol) return;
-    // TODO(martinprobst): this should possibly use fileNameToModuleId.
-    this.requireType(decl, sourceFile.fileName, moduleSymbol);
   }
 
   insertAdditionalImports(sourceFile: ts.SourceFile) {
