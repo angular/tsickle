@@ -400,10 +400,52 @@ export function generateExterns(
     writeVariableStatement(name, namespace, `{\n${members}}`);
   }
 
+  /**
+   * The type translator translates intersection types as 'any'. If the type
+   * intersection contains type literals, the property names in them do not
+   * get recorded in the externs file, and JSCompiler may thus rename them
+   * later. Here we collect all these property names and emit a dummy type
+   * alias for them.
+   */
+  function handleLostProperties(
+      decl: ts.TypeAliasDeclaration, namespace: readonly string[]) {
+    let propNames: Set<string>|undefined = undefined;
+
+    function collectPropertyNames(node: ts.Node) {
+      if (ts.isTypeLiteralNode(node)) {
+        for (const m of node.members) {
+          if (m.name && ts.isIdentifier(m.name)) {
+            propNames = propNames || new Set<string>();
+            propNames.add(getIdentifierText(m.name));
+          }
+        }
+      }
+      ts.forEachChild(node, collectPropertyNames);
+    }
+  
+    function findTypeIntersection(node: ts.Node) {
+      if (ts.isIntersectionTypeNode(node)) {
+        ts.forEachChild(node, collectPropertyNames);
+      } else {
+        ts.forEachChild(node, findTypeIntersection);
+      }
+    }
+  
+    ts.forEachChild(decl, findTypeIntersection);
+    if (propNames) {
+      const helperName =
+          getIdentifierText(decl.name) + '_preventPropRenaming_doNotUse';
+      emit(`\n/** @typedef {{${
+              [...propNames].map(p => `${p}: ?`).join(', ')}}} */\n`);
+      writeVariableStatement(helperName, namespace);
+    }
+  }
+
   function writeTypeAlias(decl: ts.TypeAliasDeclaration, namespace: ReadonlyArray<string>) {
     const typeStr = mtt.typeToClosure(decl, undefined);
     emit(`\n/** @typedef {${typeStr}} */\n`);
     writeVariableStatement(getIdentifierText(decl.name), namespace);
+    handleLostProperties(decl, namespace);
   }
 
   function writeType(
