@@ -10,7 +10,6 @@ import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
 import {getAllLeadingComments, reportDiagnostic} from './transformer_util';
-import {getDecorators} from './ts_utils';
 
 /**
  * Returns the declarations for the given decorator.
@@ -41,7 +40,7 @@ export function getDecoratorDeclarations(
  * in its JSDoc).
  */
 export function hasExportingDecorator(node: ts.Node, typeChecker: ts.TypeChecker) {
-  const decorators = getDecorators(node);
+  const decorators = ts.canHaveDecorators(node) ? ts.getDecorators(node) : [];
 
   return decorators &&
       decorators.some(

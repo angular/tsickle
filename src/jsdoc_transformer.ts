@@ -35,7 +35,6 @@ import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
 import {getPreviousDeclaration, isMergedDeclaration, symbolIsValue} from './transformer_util';
-import {getDecorators, getModifiers} from './ts_utils';
 import {isValidClosurePropertyName} from './type_translator';
 
 function addCommentOn(
@@ -696,7 +695,8 @@ export function jsdocTransformer(
             continue;
           }
           hasUpdatedParams = true;
-          const modifiers = getModifiers(param);
+          const modifiers =
+              ts.canHaveModifiers(param) ? ts.getModifiers(param) : undefined;
           updatedParams.push(ts.factory.updateParameterDeclaration(
               param, param.decorators, modifiers, param.dotDotDotToken,
               updatedParamName, param.questionToken, param.type,
@@ -718,8 +718,10 @@ export function jsdocTransformer(
           stmts.push(...body.statements);
           body = ts.factory.updateBlock(body, stmts);
         }
-        const decorators = getDecorators(fnDecl);
-        const modifiers = getModifiers(fnDecl);
+        const decorators =
+            ts.canHaveDecorators(fnDecl) ? ts.getDecorators(fnDecl) : [];
+        const modifiers =
+            ts.canHaveModifiers(fnDecl) ? ts.getModifiers(fnDecl) : [];
 
         switch (fnDecl.kind) {
           case ts.SyntaxKind.FunctionDeclaration:

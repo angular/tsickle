@@ -32,7 +32,6 @@ import * as ts from 'typescript';
 import {getDecoratorDeclarations} from './decorators';
 import * as jsdoc from './jsdoc';
 import {getAllLeadingComments, symbolIsValue, visitEachChild} from './transformer_util';
-import {getDecorators, getModifiers} from './ts_utils';
 
 /**
  * Returns true if the given decorator should be downleveled.
@@ -358,7 +357,8 @@ export function decoratorDownlevelTransformer(
       element = ts.visitEachChild(element, visitor, context);
       const decoratorsToKeep: ts.Decorator[] = [];
       const toLower: ts.Decorator[] = [];
-      const allDecorators = getDecorators(element);
+      const allDecorators =
+          ts.canHaveDecorators(element) ? ts.getDecorators(element) : [];
       for (const decorator of allDecorators || []) {
         if (!shouldLower(decorator, typeChecker)) {
           decoratorsToKeep.push(decorator);
@@ -389,7 +389,8 @@ export function decoratorDownlevelTransformer(
               ts.factory.createNodeArray(decoratorsToKeep),
               ts.factory.createNodeArray(allDecorators)) :
           undefined;
-      const modifiers = getModifiers(element);
+      const modifiers =
+          ts.canHaveModifiers(element) ? ts.getModifiers(element) : [];
       switch (element.kind) {
         case ts.SyntaxKind.PropertyDeclaration:
           newNode = ts.factory.updatePropertyDeclaration(
@@ -434,7 +435,8 @@ export function decoratorDownlevelTransformer(
         const decoratorsToKeep: ts.Decorator[] = [];
         const paramInfo: ParameterDecorationInfo = {decorators: [], type: null};
 
-        const decorators = getDecorators(param);
+        const decorators =
+            ts.canHaveDecorators(param) ? ts.getDecorators(param) : [];
 
         for (const decorator of decorators || []) {
           if (!shouldLower(decorator, typeChecker)) {
@@ -451,7 +453,8 @@ export function decoratorDownlevelTransformer(
           paramInfo!.type = param.type;
         }
         parametersInfo.push(paramInfo);
-        const modifiers = getModifiers(param);
+        const modifiers =
+            ts.canHaveModifiers(param) ? ts.getModifiers(param) : [];
         const newParam = ts.factory.updateParameterDeclaration(
             param,  // Must pass 'undefined' to avoid emitting decorator
                     // metadata.
@@ -460,8 +463,10 @@ export function decoratorDownlevelTransformer(
             param.initializer);
         newParameters.push(newParam);
       }
-      const ctorDecorators = getDecorators(ctor);
-      const ctorModifiers = getModifiers(ctor);
+      const ctorDecorators =
+          ts.canHaveDecorators(ctor) ? ts.getDecorators(ctor) : [];
+      const ctorModifiers =
+          ts.canHaveModifiers(ctor) ? ts.getModifiers(ctor) : [];
 
       const updated = ts.factory.updateConstructorDeclaration(
           ctor, ctorDecorators, ctorModifiers, newParameters,
@@ -508,7 +513,10 @@ export function decoratorDownlevelTransformer(
         }
         newMembers.push(ts.visitEachChild(member, visitor, context));
       }
-      const decorators = getDecorators(classDecl) || [];
+      const decorators =
+          (ts.canHaveDecorators(classDecl) ? ts.getDecorators(classDecl) :
+                                             undefined) ??
+          [];
 
       const decoratorsToLower = [];
       const decoratorsToKeep: ts.Decorator[] = [];
@@ -538,7 +546,8 @@ export function decoratorDownlevelTransformer(
       const newDecorators = decoratorsToKeep.length ?
           ts.factory.createNodeArray(decoratorsToKeep) :
           undefined;
-      const modifiers = getModifiers(classDecl);
+      const modifiers =
+          ts.canHaveModifiers(classDecl) ? ts.getModifiers(classDecl) : [];
       return ts.factory.updateClassDeclaration(
           classDecl, newDecorators, modifiers, classDecl.name,
           classDecl.typeParameters, classDecl.heritageClauses,
