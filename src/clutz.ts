@@ -56,7 +56,6 @@ export function makeDeclarationTransformerFactory(
           importStmts = imports.map(fileName => {
             fileName = path.relative(options.rootDir!, fileName);
             return ts.factory.createImportDeclaration(
-                /* decorators */ undefined,
                 /* modifiers */ undefined,
                 /* importClause */ undefined,
                 /* moduleSpecifier */ ts.factory.createStringLiteral(fileName),
@@ -239,7 +238,6 @@ function generateClutzAliases(
     // 1) For globalExports,
     //      export {...};
     ts.factory.createExportDeclaration(
-        /* decorators */ undefined,
         /* modifiers */ undefined,
         /* isTypeOnly */ false, ts.factory.createNamedExports(globalExports)),
     // 2) For nestedExports
@@ -247,12 +245,10 @@ function generateClutzAliases(
     //        export {...};
     //      }
     ts.factory.createModuleDeclaration(
-        /* decorators */ undefined,
         /* modifiers */[ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
         ts.factory.createIdentifier(`module$exports$${clutzModuleName}`),
         ts.factory.createModuleBlock([
           ts.factory.createExportDeclaration(
-              /* decorators */ undefined,
               /* modifiers */ undefined,
               /* isTypeOnly */ false,
               ts.factory.createNamedExports(nestedExports)),
@@ -264,11 +260,9 @@ function generateClutzAliases(
   // Wrap a `declare global { namespace ಠ_ಠ.clutz { ... } }` around
   // the statements in globalDeclarations.
   return ts.factory.createModuleDeclaration(
-      /* decorators */ undefined,
       /* modifiers */[ts.factory.createModifier(ts.SyntaxKind.DeclareKeyword)],
       ts.factory.createIdentifier('global'), ts.factory.createModuleBlock([
         ts.factory.createModuleDeclaration(
-            /* decorators */ undefined,
             /* modifiers */ undefined,
             // Note: it's not exactly right to use a '.' within an identifier
             // like I am doing here, but I could not figure out how to construct

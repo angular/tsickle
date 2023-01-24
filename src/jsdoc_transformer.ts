@@ -291,7 +291,7 @@ function createMemberTypeDeclaration(
                 /* typeParameters */ undefined,
                 parameterNames.map(
                     n => ts.factory.createParameterDeclaration(
-                        /* decorators */ undefined, /* modifiers */ undefined,
+                        /* modifiers */ undefined,
                         /* dotDotDot */ undefined, n)),
                 undefined,
                 ts.factory.createBlock([]),
@@ -612,7 +612,6 @@ export function jsdocTransformer(
             undefined;
         const decl = ts.setSourceMapRange(
             ts.factory.createFunctionDeclaration(
-                /* decorators */ undefined,
                 modifiers,
                 /* asterisk */ undefined,
                 name,

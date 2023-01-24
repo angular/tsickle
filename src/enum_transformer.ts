@@ -189,7 +189,7 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
         // Create a separate export {...} statement, so that the enum name can be used in local
         // type annotations within the file.
         resultNodes.push(ts.factory.createExportDeclaration(
-            /* decorators */ undefined, /* modifiers */ undefined,
+            /* modifiers */ undefined,
             /* isTypeOnly */ false,
             ts.factory.createNamedExports([ts.factory.createExportSpecifier(
                 /* isTypeOnly */ false, undefined, name)])));
