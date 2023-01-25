@@ -33,7 +33,7 @@ export declare function f2(c: ಠ_ಠ.clutz.demo2.C, c2: ಠ_ಠ.clutz.demo8.C):
  * in the TS AST contains the reference to a Clutz symbol as a value, not a
  * type.)
  */
-export declare type f4 = typeof ಠ_ಠ.clutz.demo4;
+export type f4 = typeof ಠ_ಠ.clutz.demo4;
 export declare function f5(): ಠ_ಠ.clutz.module$exports$demo6.C<ಠ_ಠ.clutz.module$exports$demo5.C> | undefined;
 /**
  * demo7 contains typings generated from externs.

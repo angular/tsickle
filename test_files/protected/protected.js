@@ -11,15 +11,6 @@ var module = module || { id: 'test_files/protected/protected.ts' };
 goog.require('tslib');
 class Protected {
     /**
-     * @public
-     * @param {string} anotherPrivate
-     * @param {string} anotherProtected
-     */
-    constructor(anotherPrivate, anotherProtected) {
-        this.anotherPrivate = anotherPrivate;
-        this.anotherProtected = anotherProtected;
-    }
-    /**
      * @private
      * @return {void}
      */
@@ -29,6 +20,15 @@ class Protected {
      * @return {void}
      */
     protectedMethod() { }
+    /**
+     * @public
+     * @param {string} anotherPrivate
+     * @param {string} anotherProtected
+     */
+    constructor(anotherPrivate, anotherProtected) {
+        this.anotherPrivate = anotherPrivate;
+        this.anotherProtected = anotherProtected;
+    }
 }
 /* istanbul ignore if */
 if (false) {
