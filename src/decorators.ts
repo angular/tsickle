@@ -106,7 +106,8 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
         }
         return ts.visitEachChild(node, visitor, context);
       };
-      let updatedSourceFile = ts.visitNode(sourceFile, visitor);
+      let updatedSourceFile =
+          ts.visitNode(sourceFile, visitor, ts.isSourceFile)!;
       if (nodeNeedingGoogReflect !== undefined) {
         const statements = [...updatedSourceFile.statements];
         const googModuleIndex = statements.findIndex(isGoogModuleStatement);

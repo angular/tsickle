@@ -834,7 +834,8 @@ export function jsdocTransformer(
             const aliases: Array<[ts.Identifier, ts.Identifier]> = [];
             const updatedBinding = renameArrayBindings(decl.name, aliases);
             if (updatedBinding && aliases.length > 0) {
-              const declVisited = ts.visitNode(decl, visitor);
+              const declVisited =
+                  ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
               const newDecl = ts.factory.updateVariableDeclaration(
                   declVisited, updatedBinding, declVisited.exclamationToken,
                   declVisited.type, declVisited.initializer);
@@ -851,7 +852,7 @@ export function jsdocTransformer(
               continue;
             }
           }
-          const newDecl = ts.visitNode(decl, visitor);
+          const newDecl = ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
           const newStmt = ts.factory.createVariableStatement(
               varStmt.modifiers,
               ts.factory.createVariableDeclarationList([newDecl], flags));
@@ -1327,8 +1328,11 @@ export function jsdocTransformer(
             updatedBindingName = aliasName;
           }
           updatedElements.push(ts.factory.updateBindingElement(
-              e, e.dotDotDotToken, ts.visitNode(e.propertyName, visitor),
-              updatedBindingName, ts.visitNode(e.initializer, visitor)));
+              e, e.dotDotDotToken,
+              ts.visitNode(e.propertyName, visitor, ts.isPropertyName),
+              updatedBindingName,
+              ts.visitNode(e.initializer, visitor) as
+                  (ts.Expression | undefined)));
         }
         return ts.factory.updateArrayBindingPattern(node, updatedElements);
       }
@@ -1409,15 +1413,19 @@ export function jsdocTransformer(
         let updatedStatement;
         if (ts.isBlock(node.statement)) {
           updatedStatement = ts.factory.updateBlock(node.statement, [
-            ...aliasDecls, ...ts.visitNode(node.statement, visitor).statements
+            ...aliasDecls,
+            ...ts.visitNode(node.statement, visitor, ts.isBlock)!.statements
           ]);
         } else {
-          updatedStatement = ts.factory.createBlock(
-              [...aliasDecls, ts.visitNode(node.statement, visitor)]);
+          updatedStatement = ts.factory.createBlock([
+            ...aliasDecls,
+            ts.visitNode(node.statement, visitor)! as ts.Statement
+          ]);
         }
         return ts.factory.updateForOfStatement(
             node, node.awaitModifier, updatedInitializer,
-            ts.visitNode(node.expression, visitor), updatedStatement);
+            ts.visitNode(node.expression, visitor)! as ts.Expression,
+            updatedStatement);
       }
 
       function visitor(node: ts.Node): ts.Node|ts.Node[] {

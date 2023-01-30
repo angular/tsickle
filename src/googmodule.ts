@@ -1164,7 +1164,7 @@ export function commonJsToGoogmoduleTransformer(
       };
 
       if (host.transformDynamicImport === 'closure') {
-        sf = ts.visitNode(sf, visitForDynamicImport);
+        sf = ts.visitNode(sf, visitForDynamicImport, ts.isSourceFile)!;
       }
 
       // Convert each top level statement to goog.module.
