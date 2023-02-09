@@ -84,30 +84,29 @@ export function namespaceTransformer(
         }
         const nsName = getIdentifierText(ns.name as ts.Identifier);
         const transformedNsStmts: ts.Statement[] = [];
-        for (const stmt of ns.body!.statements) {
+        for (const stmt of ns.body.statements) {
           if (ts.isEmptyStatement(stmt)) continue;
           if (ts.isClassDeclaration(stmt)) {
             transformInnerDeclaration(
                 stmt, (classDecl, notExported, hoistedIdent) => {
                   return ts.factory.updateClassDeclaration(
-                      classDecl, classDecl.decorators, notExported,
-                      hoistedIdent, classDecl.typeParameters,
-                      classDecl.heritageClauses, classDecl.members);
+                      classDecl, notExported, hoistedIdent,
+                      classDecl.typeParameters, classDecl.heritageClauses,
+                      classDecl.members);
                 });
           } else if (ts.isEnumDeclaration(stmt)) {
             transformInnerDeclaration(
                 stmt, (enumDecl, notExported, hoistedIdent) => {
                   return ts.factory.updateEnumDeclaration(
-                      enumDecl, enumDecl.decorators, notExported, hoistedIdent,
-                      enumDecl.members);
+                      enumDecl, notExported, hoistedIdent, enumDecl.members);
                 });
           } else if (ts.isInterfaceDeclaration(stmt)) {
             transformInnerDeclaration(
                 stmt, (interfDecl, notExported, hoistedIdent) => {
                   return ts.factory.updateInterfaceDeclaration(
-                      interfDecl, interfDecl.decorators, notExported,
-                      hoistedIdent, interfDecl.typeParameters,
-                      interfDecl.heritageClauses, interfDecl.members);
+                      interfDecl, notExported, hoistedIdent,
+                      interfDecl.typeParameters, interfDecl.heritageClauses,
+                      interfDecl.members);
                 });
           } else if (ts.isTypeAliasDeclaration(stmt)) {
             transformTypeAliasDeclaration(stmt);
@@ -187,8 +186,8 @@ export function namespaceTransformer(
               ts.getCombinedModifierFlags(aliasDecl) &
               (~ts.ModifierFlags.Export));
           aliasDecl = ts.factory.updateTypeAliasDeclaration(
-              aliasDecl, aliasDecl.decorators, notExported, aliasDecl.name,
-              aliasDecl.typeParameters, aliasDecl.type);
+              aliasDecl, notExported, aliasDecl.name, aliasDecl.typeParameters,
+              aliasDecl.type);
           // visitTypeAliasDeclaration() in jsdocTransformer() recognizes
           // that the type alias is declared in a transformed namespace and
           // generates the type alias as a property of the namespace. No

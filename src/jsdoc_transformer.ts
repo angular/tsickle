@@ -694,12 +694,9 @@ export function jsdocTransformer(
             continue;
           }
           hasUpdatedParams = true;
-          const modifiers =
-              ts.canHaveModifiers(param) ? ts.getModifiers(param) : undefined;
           updatedParams.push(ts.factory.updateParameterDeclaration(
-              param, param.decorators, modifiers, param.dotDotDotToken,
-              updatedParamName, param.questionToken, param.type,
-              param.initializer));
+              param, param.modifiers, param.dotDotDotToken, updatedParamName,
+              param.questionToken, param.type, param.initializer));
         }
 
         if (!hasUpdatedParams || bindingAliases.length === 0) return fnDecl;
@@ -717,44 +714,39 @@ export function jsdocTransformer(
           stmts.push(...body.statements);
           body = ts.factory.updateBlock(body, stmts);
         }
-        const decorators =
-            ts.canHaveDecorators(fnDecl) ? ts.getDecorators(fnDecl) : [];
-        const modifiers =
-            ts.canHaveModifiers(fnDecl) ? ts.getModifiers(fnDecl) : [];
 
         switch (fnDecl.kind) {
           case ts.SyntaxKind.FunctionDeclaration:
             fnDecl = ts.factory.updateFunctionDeclaration(
-                         fnDecl, decorators, modifiers, fnDecl.asteriskToken,
+                         fnDecl, fnDecl.modifiers, fnDecl.asteriskToken,
                          fnDecl.name, fnDecl.typeParameters, updatedParams,
                          fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.MethodDeclaration:
             fnDecl =
                 ts.factory.updateMethodDeclaration(
-                    fnDecl, decorators, modifiers, fnDecl.asteriskToken,
-                    fnDecl.name, fnDecl.questionToken, fnDecl.typeParameters,
-                    updatedParams, fnDecl.type, body) as T;
+                    fnDecl, fnDecl.modifiers, fnDecl.asteriskToken, fnDecl.name,
+                    fnDecl.questionToken, fnDecl.typeParameters, updatedParams,
+                    fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.SetAccessor:
             fnDecl = ts.factory.updateSetAccessorDeclaration(
-                         fnDecl, decorators, modifiers, fnDecl.name,
-                         updatedParams, body) as T;
+                         fnDecl, fnDecl.modifiers, fnDecl.name, updatedParams,
+                         body) as T;
             break;
           case ts.SyntaxKind.Constructor:
-            fnDecl =
-                ts.factory.updateConstructorDeclaration(
-                    fnDecl, decorators, modifiers, updatedParams, body) as T;
+            fnDecl = ts.factory.updateConstructorDeclaration(
+                         fnDecl, fnDecl.modifiers, updatedParams, body) as T;
             break;
           case ts.SyntaxKind.FunctionExpression:
             fnDecl = ts.factory.updateFunctionExpression(
-                         fnDecl, modifiers, fnDecl.asteriskToken, fnDecl.name,
-                         fnDecl.typeParameters, updatedParams, fnDecl.type,
-                         body) as T;
+                         fnDecl, fnDecl.modifiers, fnDecl.asteriskToken,
+                         fnDecl.name, fnDecl.typeParameters, updatedParams,
+                         fnDecl.type, body) as T;
             break;
           case ts.SyntaxKind.ArrowFunction:
             fnDecl = ts.factory.updateArrowFunction(
-                         fnDecl, modifiers, fnDecl.name, updatedParams,
+                         fnDecl, fnDecl.modifiers, fnDecl.name, updatedParams,
                          fnDecl.type, fnDecl.equalsGreaterThanToken, body) as T;
             break;
           case ts.SyntaxKind.GetAccessor:
@@ -835,7 +827,7 @@ export function jsdocTransformer(
             const updatedBinding = renameArrayBindings(decl.name, aliases);
             if (updatedBinding && aliases.length > 0) {
               const declVisited =
-                  ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
+                  ts.visitNode(decl, visitor, ts.isVariableDeclaration);
               const newDecl = ts.factory.updateVariableDeclaration(
                   declVisited, updatedBinding, declVisited.exclamationToken,
                   declVisited.type, declVisited.initializer);
@@ -852,7 +844,7 @@ export function jsdocTransformer(
               continue;
             }
           }
-          const newDecl = ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
+          const newDecl = ts.visitNode(decl, visitor, ts.isVariableDeclaration);
           const newStmt = ts.factory.createVariableStatement(
               varStmt.modifiers,
               ts.factory.createVariableDeclarationList([newDecl], flags));
@@ -1179,8 +1171,8 @@ export function jsdocTransformer(
           }
           const isTypeOnlyExport = false;
           exportDecl = ts.factory.updateExportDeclaration(
-              exportDecl, exportDecl.decorators, exportDecl.modifiers,
-              isTypeOnlyExport, ts.factory.createNamedExports(exportSpecifiers),
+              exportDecl, exportDecl.modifiers, isTypeOnlyExport,
+              ts.factory.createNamedExports(exportSpecifiers),
               exportDecl.moduleSpecifier, exportDecl.assertClause);
         } else if (ts.isNamedExports(exportDecl.exportClause)) {
           // export {a, b, c} from 'abc';
@@ -1330,9 +1322,7 @@ export function jsdocTransformer(
           updatedElements.push(ts.factory.updateBindingElement(
               e, e.dotDotDotToken,
               ts.visitNode(e.propertyName, visitor, ts.isPropertyName),
-              updatedBindingName,
-              ts.visitNode(e.initializer, visitor) as
-                  (ts.Expression | undefined)));
+              updatedBindingName, ts.visitNode(e.initializer, visitor)));
         }
         return ts.factory.updateArrayBindingPattern(node, updatedElements);
       }
@@ -1414,18 +1404,15 @@ export function jsdocTransformer(
         if (ts.isBlock(node.statement)) {
           updatedStatement = ts.factory.updateBlock(node.statement, [
             ...aliasDecls,
-            ...ts.visitNode(node.statement, visitor, ts.isBlock)!.statements
+            ...ts.visitNode(node.statement, visitor, ts.isBlock).statements
           ]);
         } else {
-          updatedStatement = ts.factory.createBlock([
-            ...aliasDecls,
-            ts.visitNode(node.statement, visitor)! as ts.Statement
-          ]);
+          updatedStatement = ts.factory.createBlock(
+              [...aliasDecls, ts.visitNode(node.statement, visitor)]);
         }
         return ts.factory.updateForOfStatement(
             node, node.awaitModifier, updatedInitializer,
-            ts.visitNode(node.expression, visitor)! as ts.Expression,
-            updatedStatement);
+            ts.visitNode(node.expression, visitor), updatedStatement);
       }
 
       function visitor(node: ts.Node): ts.Node|ts.Node[] {
