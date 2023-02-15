@@ -1,6 +1,5 @@
 /**
  * @fileoverview
- * @suppress {checkTypes}
  */
 
 import LocalName from 'goog:closure.Module';
@@ -14,3 +13,6 @@ import {LegacyExport} from 'goog:closure.LegacyModule';
 const x: LocalName = new LocalName();
 let y: SymA;
 let z: LegacyExport;
+function f(legacyExport: LegacyExport) {
+  return legacyExport.property;
+}

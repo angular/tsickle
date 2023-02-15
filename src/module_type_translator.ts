@@ -179,31 +179,40 @@ export class ModuleTypeTranslator {
     return sym;
   }
 
-  /** Finds an exported (i.e. not global) declaration for the given symbol. */
-  protected findExportedDeclaration(sym: ts.Symbol): ts.Declaration|undefined {
-    // TODO(martinprobst): it's unclear when a symbol wouldn't have a declaration, maybe just for
-    // some builtins (e.g. Symbol)?
-    if (!sym.declarations || sym.declarations.length === 0) return undefined;
-    // A symbol declared in this file does not need to be imported.
-    if (sym.declarations.some(d => d.getSourceFile() === this.sourceFile)) return undefined;
+  /**
+   * If the given declaration is an ES module export, returns true and adds a
+   * goog.requireType alias for it in the current file. Otherwise returns false.
+   */
+  private addRequireTypeIfIsExported(decl: ts.Declaration, sym: ts.Symbol):
+      boolean {
+    // Check for Export | Default (default being a default export).
+    if (!hasModifierFlag(decl, ts.ModifierFlags.ExportDefault)) return false;
+    // Symbols declared in `declare global {...}` blocks are global and don't
+    // need imports.
+    if (isGlobalAugmentation(decl)) return false;
 
-    // Find an exported declaration.
-    // Because tsickle runs with the --declaration flag, all types referenced from exported types
-    // must be exported, too, so there must either be some declaration that is exported, or the
-    // symbol is actually a global declaration (declared in a script file, not a module).
-    const decl = sym.declarations.find(d => {
-      // Check for Export | Default (default being a default export).
-      if (!hasModifierFlag(d, ts.ModifierFlags.ExportDefault)) return false;
-      // Exclude symbols declared in `declare global {...}` blocks, they are global and don't need
-      // imports.
-      let current: ts.Node|undefined = d;
-      while (current) {
-        if (current.flags & ts.NodeFlags.GlobalAugmentation) return false;
-        current = current.parent;
-      }
-      return true;
-    });
-    return decl;
+    const sourceFile = decl.getSourceFile();
+    const moduleSymbol = this.typeChecker.getSymbolAtLocation(sourceFile);
+    // A source file might not have a symbol if it's not a module (no ES6
+    // im/exports). Here's an example of declarations that match the
+    // 'ts.ModifierFlags.ExportDefault' modifier but are not ES6 exports:
+    //   `declare namespace A.B { export class C {}; }`
+    // Not only does 'export class C {}' match ts.ModifierFlags.Export,
+    // but the namespace declarations for A and B also have the 'Export'
+    // modifier.
+    if (!moduleSymbol) {
+      return false;
+    }
+
+    if (this.isForExterns) {
+      this.error(
+          decl, `declaration from module used in ambient type: ${sym.name}`);
+    } else {
+      // Actually import the symbol.
+      // TODO(martinprobst): this should possibly use fileNameToModuleId.
+      this.requireType(decl, sourceFile.fileName, moduleSymbol);
+    }
+    return true;
   }
 
   /**
@@ -448,49 +457,46 @@ export class ModuleTypeTranslator {
     // set up for imports.
     if (this.symbolsToAliasedNames.has(sym)) return;
 
-    const decl = this.findExportedDeclaration(sym);
-    if (decl) {
-      if (this.isForExterns) {
-        this.error(
-            decl, `declaration from module used in ambient type: ${sym.name}`);
-      } else {
-        // Actually import the symbol.
-        const sourceFile = decl.getSourceFile();
-        if (sourceFile === ts.getOriginalNode(this.sourceFile)) return;
-        const moduleSymbol = this.typeChecker.getSymbolAtLocation(sourceFile);
-        // A source file might not have a symbol if it's not a module (no ES6
-        // im/exports).
-        if (!moduleSymbol) return;
-        // TODO(martinprobst): this should possibly use fileNameToModuleId.
-        this.requireType(decl, sourceFile.fileName, moduleSymbol);
-      }
-    } else {
-      const clutzDecl =
-          sym.declarations?.find(typeTranslator.isDeclaredInClutzDts);
-      if (!clutzDecl) return;
+    // TODO(martinprobst): it's unclear when a symbol wouldn't have a
+    // declaration, maybe just for some builtins (e.g. Symbol)?
+    if (!sym.declarations || sym.declarations.length === 0) return;
+    // A symbol declared in this file does not need to be imported.
+    const thisSourceFile = ts.getOriginalNode(this.sourceFile);
+    if (sym.declarations.some(d => d.getSourceFile() === thisSourceFile)) {
+      return;
+    }
 
-      // Special case processing for symbols declared by Clutz.
-      // As we atificially strip Clutz internal namespace prefix ('ಠ_ಠ.clutz.')
-      // from the symbol name, the TypeScript resolution doesn't match our
-      // needs. Instead, we have to find an alias exported within a module.
-      const clutzDts = clutzDecl.getSourceFile();
-      const clutzModule =
-          this.typeChecker.getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
-              .find(
-                  (module: ts.Symbol) =>
-                      module.getName().startsWith('"goog:') &&
-                      this.typeChecker.getExportsOfModule(module).find(
-                          (exported: ts.Symbol) => {
-                            if (exported.flags & ts.SymbolFlags.Alias) {
-                              exported =
-                                  this.typeChecker.getAliasedSymbol(exported);
-                            }
-                            return exported === sym;
-                          }));
-      if (clutzModule) {
-        this.requireType(
-            clutzDecl, clutzModule.getName().slice(1, -1), clutzModule);
-      }
+    // If any declarations of this symbol are ES module exports, simply add a
+    // goog.requireType to ensure this symbol is declared.
+    for (const decl of sym.declarations) {
+      if (this.addRequireTypeIfIsExported(decl, sym)) return;
+    }
+
+    // We failed to find any actual ES module exports above, so try special case
+    // processing for symbols declared by Clutz.
+    // As we artificially strip Clutz internal namespace prefix ('ಠ_ಠ.clutz.')
+    // from the symbol name, the TypeScript resolution doesn't match our
+    // needs. Instead, we have to find an alias exported within a module.
+    const clutzDecl =
+        sym.declarations.find(typeTranslator.isDeclaredInClutzDts);
+    if (!clutzDecl) return;
+
+    const clutzDts = clutzDecl.getSourceFile();
+    const clutzModule =
+        this.typeChecker.getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
+            .find(
+                (module: ts.Symbol) => module.getName().startsWith('"goog:') &&
+                    this.typeChecker.getExportsOfModule(module).find(
+                        (exported: ts.Symbol) => {
+                          if (exported.flags & ts.SymbolFlags.Alias) {
+                            exported =
+                                this.typeChecker.getAliasedSymbol(exported);
+                          }
+                          return exported === sym;
+                        }));
+    if (clutzModule) {
+      this.requireType(
+          clutzDecl, clutzModule.getName().slice(1, -1), clutzModule);
     }
   }
 
@@ -756,4 +762,14 @@ export class ModuleTypeTranslator {
       thisReturnType,
     };
   }
+}
+
+/** Returns whether this declaration is in a `declare global {...} block */
+function isGlobalAugmentation(decl: ts.Declaration) {
+  let current: ts.Node|undefined = decl;
+  while (current) {
+    if (current.flags & ts.NodeFlags.GlobalAugmentation) return true;
+    current = current.parent;
+  }
+  return false;
 }

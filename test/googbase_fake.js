@@ -14,3 +14,5 @@
 /** @const */
 var goog = goog || {};
 goog.provide = function(ns) {};
+goog.require = function(ns) {};
+goog.requireType = function(ns) {};
