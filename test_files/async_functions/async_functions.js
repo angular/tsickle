@@ -93,6 +93,7 @@ class Container {
     /**
      * @public
      * @return {!Promise<string>}
+     * @this {*}
      */
     static asyncStaticMethod() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {

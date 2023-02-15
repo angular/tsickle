@@ -69,7 +69,7 @@ describe('golden file tests', () => {
       'js': goldenJs,
       'externs': externs,
       'language_in': 'ECMASCRIPT6_STRICT',
-      'language_out': 'ECMASCRIPT5',
+      'language_out': 'ECMASCRIPT_2017',
       'jscomp_off': ['lintChecks'],
       'jscomp_error': [
         'accessControls',
