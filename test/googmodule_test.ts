@@ -17,10 +17,8 @@ import * as testSupport from './test_support';
 
 function processES5(fileName: string, content: string, {
   isES5 = true,
-  isJsTranspilation = false,
 } = {}) {
-  const options = Object.assign(
-      {}, testSupport.compilerOptions, {allowJs: isJsTranspilation});
+  const options = Object.assign({}, testSupport.compilerOptions);
   options.outDir = 'fakeOutDir';
   const rootDir = options.rootDir!;
   options.target = isES5 ? ts.ScriptTarget.ES5 : options.target;
@@ -36,7 +34,6 @@ function processES5(fileName: string, content: string, {
     options,
     moduleResolutionHost: tsHost,
     transformDynamicImport: 'closure',
-    isJsTranspilation,
   };
   const program = ts.createProgram([fileName], options, tsHost);
   // NB: this intentionally only checks for syntactical issues, but allows
@@ -441,96 +438,21 @@ exports.boff = 4;
 `);
   });
 
-  describe('processing transpiled JS output', () => {
-    function expectJsTranspilation(
-        content: string, filename = 'project/file.js') {
-      return expect(processES5(filename, content, {
-                      isES5: true,
-                      isJsTranspilation: true
-                    }).output);
-    }
-
-    it('does not insert goog.module() or module = ... in JS transpilation outputs',
-       () => {
-         expectJsTranspilation(`alert(1);`).toBe(`alert(1);
-`);
-       });
-
-    it('does not turn require() into goog.require()', () => {
-      expectJsTranspilation(`require('foo'); var x = require('bar');`)
-          .toBe(`require('foo');
-var x = require('bar');
-`);
-    });
-
-    it('leaves goog.require() alone', () => {
-      expectJsTranspilation(`goog.require('foo'); var x = goog.require('bar');`)
-          .toBe(`goog.require('foo');
-var x = goog.require('bar');
-`);
-    });
-
-    it('converts es modules to goog.modules', () => {
-      expectJsTranspilation(`export const foo = 10;`)
-          .toBe(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
-exports.foo = 10;
-`);
-    });
-
-    it('handles goog.declareModuleId', () => {
-      const before = `
-        export const foo = 10;
-        goog.declareModuleId('legacy.bar.baz');
-      `;
-      expectJsTranspilation(before).toBe(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
-exports.foo = 10;
-goog.loadedModules_['legacy.bar.baz'] = { exports: exports, type: goog.ModuleType.GOOG, moduleId: 'legacy.bar.baz' };
-`);
-    });
-
-    it('handles ESM imports', () => {
-      const before = `
-        import * as starImport from './relpath.js';
-        import {namedImport, renamedFrom as renamedTo} from '../dotdot/file.js';
-        export * from './exportStar.js';
-        export {namedRexport, renamedExportFrom as renamedExportTo} from './namedExport.js';
-        import 'google3/workspace/rooted/file.js';
-        import * as starImportWorkspaceRooted from 'google3/workspace/rooted/otherFile.js';
-        console.log(starImport, namedImport, renamedTo, starImportWorkspaceRooted);
-      `;
-      expectJsTranspilation(before).toBe(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
-var tslib_1 = goog.require('tslib');
-var starImport = goog.require('project.relpath');
-var file_js_1 = goog.require('dotdot.file');
-var tsickle_module_1_ = goog.require('project.exportStar');
-tslib_1.__exportStar(tsickle_module_1_, exports);
-var namedExport_js_1 = goog.require('project.namedExport');
-exports.namedRexport = namedExport_js_1.namedRexport;
-exports.renamedExportTo = namedExport_js_1.renamedExportFrom;
-goog.require('google3.workspace.rooted.file');
-var starImportWorkspaceRooted = goog.require('google3.workspace.rooted.otherFile');
-console.log(starImport, file_js_1.namedImport, file_js_1.renamedFrom, starImportWorkspaceRooted);
-`);
-    });
-
+  describe('dynamic import', () => {
     it('handles dynamic imports', () => {
       const before = `
         (async () => {
-          const starImport = await import('./relpath.js');
+          const starImport = await import('./relpath');
         })();
         export {};
       `;
-      const beforeLines = (processES5('project/file.js', before, {
+      const beforeLines = (processES5('project/file.ts', before, {
                              isES5: false,
-                             isJsTranspilation: true
                            }).output as string)
                               .split(/\n/g);
 
       expect(beforeLines).toEqual(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
+var module = module || { id: 'project/file.ts' };
 const tslib_1 = goog.require('tslib');
 (() => tslib_1.__awaiter(this, void 0, void 0, function* () {
     const starImport = yield goog.requireDynamic('project.relpath');
@@ -541,18 +463,17 @@ const tslib_1 = goog.require('tslib');
     it('handles dynamic imports for ES5', () => {
       const before = `
         (async () => {
-          const starImport = await import('./relpath.js');
+          const starImport = await import('./relpath');
         })();
         export {};
       `;
-      const beforeLines = (processES5('project/file.js', before, {
+      const beforeLines = (processES5('project/file.ts', before, {
                              isES5: true,
-                             isJsTranspilation: true
                            }).output as string)
                               .split(/\n/g);
 
       expect(beforeLines).toEqual(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
+var module = module || { id: 'project/file.ts' };
 var _this = this;
 var tslib_1 = goog.require('tslib');
 (function () { return tslib_1.__awaiter(_this, void 0, void 0, function () {
@@ -572,18 +493,17 @@ var tslib_1 = goog.require('tslib');
     it('handles dynamic imports with destructuring LHS', () => {
       const before = `
         (async () => {
-          const {Foo} = await import('./relpath.js');
+          const {Foo} = await import('./relpath');
         })();
         export {};
       `;
-      const beforeLines = (processES5('project/file.js', before, {
+      const beforeLines = (processES5('project/file.ts', before, {
                              isES5: false,
-                             isJsTranspilation: true
                            }).output as string)
                               .split(/\n/g);
 
       expect(beforeLines).toEqual(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
+var module = module || { id: 'project/file.ts' };
 const tslib_1 = goog.require('tslib');
 (() => tslib_1.__awaiter(this, void 0, void 0, function* () {
     const { Foo } = yield goog.requireDynamic('project.relpath');
@@ -594,18 +514,17 @@ const tslib_1 = goog.require('tslib');
     it('handles dynamic imports for ES5 with destructuring LHS', () => {
       const before = `
         (async () => {
-          const {Foo}  = await import('./relpath.js');
+          const {Foo}  = await import('./relpath');
         })();
         export {};
       `;
-      const beforeLines = (processES5('project/file.js', before, {
+      const beforeLines = (processES5('project/file.ts', before, {
                              isES5: true,
-                             isJsTranspilation: true
                            }).output as string)
                               .split(/\n/g);
 
       expect(beforeLines).toEqual(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
+var module = module || { id: 'project/file.ts' };
 var _this = this;
 var tslib_1 = goog.require('tslib');
 (function () { return tslib_1.__awaiter(_this, void 0, void 0, function () {
@@ -620,32 +539,6 @@ var tslib_1 = goog.require('tslib');
     });
 }); })();
 `.split(/\n/g));
-    });
-
-    it('handles ESM namespace exports', () => {
-      const before = `
-        export * as ns from './exportStarAsNs.js';
-      `;
-
-      expectJsTranspilation(before).toBe(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
-var tsickle_module_1_ = goog.require('project.exportStarAsNs');
-/** @const */
-exports.ns = tsickle_module_1_;
-`);
-    });
-
-    it('elides imports of goog.js', () => {
-      const before = `
-        import * as goog from 'google3/javascript/closure/goog.js';
-        const math = goog.require('goog.math');
-        export const qux = math.PI * 10;
-      `;
-      expectJsTranspilation(before).toBe(`goog.module('project.file');
-var module = module || { id: 'project/file.js' };
-var math = goog.require('goog.math');
-exports.qux = math.PI * 10;
-`);
     });
   });
 });

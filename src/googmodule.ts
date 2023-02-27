@@ -29,8 +29,6 @@ export interface GoogModuleProcessorHost {
    * for each file.
    */
   fileNameToModuleId(fileName: string): string;
-  /** Identifies whether this file is the result of a JS transpilation. */
-  isJsTranspilation?: boolean;
   /**
    * expand "import 'foo';" to "import 'foo/index';" if it points to an index
    * file.
@@ -585,12 +583,6 @@ export function commonJsToGoogmoduleTransformer(
       // tslint:disable-next-line:no-any
       if ((sf as any)['kind'] !== ts.SyntaxKind.SourceFile) return sf;
 
-      // JS scripts (as opposed to modules), must not be rewritten to
-      // goog.modules.
-      if (host.isJsTranspilation && !isModule(sf)) {
-        return sf;
-      }
-
       let moduleVarCounter = 1;
       /**
        * Creates a new unique variable name for holding an imported module. This
@@ -725,30 +717,6 @@ export function commonJsToGoogmoduleTransformer(
         const newStmt = createGoogLoadedModulesRegistration(
             arg.text, ts.factory.createIdentifier('exports'));
         return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
-      }
-
-      /**
-       * maybeRewriteRequireTslib rewrites a require('tslib') calls to
-       * goog.require('tslib'). It returns the input statement untouched if it
-       * does not match.
-       */
-      function maybeRewriteRequireTslib(stmt: ts.Statement): ts.Statement|null {
-        if (!ts.isExpressionStatement(stmt)) return null;
-        if (!ts.isCallExpression(stmt.expression)) return null;
-        const callExpr = stmt.expression;
-        if (!ts.isIdentifier(callExpr.expression) ||
-            callExpr.expression.text !== 'require') {
-          return null;
-        }
-        if (callExpr.arguments.length !== 1) return stmt;
-        const arg = callExpr.arguments[0];
-        if (!ts.isStringLiteral(arg) || arg.text !== 'tslib') return null;
-        return ts.setOriginalNode(
-            ts.setTextRange(
-                ts.factory.createExpressionStatement(
-                    createGoogCall('require', arg)),
-                stmt),
-            stmt);
       }
 
       /**
@@ -925,16 +893,6 @@ export function commonJsToGoogmoduleTransformer(
         // Handle each particular case by adding node to stmts, then
         // return. For unhandled cases, break to jump to the default handling
         // below.
-
-        // In JS transpilation mode, always rewrite `require('tslib')` to
-        // goog.require('tslib'), ignoring normal module resolution.
-        if (host.isJsTranspilation) {
-          const rewrittenTsLib = maybeRewriteRequireTslib(node);
-          if (rewrittenTsLib) {
-            stmts.push(rewrittenTsLib);
-            return;
-          }
-        }
 
         switch (node.kind) {
           case ts.SyntaxKind.ExpressionStatement: {
@@ -1183,8 +1141,8 @@ export function commonJsToGoogmoduleTransformer(
 
       maybeAddModuleId(host, typeChecker, sf, headerStmts);
 
-      // Add `goog.require('tslib');` if not JS transpilation, and it hasn't
-      // already been required. Rationale: TS gets compiled to Development mode
+      // Add `goog.require('tslib');` it hasn't already been required.
+      // Rationale: TS gets compiled to Development mode
       // (ES5) and Closure mode (~ES6) sources. Tooling generates module
       // manifests from the Closure version. These manifests are used both with
       // the Closure version and the Development mode version. 'tslib' is
@@ -1192,27 +1150,26 @@ export function commonJsToGoogmoduleTransformer(
       // version. Inserting the import below unconditionally makes sure that the
       // module manifests are identical between Closure and Development mode,
       // avoiding breakages caused by missing module dependencies.
-      if (!host.isJsTranspilation) {
-        // Get a copy of the already resolved module names before calling
-        // resolveModuleName on 'tslib'. Otherwise, resolveModuleName will
-        // add 'tslib' to namespaceToModuleVarName and prevent checking whether
-        // 'tslib' has already been required.
-        const resolvedModuleNames = [...namespaceToModuleVarName.keys()];
 
-        const tslibModuleName = host.pathToModuleName(
-            sf.fileName, resolveModuleName(host, sf.fileName, 'tslib'));
+      // Get a copy of the already resolved module names before calling
+      // resolveModuleName on 'tslib'. Otherwise, resolveModuleName will
+      // add 'tslib' to namespaceToModuleVarName and prevent checking whether
+      // 'tslib' has already been required.
+      const resolvedModuleNames = [...namespaceToModuleVarName.keys()];
 
-        // Only add the extra require if it hasn't already been required
-        if (resolvedModuleNames.indexOf(tslibModuleName) === -1) {
-          const tslibImport =
-              ts.factory.createExpressionStatement(createGoogCall(
-                  'require', createSingleQuoteStringLiteral(tslibModuleName)));
+      const tslibModuleName = host.pathToModuleName(
+          sf.fileName, resolveModuleName(host, sf.fileName, 'tslib'));
 
-          // Place the goog.require('tslib') statement right after the
-          // goog.module statements
-          headerStmts.push(tslibImport);
-        }
+      // Only add the extra require if it hasn't already been required
+      if (resolvedModuleNames.indexOf(tslibModuleName) === -1) {
+        const tslibImport = ts.factory.createExpressionStatement(createGoogCall(
+            'require', createSingleQuoteStringLiteral(tslibModuleName)));
+
+        // Place the goog.require('tslib') statement right after the
+        // goog.module statements
+        headerStmts.push(tslibImport);
       }
+
       // Insert goog.module() etc after any leading comments in the source file.
       // The comments have been converted to NotEmittedStatements by
       // transformer_util, which this depends on.
@@ -1229,15 +1186,6 @@ export function commonJsToGoogmoduleTransformer(
           ts.setTextRange(ts.factory.createNodeArray(stmts), sf.statements));
     };
   };
-}
-
-function isModule(sourceFile: ts.SourceFile): boolean {
-  interface InternalSourceFile extends ts.SourceFile {
-    // An internal property that we use here to check whether a file is
-    // syntactically a module or a script.
-    externalModuleIndicator?: ts.Node;
-  }
-  return Boolean((sourceFile as InternalSourceFile).externalModuleIndicator);
 }
 
 /**
