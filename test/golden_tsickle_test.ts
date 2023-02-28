@@ -227,7 +227,7 @@ testFn('golden tests', () => {
       if (!test.name.endsWith('.no_externs')) {
         // Concatenate externs for the files that are in this tests sources (but
         // not other, shared .d.ts files).
-        const filteredExterns: {[k: string]: string} = {};
+        const filteredExterns: {[k: string]: { output: string; rootNamespace: string; }} = {};
         let anyExternsGenerated = false;
         for (const fileName of tsSources.keys()) {
           if (externs[fileName]) {

@@ -129,12 +129,13 @@ const EXTERNS_HEADER = `/**
  *     to this root.
  */
 export function getGeneratedExterns(
-    externs: {[fileName: string]: string}, rootDir: string): string {
+    externs: {[fileName: string]: {output: string, rootNamespace: string}},
+    rootDir: string): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
     const srcPath = path.relative(rootDir, fileName);
     allExterns += `// ${jsdoc.createGeneratedFromComment(srcPath)}\n`;
-    allExterns += externs[fileName];
+    allExterns += externs[fileName].output;
   }
   return allExterns;
 }
@@ -157,8 +158,8 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
  */
 export function generateExterns(
     typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, host: AnnotatorHost,
-    moduleResolutionHost: ts.ModuleResolutionHost,
-    options: ts.CompilerOptions): {output: string, diagnostics: ts.Diagnostic[]} {
+    moduleResolutionHost: ts.ModuleResolutionHost, options: ts.CompilerOptions):
+    {output: string, diagnostics: ts.Diagnostic[], rootNamespace: string} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
   const isDts = isDtsFileName(sourceFile.fileName);
@@ -281,7 +282,7 @@ export function generateExterns(
     }
   }
 
-  return {output, diagnostics};
+  return {output, diagnostics, rootNamespace};
 
   function emit(str: string) {
     output += str;

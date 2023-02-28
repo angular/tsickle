@@ -85,7 +85,8 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
   const diagnostics: ts.Diagnostic[] = [];
   let emitSkipped = true;
   const emittedFiles: string[] = [];
-  const externs: {[fileName: string]: string} = {};
+  const externs:
+      {[fileName: string]: {output: string, rootNamespace: string}} = {};
   const modulesManifest = new ModulesManifest();
   const tsMigrationExportsShimFiles = new Map<string, string>();
   for (const er of emitResults) {
@@ -118,7 +119,7 @@ export interface EmitResult extends ts.EmitResult {
    * externs.js files produced by tsickle, if any. module IDs are relative paths
    * from fileNameToModuleId.
    */
-  externs: {[moduleId: string]: string};
+  externs: {[moduleId: string]: {output: string, rootNamespace: string}};
 
   /**
    * Content for the generated files, keyed by their intended filename.
@@ -240,7 +241,8 @@ export function emit(
       targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
       tsTransformers);
 
-  const externs: {[fileName: string]: string} = {};
+  const externs:
+      {[fileName: string]: {output: string, rootNamespace: string}} = {};
   if (host.transformTypesToClosure) {
     const sourceFiles =
         targetSourceFile ? [targetSourceFile] : program.getSourceFiles();
@@ -249,11 +251,11 @@ export function emit(
       if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
         continue;
       }
-      const {output, diagnostics} = generateExterns(
+      const {output, diagnostics, rootNamespace} = generateExterns(
           typeChecker, sourceFile, host, host.moduleResolutionHost,
           program.getCompilerOptions());
       if (output) {
-        externs[sourceFile.fileName] = output;
+        externs[sourceFile.fileName] = {output, rootNamespace};
       }
       if (diagnostics) {
         tsickleDiagnostics.push(...diagnostics);
