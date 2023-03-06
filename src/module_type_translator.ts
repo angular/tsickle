@@ -7,9 +7,9 @@
  */
 
 /**
- * @fileoverview module_type_translator builds on top of type_translator, adding functionality to
- * translate types within the scope of a single module. The main entry point is
- * ModuleTypeTranslator.
+ * @fileoverview module_type_translator builds on top of type_translator, adding
+ * functionality to translate types within the scope of a single module. The
+ * main entry point is ModuleTypeTranslator.
  */
 
 import * as ts from 'typescript';
@@ -38,8 +38,12 @@ function getDefinedModule(symbol: SymbolWithParent|undefined): ts.Symbol|
   return undefined;
 }
 
-/** Returns the Closure name of a function parameter, special-casing destructuring. */
-function getParameterName(param: ts.ParameterDeclaration, index: number): string {
+/**
+ * Returns the Closure name of a function parameter, special-casing
+ * destructuring.
+ */
+function getParameterName(
+    param: ts.ParameterDeclaration, index: number): string {
   switch (param.name.kind) {
     case ts.SyntaxKind.Identifier:
       let name = getIdentifierText(param.name);
@@ -54,42 +58,44 @@ function getParameterName(param: ts.ParameterDeclaration, index: number): string
       // ignored anyway.
       return `__${index}`;
     default:
-      // The above list of kinds is exhaustive.  param.name is 'never' at this point.
+      // The above list of kinds is exhaustive.  param.name is 'never' at this
+      // point.
       const paramName = param.name as ts.Node;
-      throw new Error(`unhandled function parameter kind: ${ts.SyntaxKind[paramName.kind]}`);
+      throw new Error(`unhandled function parameter kind: ${
+          ts.SyntaxKind[paramName.kind]}`);
   }
 }
 
 /**
- * ModuleTypeTranslator encapsulates knowledge and helper functions to translate types in the scope
- * of a specific module. This includes managing Closure requireType statements and any symbol
- * aliases in scope for a whole file.
+ * ModuleTypeTranslator encapsulates knowledge and helper functions to translate
+ * types in the scope of a specific module. This includes managing Closure
+ * requireType statements and any symbol aliases in scope for a whole file.
  */
 export class ModuleTypeTranslator {
   /**
-   * A mapping of aliases for symbols in the current file, used when emitting types. TypeScript
-   * emits imported symbols with unpredictable prefixes. To generate correct type annotations,
-   * tsickle creates its own aliases for types, and registers them in this map (see
-   * `emitImportDeclaration` and `requireType()` below). The aliases are then used when emitting
-   * types.
+   * A mapping of aliases for symbols in the current file, used when emitting
+   * types. TypeScript emits imported symbols with unpredictable prefixes. To
+   * generate correct type annotations, tsickle creates its own aliases for
+   * types, and registers them in this map (see `emitImportDeclaration` and
+   * `requireType()` below). The aliases are then used when emitting types.
    */
   symbolsToAliasedNames = new Map<ts.Symbol, string>();
 
   /**
-   * A cache for expensive symbol lookups, see TypeTranslator.symbolToString. Maps symbols to their
-   * Closure name in this file scope.
+   * A cache for expensive symbol lookups, see TypeTranslator.symbolToString.
+   * Maps symbols to their Closure name in this file scope.
    */
   private readonly symbolToNameCache = new Map<ts.Symbol, string>();
 
   /**
-   * The set of module symbols requireTyped in the local namespace.  This tracks which imported
-   * modules we've already added to additionalImports below.
+   * The set of module symbols requireTyped in the local namespace.  This tracks
+   * which imported modules we've already added to additionalImports below.
    */
   private readonly requireTypeModules = new Set<ts.Symbol>();
 
   /**
-   * The list of generated goog.requireType statements for this module. These are inserted into
-   * the module's body statements after translation.
+   * The list of generated goog.requireType statements for this module. These
+   * are inserted into the module's body statements after translation.
    */
   private readonly additionalImports: ts.Statement[] = [];
 
@@ -101,8 +107,9 @@ export class ModuleTypeTranslator {
       private readonly isForExterns: boolean,
   ) {
     // TODO: remove once AnnotatorHost.typeBlackListPaths is removed.
-    // tslint:disable-next-line:deprecation
-    this.host.unknownTypesPaths = this.host.unknownTypesPaths ?? this.host.typeBlackListPaths;
+    this.host.unknownTypesPaths =
+        // tslint:disable-next-line:deprecation
+        this.host.unknownTypesPaths ?? this.host.typeBlackListPaths;
   }
 
   debugWarn(context: ts.Node, messageText: string) {
@@ -116,9 +123,10 @@ export class ModuleTypeTranslator {
   /**
    * Convert a TypeScript ts.Type into the equivalent Closure type.
    *
-   * @param context The ts.Node containing the type reference; used for resolving symbols
-   *     in context.
-   * @param type The type to translate; if not provided, the Node's type will be used.
+   * @param context The ts.Node containing the type reference; used for
+   *     resolving symbols in context.
+   * @param type The type to translate; if not provided, the Node's type will be
+   *     used.
    */
   typeToClosure(context: ts.Node, type?: ts.Type): string {
     if (this.host.untyped) {
@@ -145,7 +153,8 @@ export class ModuleTypeTranslator {
   }
 
   newTypeTranslator(context: ts.Node) {
-    // In externs, there is no local scope, so all types must be relative to the file level scope.
+    // In externs, there is no local scope, so all types must be relative to the
+    // file level scope.
     const translationContext = this.isForExterns ? this.sourceFile : context;
 
     const translator = new typeTranslator.TypeTranslator(
@@ -170,8 +179,8 @@ export class ModuleTypeTranslator {
 
   /**
    * Get the ts.Symbol at a location or throw.
-   * The TypeScript API can return undefined when fetching a symbol, but in many contexts we know it
-   * won't (e.g. our input is already type-checked).
+   * The TypeScript API can return undefined when fetching a symbol, but in many
+   * contexts we know it won't (e.g. our input is already type-checked).
    */
   mustGetSymbolAtLocation(node: ts.Node): ts.Symbol {
     const sym = this.typeChecker.getSymbolAtLocation(node);
@@ -216,8 +225,8 @@ export class ModuleTypeTranslator {
   }
 
   /**
-   * Generates a somewhat human-readable module prefix for the given import context, to make
-   * debugging the emitted Closure types a bit easier.
+   * Generates a somewhat human-readable module prefix for the given import
+   * context, to make debugging the emitted Closure types a bit easier.
    */
   private generateModulePrefix(importPath: string) {
     const modulePrefix = importPath.replace(/(\/index)?(\.d)?\.[tj]sx?$/, '')
@@ -227,33 +236,39 @@ export class ModuleTypeTranslator {
   }
 
   /**
-   * Records that we we want a `const x = goog.requireType...` import of the given `importPath`,
-   * which will be inserted when we emit.
-   * This also registers aliases for symbols from the module that map to this requireType.
+   * Records that we we want a `const x = goog.requireType...` import of the
+   * given `importPath`, which will be inserted when we emit. This also
+   * registers aliases for symbols from the module that map to this requireType.
    *
-   * @param isDefaultImport True if the import statement is a default import, e.g.
-   *     `import Foo from ...;`, which matters for adjusting whether we emit a `.default`.
+   * @param isDefaultImport True if the import statement is a default import,
+   *     e.g. `import Foo from ...;`, which matters for adjusting whether we
+   *     emit a `.default`.
    */
-  requireType(context: ts.Node, importPath: string, moduleSymbol: ts.Symbol, isDefaultImport = false) {
+  requireType(
+      context: ts.Node, importPath: string, moduleSymbol: ts.Symbol,
+      isDefaultImport = false) {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
-    if (typeTranslator.isAlwaysUnknownSymbol(this.host.unknownTypesPaths, moduleSymbol)) {
-      return;  // Do not emit goog.requireType for paths marked as always unknown.
+    if (typeTranslator.isAlwaysUnknownSymbol(
+            this.host.unknownTypesPaths, moduleSymbol)) {
+      return;  // Do not emit goog.requireType for paths marked as always
+               // unknown.
     }
-    const nsImport =
-        googmodule.namespaceForImportUrl(context, this.diagnostics, importPath, moduleSymbol);
-    const requireTypePrefix =
-        this.generateModulePrefix(importPath) + String(this.requireTypeModules.size + 1);
+    const nsImport = googmodule.namespaceForImportUrl(
+        context, this.diagnostics, importPath, moduleSymbol);
+    const requireTypePrefix = this.generateModulePrefix(importPath) +
+        String(this.requireTypeModules.size + 1);
     const moduleNamespace = nsImport !== null ?
         nsImport :
         this.host.pathToModuleName(this.sourceFile.fileName, importPath);
 
-    // In TypeScript, importing a module for use in a type annotation does not cause a runtime load.
-    // In Closure Compiler, goog.require'ing a module causes a runtime load, so emitting requires
-    // here would cause a change in load order, which is observable (and can lead to errors).
-    // Instead, goog.requireType types, which allows using them in type annotations without
-    // causing a load.
+    // In TypeScript, importing a module for use in a type annotation does not
+    // cause a runtime load. In Closure Compiler, goog.require'ing a module
+    // causes a runtime load, so emitting requires here would cause a change in
+    // load order, which is observable (and can lead to errors). Instead,
+    // goog.requireType types, which allows using them in type annotations
+    // without causing a load.
     //   const requireTypePrefix = goog.requireType(moduleNamespace)
     this.additionalImports.push(ts.factory.createVariableStatement(
         undefined,
@@ -486,13 +501,26 @@ export class ModuleTypeTranslator {
         this.typeChecker.getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
             .find(
                 (module: ts.Symbol) => module.getName().startsWith('"goog:') &&
-                    this.typeChecker.getExportsOfModule(module).find(
+                    this.typeChecker.getExportsOfModule(module).some(
                         (exported: ts.Symbol) => {
                           if (exported.flags & ts.SymbolFlags.Alias) {
                             exported =
                                 this.typeChecker.getAliasedSymbol(exported);
                           }
-                          return exported === sym;
+                          if (exported === sym) {
+                            return true;
+                          }
+                          // In case the symbol is coming from a default export,
+                          // we need to navigate through the child of the
+                          // default nested to compare the symbol.
+                          if (exported.exports) {
+                            let found = false;
+                            exported.exports.forEach((symbol, key) => {
+                              found = found || symbol === sym;
+                            });
+                            return found;
+                          }
+                          return false;
                         }));
     if (clutzModule) {
       this.requireType(
@@ -515,9 +543,11 @@ export class ModuleTypeTranslator {
   }
 
   /**
-   * Parses and synthesizes comments on node, and returns the JSDoc from it, if any.
-   * @param reportWarnings if true, will report warnings from parsing the JSDoc. Set to false if
-   *     this is not the "main" location dealing with a node to avoid duplicated warnings.
+   * Parses and synthesizes comments on node, and returns the JSDoc from it, if
+   * any.
+   * @param reportWarnings if true, will report warnings from parsing the JSDoc.
+   *     Set to false if this is not the "main" location dealing with a node to
+   *     avoid duplicated warnings.
    */
   getJSDoc(node: ts.Node, reportWarnings: boolean): jsdoc.Tag[] {
     return jsdoc.getJSDocTags(
@@ -529,8 +559,9 @@ export class ModuleTypeTranslator {
   }
 
   /**
-   * resolveRestParameterType resolves the array member type for a rest parameter ("...").
-   * In TypeScript you write "...x: number[]", but in Closure you don't write the array:
+   * resolveRestParameterType resolves the array member type for a rest
+   * parameter ("..."). In TypeScript you write "...x: number[]", but in Closure
+   * you don't write the array:
    * `@param {...number} x`. The code below unwraps the Array<> wrapper.
    */
   private resolveRestParameterType(
@@ -551,8 +582,10 @@ export class ModuleTypeTranslator {
 
   /**
    * Creates the jsdoc for methods, including overloads.
-   * If overloaded, merges the signatures in the list of SignatureDeclarations into a single jsdoc.
-   * - Total number of parameters will be the maximum count found across all variants.
+   * If overloaded, merges the signatures in the list of SignatureDeclarations
+   * into a single jsdoc.
+   * - Total number of parameters will be the maximum count found across all
+   * variants.
    * - Different names at the same parameter index will be joined with "_or_"
    * - Variable args (...type[] in TypeScript) will be output as "...type",
    *    except if found at the same index as another argument.
@@ -560,8 +593,12 @@ export class ModuleTypeTranslator {
    * @return The list of parameter names that should be used to emit the actual
    *    function statement; for overloads, name will have been merged.
    */
-  getFunctionTypeJSDoc(fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []):
-      {tags: jsdoc.Tag[], parameterNames: string[], thisReturnType: ts.Type|null} {
+  getFunctionTypeJSDoc(
+      fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): {
+    tags: jsdoc.Tag[],
+    parameterNames: string[],
+    thisReturnType: ts.Type|null
+  } {
     const typeChecker = this.typeChecker;
 
     // De-duplicate tags and docs found for the fnDecls.
@@ -569,11 +606,13 @@ export class ModuleTypeTranslator {
     function addTag(tag: jsdoc.Tag) {
       if (tag.tagName === 'implements') return;  // implements cannot be merged.
       const existing = tagsByName.get(tag.tagName);
-      tagsByName.set(tag.tagName, existing ? jsdoc.merge([existing, tag]) : tag);
+      tagsByName.set(
+          tag.tagName, existing ? jsdoc.merge([existing, tag]) : tag);
     }
     for (const extraTag of extraTags) addTag(extraTag);
 
-    const isConstructor = fnDecls.find(d => d.kind === ts.SyntaxKind.Constructor) !== undefined;
+    const isConstructor =
+        fnDecls.find(d => d.kind === ts.SyntaxKind.Constructor) !== undefined;
     // For each parameter index i, paramTags[i] is an array of parameters
     // that can be found at index i.  E.g.
     //    function foo(x: string)
@@ -594,8 +633,8 @@ export class ModuleTypeTranslator {
 
       // Copy all the tags other than @param/@return into the new
       // JSDoc without any change; @param/@return are handled specially.
-      // TODO: there may be problems if an annotation doesn't apply to all overloads;
-      // is it worth checking for this and erroring?
+      // TODO: there may be problems if an annotation doesn't apply to all
+      // overloads; is it worth checking for this and erroring?
       for (const tag of tags) {
         if (tag.tagName === 'param' || tag.tagName === 'return') continue;
         addTag(tag);
@@ -623,17 +662,21 @@ export class ModuleTypeTranslator {
       }
 
       // Add any @template tags.
-      // Multiple declarations with the same template variable names should work:
-      // the declarations get turned into union types, and Closure Compiler will need
-      // to find a union where all type arguments are satisfied.
+      // Multiple declarations with the same template variable names should
+      // work: the declarations get turned into union types, and Closure
+      // Compiler will need to find a union where all type arguments are
+      // satisfied.
       if (fnDecl.typeParameters) {
         for (const tp of fnDecl.typeParameters) {
           typeParameterNames.add(getIdentifierText(tp.name));
         }
       }
-      // Merge the parameters into a single list of merged names and list of types
+      // Merge the parameters into a single list of merged names and list of
+      // types
       const sig = typeChecker.getSignatureFromDeclaration(fnDecl);
-      if (!sig || !sig.declaration) throw new Error(`invalid signature ${fnDecl.name}`);
+      if (!sig || !sig.declaration) {
+        throw new Error(`invalid signature ${fnDecl.name}`);
+      }
       if (sig.declaration.kind === ts.SyntaxKind.JSDocSignature) {
         throw new Error(`JSDoc signature ${fnDecl.name}`);
       }
@@ -647,13 +690,15 @@ export class ModuleTypeTranslator {
 
         const newTag: jsdoc.Tag = {
           tagName: isThisParam ? 'this' : 'param',
-          optional: paramNode.initializer !== undefined || paramNode.questionToken !== undefined,
+          optional: paramNode.initializer !== undefined ||
+              paramNode.questionToken !== undefined,
           parameterName: isThisParam ? undefined : name,
         };
 
         if (paramNode.dotDotDotToken === undefined) {
           // The simple case: a plain parameter type.
-          newTag.type = this.typeToClosure(fnDecl, this.typeChecker.getTypeAtLocation(paramNode));
+          newTag.type = this.typeToClosure(
+              fnDecl, this.typeChecker.getTypeAtLocation(paramNode));
         } else {
           // The complex case: resolve the array member type in ...foo[].
           this.resolveRestParameterType(newTag, fnDecl, paramNode);
@@ -674,7 +719,8 @@ export class ModuleTypeTranslator {
         }
       }
       argCounts.push(
-          hasThisParam ? sig.declaration.parameters.length - 1 : sig.declaration.parameters.length);
+          hasThisParam ? sig.declaration.parameters.length - 1 :
+                         sig.declaration.parameters.length);
 
       // Return type.
       if (!isConstructor) {
@@ -682,10 +728,11 @@ export class ModuleTypeTranslator {
           tagName: 'return',
         };
         const retType = typeChecker.getReturnTypeOfSignature(sig);
-        // Generate a templated `@this` tag for TypeScript `foo(): this` return type specification.
-        // Make sure not to do that if the function already has used `@this` due to a this
-        // parameter. It's not clear how to resolve the two conflicting this types best, the current
-        // solution prefers the explicitly given `this` parameter.
+        // Generate a templated `@this` tag for TypeScript `foo(): this` return
+        // type specification. Make sure not to do that if the function already
+        // has used `@this` due to a this parameter. It's not clear how to
+        // resolve the two conflicting this types best, the current solution
+        // prefers the explicitly given `this` parameter.
         // tslint:disable-next-line:no-any accessing TS internal field.
         if ((retType as any)['isThisType'] && !hasThisParam) {
           // foo(): this
@@ -707,7 +754,10 @@ export class ModuleTypeTranslator {
     }
 
     if (typeParameterNames.size > 0) {
-      addTag({tagName: 'template', text: Array.from(typeParameterNames.values()).join(', ')});
+      addTag({
+        tagName: 'template',
+        text: Array.from(typeParameterNames.values()).join(', ')
+      });
     }
 
     const newDoc = Array.from(tagsByName.values());
@@ -724,8 +774,8 @@ export class ModuleTypeTranslator {
     const maxArgsCount = Math.max(...argCounts);
 
     // Merge the JSDoc tags for each overloaded parameter.
-    // Ensure each parameter has a unique name; the merging process can otherwise
-    // accidentally generate the same parameter name twice.
+    // Ensure each parameter has a unique name; the merging process can
+    // otherwise accidentally generate the same parameter name twice.
     const paramNames = new Set<string>();
     let foundOptional = false;
     for (let i = 0; i < maxArgsCount; i++) {
@@ -739,7 +789,8 @@ export class ModuleTypeTranslator {
       // If the tag is optional, mark parameters following optional as optional,
       // even if they are not, since Closure restricts this, see
       // https://github.com/google/closure-compiler/issues/2314
-      if (!paramTag.restParam && (paramTag.optional || foundOptional || i >= minArgsCount)) {
+      if (!paramTag.restParam &&
+          (paramTag.optional || foundOptional || i >= minArgsCount)) {
         foundOptional = true;
         paramTag.optional = true;
       }
@@ -758,7 +809,8 @@ export class ModuleTypeTranslator {
 
     return {
       tags: newDoc,
-      parameterNames: newDoc.filter(t => t.tagName === 'param').map(t => t.parameterName!),
+      parameterNames:
+          newDoc.filter(t => t.tagName === 'param').map(t => t.parameterName!),
       thisReturnType,
     };
   }
