@@ -51,6 +51,8 @@ describe('golden file tests', () => {
         'test_files/import_from_goog.no_externs/closure_Module.js',
         'test_files/import_from_goog.no_externs/closure_OtherModule.js',
         'test_files/import_from_goog.no_externs/transitive_type.js',
+        'test_files/no_dollar_type_reference.no_externs/closure_x.js',
+        'test_files/no_dollar_type_reference.no_externs/closure_y.js',
         'test_files/type_propaccess.no_externs/nested_clazz.js',
     );
     const externs = tests.map(t => t.externsPath()).filter(fs.existsSync);
