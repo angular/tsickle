@@ -501,6 +501,7 @@ export class ModuleTypeTranslator {
         this.typeChecker.getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
             .find(
                 (module: ts.Symbol) => module.getName().startsWith('"goog:') &&
+                    module.valueDeclaration?.getSourceFile() === clutzDts &&
                     this.typeChecker.getExportsOfModule(module).some(
                         (exported: ts.Symbol) => {
                           if (exported.flags & ts.SymbolFlags.Alias) {
