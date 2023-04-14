@@ -91,6 +91,10 @@ function CanvasDrawImage() {}
 function CryptoKey() {};
 /** @constructor */
 function CryptoKeyPair() {};
+/** @type {!CryptoKey} */
+CryptoKeyPair.prototype.publicKey;
+/** @type {!CryptoKey} */
+CryptoKeyPair.prototype.privateKey;
 
 /** @typedef {!{handleEvent: function(Event):void}} */
 var EventListenerObject;
