@@ -472,18 +472,18 @@ export class ModuleTypeTranslator {
     // set up for imports.
     if (this.symbolsToAliasedNames.has(sym)) return;
 
-    // TODO(martinprobst): it's unclear when a symbol wouldn't have a
-    // declaration, maybe just for some builtins (e.g. Symbol)?
-    if (!sym.declarations || sym.declarations.length === 0) return;
+    // Unlike what typescript is reasoning with symbol types, in this call path
+    // it always seems that symbol has at least one type declaration.
+    const declarations = sym.declarations!;
     // A symbol declared in this file does not need to be imported.
     const thisSourceFile = ts.getOriginalNode(this.sourceFile);
-    if (sym.declarations.some(d => d.getSourceFile() === thisSourceFile)) {
+    if (declarations.some(d => d.getSourceFile() === thisSourceFile)) {
       return;
     }
 
     // If any declarations of this symbol are ES module exports, simply add a
     // goog.requireType to ensure this symbol is declared.
-    for (const decl of sym.declarations) {
+    for (const decl of declarations) {
       if (this.addRequireTypeIfIsExported(decl, sym)) return;
     }
 
@@ -492,8 +492,7 @@ export class ModuleTypeTranslator {
     // As we artificially strip Clutz internal namespace prefix ('ಠ_ಠ.clutz.')
     // from the symbol name, the TypeScript resolution doesn't match our
     // needs. Instead, we have to find an alias exported within a module.
-    const clutzDecl =
-        sym.declarations.find(typeTranslator.isDeclaredInClutzDts);
+    const clutzDecl = declarations.find(typeTranslator.isDeclaredInClutzDts);
     if (!clutzDecl) return;
 
     const clutzDts = clutzDecl.getSourceFile();
