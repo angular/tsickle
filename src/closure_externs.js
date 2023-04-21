@@ -87,11 +87,6 @@ var WindowOrWorkerGlobalScope;
 /** @record */
 function CanvasDrawImage() {}
 
-/** @constructor */
-function CryptoKey() {};
-/** @constructor */
-function CryptoKeyPair() {};
-
 /** @typedef {!{handleEvent: function(Event):void}} */
 var EventListenerObject;
 
