@@ -261,6 +261,9 @@ export class TypeTranslator {
    *
    * But we want to emit Y<T> as just Y<T>.  So this flag, when set, causes us
    * to ignore this final generic argument when translating.
+   *
+   * TODO: b/279145965 - The issue with too many type args has been fixed in
+   * b/278661449. This flag should no longer be necessary.
    */
   dropFinalTypeArgument = false;
 
@@ -741,9 +744,23 @@ export class TypeTranslator {
         typeArgs = typeArgs.slice(outerTypeParameters.length);
       }
       if (this.dropFinalTypeArgument) {
+        // TODO: b/279145965 - Dropping the final type argument is wrong. This
+        // if statement should be removed.
         typeArgs = typeArgs.slice(0, typeArgs.length - 1);
       }
-      if (typeArgs.length > 0) {
+      const localTypeParameters = referenceType.target.localTypeParameters;
+      // After removing outer type parameters, we expect to see args only for
+      // local type parameters plus optionally one args for the 'this' type.
+      // Log warning to make debugging easier, in case our understanding of
+      // TypeScript's API is not correct.
+      const maxExpectedTypeArgs = (localTypeParameters?.length ?? 0) + 1;
+      if (typeArgs.length > maxExpectedTypeArgs) {
+        this.warn(`more type args (${typeArgs.length}) than expected (${
+            maxExpectedTypeArgs})`);
+      }
+      if (localTypeParameters && typeArgs.length > 0) {
+        // Ignore 'this' type argument, which sometimes exists at the end.
+        typeArgs = typeArgs.slice(0, localTypeParameters.length);
         // If a type references itself recursively, such as in `type A = B<A>`,
         // the type parameter will resolve to itself. In the example above B's
         // type parameter will be B<B<B<...>>> and just go on indefinitely. To

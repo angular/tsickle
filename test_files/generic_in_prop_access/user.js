@@ -1,8 +1,6 @@
 // test_files/generic_in_prop_access/user.ts(14,1): warning TS0: unhandled type {type flags:0x80000 Object objectFlags:0x20 object:Mapped}
 // test_files/generic_in_prop_access/user.ts(17,9): warning TS0: unhandled type flags: IncludesWildcard
 // test_files/generic_in_prop_access/user.ts(17,18): warning TS0: unhandled type flags: IncludesWildcard
-// test_files/generic_in_prop_access/user.ts(19,10): warning TS0: unhandled type flags: IncludesWildcard
-// test_files/generic_in_prop_access/user.ts(19,10): warning TS0: unhandled type flags: IncludesWildcard
 /**
  *
  * @fileoverview Tests template parameters for identifier in property access
@@ -40,6 +38,5 @@ if (false) {
 function hasThing(groupedThings, key, thing) {
     /** @type {?} */
     const things = (/** @type {?} */ (groupedThings[key]));
-    // TODO: b/278661449 - Fix this broken type annotation
-    return (/** @type {!Array<!SomethingGeneric<T>, ?>} */ (things)).indexOf(thing) !== -1;
+    return (/** @type {!Array<!SomethingGeneric<T>>} */ (things)).indexOf(thing) !== -1;
 }

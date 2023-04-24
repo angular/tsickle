@@ -15,6 +15,5 @@ function hasThing<T extends Key>(
     groupedThings: {[K in Key]?: Array<SomethingGeneric<K>>;}, key: T,
     thing: SomethingGeneric<T>) {
   const things = groupedThings[key]!;
-  // TODO: b/278661449 - Fix this broken type annotation
   return things.indexOf(thing) !== -1;
 }
