@@ -6,6 +6,7 @@
  * for example, you can "implements" a class though it's more rare than the
  * other options.
  * @suppress {uselessCode}
+ * @suppress {dangerousUnrecognizedTypeError}
  */
 
 
@@ -138,4 +139,16 @@ class ZoneImplementsAlias implements ZoneAlias {
 
 class WithOptionalField {
   optionalField?: string = 'a';
+}
+
+// TODO: b/280605173 - JS cannot compile the output. Suppressed
+// dangerousUnrecognizedTypeError to get this to pass the test.
+function classMaker(base: number) {
+  return class ScopedClass {
+    constructor(readonly otherBase: number) {}
+
+    normalize(val: number): number {
+      return base + this.otherBase + val;
+    }
+  };
 }

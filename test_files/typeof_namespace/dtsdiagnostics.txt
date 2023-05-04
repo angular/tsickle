@@ -1,0 +1,1 @@
+test_files/typeof_namespace/exported_namespace.d.ts(6,1): warning TS0: anonymous type has no symbol

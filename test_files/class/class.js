@@ -1,10 +1,10 @@
-// test_files/class/class.ts(46,1): warning TS0: dropped extends: interface cannot extend/implement class
-// test_files/class/class.ts(127,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(131,42): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(131,1): warning TS0: dropped implements: {?} type
-// test_files/class/class.ts(134,1): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(135,38): warning TS0: type/symbol conflict for Zone, using {?} for now
-// test_files/class/class.ts(135,1): warning TS0: dropped implements: {?} type
+// test_files/class/class.ts(47,1): warning TS0: dropped extends: interface cannot extend/implement class
+// test_files/class/class.ts(128,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(132,42): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(132,1): warning TS0: dropped implements: {?} type
+// test_files/class/class.ts(135,1): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(136,38): warning TS0: type/symbol conflict for Zone, using {?} for now
+// test_files/class/class.ts(136,1): warning TS0: dropped implements: {?} type
 /**
  *
  * @fileoverview This test exercises the various ways classes and interfaces can
@@ -15,6 +15,7 @@
  * other options.
  * Generated from: test_files/class/class.ts
  * @suppress {uselessCode}
+ * @suppress {dangerousUnrecognizedTypeError}
  *
  */
 goog.module('test_files.class.class');
@@ -297,4 +298,29 @@ if (false) {
      * @public
      */
     WithOptionalField.prototype.optionalField;
+}
+// TODO: b/280605173 - JS cannot compile the output. Suppressed
+// dangerousUnrecognizedTypeError to get this to pass the test.
+/**
+ * @param {number} base
+ * @return {function(new:ScopedClass, number)}
+ */
+function classMaker(base) {
+    return class ScopedClass {
+        /**
+         * @public
+         * @param {number} otherBase
+         */
+        constructor(otherBase) {
+            this.otherBase = otherBase;
+        }
+        /**
+         * @public
+         * @param {number} val
+         * @return {number}
+         */
+        normalize(val) {
+            return base + this.otherBase + val;
+        }
+    };
 }
