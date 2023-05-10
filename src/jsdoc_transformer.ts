@@ -829,7 +829,19 @@ export function jsdocTransformer(
               const declVisited =
                   ts.visitNode(decl, visitor, ts.isVariableDeclaration);
               const newDecl = ts.factory.updateVariableDeclaration(
+                  // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0
+                  // upgrade.
+                  //   TS2345: Argument of type 'VariableDeclaration |
+                  //   undefined' is not assignable to parameter of type
+                  //   'VariableDeclaration'. TS18048: 'declVisited' is possibly
+                  //   'undefined'.
+                  // @ts-ignore
                   declVisited, updatedBinding, declVisited.exclamationToken,
+                  // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0
+                  // upgrade.
+                  //   TS18048: 'declVisited' is possibly 'undefined'.
+                  //   TS18048: 'declVisited' is possibly 'undefined'.
+                  // @ts-ignore
                   declVisited.type, declVisited.initializer);
               const newStmt = ts.factory.createVariableStatement(
                   varStmt.modifiers,
@@ -847,6 +859,10 @@ export function jsdocTransformer(
           const newDecl = ts.visitNode(decl, visitor, ts.isVariableDeclaration);
           const newStmt = ts.factory.createVariableStatement(
               varStmt.modifiers,
+              // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+              //   TS2322: Type 'VariableDeclaration | undefined' is not
+              //   assignable to type 'VariableDeclaration'.
+              // @ts-ignore
               ts.factory.createVariableDeclarationList([newDecl], flags));
           if (localTags.length) addCommentOn(newStmt, localTags, jsdoc.TAGS_CONFLICTING_WITH_TYPE);
           stmts.push(newStmt);
@@ -1322,6 +1338,10 @@ export function jsdocTransformer(
           updatedElements.push(ts.factory.updateBindingElement(
               e, e.dotDotDotToken,
               ts.visitNode(e.propertyName, visitor, ts.isPropertyName),
+              // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+              //   TS2345: Argument of type 'Node | undefined' is not assignable
+              //   to parameter of type 'Expression | undefined'.
+              // @ts-ignore
               updatedBindingName, ts.visitNode(e.initializer, visitor)));
         }
         return ts.factory.updateArrayBindingPattern(node, updatedElements);
@@ -1404,14 +1424,26 @@ export function jsdocTransformer(
         if (ts.isBlock(node.statement)) {
           updatedStatement = ts.factory.updateBlock(node.statement, [
             ...aliasDecls,
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS2532: Object is possibly 'undefined'.
+            // @ts-ignore
             ...ts.visitNode(node.statement, visitor, ts.isBlock).statements
           ]);
         } else {
           updatedStatement = ts.factory.createBlock(
+              // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+              //   TS2322: Type 'Node | Statement | undefined' is not assignable
+              //   to type 'Statement'. TS2322: Type 'Node | undefined' is not
+              //   assignable to type 'Statement'.
+              // @ts-ignore
               [...aliasDecls, ts.visitNode(node.statement, visitor)]);
         }
         return ts.factory.updateForOfStatement(
             node, node.awaitModifier, updatedInitializer,
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS2345: Argument of type 'Node | undefined' is not assignable
+            //   to parameter of type 'Expression'.
+            // @ts-ignore
             ts.visitNode(node.expression, visitor), updatedStatement);
       }
 

@@ -96,6 +96,10 @@ function isExportingDecorator(decorator: ts.Decorator, typeChecker: ts.TypeCheck
  */
 export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics: ts.Diagnostic[]) {
   return (context: ts.TransformationContext) => {
+    // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+    //   TS2322: Type '(sourceFile: ts.SourceFile) => ts.SourceFile | undefined'
+    //   is not assignable to type 'Transformer<SourceFile>'.
+    // @ts-ignore
     const result: ts.Transformer<ts.SourceFile> = (sourceFile: ts.SourceFile) => {
       let nodeNeedingGoogReflect: undefined|ts.Node = undefined;
       const visitor: ts.Visitor = (node) => {
@@ -109,6 +113,9 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
       let updatedSourceFile =
           ts.visitNode(sourceFile, visitor, ts.isSourceFile);
       if (nodeNeedingGoogReflect !== undefined) {
+        // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+        //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+        // @ts-ignore
         const statements = [...updatedSourceFile.statements];
         const googModuleIndex = statements.findIndex(isGoogModuleStatement);
         if (googModuleIndex === -1) {
@@ -136,14 +143,36 @@ export function transformDecoratorsOutputForClosurePropertyRenaming(diagnostics:
         // with the rest of the goog.require statements.
         statements.splice(googModuleIndex + 3, 0, googRequireReflectObjectProperty);
         updatedSourceFile = ts.factory.updateSourceFile(
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS2345: Argument of type 'SourceFile | undefined' is not
+            //   assignable to parameter of type 'SourceFile'.
+            // @ts-ignore
             updatedSourceFile,
             ts.setTextRange(
                 ts.factory.createNodeArray(statements),
+                // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+                //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+                // @ts-ignore
                 updatedSourceFile.statements),
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+            // @ts-ignore
             updatedSourceFile.isDeclarationFile,
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+            // @ts-ignore
             updatedSourceFile.referencedFiles,
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+            // @ts-ignore
             updatedSourceFile.typeReferenceDirectives,
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+            // @ts-ignore
             updatedSourceFile.hasNoDefaultLib,
+            // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+            //   TS18048: 'updatedSourceFile' is possibly 'undefined'.
+            // @ts-ignore
             updatedSourceFile.libReferenceDirectives);
       }
       return updatedSourceFile;

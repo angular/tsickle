@@ -1122,6 +1122,10 @@ export function commonJsToGoogmoduleTransformer(
       };
 
       if (host.transformDynamicImport === 'closure') {
+        // TODO: go/ts50upgrade - Auto-added; fix after TS 5.0 upgrade.
+        //   TS2322: Type 'SourceFile | undefined' is not assignable to type
+        //   'SourceFile'.
+        // @ts-ignore
         sf = ts.visitNode(sf, visitForDynamicImport, ts.isSourceFile);
       }
 
