@@ -47,3 +47,8 @@ export function relative(base: string, rel: string): string {
 export function normalize(path: string): string {
   return ts.resolvePath(path);
 }
+
+/** Wrapper around ts.resolvePath. */
+export function resolve(path: string, ...paths: string[]): string {
+  return ts.resolvePath(path, ...paths);
+}

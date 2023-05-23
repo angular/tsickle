@@ -20,6 +20,7 @@ import * as googmodule from './googmodule';
 import {jsdocTransformer, removeTypeAssertions} from './jsdoc_transformer';
 import {ModulesManifest} from './modules_manifest';
 import {namespaceTransformer} from './ns_transformer';
+import {FileSummary, SummaryGenerationProcessorHost} from './summary';
 import {isDtsFileName} from './transformer_util';
 import * as tsmes from './ts_migration_exports_shim';
 import {makeTsickleDeclarationMarkerTransformerFactory} from './tsickle_declaration_marker';
@@ -29,10 +30,12 @@ export {pathToModuleName} from './cli_support';
 // Retained here for API compatibility.
 export {getGeneratedExterns} from './externs';
 export {FileMap, ModulesManifest} from './modules_manifest';
+export {FileSummary, ModuleType, Symbol, Type} from './summary';
 
 export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
                                      tsmes.TsMigrationExportsShimProcessorHost,
-                                     AnnotatorHost {
+                                     AnnotatorHost,
+                                     SummaryGenerationProcessorHost {
   /**
    * Whether to downlevel decorators
    */
@@ -79,6 +82,11 @@ export interface TsickleHost extends googmodule.GoogModuleProcessorHost,
    * Whether to add suppressions by default.
    */
   generateExtraSuppressions: boolean;
+
+  /**
+   * Whether to generate summaries.
+   */
+  generateSummary?: boolean;
 }
 
 
@@ -90,6 +98,7 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
       {[fileName: string]: {output: string, moduleNamespace: string}} = {};
   const modulesManifest = new ModulesManifest();
   const tsMigrationExportsShimFiles = new Map<string, string>();
+  const fileSummaries = new Map<string, FileSummary>();
   for (const er of emitResults) {
     diagnostics.push(...er.diagnostics);
     emitSkipped = emitSkipped || er.emitSkipped;
@@ -101,6 +110,9 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
     for (const [k, v] of er.tsMigrationExportsShimFiles) {
       tsMigrationExportsShimFiles.set(k, v);
     }
+    for (const [k, v] of er.fileSummaries) {
+      fileSummaries.set(k, v);
+    }
   }
 
   return {
@@ -110,6 +122,7 @@ export function mergeEmitResults(emitResults: EmitResult[]): EmitResult {
     externs,
     tsMigrationExportsShimFiles,
     modulesManifest,
+    fileSummaries,
   };
 }
 
@@ -127,6 +140,8 @@ export interface EmitResult extends ts.EmitResult {
    * Filenames are google3 relative.
    */
   tsMigrationExportsShimFiles: tsmes.TsMigrationExportsShimFileMap;
+
+  fileSummaries: Map<string, FileSummary>;
 }
 
 export interface EmitTransformers {
@@ -182,6 +197,7 @@ export function emit(
       modulesManifest: new ModulesManifest(),
       externs: {},
       tsMigrationExportsShimFiles: new Map(),
+      fileSummaries: new Map(),
     };
   }
 
@@ -189,10 +205,11 @@ export function emit(
   const tsMigrationExportsShimFiles = new Map<string, string>();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> =
       [];
+  const fileSummaries = new Map<string, FileSummary>();
   tsickleSourceTransformers.push(
       tsmes.createTsMigrationExportsShimTransformerFactory(
           typeChecker, host, modulesManifest, tsickleDiagnostics,
-          tsMigrationExportsShimFiles));
+          tsMigrationExportsShimFiles, fileSummaries));
 
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type
@@ -282,6 +299,7 @@ export function emit(
     diagnostics: [...tsDiagnostics, ...tsickleDiagnostics],
     externs,
     tsMigrationExportsShimFiles,
+    fileSummaries,
   };
 }
 
