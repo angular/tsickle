@@ -435,7 +435,14 @@ export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
  * environment-specific path).
  */
 export function pathToModuleName(
-    rootModulePath: string, context: string, fileName: string): string {
+    rootModulePath: string, context: string, fileName: string,
+    options: ts.CompilerOptions, host: ts.ModuleResolutionHost): string {
+  const resolved = ts.resolveModuleName(fileName, context, options, host);
+  if (resolved && resolved.resolvedModule &&
+      resolved.resolvedModule.resolvedFileName) {
+    fileName = resolved.resolvedModule.resolvedFileName;
+  }
+
   if (fileName === tslibPath()) return 'tslib';
   return cliSupport.pathToModuleName(rootModulePath, context, fileName);
 }

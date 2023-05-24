@@ -48,14 +48,14 @@ ambient_external_module.InterfaceDeclaredInAmbientExternalModule = function() {}
 ambient_external_module.user;
 // Derived from: declare module "./relative_ambient_external_module"
 /** @const */
-var relative_ambient_external_module = {};
+var test_files$declare_export_dts$relative_ambient_external_module = {};
 /**
  * @record
  * @struct
  */
-relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModule = function() {};
-/** @type {!relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModule} */
-relative_ambient_external_module.user;
+test_files$declare_export_dts$relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModule = function() {};
+/** @type {!test_files$declare_export_dts$relative_ambient_external_module.InterfaceDeclaredInRelativeAmbientExternalModule} */
+test_files$declare_export_dts$relative_ambient_external_module.user;
 // Generated from: test_files/declare_export_dts/declare_export_var.d.ts
 /** @const */
 var test_files$declare_export_dts$declare_export_var_ = {};

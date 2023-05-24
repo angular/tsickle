@@ -251,9 +251,8 @@ export function emit(
       if (isDts && host.shouldSkipTsickleProcessing(sourceFile.fileName)) {
         continue;
       }
-      const {output, diagnostics, rootNamespace} = generateExterns(
-          typeChecker, sourceFile, host, host.moduleResolutionHost,
-          program.getCompilerOptions());
+      const {output, diagnostics, rootNamespace} =
+          generateExterns(typeChecker, sourceFile, host);
       if (output) {
         externs[sourceFile.fileName] = {output, rootNamespace};
       }

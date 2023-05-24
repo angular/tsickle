@@ -37,7 +37,7 @@ describe('decorator_downlevel_transformer', () => {
       ]
     ]);
 
-    const {host, program} =
+    const {program} =
         testSupport.createProgramAndHost(sources, testSupport.compilerOptions);
     if (!allowErrors) {
       const diagnostics = ts.getPreEmitDiagnostics(program);
@@ -55,7 +55,6 @@ describe('decorator_downlevel_transformer', () => {
       googmodule: true,
       untyped: false,
       options: testSupport.compilerOptions,
-      moduleResolutionHost: host,
       rootDirsRelative: (filename) => filename,
       generateExtraSuppressions: false,
       transformDynamicImport: 'closure',

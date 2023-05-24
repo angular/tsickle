@@ -409,10 +409,16 @@ export class TypeTranslator {
     }
     // If from an ambient declaration, use and resolve the name from that. Otherwise, use the file
     // name from the (arbitrary) first declaration to mangle.
-    const fileName = ambientModuleDeclaration ?
-        ambientModuleDeclaration.name.text :
-        ts.getOriginalNode(declarations[0]).getSourceFile().fileName;
-    const mangled = moduleNameAsIdentifier(this.host, fileName);
+    let fileName;
+    let context;
+    if (ambientModuleDeclaration) {
+      fileName = ambientModuleDeclaration.name.text;
+      context = ambientModuleDeclaration.getSourceFile().fileName;
+    } else {
+      fileName = ts.getOriginalNode(declarations[0]).getSourceFile().fileName;
+      context = '';
+    }
+    const mangled = moduleNameAsIdentifier(this.host, fileName, context);
     return mangled + '.';
   }
 

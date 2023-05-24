@@ -9,7 +9,6 @@
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
-import * as path from './path';
 import {createGoogCall, createGoogLoadedModulesRegistration, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, reportDiagnostic} from './transformer_util';
 
 /**
@@ -29,17 +28,11 @@ export interface GoogModuleProcessorHost {
    * for each file.
    */
   fileNameToModuleId(fileName: string): string;
-  /**
-   * expand "import 'foo';" to "import 'foo/index';" if it points to an index
-   * file.
-   */
-  convertIndexImportShorthand?: boolean;
 
   /** Is the generated file meant for JSCompiler? */
   transformTypesToClosure?: boolean;
 
   options: ts.CompilerOptions;
-  moduleResolutionHost: ts.ModuleResolutionHost;
 
   /**
    * What dynamic `import()` should be transformed to.
@@ -329,45 +322,6 @@ export function namespaceForImportUrl(
 }
 
 /**
- * Convert from implicit `import {} from 'pkg'` to a full resolved file name,
- * including any `/index` suffix and also resolving path mappings. TypeScript
- * and many module loaders support the shorthand, but `goog.module` does not, so
- * tsickle needs to resolve the module name shorthand before generating
- * `goog.module` names.
- */
-export function resolveModuleName(
-    {options, moduleResolutionHost}: {
-      options: ts.CompilerOptions,
-      moduleResolutionHost: ts.ModuleResolutionHost
-    },
-    pathOfImportingFile: string, imported: string): string {
-  // The strategy taken here is to use ts.resolveModuleName() to resolve the
-  // import to a specific path, which resolves any /index and path mappings.
-  const resolved = ts.resolveModuleName(
-      imported, pathOfImportingFile, options, moduleResolutionHost);
-  if (!resolved || !resolved.resolvedModule) return imported;
-  const resolvedModule = resolved.resolvedModule.resolvedFileName;
-
-  // Check if the resolution went into node_modules.
-  // Note that the ResolvedModule returned by resolveModuleName() has an
-  // attribute isExternalLibraryImport that is documented with
-  // "True if resolvedFileName comes from node_modules", but actually it is just
-  // true if the absolute path includes node_modules, and is always true when
-  // tsickle itself is under a directory named node_modules.
-  const relativeResolved = path.relative(options.rootDir || '', resolvedModule);
-  if (relativeResolved.indexOf('node_modules') !== -1) {
-    // Imports into node_modules resolve through package.json and must be
-    // specially handled by the loader anyway.  Return the input.
-    return imported;
-  }
-
-  // Otherwise return the full resolved file name. This path will be turned into
-  // a module name using AnnotatorHost#pathToModuleName, which also takes care
-  // of baseUrl and rootDirs.
-  return resolved.resolvedModule.resolvedFileName;
-}
-
-/**
  * importPathToGoogNamespace converts a TS/ES module './import/path' into a
  * goog.module compatible namespace, handling regular imports and `goog:`
  * namespace imports.
@@ -384,9 +338,6 @@ function importPathToGoogNamespace(
     // Fix it to just "foo.bar".
     modName = nsImport;
   } else {
-    if (host.convertIndexImportShorthand) {
-      tsImport = resolveModuleName(host, file.fileName, tsImport);
-    }
     modName = host.pathToModuleName(file.fileName, tsImport);
   }
   return createSingleQuoteStringLiteral(modName);
@@ -1157,8 +1108,7 @@ export function commonJsToGoogmoduleTransformer(
       // 'tslib' has already been required.
       const resolvedModuleNames = [...namespaceToModuleVarName.keys()];
 
-      const tslibModuleName = host.pathToModuleName(
-          sf.fileName, resolveModuleName(host, sf.fileName, 'tslib'));
+      const tslibModuleName = host.pathToModuleName(sf.fileName, 'tslib');
 
       // Only add the extra require if it hasn't already been required
       if (resolvedModuleNames.indexOf(tslibModuleName) === -1) {

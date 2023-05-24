@@ -69,7 +69,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
-import {namespaceForImportUrl, resolveModuleName} from './googmodule';
+import {namespaceForImportUrl} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
@@ -157,8 +157,8 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
  * comment with \@fileoverview and #externs (see above for that).
  */
 export function generateExterns(
-    typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, host: AnnotatorHost,
-    moduleResolutionHost: ts.ModuleResolutionHost, options: ts.CompilerOptions):
+    typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
+    host: AnnotatorHost):
     {output: string, diagnostics: ts.Diagnostic[], rootNamespace: string} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
@@ -706,15 +706,13 @@ export function generateExterns(
    * reference the type in externs where import statements aren't allowed.
    */
   function getAliasPrefixForEsModule(moduleUri: ts.StringLiteral) {
-    // Calls to resolveModuleName, moduleNameAsIdentifier and
-    // host.pathToModuleName can incur file system accesses, which are slow.
-    // Make sure they are only called once and if/when needed.
-    const fullUri =
-        resolveModuleName(host, sourceFile.fileName, moduleUri.text);
-    const ambientModulePrefix = moduleNameAsIdentifier(host, fullUri);
-    const defaultPrefix = host.pathToModuleName(
-        sourceFile.fileName,
-        resolveModuleName(host, sourceFile.fileName, fullUri));
+    // Calls to moduleNameAsIdentifier and host.pathToModuleName can incur
+    // file system accesses, which are slow. Make sure they are only called
+    // once and if/when needed.
+    const ambientModulePrefix =
+        moduleNameAsIdentifier(host, moduleUri.text, sourceFile.fileName);
+    const defaultPrefix =
+        host.pathToModuleName(sourceFile.fileName, moduleUri.text);
     return (exportedSymbol: ts.Symbol) => {
       // While type_translator does add the mangled prefix for ambient
       // declarations, it only does so for non-aliased (i.e. not imported)
@@ -841,9 +839,8 @@ export function generateExterns(
             // file, so effectively this augments any existing module.
 
             const importName = decl.name.text;
-            const importedModuleName =
-                resolveModuleName({moduleResolutionHost, options}, sourceFile.fileName, importName);
-            const mangled = moduleNameAsIdentifier(host, importedModuleName);
+            const mangled =
+                moduleNameAsIdentifier(host, importName, sourceFile.fileName);
             emit(`// Derived from: declare module "${importName}"\n`);
             namespace = [mangled];
 

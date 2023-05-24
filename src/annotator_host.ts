@@ -37,18 +37,10 @@ export interface AnnotatorHost {
   /** If provided, a set of paths whose types should always generate as {?}. */
   unknownTypesPaths?: Set<string>;
   /**
-   * Convert shorthand "/index" imports to full path (include the "/index").
-   * Annotation will be slower because every import must be resolved.
-   */
-  convertIndexImportShorthand?: boolean;
-  /**
-   * Whether tsickle should insert goog.provide() calls into the externs generated for `.d.ts` files
-   * that are external modules.
+   * Whether tsickle should insert goog.provide() calls into the externs
+   * generated for `.d.ts` files that are external modules.
    */
   provideExternalModuleDtsNamespace?: boolean;
-
-  /** Used resolving file names to modules. */
-  moduleResolutionHost: ts.ModuleResolutionHost;
 
   /** Used together with the host for file name -> module name resolution. */
   options: ts.CompilerOptions;
@@ -60,6 +52,7 @@ export interface AnnotatorHost {
  * The mangled name is safe to use as a JavaScript identifier. It is used as a globally unique
  * prefix to scope symbols in externs file (see externs.ts).
  */
-export function moduleNameAsIdentifier(host: AnnotatorHost, fileName: string): string {
-  return host.pathToModuleName('', fileName).replace(/\./g, '$');
+export function moduleNameAsIdentifier(
+    host: AnnotatorHost, fileName: string, context = ''): string {
+  return host.pathToModuleName(context, fileName).replace(/\./g, '$');
 }

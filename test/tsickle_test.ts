@@ -32,13 +32,12 @@ describe('emitWithTsickle', () => {
       sources.set(
           path.join(tsCompilerOptions.rootDir!, fileName), tsSources[fileName]);
     }
-    const {program, host: tsHost} =
+    const {program} =
         testSupport.createProgramAndHost(sources, tsCompilerOptions);
     testSupport.expectDiagnosticsEmpty(ts.getPreEmitDiagnostics(program));
     const tsickleHost: tsickle.TsickleHost = {
       generateExtraSuppressions: false,
       googmodule: false,
-      convertIndexImportShorthand: true,
       transformDecorators: true,
       transformTypesToClosure: true,
       generateTsMigrationExportsShim: false,
@@ -58,7 +57,6 @@ describe('emitWithTsickle', () => {
       fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
       ...tsickleHostOverride,
       options: tsCompilerOptions,
-      moduleResolutionHost: tsHost,
       rootDirsRelative: testSupport.relativeToTsickleRoot,
       transformDynamicImport: 'closure'
     };

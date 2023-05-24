@@ -172,7 +172,6 @@ export function toClosureJS(
     logWarning: (warning) =>
         console.error(ts.formatDiagnostics([warning], compilerHost)),
     options,
-    moduleResolutionHost: compilerHost,
     generateExtraSuppressions: true,
     transformDynamicImport: 'nodejs',
   };

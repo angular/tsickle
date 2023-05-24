@@ -30,7 +30,6 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {hasExportingDecorator} from './decorators';
-import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
@@ -1057,11 +1056,6 @@ export function jsdocTransformer(
         // positions, the JSDoc comments still reference a valid Closure level
         // symbol.
 
-        const resolveModuleNameOptions = {
-          options: tsOptions,
-          moduleResolutionHost: host.moduleResolutionHost
-        };
-
         // No need to requireType side effect imports.
         // Note that this means tsickle does not report diagnostics for
         // side-effect path imports of JavaScript modules with conflicting
@@ -1081,9 +1075,8 @@ export function jsdocTransformer(
         // side-effect imports.
         if (!sym) return importDecl;
 
-        const importPath = googmodule.resolveModuleName(
-            resolveModuleNameOptions, sourceFile.fileName,
-            (importDecl.moduleSpecifier as ts.StringLiteral).text);
+        const importPath =
+            (importDecl.moduleSpecifier as ts.StringLiteral).text;
 
         moduleTypeTranslator.requireType(
             importDecl.moduleSpecifier, importPath, sym,

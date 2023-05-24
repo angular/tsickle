@@ -140,7 +140,6 @@ testFn('golden tests', () => {
               tsCompilerOptions.rootDir!,
               'test_files/ignored_ambient_external_module/ignored.d.ts'),
         ]),
-        convertIndexImportShorthand: true,
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,
         generateTsMigrationExportsShim: test.isTsmesEnabledTest,
@@ -160,7 +159,8 @@ testFn('golden tests', () => {
         shouldIgnoreWarningsForPath: () => false,
         pathToModuleName: (context, importPath) => {
           return testSupport.pathToModuleName(
-              tsCompilerOptions.rootDir!, context, importPath);
+              tsCompilerOptions.rootDir!, context, importPath,
+              tsCompilerOptions, tsHost);
         },
         fileNameToModuleId: (fileName) => {
           assertAbsolute(fileName);
@@ -168,7 +168,6 @@ testFn('golden tests', () => {
           return fileName.replace(/^\.\//, '');
         },
         options: tsCompilerOptions,
-        moduleResolutionHost: tsHost,
         rootDirsRelative,
         // TODO(nickreid): move to rootDirsRelative.
         // rootDirsRelative: testSupport.relativeToTsickleRoot,
