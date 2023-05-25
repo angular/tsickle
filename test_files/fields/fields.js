@@ -1,4 +1,3 @@
-// test_files/fields/fields.ts(41,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
 /**
  *
  * @fileoverview
@@ -81,7 +80,6 @@ function stringIdentity(x) {
 let fieldsTest = new FieldsTest(3);
 // Ensure the type is understood by Closure.
 fieldsTest.field1 = 'hi';
-/** @type {?} */
 let AnonymousClass = class {
     constructor() {
         this.field = 1;

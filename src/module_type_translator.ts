@@ -132,6 +132,8 @@ export class ModuleTypeTranslator {
     if (this.host.untyped) {
       return '?';
     }
+    // getOriginalNode(decl) is required because the type checker cannot type
+    // check synthesized nodes.
     context = ts.getOriginalNode(context);
     const typeChecker = this.typeChecker;
     if (!type) {

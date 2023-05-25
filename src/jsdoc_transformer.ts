@@ -809,10 +809,10 @@ export function jsdocTransformer(
             // for marked ones.
             const initializersMarkedAsUnknown =
                 !!decl.initializer && moduleTypeTranslator.isAlwaysUnknownSymbol(decl);
-            if (!initializersMarkedAsUnknown) {
-              // getOriginalNode(decl) is required because the type checker cannot type check
-              // synthesized nodes.
-              const typeStr = moduleTypeTranslator.typeToClosure(ts.getOriginalNode(decl));
+            if (!initializersMarkedAsUnknown &&
+                // No JSDoc needed for assigning a class expression to a var.
+                decl.initializer?.kind !== ts.SyntaxKind.ClassExpression) {
+              const typeStr = moduleTypeTranslator.typeToClosure(decl);
               // If @define is present then add the type to it, rather than adding a normal @type.
               const defineTag = localTags.find(({tagName}) => tagName === 'define');
               if (defineTag) {
