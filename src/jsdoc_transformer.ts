@@ -30,6 +30,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {hasExportingDecorator} from './decorators';
+import {GoogModuleProcessorHost} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as transformerUtil from './transformer_util';
@@ -496,9 +497,9 @@ function containsOptionalChainingOperator(node: ts.PropertyAccessExpression|ts.N
  * JSDoc annotations.
  */
 export function jsdocTransformer(
-    host: AnnotatorHost, tsOptions: ts.CompilerOptions, typeChecker: ts.TypeChecker,
-    diagnostics: ts.Diagnostic[]): (context: ts.TransformationContext) =>
-    ts.Transformer<ts.SourceFile> {
+    host: AnnotatorHost&GoogModuleProcessorHost, tsOptions: ts.CompilerOptions,
+    typeChecker: ts.TypeChecker, diagnostics: ts.Diagnostic[]):
+    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     return (sourceFile: ts.SourceFile) => {
       const moduleTypeTranslator = new ModuleTypeTranslator(

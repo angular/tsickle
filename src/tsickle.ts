@@ -233,8 +233,7 @@ export function emit(
   }
   if (host.addDtsClutzAliases) {
     tsTransformers.afterDeclarations!.push(
-        clutz.makeDeclarationTransformerFactory(
-            typeChecker, (path: string) => host.pathToModuleName('', path)));
+        clutz.makeDeclarationTransformerFactory(typeChecker, host));
   }
 
   const {diagnostics: tsDiagnostics, emitSkipped, emittedFiles} = program.emit(

@@ -14,9 +14,19 @@ import {ModulesManifest} from '../src/modules_manifest';
 
 import * as testSupport from './test_support';
 
-function processES5(fileName: string, content: string, {
-  isES5 = true,
-} = {}) {
+interface ResolvedNamespace {
+  name: string;
+  stripProperty?: string;
+}
+
+interface ProcessOptions {
+  isES5?: boolean;
+  pathToNamespaceMap?: Map<string, ResolvedNamespace>;
+}
+
+function processES5(
+    fileName: string, content: string,
+    {isES5 = true, pathToNamespaceMap}: ProcessOptions = {}) {
   const options = Object.assign({}, testSupport.compilerOptions);
   options.outDir = 'fakeOutDir';
   const rootDir = options.rootDir!;
@@ -24,8 +34,6 @@ function processES5(fileName: string, content: string, {
   fileName = path.join(rootDir, fileName);
   const tsHost =
       testSupport.createSourceCachingHost(new Map([[fileName, content]]));
-
-
   const host: googmodule.GoogModuleProcessorHost = {
     fileNameToModuleId: (fn: string) => path.relative(rootDir, fn),
     pathToModuleName: (context, fileName) => testSupport.pathToModuleName(
@@ -33,6 +41,13 @@ function processES5(fileName: string, content: string, {
     options,
     transformDynamicImport: 'closure',
   };
+  if (pathToNamespaceMap) {
+    host.jsPathToModuleName = (importPath: string) =>
+        pathToNamespaceMap.get(importPath)?.name;
+    host.jsPathToStripProperty = (importPath: string) =>
+        pathToNamespaceMap.get(importPath)?.stripProperty;
+  }
+
   const program = ts.createProgram([fileName], options, tsHost);
   // NB: this intentionally only checks for syntactical issues, but allows
   // semantic issues, such as missing imports to make the tests below easier to
@@ -591,6 +606,40 @@ describe('convertCommonJsToGoogModule', () => {
             });
         }); })();
       `).split(/\n/g));
+    });
+  });
+
+  describe('resolve clutz modules with host provided methods', () => {
+    const pathToNamespaceMap = new Map<string, ResolvedNamespace>([
+      ['path/to/mod', {name: 'my.mod'}],
+      ['path/to/strip/prop', {name: 'my.strip.prop', stripProperty: 'prop'}],
+    ]);
+
+    function expectCommonJs(fileName: string, content: string) {
+      return expect(processES5(fileName, content, {pathToNamespaceMap}).output);
+    }
+
+    it('resolves module names', () => {
+      expectCommonJs('a.ts', `import {x} from 'path/to/mod'; console.log(x);`)
+          .toBe(outdent(`
+            goog.module('a');
+            var module = module || { id: 'a.ts' };
+            goog.require('tslib');
+            var mod_1 = goog.require('my.mod');
+            console.log(mod_1.x);
+          `));
+    });
+
+    it('resolves strip property', () => {
+      expectCommonJs(
+          'a.ts', `import {prop} from 'path/to/strip/prop'; console.log(prop);`)
+          .toBe(outdent(`
+            goog.module('a');
+            var module = module || { id: 'a.ts' };
+            goog.require('tslib');
+            var prop_1 = goog.require('my.strip.prop');
+            console.log(prop_1);
+          `));
     });
   });
 });

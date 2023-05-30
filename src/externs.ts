@@ -69,7 +69,7 @@ import * as ts from 'typescript';
 
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
-import {namespaceForImportUrl} from './googmodule';
+import {GoogModuleProcessorHost, jsPathToNamespace} from './googmodule';
 import * as jsdoc from './jsdoc';
 import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
@@ -158,7 +158,7 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
  */
 export function generateExterns(
     typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
-    host: AnnotatorHost):
+    host: AnnotatorHost&GoogModuleProcessorHost):
     {output: string, diagnostics: ts.Diagnostic[], rootNamespace: string} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
@@ -423,7 +423,7 @@ export function generateExterns(
       }
       ts.forEachChild(node, collectPropertyNames);
     }
-  
+
     function findTypeIntersection(node: ts.Node) {
       if (ts.isIntersectionTypeNode(node)) {
         ts.forEachChild(node, collectPropertyNames);
@@ -431,7 +431,7 @@ export function generateExterns(
         ts.forEachChild(node, findTypeIntersection);
       }
     }
-  
+
     ts.forEachChild(decl, findTypeIntersection);
     if (propNames) {
       const helperName =
@@ -686,8 +686,8 @@ export function generateExterns(
       return;
     }
 
-    const googNamespace = namespaceForImportUrl(
-        moduleUri, importDiagnostics, moduleUri.text, moduleSymbol);
+    const googNamespace = jsPathToNamespace(
+        host, moduleUri, importDiagnostics, moduleUri.text, () => moduleSymbol);
     const isDefaultImport =
         ts.isImportDeclaration(decl) && !!decl.importClause?.name;
     if (googNamespace) {
@@ -695,7 +695,7 @@ export function generateExterns(
           googNamespace, isDefaultImport, moduleSymbol, () => googNamespace);
     } else {
       mtt.registerImportSymbolAliases(
-          null, isDefaultImport, moduleSymbol,
+          /* googNamespace= */ undefined, isDefaultImport, moduleSymbol,
           getAliasPrefixForEsModule(moduleUri));
     }
   }

@@ -12,16 +12,52 @@ import {ModulesManifest} from './modules_manifest';
 import {createGoogCall, createGoogLoadedModulesRegistration, createNotEmittedStatementWithComments, createSingleQuoteStringLiteral, reportDiagnostic} from './transformer_util';
 
 /**
- * Provides dependencies for and configures the behavior of
- * `importPathToGoogNamespace()` and `commonJsToGoogmoduleTransformer()`.
+ * Provides dependencies for and configures the goog namespace resolution
+ * behavior.
  */
 export interface GoogModuleProcessorHost {
   /**
    * Takes a context (ts.SourceFile.fileName of the current file) and the import
    * URL of an ES6 import and generates a googmodule module name for the
    * imported module.
+   *
+   * The import URL is guaranteed to point to another TypeScript file.
+   * JavaScript imports are resolved using `jsPathToModuleName`.
    */
   pathToModuleName(context: string, importPath: string): string;
+  /**
+   * Takes the import URL of an ES6 import and returns the googmodule module
+   * name for the imported module, iff the module is an original closure
+   * JavaScript file.
+   *
+   * Warning: If this function is present, GoogModule won't produce diagnostics
+   * for multiple provides.
+   */
+  jsPathToModuleName?(importPath: string): string|undefined;
+  /**
+   * Takes the import URL of an ES6 import and returns the property name that
+   * should be stripped from the usage.
+   *
+   * Example:
+   *
+   *     // workspace/lib/bar.js
+   *     goog.module('lib.Bar');
+   *     exports = class Bar {};
+   *     // workspace/main.ts
+   *     import {Bar} from 'workspace/lib/bar';
+   *     console.log(Bar);
+   *
+   * TypeScript transforms this into:
+   *
+   *     const bar_1 = require('workspace/lib/bar');
+   *     console.log(bar_1.Bar);
+   *
+   * If jsPathToStripProperty() returns 'Bar', GoogModule transform this into:
+   *
+   *     const bar_1 = goog.require('lib.Bar');
+   *     console.log(bar_1);
+   */
+  jsPathToStripProperty?(importPath: string): string|undefined;
   /**
    * If we do googmodule processing, we polyfill module.id, since that's
    * part of ES6 modules.  This function determines what the module.id will be
@@ -40,6 +76,55 @@ export interface GoogModuleProcessorHost {
    * If 'nodejs', it's the default behaviour, which is nodejs require.
    */
   transformDynamicImport: 'nodejs'|'closure';
+}
+
+/**
+ * Resolves an import path to its goog namespace, if it points to an original
+ * closure JavaScript file.
+ *
+ * Forwards to the same function on the host if present, otherwise relies on
+ * marker symbols in Clutz .d.ts files.
+ */
+export function jsPathToNamespace(
+    host: GoogModuleProcessorHost, context: ts.Node,
+    diagnostics: ts.Diagnostic[], importPath: string,
+    getModuleSymbol: () => ts.Symbol | undefined): string|undefined {
+  if (importPath.match(/^goog:/)) {
+    // This is a namespace import, of the form "goog:foo.bar".
+    // Fix it to just "foo.bar".
+    return importPath.substring('goog:'.length);
+  }
+
+  if (host.jsPathToModuleName) {
+    return host.jsPathToModuleName(importPath);
+  }
+
+  const moduleSymbol = getModuleSymbol();
+  if (!moduleSymbol) return;
+  return getGoogNamespaceFromClutzComments(
+      context, diagnostics, importPath, moduleSymbol);
+}
+
+/**
+ * Resolves an import path and returns the property name that should be
+ * stripped from usages.
+ *
+ * Forwards to the same function on the host if present, otherwise relies on
+ * marker symbols in Clutz .d.ts files.
+ */
+export function jsPathToStripProperty(
+    host: GoogModuleProcessorHost, importPath: string,
+    getModuleSymbol: () => ts.Symbol | undefined): string|undefined {
+  if (host.jsPathToStripProperty) {
+    return host.jsPathToStripProperty(importPath);
+  }
+
+  const moduleSymbol = getModuleSymbol();
+  if (!moduleSymbol) return;
+  const stripDefaultNameSymbol =
+      findLocalInDeclarations(moduleSymbol, '__clutz_strip_property');
+  if (!stripDefaultNameSymbol) return;
+  return literalTypeOfSymbol(stripDefaultNameSymbol) as string;
 }
 
 /**
@@ -254,52 +339,43 @@ function literalTypeOfSymbol(symbol: ts.Symbol): string|boolean|undefined {
  * been generated.
  */
 export function getOriginalGoogModuleFromComment(sf: ts.SourceFile): string|
-    null {
+    undefined {
   const leadingComments =
       sf.getFullText().substring(sf.getFullStart(), sf.getLeadingTriviaWidth());
   const match = /^\/\/ Original goog.module name: (.*)$/m.exec(leadingComments);
   if (match) {
     return match[1];
   }
-  return null;
+  return undefined;
 }
 
 /**
  * For a given import URL, extracts or finds the namespace to pass to
- * `goog.require` in three special cases:
+ * `goog.require`:
  *
- * 1) tsickle handles specially encoded URLs starting with `goog:`, e.g. for
- *    `import 'goog:foo.Bar';`, returns `foo.Bar`.
- * 2) source files can contain a special comment, which contains the goog.module
- *    name.
- * 3) ambient modules can contain a special marker symbol
+ * 1) source files can contain a comment, which contains the goog.module name.
+ * 2) ambient modules can contain a special marker symbol
  *    (`__clutz_actual_namespace`) that overrides the namespace to import.
  *
  * This is used to mark imports of Closure JavaScript sources and map them back
  * to the correct goog.require namespace.
  *
- * If the given moduleSymbol is undefined, e.g. because tsickle runs with no
- * type information available, (2) and (3) are disabled, but (1) works.
- *
- * If there's no special cased namespace, namespaceForImportUrl returns null.
+ * If there's no special cased namespace, getGoogNamespaceFromClutzComments
+ * returns null.
  *
  * This is independent of tsickle's regular pathToModuleId conversion logic and
  * happens before it.
  */
-export function namespaceForImportUrl(
+function getGoogNamespaceFromClutzComments(
     context: ts.Node, tsickleDiagnostics: ts.Diagnostic[], tsImport: string,
-    moduleSymbol: ts.Symbol|undefined): string|null {
-  if (tsImport.match(/^goog:/)) return tsImport.substring('goog:'.length);
-  if (!moduleSymbol) {
-    return null;  // No type information available, skip symbol resolution.
-  }
+    moduleSymbol: ts.Symbol): string|undefined {
   if (moduleSymbol.valueDeclaration &&
       ts.isSourceFile(moduleSymbol.valueDeclaration)) {
     return getOriginalGoogModuleFromComment(moduleSymbol.valueDeclaration);
   }
   const actualNamespaceSymbol =
       findLocalInDeclarations(moduleSymbol, '__clutz_actual_namespace');
-  if (!actualNamespaceSymbol) return null;
+  if (!actualNamespaceSymbol) return;
   const hasMultipleProvides =
       findLocalInDeclarations(moduleSymbol, '__clutz_multiple_provides');
   if (hasMultipleProvides) {
@@ -316,31 +392,26 @@ export function namespaceForImportUrl(
     reportDiagnostic(
         tsickleDiagnostics, context,
         `referenced module's __clutz_actual_namespace not a variable with a string literal type`);
-    return null;
+    return;
   }
   return actualNamespace;
 }
 
 /**
- * importPathToGoogNamespace converts a TS/ES module './import/path' into a
- * goog.module compatible namespace, handling regular imports and `goog:`
- * namespace imports.
+ * Converts a TS/ES module './import/path' into a goog.module compatible
+ * namespace, handling regular imports and `goog:` namespace imports.
  */
 function importPathToGoogNamespace(
     host: GoogModuleProcessorHost, context: ts.Node,
     diagnostics: ts.Diagnostic[], file: ts.SourceFile, tsImport: string,
-    moduleSymbol: ts.Symbol|undefined): ts.StringLiteral {
-  let modName: string;
+    getModuleSymbol: () => ts.Symbol | undefined): string {
   const nsImport =
-      namespaceForImportUrl(context, diagnostics, tsImport, moduleSymbol);
+      jsPathToNamespace(host, context, diagnostics, tsImport, getModuleSymbol);
   if (nsImport != null) {
-    // This is a namespace import, of the form "goog:foo.bar".
-    // Fix it to just "foo.bar".
-    modName = nsImport;
-  } else {
-    modName = host.pathToModuleName(file.fileName, tsImport);
+    return nsImport;
   }
-  return createSingleQuoteStringLiteral(modName);
+
+  return host.pathToModuleName(file.fileName, tsImport);
 }
 
 /**
@@ -512,17 +583,13 @@ export function commonJsToGoogmoduleTransformer(
         // Substitute "foo.default" with just "foo".
         return node.expression;
       }
-      // Alternatively, modules may export a well known symbol
-      // '__clutz_strip_property'.
-      const moduleSymbol = getAmbientModuleSymbol(typeChecker, moduleSpecifier);
-      if (!moduleSymbol) return node;
-      const stripDefaultNameSymbol =
-          findLocalInDeclarations(moduleSymbol, '__clutz_strip_property');
-      if (!stripDefaultNameSymbol) return node;
-      const stripName = literalTypeOfSymbol(stripDefaultNameSymbol);
+      const stripPropertyName = jsPathToStripProperty(
+          host, moduleSpecifier.text,
+          () => getAmbientModuleSymbol(typeChecker, moduleSpecifier));
+      if (!stripPropertyName) return node;
       // In this case, emit `modulename` instead of `modulename.property` if and
       // only if the accessed name matches the declared name.
-      if (stripName === node.name.text) return node.expression;
+      if (stripPropertyName === node.name.text) return node.expression;
       return node;
     };
 
@@ -565,7 +632,6 @@ export function commonJsToGoogmoduleTransformer(
           newIdent: ts.Identifier|undefined): ts.Statement|null {
         const importedUrl = extractRequire(call);
         if (!importedUrl) return null;
-        const moduleSymbol = getAmbientModuleSymbol(typeChecker, importedUrl);
         // if importPathToGoogNamespace reports an error, it has already been
         // reported when originally transforming the file to JS (e.g. to produce
         // the goog.requireType call). Side-effect imports generate no
@@ -575,14 +641,15 @@ export function commonJsToGoogmoduleTransformer(
         const ignoredDiagnostics: ts.Diagnostic[] = [];
         const imp = importPathToGoogNamespace(
             host, importedUrl, ignoredDiagnostics, sf, importedUrl.text,
-            moduleSymbol);
-        modulesManifest.addReferencedModule(sf.fileName, imp.text);
+            () => getAmbientModuleSymbol(typeChecker, importedUrl));
+        modulesManifest.addReferencedModule(sf.fileName, imp);
         const existingImport: ts.Identifier|undefined =
-            namespaceToModuleVarName.get(imp.text);
+            namespaceToModuleVarName.get(imp);
         let initializer: ts.Expression;
         if (!existingImport) {
-          if (newIdent) namespaceToModuleVarName.set(imp.text, newIdent);
-          initializer = createGoogCall('require', imp);
+          if (newIdent) namespaceToModuleVarName.set(imp, newIdent);
+          initializer =
+              createGoogCall('require', createSingleQuoteStringLiteral(imp));
         } else {
           initializer = existingImport;
         }
@@ -596,7 +663,7 @@ export function commonJsToGoogmoduleTransformer(
         // so we skip emitting that import as a goog.require.
         // We check the goog module name so that we also catch relative imports.
         if (newIdent && newIdent.escapedText === 'goog' &&
-            imp.text === 'google3.javascript.closure.goog') {
+            imp === 'google3.javascript.closure.goog') {
           return createNotEmittedStatementWithComments(sf, original);
         }
 
@@ -1054,14 +1121,14 @@ export function commonJsToGoogmoduleTransformer(
             resolveCall.expression.name.escapedText !== 'resolve') {
           return null;
         }
-        const moduleSymbol = getAmbientModuleSymbol(typeChecker, importedUrl);
         const ignoredDiagnostics: ts.Diagnostic[] = [];
         const imp = importPathToGoogNamespace(
             host, importedUrl, ignoredDiagnostics, sf, importedUrl.text,
-            moduleSymbol);
-        modulesManifest.addReferencedModule(sf.fileName, imp.text);
+            () => getAmbientModuleSymbol(typeChecker, importedUrl!));
+        modulesManifest.addReferencedModule(sf.fileName, imp);
 
-        return createGoogCall('requireDynamic', imp);
+        return createGoogCall(
+            'requireDynamic', createSingleQuoteStringLiteral(imp));
       }
 
       const visitForDynamicImport: ts.Visitor = (node) => {

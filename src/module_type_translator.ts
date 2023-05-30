@@ -102,7 +102,7 @@ export class ModuleTypeTranslator {
   constructor(
       readonly sourceFile: ts.SourceFile,
       readonly typeChecker: ts.TypeChecker,
-      private readonly host: AnnotatorHost,
+      private readonly host: AnnotatorHost&googmodule.GoogModuleProcessorHost,
       private readonly diagnostics: ts.Diagnostic[],
       private readonly isForExterns: boolean,
   ) {
@@ -257,13 +257,20 @@ export class ModuleTypeTranslator {
       return;  // Do not emit goog.requireType for paths marked as always
                // unknown.
     }
-    const nsImport = googmodule.namespaceForImportUrl(
-        context, this.diagnostics, importPath, moduleSymbol);
+    const nsImport = googmodule.jsPathToNamespace(
+        this.host, context, this.diagnostics, importPath, () => moduleSymbol);
     const requireTypePrefix = this.generateModulePrefix(importPath) +
         String(this.requireTypeModules.size + 1);
-    const moduleNamespace = nsImport !== null ?
+    const moduleNamespace = nsImport != null ?
         nsImport :
         this.host.pathToModuleName(this.sourceFile.fileName, importPath);
+    if (googmodule.jsPathToStripProperty(
+            this.host, importPath, () => moduleSymbol)) {
+      // Symbols using import-by-path with strip property should be mapped to a
+      // default import. This makes sure that type annotations get emitted as
+      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
+      isDefaultImport = true;
+    }
 
     // In TypeScript, importing a module for use in a type annotation does not
     // cause a runtime load. In Closure Compiler, goog.require'ing a module
@@ -297,7 +304,7 @@ export class ModuleTypeTranslator {
    */
   private qualifiedNameFromSymbolChain(
       leafSymbol: SymbolWithParent,
-      googNamespace: string|null,
+      googNamespace: string|undefined,
       isDefaultImport: boolean,
       aliasPrefix: string,
       namedDefaultImport: boolean,
@@ -357,16 +364,8 @@ export class ModuleTypeTranslator {
    * reuse the results, because it will start to break builds.
    */
   private registerImportTypeSymbolAliases(
-      googNamespace: string|null, isDefaultImport: boolean,
+      googNamespace: string|undefined, isDefaultImport: boolean,
       moduleSymbol: ts.Symbol, aliasPrefix: string) {
-    if (googmodule.extractModuleMarker(
-            moduleSymbol, '__clutz_strip_property')) {
-      // Symbols using import-by-path with strip property should be mapped to a
-      // default import. This makes sure that type annotations get emitted as
-      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
-      isDefaultImport = true;
-    }
-
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol) as
          SymbolWithParent[]) {
       // Some users import {default as SomeAlias} from 'goog:...';
@@ -439,16 +438,8 @@ export class ModuleTypeTranslator {
    *     exported symbol. The registered alias is <aliasPrefix>.<exportedName>.
    */
   registerImportSymbolAliases(
-      googNamespace: string|null, isDefaultImport: boolean,
+      googNamespace: string|undefined, isDefaultImport: boolean,
       moduleSymbol: ts.Symbol, getAliasPrefix: (symbol: ts.Symbol) => string) {
-    if (googmodule.extractModuleMarker(
-            moduleSymbol, '__clutz_strip_property')) {
-      // Symbols using import-by-path with strip property should be mapped to a
-      // default import. This makes sure that type annotations get emitted as
-      // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
-      isDefaultImport = true;
-    }
-
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
       const aliasPrefix = getAliasPrefix(sym);
       // Some users import {default as SomeAlias} from 'goog:...';
