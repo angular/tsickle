@@ -1140,7 +1140,9 @@ export function commonJsToGoogmoduleTransformer(
       };
 
       if (host.transformDynamicImport === 'closure') {
-        sf = ts.visitNode(sf, visitForDynamicImport, ts.isSourceFile);
+        // TODO: go/ts50upgrade - Remove after upgrade.
+        // tslint:disable-next-line:no-unnecessary-type-assertion
+        sf = ts.visitNode(sf, visitForDynamicImport, ts.isSourceFile)!;
       }
 
       // Convert each top level statement to goog.module.

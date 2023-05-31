@@ -827,7 +827,9 @@ export function jsdocTransformer(
             const updatedBinding = renameArrayBindings(decl.name, aliases);
             if (updatedBinding && aliases.length > 0) {
               const declVisited =
-                  ts.visitNode(decl, visitor, ts.isVariableDeclaration);
+                  // TODO: go/ts50upgrade - Remove after upgrade.
+                  // tslint:disable-next-line:no-unnecessary-type-assertion
+                  ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
               const newDecl = ts.factory.updateVariableDeclaration(
                   declVisited, updatedBinding, declVisited.exclamationToken,
                   declVisited.type, declVisited.initializer);
@@ -844,7 +846,10 @@ export function jsdocTransformer(
               continue;
             }
           }
-          const newDecl = ts.visitNode(decl, visitor, ts.isVariableDeclaration);
+          const newDecl =
+              // TODO: go/ts50upgrade - Remove after upgrade.
+              // tslint:disable-next-line:no-unnecessary-type-assertion
+              ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
           const newStmt = ts.factory.createVariableStatement(
               varStmt.modifiers,
               ts.factory.createVariableDeclarationList([newDecl], flags));
@@ -1316,7 +1321,10 @@ export function jsdocTransformer(
           updatedElements.push(ts.factory.updateBindingElement(
               e, e.dotDotDotToken,
               ts.visitNode(e.propertyName, visitor, ts.isPropertyName),
-              updatedBindingName, ts.visitNode(e.initializer, visitor)));
+              updatedBindingName,
+              // TODO: go/ts50upgrade - Remove after upgrade.
+              // tslint:disable-next-line:no-unnecessary-type-assertion
+              ts.visitNode(e.initializer, visitor) as ts.Expression));
         }
         return ts.factory.updateArrayBindingPattern(node, updatedElements);
       }
@@ -1398,15 +1406,24 @@ export function jsdocTransformer(
         if (ts.isBlock(node.statement)) {
           updatedStatement = ts.factory.updateBlock(node.statement, [
             ...aliasDecls,
-            ...ts.visitNode(node.statement, visitor, ts.isBlock).statements
+            // TODO: go/ts50upgrade - Remove after upgrade.
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            ...ts.visitNode(node.statement, visitor, ts.isBlock)!.statements
           ]);
         } else {
-          updatedStatement = ts.factory.createBlock(
-              [...aliasDecls, ts.visitNode(node.statement, visitor)]);
+          updatedStatement = ts.factory.createBlock([
+            ...aliasDecls,
+            // TODO: go/ts50upgrade - Remove after upgrade.
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            ts.visitNode(node.statement, visitor) as ts.Statement
+          ]);
         }
         return ts.factory.updateForOfStatement(
             node, node.awaitModifier, updatedInitializer,
-            ts.visitNode(node.expression, visitor), updatedStatement);
+            // TODO: go/ts50upgrade - Remove after upgrade.
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            ts.visitNode(node.expression, visitor) as ts.Expression,
+            updatedStatement);
       }
 
       function visitor(node: ts.Node): ts.Node|ts.Node[] {
