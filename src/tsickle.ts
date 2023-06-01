@@ -188,10 +188,12 @@ export function emit(
   const tsMigrationExportsShimFiles = new Map<string, string>();
   const tsickleSourceTransformers: Array<ts.TransformerFactory<ts.SourceFile>> =
       [];
-  tsickleSourceTransformers.push(
-      tsmes.createTsMigrationExportsShimTransformerFactory(
-          typeChecker, host, modulesManifest, tsickleDiagnostics,
-          tsMigrationExportsShimFiles));
+  if (host.generateTsMigrationExportsShim) {
+    tsickleSourceTransformers.push(
+        tsmes.createTsMigrationExportsShimTransformerFactory(
+            typeChecker, host, modulesManifest, tsickleDiagnostics,
+            tsMigrationExportsShimFiles));
+  }
 
   if (host.transformTypesToClosure) {
     // Only add @suppress {checkTypes} comments when also adding type
