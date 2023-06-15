@@ -456,6 +456,16 @@ export function generateExterns(
       reportDiagnostic(diagnostics, decl, 'anonymous type in externs');
       return;
     }
+
+    // gbigint, as defined in
+    // google3/third_party/java_src/clutz/src/resources/closure.lib.d.ts, is
+    // defined separately in TypeScript and JavaScript.
+    if (name.escapedText === 'gbigint'
+        // Just the terminal filename so we can test this.
+        && decl.getSourceFile().fileName.endsWith('closure.lib.d.ts')) {
+      return;
+    }
+
     const typeName = namespace.concat([name.getText()]).join('.');
     if (PREDECLARED_CLOSURE_EXTERNS_LIST.indexOf(typeName) >= 0) return;
 
