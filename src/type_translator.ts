@@ -592,6 +592,13 @@ export class TypeTranslator {
           }
           return innerSymbol ?? '?';
         }
+        // gbigint, as defined in
+        // google3/third_party/java_src/clutz/src/resources/closure.lib.d.ts, is
+        // defined separately in TypeScript and JavaScript.
+        // In JS, gbigint is treated as an object so needs !.
+        if (type.aliasSymbol?.escapedName === 'gbigint') {
+          return '!gbigint';
+        }
         this.warn(`unhandled type flags: ${ts.TypeFlags[type.flags]}`);
         return '?';
       case ts.TypeFlags.Index:

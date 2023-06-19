@@ -76,7 +76,6 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   experimentalDecorators: true,
   module: ts.ModuleKind.CommonJS,
   strictNullChecks: true,
-  noImplicitUseStrict: true,
   allowJs: false,
   importHelpers: true,
   noEmitHelpers: true,
