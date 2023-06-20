@@ -42,7 +42,7 @@ const asyncTopLevelArrowFunction = (/**
  * @param {string} param
  * @return {!Promise<number>}
  */
-(param) => tslib_1.__awaiter(this, void 0, void 0, function* () {
+(param) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
     /** @type {number} */
     const s = yield 3;
     return s;
@@ -122,12 +122,12 @@ if (false) {
 const asyncArrowFn = (/**
  * @return {!Promise<void>}
  */
-() => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
+() => tslib_1.__awaiter(void 0, void 0, void 0, function* () { }));
 /** @type {function(): !Promise<void>} */
 exports.exportedAsyncArrowFn = (/**
  * @return {!Promise<void>}
  */
-() => tslib_1.__awaiter(this, void 0, void 0, function* () { }));
+() => tslib_1.__awaiter(void 0, void 0, void 0, function* () { }));
 /**
  * @return {function(): !Promise<number>}
  * @this {*}
