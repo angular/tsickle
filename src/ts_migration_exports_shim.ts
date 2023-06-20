@@ -58,6 +58,12 @@ export function createTsMigrationExportsShimTransformerFactory(
           src, srcIds, typeChecker, host, manifest, tsickleDiagnostics);
       const tsmesFile = srcIds.google3PathWithoutExtension() + '.tsmes.js';
       const dtsFile = srcIds.google3PathWithoutExtension() + '.tsmes.d.ts';
+      if (!host.generateTsMigrationExportsShim) {
+        // we need to create the Generator to make sure there aren't any shim
+        // related function calls if generateTsMigrationExportsShim isn't true,
+        // but we don't want to actually write any files, so return
+        return src;
+      }
       if (!generator.foundMigrationExportsShim()) {
         // If there is no export shims calls, we still need to generate empty
         // files, so that we always produce a predictable set of files.
