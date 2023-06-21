@@ -1,19 +1,12 @@
-// test_files/type_and_value/type_and_value.ts(22,5): warning TS0: unhandled
-// anonymous type with constructor signature but no declaration
-// test_files/type_and_value/type_and_value.ts(25,5): warning TS0: anonymous
-// type has no symbol test_files/type_and_value/type_and_value.ts(31,5): warning
-// TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(34,5): warning TS0: type/symbol
-// conflict for TemplatizedTypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(41,5): warning TS0: type/symbol
-// conflict for ExtTypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(44,5): warning TS0: anonymous
-// type has no symbol test_files/type_and_value/type_and_value.ts(51,41):
-// warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(51,1): warning TS0: dropped
-// implements: {?} type test_files/type_and_value/type_and_value.ts(1,1):
-// warning TS0: file comments must be at the top of the file, separated from the
-// file body by an empty line.
+// test_files/type_and_value/type_and_value.ts(22,5): warning TS0: unhandled anonymous type with constructor signature but no declaration
+// test_files/type_and_value/type_and_value.ts(25,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(31,5): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(34,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(41,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(44,5): warning TS0: anonymous type has no symbol
+// test_files/type_and_value/type_and_value.ts(51,41): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(51,1): warning TS0: dropped implements: {?} type
+// test_files/type_and_value/type_and_value.ts(1,1): warning TS0: file comments must be at the top of the file, separated from the file body by an empty line.
 /**
  * @fileoverview added by tsickle
  * Generated from: test_files/type_and_value/type_and_value.ts
