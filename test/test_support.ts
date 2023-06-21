@@ -76,6 +76,9 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   experimentalDecorators: true,
   module: ts.ModuleKind.CommonJS,
   strictNullChecks: true,
+  // TODO: b/285332972 - noImplicitUseStrict is deprecated. Investigate failing
+  // async_functions test.
+  ignoreDeprecations: '5.0',
   allowJs: false,
   importHelpers: true,
   noEmitHelpers: true,
@@ -179,6 +182,11 @@ export function createSourceCachingHost(
     }
     return originalFileExists.call(host, fileName);
   };
+
+  // The default CompilerHost created by the compiler resolves symlinks.
+  // We don't want to do that here. see also
+  // https://github.com/Microsoft/TypeScript/pull/12020.
+  host.realpath = (s: string): string => s;
 
   return host;
 }
