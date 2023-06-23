@@ -616,6 +616,15 @@ export class TypeTranslator {
         // Note also that in a more complex union, e.g. boolean|number, then it's a union of three
         // things (true|false|number) and ts.TypeFlags.Boolean doesn't show up at all.
         if (type.flags & ts.TypeFlags.Union) {
+          if (type.flags === (ts.TypeFlags.EnumLiteral | ts.TypeFlags.Union) &&
+              type.symbol) {
+            // TS5.0 started to treat number enums as a union of its values. We
+            // want the name of the enum type if possible, not the union of the
+            // values.
+            const name = this.symbolToString(type.symbol);
+            return name ? '!' + name :
+                          this.translateUnion(type as ts.UnionType);
+          }
           return this.translateUnion(type as ts.UnionType);
         }
 
