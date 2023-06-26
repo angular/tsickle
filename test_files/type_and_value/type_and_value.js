@@ -4,8 +4,8 @@
 // test_files/type_and_value/type_and_value.ts(34,5): warning TS0: type/symbol conflict for TemplatizedTypeAndValue, using {?} for now
 // test_files/type_and_value/type_and_value.ts(41,5): warning TS0: type/symbol conflict for ExtTypeAndValue, using {?} for now
 // test_files/type_and_value/type_and_value.ts(44,5): warning TS0: anonymous type has no symbol
-// test_files/type_and_value/type_and_value.ts(49,41): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
-// test_files/type_and_value/type_and_value.ts(49,1): warning TS0: dropped implements: {?} type
+// test_files/type_and_value/type_and_value.ts(51,41): warning TS0: type/symbol conflict for TypeAndValue, using {?} for now
+// test_files/type_and_value/type_and_value.ts(51,1): warning TS0: dropped implements: {?} type
 // test_files/type_and_value/type_and_value.ts(1,1): warning TS0: file comments must be at the top of the file, separated from the file body by an empty line.
 /**
  * @fileoverview added by tsickle
@@ -55,7 +55,9 @@ let extUseAsType;
 let extUseAsValue = ExtTypeAndValue;
 /** @type {?} */
 let extUseEnumAsValue = ExtEnum;
-/** @type {ExtEnum} */
+// TODO: b/285637193 - Fix type translator so it produces ExtEnum in the JS type
+// annotation.
+/** @type {ExtEnum.A} */
 let extUseEnumAsType;
 // ImplementsTypeAndValue implements a symbol that resolves to both a type and a
 // value, and thus the @implements clause is dropped by tsickle.
