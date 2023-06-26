@@ -31,7 +31,6 @@ describe('golden file tests', () => {
         'third_party/tslib/externs.js',
         'third_party/tslib/tslib.js',
         'test/googbase_fake.js',
-        'test_files/temp_externs.js',
         'test_files/augment/shim.js',
         'test_files/clutz_type_value.no_externs/type_value.js',
         'test_files/clutz.no_externs/default_export.js',
