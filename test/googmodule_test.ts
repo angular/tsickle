@@ -518,7 +518,7 @@ describe('convertCommonJsToGoogModule', () => {
         goog.module('project.file');
         var module = module || { id: 'project/file.ts' };
         const tslib_1 = goog.require('tslib');
-        (() => tslib_1.__awaiter(this, void 0, void 0, function* () {
+        (() => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
             const starImport = yield goog.requireDynamic('project.relpath');
         }))();
       `).split(/\n/g));
@@ -539,9 +539,8 @@ describe('convertCommonJsToGoogModule', () => {
       expect(beforeLines).toEqual(outdent(`
         goog.module('project.file');
         var module = module || { id: 'project/file.ts' };
-        var _this = this;
         var tslib_1 = goog.require('tslib');
-        (function () { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        (function () { return tslib_1.__awaiter(void 0, void 0, void 0, function () {
             var starImport;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
@@ -571,7 +570,7 @@ describe('convertCommonJsToGoogModule', () => {
         goog.module('project.file');
         var module = module || { id: 'project/file.ts' };
         const tslib_1 = goog.require('tslib');
-        (() => tslib_1.__awaiter(this, void 0, void 0, function* () {
+        (() => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
             const { Foo } = yield goog.requireDynamic('project.relpath');
         }))();
       `).split(/\n/g));
@@ -592,9 +591,8 @@ describe('convertCommonJsToGoogModule', () => {
       expect(beforeLines).toEqual(outdent(`
         goog.module('project.file');
         var module = module || { id: 'project/file.ts' };
-        var _this = this;
         var tslib_1 = goog.require('tslib');
-        (function () { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        (function () { return tslib_1.__awaiter(void 0, void 0, void 0, function () {
             var Foo;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {

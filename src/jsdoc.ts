@@ -126,6 +126,7 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'requires',
   'return',
   'returns',
+  'sassGeneratedCssTs',
   'see',
   'struct',
   'suppress',
