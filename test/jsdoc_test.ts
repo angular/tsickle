@@ -30,14 +30,20 @@ describe('jsdoc.parse', () => {
   *    line comment
   * @return foobar
   * @nosideeffects
+  * @nospacebeforebracket{text in bracket}
   */`;
     expect(parse(source)).toEqual({
       tags: [
         {tagName: 'param', parameterName: 'foo'},
         {tagName: 'param', parameterName: 'indented', text: 'from line start.'},
-        {tagName: 'param', parameterName: 'bar', text: 'multiple\n   line comment'},
+        {
+          tagName: 'param',
+          parameterName: 'bar',
+          text: 'multiple\n   line comment'
+        },
         {tagName: 'return', text: 'foobar'},
         {tagName: 'nosideeffects'},
+        {tagName: 'nospacebeforebracket', text: '{text in bracket}'},
       ]
     });
   });

@@ -230,7 +230,7 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
   const tags: Tag[] = [];
   const warnings: string[] = [];
   for (const line of lines) {
-    let match = line.match(/^\s*@(\S+) *(.*)/);
+    let match = line.match(/^\s*@([^\s{]+) *({?.*)/);
     if (match) {
       let [_, tagName, text] = match;
       if (tagName === 'returns') {
