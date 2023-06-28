@@ -42,8 +42,6 @@ let extUseAsType: ExtTypeAndValue;
 let extUseAsValue = ExtTypeAndValue;
 
 let extUseEnumAsValue = ExtEnum;
-// TODO: b/285637193 - Fix type translator so it produces ExtEnum in the JS type
-// annotation.
 let extUseEnumAsType: ExtEnum;
 
 // ImplementsTypeAndValue implements a symbol that resolves to both a type and a

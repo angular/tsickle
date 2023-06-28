@@ -511,6 +511,13 @@ export class TypeTranslator {
           this.warn(`EnumType without a symbol`);
           return '?';
         }
+        // In TS5.0, enum types are represented as a union of enum literals.
+        // Each literal in the enum is a ts.TypeFlags.Enum. If the symbol is
+        // marked as being an enum member, translate it as the parent type (the
+        // name of the enum type).
+        if (type.symbol.flags & ts.SymbolFlags.EnumMember) {
+          return this.translateEnumLiteral(type);
+        }
         return this.symbolToString(type.symbol) || '?';
       case ts.TypeFlags.ESSymbol:
       case ts.TypeFlags.UniqueESSymbol:
