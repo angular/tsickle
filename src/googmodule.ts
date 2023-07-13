@@ -524,6 +524,37 @@ export function getAmbientModuleSymbol(
   return moduleSymbol;
 }
 
+interface ExportedDeclaration {
+  declarationSymbol: ts.Symbol;
+  exportName: string;
+}
+
+/**
+ * Gets exports of the given source file which refer to a declaration in this
+ * same file. Does not include re-exports.
+ */
+function getExportedDeclarations(
+    sourceFile: ts.SourceFile,
+    typeChecker: ts.TypeChecker): ExportedDeclaration[] {
+  const moduleSymbol = typeChecker.getSymbolAtLocation(sourceFile);
+  if (!moduleSymbol) return [];
+
+  const exportSymbols = typeChecker.getExportsOfModule(moduleSymbol);
+  const result: ExportedDeclaration[] = [];
+  for (const exportSymbol of exportSymbols) {
+    const declarationSymbol = exportSymbol.flags & ts.SymbolFlags.Alias ?
+        typeChecker.getAliasedSymbol(exportSymbol) :
+        exportSymbol;
+    const declarationFile = declarationSymbol.valueDeclaration?.getSourceFile();
+    if (declarationFile?.fileName !== sourceFile.fileName) continue;
+    result.push({
+      declarationSymbol,
+      exportName: exportSymbol.name,
+    });
+  }
+  return result;
+}
+
 /**
  * commonJsToGoogmoduleTransformer returns a transformer factory that converts
  * TypeScript's CommonJS module emit to Closure Compiler compatible goog.module
@@ -600,6 +631,8 @@ export function commonJsToGoogmoduleTransformer(
       // with earlier TS versions.
       // tslint:disable-next-line:no-any
       if ((sf as any)['kind'] !== ts.SyntaxKind.SourceFile) return sf;
+
+      const exportedDeclarations = getExportedDeclarations(sf, typeChecker);
 
       let moduleVarCounter = 1;
       /**
@@ -738,9 +771,9 @@ export function commonJsToGoogmoduleTransformer(
       }
 
 
-      interface RewrittenChainInitializer {
-        statements: ts.Statement[];
-        exportName: string;
+      interface RewrittenExportsAssignment {
+        statement: ts.Statement;
+        exports: Array<{statement: ts.Statement, name: string}>;
       }
 
       /**
@@ -752,7 +785,7 @@ export function commonJsToGoogmoduleTransformer(
        */
       function maybeRewriteChainInitializer(
           stmt: ts.VariableStatement,
-          decl: ts.VariableDeclaration): RewrittenChainInitializer|null {
+          decl: ts.VariableDeclaration): RewrittenExportsAssignment|null {
         const originalNode = ts.getOriginalNode(stmt);
         if (!originalNode || !ts.isClassDeclaration(originalNode)) {
           return null;
@@ -781,12 +814,83 @@ export function commonJsToGoogmoduleTransformer(
             ts.factory.updateVariableDeclarationList(
                 stmt.declarationList, [updatedDecl]));
         return {
-          statements: [
-            newStmt,
-            ts.factory.createExpressionStatement(
-                ts.factory.createAssignment(decl.initializer.left, decl.name))
-          ],
-          exportName,
+          statement: newStmt,
+          exports: [{
+            statement: ts.factory.createExpressionStatement(
+                ts.factory.createAssignment(decl.initializer.left, decl.name)),
+            name: exportName,
+          }],
+        };
+      }
+
+      /**
+       * Starting with version 5.1, TypeScript emits exports assignment in
+       * CommonJS inside the iife argument of namespaces and enums:
+       *
+       *     var Foo;
+       *     (function (Foo) {
+       *     })(Foo || (exports.Foo = exports.Bar = Foo = {});
+       *
+       * This function expects to be called with the second statement (the call
+       * expression). It returns exports assignments as separate statements.
+       *
+       * Note: At the time the transformer runs the exports assignments aren't
+       * in the AST. They are added in the onSubstituteNode callback. See:
+       * https://github.com/microsoft/TypeScript/blob/d8585688dd1bc8d82b7b5daab9af83ae1e3de197/src/compiler/transformers/module/module.ts#L2341-L2367
+       */
+      function maybeRewriteExportsAssignmentInIifeArguments(
+          stmt: ts.ExpressionStatement): RewrittenExportsAssignment|null {
+        if (!ts.isCallExpression(stmt.expression)) return null;
+
+        // Checks call: `(function (...) { ... })(single_argument)`
+        const call = stmt.expression;
+        if (!ts.isParenthesizedExpression(call.expression) ||
+            !ts.isFunctionExpression(call.expression.expression) ||
+            call.arguments.length !== 1) {
+          return null;
+        }
+
+        // Checks argument: `identifier || (identifier = {})`
+        const arg = call.arguments[0];
+        if (!ts.isBinaryExpression(arg) || !ts.isIdentifier(arg.left) ||
+            arg.operatorToken.kind !== ts.SyntaxKind.BarBarToken ||
+            !ts.isParenthesizedExpression(arg.right) ||
+            !ts.isBinaryExpression(arg.right.expression) ||
+            arg.right.expression.operatorToken.kind !==
+                ts.SyntaxKind.EqualsToken ||
+            !ts.isIdentifier(arg.right.expression.left) ||
+            !ts.isObjectLiteralExpression(arg.right.expression.right)) {
+          return null;
+        }
+
+        const name = arg.right.expression.left;
+        const nameSymbol = typeChecker.getSymbolAtLocation(name)!;
+        const matchingExports = exportedDeclarations.filter(
+            decl => decl.declarationSymbol === nameSymbol);
+
+        // Only needs modification if it's exported. Note that it may be
+        // exported multiple times under different names, e.g.:
+        //     export enum Foo {}
+        //     export {Foo as Bar};
+        if (matchingExports.length === 0) return null;
+
+        // Stop TypeScript from adding inline exports assignments in
+        // onSubstituteNode callback.
+        ts.setEmitFlags(arg.right.expression, ts.EmitFlags.NoSubstitution);
+
+        const exportNames = matchingExports.map(decl => decl.exportName);
+        return {
+          statement: stmt,
+          exports: exportNames.map(
+              exportName => ({
+                statement: ts.factory.createExpressionStatement(
+                    ts.factory.createAssignment(
+                        ts.factory.createPropertyAccessExpression(
+                            ts.factory.createIdentifier('exports'),
+                            ts.factory.createIdentifier(exportName)),
+                        name)),
+                name: exportName,
+              })),
         };
       }
 
@@ -1035,6 +1139,24 @@ export function commonJsToGoogmoduleTransformer(
               exportsSeen.add(exportName);
             }
 
+            // Checks for inline exports assignments as they are emitted for
+            // exported namespaces and enums, e.g.:
+            //   (function (Foo) {
+            //   })(Foo || (exports.Foo = exports.Bar = Foo = {});
+            // and moves the exports assignments to a separate statement.
+            const exportInIifeArguments =
+                maybeRewriteExportsAssignmentInIifeArguments(exprStmt);
+            if (exportInIifeArguments) {
+              stmts.push(exportInIifeArguments.statement);
+              for (const newExport of exportInIifeArguments.exports) {
+                if (!exportsSeen.has(newExport.name)) {
+                  stmts.push(newExport.statement);
+                  exportsSeen.add(newExport.name);
+                }
+              }
+              return;
+            }
+
             // Do not emit `exports.X = ` prefix before `X = ...` expressions.
             // Such statements are produced in particular for legacy decorators,
             // and the export existence has already been ensured for them by
@@ -1128,8 +1250,13 @@ export function commonJsToGoogmoduleTransformer(
             const declWithChainInitializer =
                 maybeRewriteChainInitializer(varStmt, decl);
             if (declWithChainInitializer) {
-              stmts.push(...declWithChainInitializer.statements);
-              exportsSeen.add(declWithChainInitializer.exportName);
+              stmts.push(declWithChainInitializer.statement);
+              for (const newExport of declWithChainInitializer.exports) {
+                if (!exportsSeen.has(newExport.name)) {
+                  stmts.push(newExport.statement);
+                  exportsSeen.add(newExport.name);
+                }
+              }
               return;
             }
 
