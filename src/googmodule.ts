@@ -1170,6 +1170,17 @@ export function commonJsToGoogmoduleTransformer(
               if (ts.isClassDeclaration(originalNode)) {
                 ts.setEmitFlags(
                     exprStmt.expression, ts.EmitFlags.NoSubstitution);
+
+                const comments = ts.getSyntheticLeadingComments(exprStmt);
+                if (!comments || comments.length === 0) {
+                  // Suppress visibility check for legacy decorators, otherwise
+                  // any decorated final class causes errors.
+                  ts.addSyntheticLeadingComment(
+                      exprStmt, ts.SyntaxKind.MultiLineCommentTrivia,
+                      '* @suppress {visibility} ',
+                      /* trailing newline */ true);
+                }
+
                 stmts.push(exprStmt);
                 return;
               }

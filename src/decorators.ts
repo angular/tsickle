@@ -237,6 +237,9 @@ function sanitizeDecorateComments(comments: ts.SynthesizedComment[]):
   return sanitized;
 }
 
+// TODO(b/277272562): remove transformDecoratorJsdoc() transformer after TS5.1
+// is released, as it no longer duplicates the original comments to `ident =
+// tslib_1.__decorate(...)` statements.
 /**
  * A transformation pass that removes the annotations contained in
  * TAGS_CONFLICTING_WITH_DECORATE from toplevel statements of the form `ident =

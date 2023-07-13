@@ -159,6 +159,9 @@ if (false) {
 }
 let DecoratedClass = class DecoratedClass {
 };
+/**
+ * @suppress {visibility}
+ */
 DecoratedClass = tslib_1.__decorate([
     classDecorator
 ], DecoratedClass);
