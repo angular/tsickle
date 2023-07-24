@@ -433,27 +433,6 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
 }
 
 /**
- * Checks whether expr is of the form `exports.abc = identifier` and if so,
- * returns the string abc, otherwise returns null.
- */
-function isExportsAssignment(expr: ts.Expression): string|null {
-  // Verify this looks something like `exports.abc = ...`.
-  if (!ts.isBinaryExpression(expr)) return null;
-  if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return null;
-
-  // Verify the left side of the expression is an access on `exports`.
-  if (!ts.isPropertyAccessExpression(expr.left)) return null;
-  if (!ts.isIdentifier(expr.left.expression)) return null;
-  if (expr.left.expression.escapedText !== 'exports') return null;
-
-  // Check whether right side of assignment is an identifier.
-  if (!ts.isIdentifier(expr.right)) return null;
-
-  // Return the property name as string.
-  return expr.left.name.escapedText.toString();
-}
-
-/**
  * Convert a series of comma-separated expressions
  *   x = foo, y(), z.bar();
  * with statements
@@ -525,7 +504,9 @@ export function getAmbientModuleSymbol(
 }
 
 interface ExportedDeclaration {
-  declarationSymbol: ts.Symbol;
+  declarationSymbol: ts.Symbol&{
+    valueDeclaration: ts.Declaration;
+  };
   exportName: string;
 }
 
@@ -548,11 +529,36 @@ function getExportedDeclarations(
     const declarationFile = declarationSymbol.valueDeclaration?.getSourceFile();
     if (declarationFile?.fileName !== sourceFile.fileName) continue;
     result.push({
-      declarationSymbol,
+      declarationSymbol:
+          declarationSymbol as ts.Symbol & {valueDeclaration: ts.Declaration},
       exportName: exportSymbol.name,
     });
   }
   return result;
+}
+
+/**
+ * Returns true if class is decorated with experimental legacy decorators. The
+ * class is extended with a __decorate call if either itself or one of the
+ * constructor parameters have a decorator.
+ */
+function isClassDecorated(node: ts.ClassDeclaration): boolean {
+  if (hasDecorator(node)) return true;
+  const ctor = getFirstConstructorWithBody(node);
+  if (!ctor) return false;
+  return ctor.parameters.some(p => hasDecorator(p));
+}
+
+function getFirstConstructorWithBody(node: ts.ClassLikeDeclaration):
+    ts.ConstructorDeclaration|undefined {
+  return node.members.find(
+      (member): member is ts.ConstructorDeclaration =>
+          ts.isConstructorDeclaration(member) && !!member.body);
+}
+
+function hasDecorator(node: ts.HasDecorators): boolean {
+  const decorators = ts.getDecorators(node);
+  return !!decorators && decorators.length > 0;
 }
 
 /**
@@ -770,10 +776,16 @@ export function commonJsToGoogmoduleTransformer(
         return ts.setOriginalNode(ts.setTextRange(newStmt, original), original);
       }
 
+      interface ExportsAssignment extends ts.ExpressionStatement {
+        expression: ts.BinaryExpression&{
+          left: ts.PropertyAccessExpression;
+          right: ts.Identifier;
+        };
+      }
 
       interface RewrittenExportsAssignment {
         statement: ts.Statement;
-        exports: Array<{statement: ts.Statement, name: string}>;
+        exports: ExportsAssignment[];
       }
 
       /**
@@ -783,15 +795,12 @@ export function commonJsToGoogmoduleTransformer(
        * JSC_EXPORT_NOT_A_STATEMENT error), transform it into separate
        * statements `let X = Z;` and `exports.Y = X;`.
        */
-      function maybeRewriteChainInitializer(
+      function maybeRewriteDecoratedClassChainInitializer(
           stmt: ts.VariableStatement,
           decl: ts.VariableDeclaration): RewrittenExportsAssignment|null {
         const originalNode = ts.getOriginalNode(stmt);
-        if (!originalNode || !ts.isClassDeclaration(originalNode)) {
-          return null;
-        }
-        const declOriginalNode = ts.getOriginalNode(decl);
-        if (declOriginalNode !== originalNode) {
+        if (!originalNode || !ts.isClassDeclaration(originalNode) ||
+            !isClassDecorated(originalNode)) {
           return null;
         }
 
@@ -804,8 +813,6 @@ export function commonJsToGoogmoduleTransformer(
           return null;
         }
 
-        const exportName = decl.initializer.left.name.text;
-
         const updatedDecl = ts.factory.updateVariableDeclaration(
             decl, decl.name, decl.exclamationToken, decl.type,
             decl.initializer.right);
@@ -815,12 +822,65 @@ export function commonJsToGoogmoduleTransformer(
                 stmt.declarationList, [updatedDecl]));
         return {
           statement: newStmt,
-          exports: [{
-            statement: ts.factory.createExpressionStatement(
-                ts.factory.createAssignment(decl.initializer.left, decl.name)),
-            name: exportName,
-          }],
+          exports: [
+            ts.factory.createExpressionStatement(ts.factory.createAssignment(
+                decl.initializer.left, decl.name)) as ExportsAssignment,
+          ],
         };
+      }
+
+      /**
+       * Returns if this is an export assigmment (`exports.X = X;`) where `X`
+       * is a class with decorators.
+       */
+      function isExportsAssignmentForDecoratedClass(
+          stmt: ts.ExpressionStatement): stmt is ExportsAssignment {
+        if (!ts.isBinaryExpression(stmt.expression) ||
+            stmt.expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken ||
+            !ts.isPropertyAccessExpression(stmt.expression.left) ||
+            !ts.isIdentifier(stmt.expression.left.expression) ||
+            stmt.expression.left.expression.escapedText !== 'exports' ||
+            !ts.isIdentifier(stmt.expression.right)) {
+          return false;
+        }
+
+        const nameSymbol =
+            typeChecker.getSymbolAtLocation(stmt.expression.right);
+        if (!nameSymbol || !nameSymbol.valueDeclaration) return false;
+
+        return ts.isClassDeclaration(nameSymbol.valueDeclaration) &&
+            isClassDecorated(nameSymbol.valueDeclaration);
+      }
+
+      /**
+       * Rewrite legacy decorators output to be a valid Closure JS.
+       *
+       * TypeScript later substitutes `X = __decorate(X, ...)` with `X =
+       * exports.X = ...` which makes it invalid for Closure JS.
+       *
+       * This disables the substitution for __decorate calls. Exports
+       * assignments are instead delayed until the end of the source file. See
+       * `delayedDecoratedClassExports`.
+       */
+      function maybeRewriteDecoratedClassDecorateCall(
+          stmt: ts.ExpressionStatement): ts.ExpressionStatement|null {
+        if (!ts.isBinaryExpression(stmt.expression) ||
+            stmt.expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken ||
+            !ts.isIdentifier(stmt.expression.left)) {
+          return null;
+        }
+
+        const originalNode = ts.getOriginalNode(stmt);
+        if (!ts.isClassDeclaration(originalNode) ||
+            !isClassDecorated(originalNode)) {
+          return null;
+        }
+
+        // Stop TypeScript from adding inline exports assignments in
+        // onSubstituteNode callback.
+        ts.setEmitFlags(stmt.expression, ts.EmitFlags.NoSubstitution);
+
+        return stmt;
       }
 
       /**
@@ -829,7 +889,7 @@ export function commonJsToGoogmoduleTransformer(
        *
        *     var Foo;
        *     (function (Foo) {
-       *     })(Foo || (exports.Foo = exports.Bar = Foo = {});
+       *     })(Foo || (exports.Foo = exports.Bar = Foo = {}));
        *
        * This function expects to be called with the second statement (the call
        * expression). It returns exports assignments as separate statements.
@@ -864,7 +924,7 @@ export function commonJsToGoogmoduleTransformer(
         }
 
         const name = arg.right.expression.left;
-        const nameSymbol = typeChecker.getSymbolAtLocation(name)!;
+        const nameSymbol = typeChecker.getSymbolAtLocation(name);
         const matchingExports = exportedDeclarations.filter(
             decl => decl.declarationSymbol === nameSymbol);
 
@@ -878,19 +938,25 @@ export function commonJsToGoogmoduleTransformer(
         // onSubstituteNode callback.
         ts.setEmitFlags(arg.right.expression, ts.EmitFlags.NoSubstitution);
 
-        const exportNames = matchingExports.map(decl => decl.exportName);
+        // Namespaces can merge with classes and functions. TypeScript emits
+        // separate exports assignments for those. Don't emit extra ones here.
+        const notAlreadyExported = matchingExports.filter(
+            decl => !ts.isClassDeclaration(
+                        decl.declarationSymbol.valueDeclaration) &&
+                !ts.isFunctionDeclaration(
+                    decl.declarationSymbol.valueDeclaration));
+
+        const exportNames = notAlreadyExported.map(decl => decl.exportName);
         return {
           statement: stmt,
           exports: exportNames.map(
-              exportName => ({
-                statement: ts.factory.createExpressionStatement(
-                    ts.factory.createAssignment(
-                        ts.factory.createPropertyAccessExpression(
-                            ts.factory.createIdentifier('exports'),
-                            ts.factory.createIdentifier(exportName)),
-                        name)),
-                name: exportName,
-              })),
+              exportName =>
+                  ts.factory.createExpressionStatement(
+                      ts.factory.createAssignment(
+                          ts.factory.createPropertyAccessExpression(
+                              ts.factory.createIdentifier('exports'),
+                              ts.factory.createIdentifier(exportName)),
+                          name)) as ExportsAssignment),
         };
       }
 
@@ -1043,8 +1109,23 @@ export function commonJsToGoogmoduleTransformer(
         return exportStmt;
       }
 
-      // Set of all property names already seen on `exports`.
-      const exportsSeen = new Set<string>();
+      const seenNamespaceOrEnumExports = new Set<string>();
+
+      /**
+       * Map of export names to their exports assignment node.
+       *
+       * Used to delay exports assignments for decorated classes. They may be
+       * re-assigned later with __decorate calls. Exports assignments have to be
+       * emitted after that.
+       *
+       * We can't wait for __decorate calls, though, because they're not present
+       * for Angular builds. The Angular compiler has a different decorator
+       * emit.
+       *
+       * Solution: Emit them at the end of the source file.
+       */
+      const delayedDecoratedClassExports =
+          new Map<string, ts.ExpressionStatement>();
 
       /**
        * visitTopLevelStatement implements the main CommonJS to goog.module
@@ -1125,65 +1206,48 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
-            // Checks whether node is an assignment of the form
-            //   exports.xyz = ...;
-            // If so, whether there is already a previous assignment
-            // to the same property. If so, remove all subsequent assignments
-            // to the property to avoid EXPORT_REPEATED_ERROR from JSCompiler.
-            const exportName = isExportsAssignment(exprStmt.expression);
-            if (exportName) {
-              if (exportsSeen.has(exportName)) {
-                stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
+
+            // TODO(b/277272562): This code works in 5.1. But breaks in 5.0,
+            // which emits separate exports assignments for namespaces and enums
+            // and this code would emit duplicate exports assignments. Run this
+            // unconditionally after 5.1 has been released.
+            if ((ts.versionMajorMinor as string) !== '5.0') {
+              // Check for inline exports assignments as they are emitted for
+              // exported namespaces and enums, e.g.:
+              //   (function (Foo) {
+              //   })(Foo || (exports.Foo = exports.Bar = Foo = {}));
+              // and moves the exports assignments to a separate statement.
+              const exportInIifeArguments =
+                  maybeRewriteExportsAssignmentInIifeArguments(exprStmt);
+              if (exportInIifeArguments) {
+                stmts.push(exportInIifeArguments.statement);
+                for (const newExport of exportInIifeArguments.exports) {
+                  const exportName = newExport.expression.left.name.text;
+                  // Namespaces produce multiple exports assignments when
+                  // they're re-opened in the same file. Only emit the first one
+                  // here. This is fine because the namespace object itself
+                  // cannot be re-assigned later.
+                  if (!seenNamespaceOrEnumExports.has(exportName)) {
+                    stmts.push(newExport);
+                    seenNamespaceOrEnumExports.add(exportName);
+                  }
+                }
                 return;
               }
-              exportsSeen.add(exportName);
             }
 
-            // Checks for inline exports assignments as they are emitted for
-            // exported namespaces and enums, e.g.:
-            //   (function (Foo) {
-            //   })(Foo || (exports.Foo = exports.Bar = Foo = {});
-            // and moves the exports assignments to a separate statement.
-            const exportInIifeArguments =
-                maybeRewriteExportsAssignmentInIifeArguments(exprStmt);
-            if (exportInIifeArguments) {
-              stmts.push(exportInIifeArguments.statement);
-              for (const newExport of exportInIifeArguments.exports) {
-                if (!exportsSeen.has(newExport.name)) {
-                  stmts.push(newExport.statement);
-                  exportsSeen.add(newExport.name);
-                }
-              }
+            // Delay `exports.X = X` assignments for decorated classes.
+            if (isExportsAssignmentForDecoratedClass(exprStmt)) {
+              delayedDecoratedClassExports.set(
+                  exprStmt.expression.left.name.text, exprStmt);
               return;
             }
 
-            // Do not emit `exports.X = ` prefix before `X = ...` expressions.
-            // Such statements are produced in particular for legacy decorators,
-            // and the export existence has already been ensured for them by
-            // maybeRewriteChainInitializer().
-            if (ts.isBinaryExpression(exprStmt.expression) &&
-                exprStmt.expression.operatorToken.kind ===
-                    ts.SyntaxKind.EqualsToken &&
-                ts.isIdentifier(exprStmt.expression.left) &&
-                (exprStmt.expression.flags & ts.NodeFlags.Synthesized)) {
-              const originalNode = ts.getOriginalNode(exprStmt);
-              if (ts.isClassDeclaration(originalNode)) {
-                ts.setEmitFlags(
-                    exprStmt.expression, ts.EmitFlags.NoSubstitution);
-
-                const comments = ts.getSyntheticLeadingComments(exprStmt);
-                if (!comments || comments.length === 0) {
-                  // Suppress visibility check for legacy decorators, otherwise
-                  // any decorated final class causes errors.
-                  ts.addSyntheticLeadingComment(
-                      exprStmt, ts.SyntaxKind.MultiLineCommentTrivia,
-                      '* @suppress {visibility} ',
-                      /* trailing newline */ true);
-                }
-
-                stmts.push(exprStmt);
-                return;
-              }
+            // Don't add duplicate exports assignments on __decorate calls.
+            const newStmt = maybeRewriteDecoratedClassDecorateCall(exprStmt);
+            if (newStmt) {
+              stmts.push(newStmt);
+              return;
             }
 
             // The rest of this block handles only some function call forms:
@@ -1257,16 +1321,15 @@ export function commonJsToGoogmoduleTransformer(
               }
             }
 
-            // Check if it's a statement like `let X = exports.X = ...`.
+            // Check if it's a statement like `let X = exports.X = class X`
+            // where `X` has decorators.
             const declWithChainInitializer =
-                maybeRewriteChainInitializer(varStmt, decl);
+                maybeRewriteDecoratedClassChainInitializer(varStmt, decl);
             if (declWithChainInitializer) {
               stmts.push(declWithChainInitializer.statement);
               for (const newExport of declWithChainInitializer.exports) {
-                if (!exportsSeen.has(newExport.name)) {
-                  stmts.push(newExport.statement);
-                  exportsSeen.add(newExport.name);
-                }
+                delayedDecoratedClassExports.set(
+                    newExport.expression.left.name.text, newExport);
               }
               return;
             }
@@ -1371,6 +1434,10 @@ export function commonJsToGoogmoduleTransformer(
       for (const stmt of sf.statements) {
         visitTopLevelStatement(stmts, sf, stmt);
       }
+
+      // Emit exports assignments for decorated classes at the end, after all
+      // potential re-assignments.
+      stmts.push(...delayedDecoratedClassExports.values());
 
       // Additional statements that will be prepended (goog.module call etc).
       const headerStmts: ts.Statement[] = [];

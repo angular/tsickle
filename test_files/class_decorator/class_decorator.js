@@ -86,3 +86,4 @@ AnotherClassyBar = tslib_1.__decorate([
     classyClass
 ], AnotherClassyBar);
 exports.AnotherClassyBar = AnotherClassyBar;
+exports.AnotherClassyBarUnderAnotherName = AnotherClassyBar;

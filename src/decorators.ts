@@ -237,9 +237,6 @@ function sanitizeDecorateComments(comments: ts.SynthesizedComment[]):
   return sanitized;
 }
 
-// TODO(b/277272562): remove transformDecoratorJsdoc() transformer after TS5.1
-// is released, as it no longer duplicates the original comments to `ident =
-// tslib_1.__decorate(...)` statements.
 /**
  * A transformation pass that removes the annotations contained in
  * TAGS_CONFLICTING_WITH_DECORATE from toplevel statements of the form `ident =
@@ -259,8 +256,6 @@ export function transformDecoratorJsdoc():
             // Only need to iterate over top-level statements in the source
             // file.
             if (!ts.isExpressionStatement(stmt)) continue;
-            const comments = ts.getSyntheticLeadingComments(stmt);
-            if (!comments || comments.length === 0) continue;
             const expr = stmt.expression;
             if (!ts.isBinaryExpression(expr)) continue;
             if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) continue;
@@ -268,8 +263,21 @@ export function transformDecoratorJsdoc():
             if (!ts.isCallExpression(rhs)) continue;
             if (ts.isIdentifier(rhs.expression) &&
                 (rhs.expression.text === '__decorate')) {
-              ts.setSyntheticLeadingComments(
-                  stmt, sanitizeDecorateComments(comments));
+              const comments = ts.getSyntheticLeadingComments(stmt);
+              if (!comments || comments.length === 0) {
+                // Suppress visibility check for legacy decorators, otherwise
+                // any decorated final class causes errors.
+                ts.addSyntheticLeadingComment(
+                    stmt, ts.SyntaxKind.MultiLineCommentTrivia,
+                    '* @suppress {visibility} ',
+                    /* trailing newline */ true);
+              } else {
+                // TODO(b/277272562): Remove this code path after TS5.1 is
+                // released, as it no longer duplicates the original comments to
+                // `ident = tslib_1.__decorate(...)` statements.
+                ts.setSyntheticLeadingComments(
+                    stmt, sanitizeDecorateComments(comments));
+              }
             }
           }
           return sourceFile;

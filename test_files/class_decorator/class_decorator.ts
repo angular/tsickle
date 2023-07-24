@@ -36,3 +36,5 @@ abstract class AbstractBar {
 @classyClass
 export class AnotherClassyBar<T> extends ClassyBar<T> {
 }
+
+export {AnotherClassyBar as AnotherClassyBarUnderAnotherName};
