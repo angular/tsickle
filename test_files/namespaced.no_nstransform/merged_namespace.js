@@ -19,9 +19,9 @@ class Foo {
 }
 exports.Foo = Foo;
 (function (Foo) {
-    class Bar {
+    class Nested {
     }
-    Foo.Bar = Bar;
+    Foo.Nested = Nested;
 })(Foo = exports.Foo || (exports.Foo = {}));
 /**
  * @return {void}
@@ -29,7 +29,15 @@ exports.Foo = Foo;
 function bar() { }
 exports.bar = bar;
 (function (bar) {
-    class Foo {
+    class Nested {
     }
-    bar.Foo = Foo;
+    bar.Nested = Nested;
 })(bar = exports.bar || (exports.bar = {}));
+class Baz {
+}
+exports.Baz = Baz;
+(function (Baz) {
+    class Nested {
+    }
+    Baz.Nested = Nested;
+})(Baz || (Baz = {}));

@@ -433,6 +433,27 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
 }
 
 /**
+ * Checks whether expr is of the form `exports.abc = identifier` and if so,
+ * returns the string abc, otherwise returns null.
+ */
+function isExportsAssignment(expr: ts.Expression): string|null {
+  // Verify this looks something like `exports.abc = ...`.
+  if (!ts.isBinaryExpression(expr)) return null;
+  if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return null;
+
+  // Verify the left side of the expression is an access on `exports`.
+  if (!ts.isPropertyAccessExpression(expr.left)) return null;
+  if (!ts.isIdentifier(expr.left.expression)) return null;
+  if (expr.left.expression.escapedText !== 'exports') return null;
+
+  // Check whether right side of assignment is an identifier.
+  if (!ts.isIdentifier(expr.right)) return null;
+
+  // Return the property name as string.
+  return expr.left.name.escapedText.toString();
+}
+
+/**
  * Convert a series of comma-separated expressions
  *   x = foo, y(), z.bar();
  * with statements
@@ -1109,6 +1130,7 @@ export function commonJsToGoogmoduleTransformer(
         return exportStmt;
       }
 
+      const exportsSeen = new Set<string>();
       const seenNamespaceOrEnumExports = new Set<string>();
 
       /**
@@ -1206,6 +1228,25 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
+            // Avoid EXPORT_REPEATED_ERROR from JSCompiler. Occurs for:
+            //     class Foo {}
+            //     namespace Foo { ... }
+            //     export {Foo};
+            // TypeScript emits 2 separate exports assignments. One after the
+            // class and one after the namespace.
+            // TODO(b/277272562): TypeScript 5.1 changes how exports assignments
+            // are emitted, making this no longer an issue. On the other hand
+            // this is unsafe. We really need to keep the _last_ (not the first)
+            // export assignment in the general case. Remove this check after
+            // the 5.1 upgrade.
+            const exportName = isExportsAssignment(exprStmt.expression);
+            if (exportName) {
+              if (exportsSeen.has(exportName)) {
+                stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
+                return;
+              }
+              exportsSeen.add(exportName);
+            }
 
             // TODO(b/277272562): This code works in 5.1. But breaks in 5.0,
             // which emits separate exports assignments for namespaces and enums

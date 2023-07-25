@@ -14,12 +14,20 @@ exports = {};
 export class Foo {}
 
 export namespace Foo {
-  export class Bar {}
+  export class Nested {}
 }
 
 
 export function bar() {}
 
 export namespace bar {
-  export class Foo {}
+  export class Nested {}
 }
+
+class Baz {}
+
+namespace Baz {
+  export class Nested {}
+}
+
+export {Baz};
