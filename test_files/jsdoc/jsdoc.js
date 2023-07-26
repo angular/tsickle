@@ -205,3 +205,8 @@ const DEFINE_WITH_INFERRED_TYPE = false;
  * @define {string}
  */
 const DEFINE_WITH_DECLARED_TYPE = 'y';
+/**
+ * @logTypeInCompiler
+ * @type {number}
+ */
+const logTypeInCompiler = 0;

@@ -98,6 +98,7 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
   'lends',
   'license',
   'link',
+  'logTypeInCompiler',
   'meaning',
   'modifies',
   'modName',
