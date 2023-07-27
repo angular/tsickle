@@ -865,6 +865,9 @@ export function commonJsToGoogmoduleTransformer(
           return false;
         }
 
+        // Variable statements in the form of `export const Y = X;` don't count.
+        if (ts.isVariableStatement(ts.getOriginalNode(stmt))) return false;
+
         const nameSymbol =
             typeChecker.getSymbolAtLocation(stmt.expression.right);
         if (!nameSymbol || !nameSymbol.valueDeclaration) return false;
