@@ -12,8 +12,8 @@ goog.require('tslib');
 const tsickle_exporter_1 = goog.requireType("test_files.import_equals.exporter");
 /** @type {(undefined|!tsickle_exporter_1.Exported)} */
 let exported;
-/** @type {(undefined|!tsickle_exporter_1.Exported.Nested)} */
+/** @type {(undefined|!test_files$import_equals$exporter.Exported.Nested)} */
 let nested;
-/** @type {(undefined|!tsickle_exporter_1.Exported.Nested.Thing)} */
+/** @type {(undefined|!test_files$import_equals$exporter.Exported.Nested.Thing)} */
 let thing;
 console.log(exported, nested, thing);

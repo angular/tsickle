@@ -22,6 +22,7 @@ import {ModulesManifest} from './modules_manifest';
 import {namespaceTransformer} from './ns_transformer';
 import {isDtsFileName} from './transformer_util';
 import * as tsmes from './ts_migration_exports_shim';
+import {makeTsickleDeclarationMarkerTransformerFactory} from './tsickle_declaration_marker';
 
 // Exported for users as a default impl of pathToModuleName.
 export {pathToModuleName} from './cli_support';
@@ -235,6 +236,11 @@ export function emit(
     tsTransformers.afterDeclarations!.push(
         clutz.makeDeclarationTransformerFactory(typeChecker, host));
   }
+
+  // Adds a marker to the top of tsickle-generated .d.ts files, should always go
+  // last
+  tsTransformers.afterDeclarations!.push(
+      makeTsickleDeclarationMarkerTransformerFactory(tsOptions));
 
   const {diagnostics: tsDiagnostics, emitSkipped, emittedFiles} = program.emit(
       targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles,
