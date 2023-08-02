@@ -41,6 +41,7 @@ describe('golden file tests', () => {
         'test_files/declare_import/closure_named_export.js',
         'test_files/declare_import/exporting.js',
         'test_files/declare/shim.js',
+        'test_files/direct_externs_type_reference/shim.js',
         'test_files/export_equals.shim/shim.js',
         'test_files/fake_goog_reflect.js',
         'test_files/googmodule_esmodule.declaration.no_externs/some_module.js',
