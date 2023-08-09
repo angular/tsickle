@@ -18,8 +18,8 @@ class Class {
         this.normalProp = '';
     }
 }
-Class.staticProp = '';
 exports.Class = Class;
+Class.staticProp = '';
 /* istanbul ignore if */
 if (false) {
     /**

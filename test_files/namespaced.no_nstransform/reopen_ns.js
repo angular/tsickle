@@ -17,10 +17,11 @@ exports = {};
 var ns;
 (function (ns) {
     ns.x = 0;
-})(ns = exports.ns || (exports.ns = {}));
+})(ns || (ns = {}));
+exports.ns = ns;
 (function (ns) {
     ns.y = 0;
-})(ns = exports.ns || (exports.ns = {}));
+})(ns || (ns = {}));
 // this implicitly re-emits `ns = exports.ns || (exports.ns = {}));`, so it is
 // in a way reopening ns, which can cause issues with Closure unless the right
 // suppressions are present.
@@ -29,4 +30,4 @@ var ns;
     (function (bar) {
         bar.y = 0;
     })(bar = ns.bar || (ns.bar = {}));
-})(ns = exports.ns || (exports.ns = {}));
+})(ns || (ns = {}));

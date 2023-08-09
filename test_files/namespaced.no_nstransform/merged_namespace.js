@@ -22,7 +22,7 @@ exports.Foo = Foo;
     class Nested {
     }
     Foo.Nested = Nested;
-})(Foo = exports.Foo || (exports.Foo = {}));
+})(Foo || (Foo = {}));
 /**
  * @return {void}
  */
@@ -32,7 +32,7 @@ exports.bar = bar;
     class Nested {
     }
     bar.Nested = Nested;
-})(bar = exports.bar || (exports.bar = {}));
+})(bar || (bar = {}));
 class Baz {
 }
 exports.Baz = Baz;
