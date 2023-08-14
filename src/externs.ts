@@ -129,7 +129,7 @@ const EXTERNS_HEADER = `/**
  *     to this root.
  */
 export function getGeneratedExterns(
-    externs: {[fileName: string]: {output: string, moduleNamespace: string}},
+    externs: {[fileName: string]: {output: string, rootNamespace: string}},
     rootDir: string): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
@@ -159,7 +159,7 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
 export function generateExterns(
     typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
     host: AnnotatorHost&GoogModuleProcessorHost):
-    {output: string, diagnostics: ts.Diagnostic[], moduleNamespace: string} {
+    {output: string, diagnostics: ts.Diagnostic[], rootNamespace: string} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
   const isDts = isDtsFileName(sourceFile.fileName);
@@ -282,7 +282,7 @@ export function generateExterns(
     }
   }
 
-  return {output, diagnostics, moduleNamespace};
+  return {output, diagnostics, rootNamespace};
 
   function emit(str: string) {
     output += str;
