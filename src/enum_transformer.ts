@@ -124,7 +124,13 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
           const enumConstValue = typeChecker.getConstantValue(member);
           if (typeof enumConstValue === 'number') {
             enumIndex = enumConstValue + 1;
-            enumValue = ts.factory.createNumericLiteral(enumConstValue);
+            if (enumConstValue < 0) {
+              enumValue = ts.factory.createPrefixUnaryExpression(
+                  ts.SyntaxKind.MinusToken,
+                  ts.factory.createNumericLiteral(-enumConstValue));
+            } else {
+              enumValue = ts.factory.createNumericLiteral(enumConstValue);
+            }
           } else if (typeof enumConstValue === 'string') {
             // tsickle does not care about string enum values. However TypeScript expects compile
             // time constant enum values to be replaced with their constant expression, and e.g.
