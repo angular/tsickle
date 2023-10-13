@@ -53,7 +53,7 @@ test_files$import_equals$import_equals_module_.namespaceInModule = {};
  * @struct
  */
 test_files$import_equals$import_equals_module_.namespaceInModule.InNamespace = function() {};
-/** @type {!test_files$import_equals$import_equals_module.namespaceInModule.InNamespace} */
+/** @type {!test_files$import_equals$import_equals_module_.namespaceInModule.InNamespace} */
 test_files$import_equals$import_equals_module_.namespaceInModule.myVar;
 /** @type {!test_files$import_equals$exporter.Exported.Nested} */
 test_files$import_equals$import_equals_module_.namespaceInModule.otherVar;

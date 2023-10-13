@@ -253,6 +253,13 @@ export class TypeTranslator {
   isForExterns = false;
 
   /**
+   * Whether use internal namespace (with underscore) for the externs types.
+   * It is set when the declaration file has an export equals ("export = Foo;")
+   * statement.
+   */
+  useInternalNamespaceForExterns = false;
+
+  /**
    * When translating the type of an 'extends' clause, e.g. Y in
    *   class X extends Y<T> { ... }
    * then TS believes there is an additional type argument always passed, as if
@@ -419,6 +426,11 @@ export class TypeTranslator {
       context = '';
     }
     const mangled = moduleNameAsIdentifier(this.host, fileName, context);
+    if (this.isForExterns && this.useInternalNamespaceForExterns &&
+        !ambientModuleDeclaration &&
+        isDeclaredInSameFile(this.node, declarations[0])) {
+      return mangled + '_.';
+    }
     return mangled + '.';
   }
 

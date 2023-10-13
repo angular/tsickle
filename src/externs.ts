@@ -165,9 +165,6 @@ export function generateExterns(
   const isDts = isDtsFileName(sourceFile.fileName);
   const isExternalModule = ts.isExternalModule(sourceFile);
 
-  const mtt =
-      new ModuleTypeTranslator(sourceFile, typeChecker, host, diagnostics, /*isForExterns*/ true);
-
   // .d.ts files declare symbols. The code below translates these into a form understood by Closure
   // Compiler, converting the type syntax, but also converting symbol names into a form accessible
   // to Closure Compiler.
@@ -205,6 +202,10 @@ export function generateExterns(
     // control what exactly goes on the actual exported namespace.
     rootNamespace = rootNamespace + '_';
   }
+
+  const mtt = new ModuleTypeTranslator(
+      sourceFile, typeChecker, host, diagnostics, /*isForExterns*/ true,
+      /*useInternalNamespaceForExterns=*/ hasExportEquals);
 
   for (const stmt of sourceFile.statements) {
     // Always collect alises for imported symbols.

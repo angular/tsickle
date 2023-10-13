@@ -105,6 +105,7 @@ export class ModuleTypeTranslator {
       private readonly host: AnnotatorHost&googmodule.GoogModuleProcessorHost,
       private readonly diagnostics: ts.Diagnostic[],
       private readonly isForExterns: boolean,
+      private readonly useInternalNamespaceForExterns = false,
   ) {
     // TODO: remove once AnnotatorHost.typeBlackListPaths is removed.
     this.host.unknownTypesPaths =
@@ -165,6 +166,8 @@ export class ModuleTypeTranslator {
         this.symbolToNameCache,
         (sym: ts.Symbol) => void this.ensureSymbolDeclared(sym));
     translator.isForExterns = this.isForExterns;
+    translator.useInternalNamespaceForExterns =
+        this.useInternalNamespaceForExterns;
     translator.warn = msg => void this.debugWarn(context, msg);
     return translator;
   }

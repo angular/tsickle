@@ -6,7 +6,7 @@
 // Generated from: test_files/augment/angular/index.d.ts
 /** @const */
 var test_files$augment$angular$index_ = {};
-/** @type {!test_files$augment$angular$index.angular.IAngularStatic} */
+/** @type {!test_files$augment$angular$index_.angular.IAngularStatic} */
 test_files$augment$angular$index_.angular;
 /** @const */
 test_files$augment$angular$index_.angular = {};

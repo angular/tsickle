@@ -59,9 +59,9 @@ test_files$declare_export_dts$relative_ambient_external_module.user;
 // Generated from: test_files/declare_export_dts/declare_export_var.d.ts
 /** @const */
 var test_files$declare_export_dts$declare_export_var_ = {};
-/** @type {!test_files$declare_export_dts$declare_export_var.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace} */
+/** @type {!test_files$declare_export_dts$declare_export_var_.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace} */
 test_files$declare_export_dts$declare_export_var_.variableDeclaredInDtsModule;
-/** @type {!test_files$declare_export_dts$declare_export_var.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace} */
+/** @type {!test_files$declare_export_dts$declare_export_var_.namespaceInDtsModule.InterfaceNestedInModuleScopedNamespace} */
 var variableDeclaredInDtsModule;
 /** @const */
 test_files$declare_export_dts$declare_export_var_.namespaceInDtsModule = {};
