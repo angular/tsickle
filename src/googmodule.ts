@@ -89,6 +89,23 @@ export function jsPathToNamespace(
     host: GoogModuleProcessorHost, context: ts.Node,
     diagnostics: ts.Diagnostic[], importPath: string,
     getModuleSymbol: () => ts.Symbol | undefined): string|undefined {
+  const namespace = localJsPathToNamespace(host, importPath);
+  if (namespace) return namespace;
+
+  const moduleSymbol = getModuleSymbol();
+  if (!moduleSymbol) return;
+  return getGoogNamespaceFromClutzComments(
+      context, diagnostics, importPath, moduleSymbol);
+}
+
+/**
+ * Resolves an import path to its goog namespace, if it points to an original
+ * closure JavaScript file, using only local information.
+ *
+ * Forwards to `jsPathToModuleName` on the host if present.
+ */
+export function localJsPathToNamespace(
+    host: GoogModuleProcessorHost, importPath: string): string|undefined {
   if (importPath.match(/^goog:/)) {
     // This is a namespace import, of the form "goog:foo.bar".
     // Fix it to just "foo.bar".
@@ -99,10 +116,7 @@ export function jsPathToNamespace(
     return host.jsPathToModuleName(importPath);
   }
 
-  const moduleSymbol = getModuleSymbol();
-  if (!moduleSymbol) return;
-  return getGoogNamespaceFromClutzComments(
-      context, diagnostics, importPath, moduleSymbol);
+  return undefined;
 }
 
 /**

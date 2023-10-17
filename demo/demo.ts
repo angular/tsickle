@@ -184,6 +184,7 @@ export function toClosureJS(
       externs: {},
       emitSkipped: true,
       emittedFiles: [],
+      fileSummaries: new Map(),
     };
   }
   return tsickle.emit(program, transformerHost, writeFile);

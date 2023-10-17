@@ -11,6 +11,7 @@
 import * as ts from 'typescript';
 
 import {ModulesManifest} from './modules_manifest';
+import {FileSummary, ModuleType, Type} from './summary';
 import {getGoogFunctionName, isAnyTsmesCall, isGoogCallExpressionOf, isTsmesDeclareLegacyNamespaceCall, isTsmesShorthandCall, reportDiagnostic} from './transformer_util';
 
 /** Provides dependencies for file generation. */
@@ -46,7 +47,8 @@ export type TsMigrationExportsShimFileMap = Map<string, string>;
 export function createTsMigrationExportsShimTransformerFactory(
     typeChecker: ts.TypeChecker, host: TsMigrationExportsShimProcessorHost,
     manifest: ModulesManifest, tsickleDiagnostics: ts.Diagnostic[],
-    outputFileMap: TsMigrationExportsShimFileMap):
+    outputFileMap: TsMigrationExportsShimFileMap,
+    fileSummaries: Map<string, FileSummary>):
     ts.TransformerFactory<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     return (src: ts.SourceFile): ts.SourceFile => {
@@ -70,13 +72,17 @@ export function createTsMigrationExportsShimTransformerFactory(
         // TODO(martinprobst): the empty files might cause issues with code
         // that should be in mods or modules.
         outputFileMap.set(tsmesFile, '');
+        const fileSummary = new FileSummary();
+        fileSummary.moduleType = ModuleType.UNKNOWN;
+        fileSummaries.set(tsmesFile, fileSummary);
         if (context.getCompilerOptions().declaration) {
           outputFileMap.set(dtsFile, '');
         }
         return src;
       }
-      const result = generator.generateExportShimJavaScript();
-      outputFileMap.set(tsmesFile, result);
+      const [content, fileSummary] = generator.generateExportShimJavaScript();
+      outputFileMap.set(tsmesFile, content);
+      fileSummaries.set(tsmesFile, fileSummary);
       if (context.getCompilerOptions().declaration) {
         const dtsResult = generator.generateExportShimDeclarations();
         outputFileMap.set(dtsFile, dtsResult);
@@ -396,7 +402,7 @@ class Generator {
    *
    * NOTE: This code must be written to be compatible as-is with IE11.
    */
-  generateExportShimJavaScript(): string {
+  generateExportShimJavaScript(): [string, FileSummary] {
     if (!this.outputIds || !this.tsmesBreakdown) {
       throw new Error('tsmes call must be extracted first');
     }
@@ -427,11 +433,12 @@ class Generator {
     this.manifest.addReferencedModule(
         this.outputIds.google3Path, this.srcIds.googModuleId);
 
-    const pintoModuleAnnotation = containsAtPintoModule(this.src) ?
+    const isAutoChunk = containsAtPintoModule(this.src);
+    const pintoModuleAnnotation = isAutoChunk ?
         '@pintomodule found in original_file' :
         'pintomodule absent in original_file';
 
-    return lines(
+    const content = lines(
         '/**',
         ' * @fileoverview generator:ts_migration_exports_shim.ts',
         ' * original_file:' + this.srcIds.google3Path,
@@ -443,6 +450,18 @@ class Generator {
         exportsAssignment,
         '',
     );
+
+    const fileSummary = new FileSummary();
+    fileSummary.addProvide(
+        {type: Type.CLOSURE, name: this.outputIds.googModuleId});
+    fileSummary.addStrongRequire({type: Type.CLOSURE, name: 'goog'});
+    fileSummary.addStrongRequire(
+        {type: Type.CLOSURE, name: this.srcIds.googModuleId});
+
+    fileSummary.autochunk = isAutoChunk;
+    fileSummary.moduleType = ModuleType.GOOG_MODULE;
+
+    return [content, fileSummary];
   }
 
   /**
