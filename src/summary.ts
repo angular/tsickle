@@ -81,7 +81,12 @@ export class FileSummary {
   }
 
   get weakRequires(): Symbol[] {
-    return [...this.weakRequireSet.values()];
+    const weakRequires = [];
+    for (const [k, v] of this.weakRequireSet.entries()) {
+      if (this.strongRequireSet.has(k)) continue;
+      weakRequires.push(v);
+    }
+    return weakRequires;
   }
 
   addDynamicRequire(dynamicRequire: Symbol) {
