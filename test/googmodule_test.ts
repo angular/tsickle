@@ -501,6 +501,46 @@ describe('convertCommonJsToGoogModule', () => {
     `));
   });
 
+  describe('nodejs builtin imports', () => {
+    it('converts builtin imports to require (not goog.require)', () => {
+      const before = `
+      import {readFile as a} from 'fs';
+      import {readFile as b} from 'fs/promises';
+      import {readFile as c} from 'node:fs';
+      import {readFile as d} from 'node:fs/promises';
+      console.log(a, b, c, d);
+      `;
+
+      expectCommonJs('a.ts', before, false).toBe(outdent(`
+        goog.module('a');
+        var module = module || { id: 'a.ts' };
+        goog.require('tslib');
+        const fs_1 = require("fs");
+        const promises_1 = require("fs/promises");
+        const node_fs_1 = require("node:fs");
+        const promises_2 = require("node:fs/promises");
+        console.log(fs_1.readFile, promises_1.readFile, node_fs_1.readFile, promises_2.readFile);
+      `));
+    });
+
+    it('allows a trailing slash as an escape hatch', () => {
+      const before = `
+      import {readFile as a} from 'fs/';
+      import {readFile as b} from 'fs/promises/';
+      console.log(a, b);
+      `;
+
+      expectCommonJs('a.ts', before, false).toBe(outdent(`
+        goog.module('a');
+        var module = module || { id: 'a.ts' };
+        goog.require('tslib');
+        const fs_1 = goog.require('fs');
+        const promises_1 = goog.require('fs.promises');
+        console.log(fs_1.readFile, promises_1.readFile);
+      `));
+    });
+  });
+
   describe('dynamic import', () => {
     it('handles dynamic imports', () => {
       const before = `
