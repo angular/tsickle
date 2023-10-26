@@ -440,7 +440,19 @@ export class TypeTranslator {
   // TypeAliases. The code below simply strips the prefix, the remaining type name then matches
   // Closure's type.
   private stripClutzNamespace(name: string) {
-    if (name.startsWith('ಠ_ಠ.clutz.')) return name.substring('ಠ_ಠ.clutz.'.length);
+    if (name.startsWith('ಠ_ಠ.clutz.')) {
+      const str = name.substring('ಠ_ಠ.clutz.'.length);
+
+      // Instance of b/238438892 where tsickle cannot emit a correct type
+      // annotation. Prefix it with "TsicklePrivateType_" to avoid an error
+      // about referencing JSCompiler internals.
+      // TODO(b/238438892): refactor things to instead emit either no type
+      // annotation or '?' instead.
+      if (str.startsWith('module$contents$')) {
+        return 'TsicklePrivateType_' + str;
+      }
+      return str;
+    }
     return name;
   }
 
