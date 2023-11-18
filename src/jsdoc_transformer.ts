@@ -846,10 +846,9 @@ export function jsdocTransformer(
               continue;
             }
           }
-          const newDecl =
-              // TODO: go/ts50upgrade - Remove after upgrade.
-              // tslint:disable-next-line:no-unnecessary-type-assertion
-              ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
+          const newDecl = ts.setEmitFlags(
+              ts.visitNode(decl, visitor, ts.isVariableDeclaration)!,
+              ts.EmitFlags.NoComments);
           const newStmt = ts.factory.createVariableStatement(
               varStmt.modifiers,
               ts.factory.createVariableDeclarationList([newDecl], flags));
