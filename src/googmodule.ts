@@ -29,11 +29,9 @@ export interface GoogModuleProcessorHost {
    * Takes the import URL of an ES6 import and returns the googmodule module
    * name for the imported module, iff the module is an original closure
    * JavaScript file.
-   *
-   * Warning: If this function is present, GoogModule won't produce diagnostics
-   * for multiple provides.
    */
-  jsPathToModuleName?(importPath: string): string|undefined;
+  jsPathToModuleName?
+      (importPath: string): {name: string, multipleProvides: boolean}|undefined;
   /**
    * Takes the import URL of an ES6 import and returns the property name that
    * should be stripped from the usage.
@@ -89,7 +87,8 @@ export function jsPathToNamespace(
     host: GoogModuleProcessorHost, context: ts.Node,
     diagnostics: ts.Diagnostic[], importPath: string,
     getModuleSymbol: () => ts.Symbol | undefined): string|undefined {
-  const namespace = localJsPathToNamespace(host, importPath);
+  const namespace =
+      localJsPathToNamespace(host, context, diagnostics, importPath);
   if (namespace) return namespace;
 
   const moduleSymbol = getModuleSymbol();
@@ -105,7 +104,8 @@ export function jsPathToNamespace(
  * Forwards to `jsPathToModuleName` on the host if present.
  */
 export function localJsPathToNamespace(
-    host: GoogModuleProcessorHost, importPath: string): string|undefined {
+    host: GoogModuleProcessorHost, context: ts.Node|undefined,
+    diagnostics: ts.Diagnostic[], importPath: string): string|undefined {
   if (importPath.match(/^goog:/)) {
     // This is a namespace import, of the form "goog:foo.bar".
     // Fix it to just "foo.bar".
@@ -113,7 +113,12 @@ export function localJsPathToNamespace(
   }
 
   if (host.jsPathToModuleName) {
-    return host.jsPathToModuleName(importPath);
+    const module = host.jsPathToModuleName(importPath);
+    if (!module) return undefined;
+    if (module.multipleProvides) {
+      reportMultipleProvidesError(context, diagnostics, importPath);
+    }
+    return module.name;
   }
 
   return undefined;
@@ -394,10 +399,7 @@ function getGoogNamespaceFromClutzComments(
       findLocalInDeclarations(moduleSymbol, '__clutz_multiple_provides');
   if (hasMultipleProvides) {
     // Report an error...
-    reportDiagnostic(
-        tsickleDiagnostics, context,
-        `referenced JavaScript module ${
-            tsImport} provides multiple namespaces and cannot be imported by path.`);
+    reportMultipleProvidesError(context, tsickleDiagnostics, tsImport);
     // ... but continue producing an emit that effectively references the first
     // provided symbol (to continue finding any additional errors).
   }
@@ -409,6 +411,15 @@ function getGoogNamespaceFromClutzComments(
     return;
   }
   return actualNamespace;
+}
+
+function reportMultipleProvidesError(
+    context: ts.Node|undefined, diagnostics: ts.Diagnostic[],
+    importPath: string) {
+  reportDiagnostic(
+      diagnostics, context,
+      `referenced JavaScript module ${
+          importPath} provides multiple namespaces and cannot be imported by path.`);
 }
 
 /**
