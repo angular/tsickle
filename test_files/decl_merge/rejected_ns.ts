@@ -12,18 +12,16 @@ namespace notMerging {}
 function funcToBeMerged() {}
 namespace funcToBeMerged {}
 
-// Declaration merging with enums is not supported.
-enum Colors {
-  red,
-  green,
-  blue
-}
-namespace Colors {}
 
 // Adding const values is only allowed on interfaces.
 class Cabbage {}
 namespace Cabbage {
   export const C = 0;
+}
+
+// Adding functions is only allowed on enums.
+namespace Cabbage {
+  export function foo() {};
 }
 
 const o = {
@@ -42,6 +40,9 @@ namespace Inbetween {
   export const {a, b} = o;
 }
 
+namespace Inbetween {
+  export function foo() {}
+}
 // Nested namespaces are not supported.
 class A {}
 namespace A.B {}
