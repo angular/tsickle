@@ -54,6 +54,7 @@ export class FileSummary {
   modName: string|undefined;
   autochunk = false;
   enhanceable = false;
+  legacyNamespace = false;
   moduleType = ModuleType.UNKNOWN;
 
   private stringify(symbol: Symbol): string {
