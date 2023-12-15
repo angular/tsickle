@@ -29,11 +29,9 @@ export interface GoogModuleProcessorHost {
    * Takes the import URL of an ES6 import and returns the googmodule module
    * name for the imported module, iff the module is an original closure
    * JavaScript file.
-   *
-   * Warning: If this function is present, GoogModule won't produce diagnostics
-   * for multiple provides.
    */
-  jsPathToModuleName?(importPath: string): string|undefined;
+  jsPathToModuleName?
+      (importPath: string): {name: string, multipleProvides: boolean}|undefined;
   /**
    * Takes the import URL of an ES6 import and returns the property name that
    * should be stripped from the usage.
@@ -89,7 +87,8 @@ export function jsPathToNamespace(
     host: GoogModuleProcessorHost, context: ts.Node,
     diagnostics: ts.Diagnostic[], importPath: string,
     getModuleSymbol: () => ts.Symbol | undefined): string|undefined {
-  const namespace = localJsPathToNamespace(host, importPath);
+  const namespace =
+      localJsPathToNamespace(host, context, diagnostics, importPath);
   if (namespace) return namespace;
 
   const moduleSymbol = getModuleSymbol();
@@ -105,7 +104,8 @@ export function jsPathToNamespace(
  * Forwards to `jsPathToModuleName` on the host if present.
  */
 export function localJsPathToNamespace(
-    host: GoogModuleProcessorHost, importPath: string): string|undefined {
+    host: GoogModuleProcessorHost, context: ts.Node|undefined,
+    diagnostics: ts.Diagnostic[], importPath: string): string|undefined {
   if (importPath.match(/^goog:/)) {
     // This is a namespace import, of the form "goog:foo.bar".
     // Fix it to just "foo.bar".
@@ -113,7 +113,12 @@ export function localJsPathToNamespace(
   }
 
   if (host.jsPathToModuleName) {
-    return host.jsPathToModuleName(importPath);
+    const module = host.jsPathToModuleName(importPath);
+    if (!module) return undefined;
+    if (module.multipleProvides) {
+      reportMultipleProvidesError(context, diagnostics, importPath);
+    }
+    return module.name;
   }
 
   return undefined;
@@ -394,10 +399,7 @@ function getGoogNamespaceFromClutzComments(
       findLocalInDeclarations(moduleSymbol, '__clutz_multiple_provides');
   if (hasMultipleProvides) {
     // Report an error...
-    reportDiagnostic(
-        tsickleDiagnostics, context,
-        `referenced JavaScript module ${
-            tsImport} provides multiple namespaces and cannot be imported by path.`);
+    reportMultipleProvidesError(context, tsickleDiagnostics, tsImport);
     // ... but continue producing an emit that effectively references the first
     // provided symbol (to continue finding any additional errors).
   }
@@ -409,6 +411,15 @@ function getGoogNamespaceFromClutzComments(
     return;
   }
   return actualNamespace;
+}
+
+function reportMultipleProvidesError(
+    context: ts.Node|undefined, diagnostics: ts.Diagnostic[],
+    importPath: string) {
+  reportDiagnostic(
+      diagnostics, context,
+      `referenced JavaScript module ${
+          importPath} provides multiple namespaces and cannot be imported by path.`);
 }
 
 /**
@@ -444,27 +455,6 @@ function rewriteModuleExportsAssignment(expr: ts.ExpressionStatement) {
               ts.factory.createIdentifier('exports'), expr.expression.right)),
           expr),
       expr);
-}
-
-/**
- * Checks whether expr is of the form `exports.abc = identifier` and if so,
- * returns the string abc, otherwise returns null.
- */
-function isExportsAssignment(expr: ts.Expression): string|null {
-  // Verify this looks something like `exports.abc = ...`.
-  if (!ts.isBinaryExpression(expr)) return null;
-  if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return null;
-
-  // Verify the left side of the expression is an access on `exports`.
-  if (!ts.isPropertyAccessExpression(expr.left)) return null;
-  if (!ts.isIdentifier(expr.left.expression)) return null;
-  if (expr.left.expression.escapedText !== 'exports') return null;
-
-  // Check whether right side of assignment is an identifier.
-  if (!ts.isIdentifier(expr.right)) return null;
-
-  // Return the property name as string.
-  return expr.left.name.escapedText.toString();
 }
 
 /**
@@ -976,13 +966,19 @@ export function commonJsToGoogmoduleTransformer(
         // onSubstituteNode callback.
         ts.setEmitFlags(arg.right.expression, ts.EmitFlags.NoSubstitution);
 
-        // Namespaces can merge with classes and functions. TypeScript emits
-        // separate exports assignments for those. Don't emit extra ones here.
+        // Namespaces can merge with classes and functions and TypeScript emits
+        // separate exports assignments for those already. No need to add an
+        // extra one.
+        // The same is true for enums, but only if they have been transformed
+        // to closure enums.
         const notAlreadyExported = matchingExports.filter(
             decl => !ts.isClassDeclaration(
                         decl.declarationSymbol.valueDeclaration) &&
                 !ts.isFunctionDeclaration(
-                    decl.declarationSymbol.valueDeclaration));
+                    decl.declarationSymbol.valueDeclaration) &&
+                !(host.transformTypesToClosure &&
+                  ts.isEnumDeclaration(
+                      decl.declarationSymbol.valueDeclaration)));
 
         const exportNames = notAlreadyExported.map(decl => decl.exportName);
         return {
@@ -1147,7 +1143,6 @@ export function commonJsToGoogmoduleTransformer(
         return exportStmt;
       }
 
-      const exportsSeen = new Set<string>();
       const seenNamespaceOrEnumExports = new Set<string>();
 
       /**
@@ -1245,53 +1240,27 @@ export function commonJsToGoogmoduleTransformer(
               return;
             }
 
-            // Avoid EXPORT_REPEATED_ERROR from JSCompiler. Occurs for:
-            //     class Foo {}
-            //     namespace Foo { ... }
-            //     export {Foo};
-            // TypeScript emits 2 separate exports assignments. One after the
-            // class and one after the namespace.
-            // TODO(b/277272562): TypeScript 5.1 changes how exports assignments
-            // are emitted, making this no longer an issue. On the other hand
-            // this is unsafe. We really need to keep the _last_ (not the first)
-            // export assignment in the general case. Remove this check after
-            // the 5.1 upgrade.
-            const exportName = isExportsAssignment(exprStmt.expression);
-            if (exportName) {
-              if (exportsSeen.has(exportName)) {
-                stmts.push(createNotEmittedStatementWithComments(sf, exprStmt));
-                return;
-              }
-              exportsSeen.add(exportName);
-            }
-
-            // TODO(b/277272562): This code works in 5.1. But breaks in 5.0,
-            // which emits separate exports assignments for namespaces and enums
-            // and this code would emit duplicate exports assignments. Run this
-            // unconditionally after 5.1 has been released.
-            if ((ts.versionMajorMinor as string) !== '5.0') {
-              // Check for inline exports assignments as they are emitted for
-              // exported namespaces and enums, e.g.:
-              //   (function (Foo) {
-              //   })(Foo || (exports.Foo = exports.Bar = Foo = {}));
-              // and moves the exports assignments to a separate statement.
-              const exportInIifeArguments =
-                  maybeRewriteExportsAssignmentInIifeArguments(exprStmt);
-              if (exportInIifeArguments) {
-                stmts.push(exportInIifeArguments.statement);
-                for (const newExport of exportInIifeArguments.exports) {
-                  const exportName = newExport.expression.left.name.text;
-                  // Namespaces produce multiple exports assignments when
-                  // they're re-opened in the same file. Only emit the first one
-                  // here. This is fine because the namespace object itself
-                  // cannot be re-assigned later.
-                  if (!seenNamespaceOrEnumExports.has(exportName)) {
-                    stmts.push(newExport);
-                    seenNamespaceOrEnumExports.add(exportName);
-                  }
+            // Check for inline exports assignments as they are emitted for
+            // exported namespaces and enums, e.g.:
+            //   (function (Foo) {
+            //   })(Foo || (exports.Foo = exports.Bar = Foo = {}));
+            // and moves the exports assignments to a separate statement.
+            const exportInIifeArguments =
+                maybeRewriteExportsAssignmentInIifeArguments(exprStmt);
+            if (exportInIifeArguments) {
+              stmts.push(exportInIifeArguments.statement);
+              for (const newExport of exportInIifeArguments.exports) {
+                const exportName = newExport.expression.left.name.text;
+                // Namespaces produce multiple exports assignments when
+                // they're re-opened in the same file. Only emit the first one
+                // here. This is fine because the namespace object itself
+                // cannot be re-assigned later.
+                if (!seenNamespaceOrEnumExports.has(exportName)) {
+                  stmts.push(newExport);
+                  seenNamespaceOrEnumExports.add(exportName);
                 }
-                return;
               }
+              return;
             }
 
             // Delay `exports.X = X` assignments for decorated classes.
