@@ -13,6 +13,7 @@ import * as googmodule from '../src/googmodule';
 import {ModulesManifest} from '../src/modules_manifest';
 
 import * as testSupport from './test_support';
+import {outdent} from './test_support';
 
 interface ResolvedNamespace {
   name: string;
@@ -42,8 +43,14 @@ function processES5(
     transformDynamicImport: 'closure',
   };
   if (pathToNamespaceMap) {
-    host.jsPathToModuleName = (importPath: string) =>
-        pathToNamespaceMap.get(importPath)?.name;
+    host.jsPathToModuleName = (importPath: string) => {
+      const module = pathToNamespaceMap.get(importPath);
+      if (!module) return undefined;
+      return {
+        name: module.name,
+        multipleProvides: false,
+      };
+    };
     host.jsPathToStripProperty = (importPath: string) =>
         pathToNamespaceMap.get(importPath)?.stripProperty;
   }
@@ -69,21 +76,6 @@ function processES5(
   expect(diagnostics).toEqual([]);
   if (!output) throw new Error('no output');
   return {output, manifest, rootDir};
-}
-
-/**
- * Remove the first line (if empty) and unindents the all other lines by the
- * amount of leading whitespace in the second line.
- */
-function outdent(str: string) {
-  const lines = str.split('\n');
-  if (lines.length < 2) return str;
-  if (lines.shift() !== '') return str;
-  const indent = lines[0].match(/^ */)![0].length;
-  for (let i = 0; i < lines.length; i++) {
-    lines[i] = lines[i].substring(indent);
-  }
-  return lines.join('\n');
 }
 
 describe('convertCommonJsToGoogModule', () => {
