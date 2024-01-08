@@ -72,11 +72,15 @@ export function makeDeclarationTransformerFactory(
         // Only need to transform file if we needed one of the above additions.
         if (!importStmts && !globalBlock) return file;
 
-        return ts.factory.updateSourceFile(file, [
-          ...(importStmts ?? []),
-          ...file.statements,
-          ...(globalBlock ? [globalBlock] : []),
-        ]);
+        return ts.factory.updateSourceFile(
+            file,
+            ts.setTextRange(
+                ts.factory.createNodeArray([
+                  ...(importStmts ?? []),
+                  ...file.statements,
+                  ...(globalBlock ? [globalBlock] : []),
+                ]),
+                file.statements));
       }
     };
   };
