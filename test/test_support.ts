@@ -453,3 +453,18 @@ export function pathToModuleName(
   if (fileName === tslibPath()) return 'tslib';
   return cliSupport.pathToModuleName(rootModulePath, context, fileName);
 }
+
+/**
+ * Remove the first line (if empty) and unindents the all other lines by the
+ * amount of leading whitespace in the second line.
+ */
+export function outdent(str: string) {
+  const lines = str.split('\n');
+  if (lines.length < 2) return str;
+  if (lines.shift() !== '') return str;
+  const indent = lines[0].match(/^ */)![0].length;
+  for (let i = 0; i < lines.length; i++) {
+    lines[i] = lines[i].substring(indent);
+  }
+  return lines.join('\n');
+}

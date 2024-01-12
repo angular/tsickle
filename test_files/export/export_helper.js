@@ -16,6 +16,8 @@ exports.export4 = export_helper_2_1.export4;
 exports.TypeDef; // re-export typedef
 /** @typedef {!tsickle_export_helper_2_1.Interface} */
 exports.Interface; // re-export typedef
+/** @typedef {!tsickle_export_helper_2_1.ConstEnum} */
+exports.ConstEnum; // re-export typedef
 /** @typedef {!tsickle_export_helper_2_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
 /** @typedef {!tsickle_export_helper_2_1.DeclaredInterface} */
