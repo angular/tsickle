@@ -295,24 +295,13 @@ export function generateExterns(
    *   interface Foo { x: number; }
    *   interface Foo { y: number; }
    * we only want to emit the "\@record" for Foo on the first one.
-   *
-   * The exception are variable declarations, which - in externs - do not assign a value:
-   *   /.. \@type {...} ./
-   *   var someVariable;
-   *   /.. \@type {...} ./
-   *   someNamespace.someVariable;
-   * If a later declaration wants to add additional properties on someVariable, tsickle must still
-   * emit an assignment into the object, as it's otherwise absent.
    */
   function isFirstValueDeclaration(decl: ts.DeclarationStatement): boolean {
     if (!decl.name) return true;
     const sym = typeChecker.getSymbolAtLocation(decl.name)!;
     if (!sym.declarations || sym.declarations.length < 2) return true;
     const earlierDecls = sym.declarations.slice(0, sym.declarations.indexOf(decl));
-    // Either there are no earlier declarations, or all of them are variables (see above). tsickle
-    // emits a value for all other declaration kinds (function for functions, classes, interfaces,
-    // {} object for namespaces).
-    return earlierDecls.length === 0 || earlierDecls.every(ts.isVariableDeclaration);
+    return earlierDecls.length === 0 || earlierDecls.every(d => ts.isVariableDeclaration(d) && d.getSourceFile() !== decl.getSourceFile());
   }
 
   /** Writes the actual variable statement of a Closure variable declaration. */
