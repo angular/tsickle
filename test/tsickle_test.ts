@@ -13,14 +13,14 @@ import {assertAbsolute} from '../src/cli_support';
 import * as tsickle from '../src/tsickle';
 
 import * as testSupport from './test_support';
+import {outdent} from './test_support';
 
 describe('emitWithTsickle', () => {
   function emitWithTsickle(
       tsSources: {[fileName: string]: string},
       tsConfigOverride: Partial<ts.CompilerOptions> = {},
       tsickleHostOverride: Partial<tsickle.TsickleHost> = {},
-      customTransformers?: tsickle.EmitTransformers):
-      {[fileName: string]: string} {
+      customTransformers?: tsickle.EmitTransformers) {
     const tsCompilerOptions: ts.CompilerOptions = {
       ...testSupport.compilerOptions,
       target: ts.ScriptTarget.ES5,
@@ -55,13 +55,13 @@ describe('emitWithTsickle', () => {
         return importPath.replace(/\/|\\/g, '.');
       },
       fileNameToModuleId: (fileName) => fileName.replace(/^\.\//, ''),
-      ...tsickleHostOverride,
       options: tsCompilerOptions,
       rootDirsRelative: testSupport.relativeToTsickleRoot,
-      transformDynamicImport: 'closure'
+      transformDynamicImport: 'closure',
+      ...tsickleHostOverride,
     };
     const jsSources: {[fileName: string]: string} = {};
-    tsickle.emit(
+    const {diagnostics} = tsickle.emit(
         program, tsickleHost,
         (fileName: string, data: string) => {
           jsSources[path.relative(tsCompilerOptions.rootDir!, fileName)] = data;
@@ -69,7 +69,7 @@ describe('emitWithTsickle', () => {
         /* sourceFile */ undefined,
         /* cancellationToken */ undefined, /* emitOnlyDtsFiles */ undefined,
         customTransformers);
-    return jsSources;
+    return {jsSources, diagnostics};
   }
 
 
@@ -91,7 +91,7 @@ describe('emitWithTsickle', () => {
        const tsSources = {
          'a.ts': `export const x = 1;`,
        };
-       const jsSources = emitWithTsickle(
+       const {jsSources} = emitWithTsickle(
            tsSources, undefined, {
              shouldSkipTsickleProcessing: () => true,
            },
@@ -106,12 +106,10 @@ describe('emitWithTsickle', () => {
       'b.ts': `export * from './a';`,
     };
 
-    const jsSources = emitWithTsickle(
-        tsSources, {
-          preserveConstEnums: true,
-          module: ts.ModuleKind.ES2015,
-        },
-        {googmodule: false});
+    const {jsSources} = emitWithTsickle(tsSources, {
+      preserveConstEnums: true,
+      module: ts.ModuleKind.ES2015,
+    });
 
     expect(jsSources['b.js']).toContain(`export { Foo } from './a';`);
   });
@@ -121,16 +119,62 @@ describe('emitWithTsickle', () => {
       'a.ts': `export function f() : typeof f { return f; }`,
     };
 
-    const jsSources = emitWithTsickle(tsSources, {
+    const {jsSources} = emitWithTsickle(tsSources, {
       module: ts.ModuleKind.ES2015,
     });
 
-    expect(jsSources['a.js']).toContain(`
-/**
- * @return {function(): ?}
- */
-export function f() { return f; }
-`);
+    expect(jsSources['a.js']).toContain(outdent(`
+      /**
+       * @return {function(): ?}
+       */
+      export function f() { return f; }
+    `));
+  });
+
+  it('reports multi-provides error with jsPathToModuleName impl', () => {
+    const tsSources = {
+      'a.ts': `import {} from 'google3/multi/provide';`,
+      'clutz.d.ts': `declare module 'google3/multi/provide' { export {}; }`,
+    };
+    const {diagnostics} =
+        emitWithTsickle(
+            tsSources, /* tsConfigOverride= */ undefined,
+            /* tsickleHostOverride= */ {
+              jsPathToModuleName(importPath: string) {
+                if (importPath === 'google3/multi/provide') {
+                  return {
+                    name: 'multi.provide',
+                    multipleProvides: true,
+                  };
+                }
+                return undefined;
+              }
+            });
+    expect(testSupport.formatDiagnostics(diagnostics))
+        .toContain(
+            'referenced JavaScript module google3/multi/provide provides multiple namespaces and cannot be imported by path');
+  });
+
+  it('allows side-effect import of multi-provides module', () => {
+    const tsSources = {
+      'a.ts': `import 'google3/multi/provide';`,
+      'clutz.d.ts': `declare module 'google3/multi/provide' { export {}; }`,
+    };
+    const {jsSources} = emitWithTsickle(
+        tsSources, /* tsConfigOverride= */ undefined,
+        /* tsickleHostOverride= */ {
+          googmodule: true,
+          jsPathToModuleName(importPath: string) {
+            if (importPath === 'google3/multi/provide') {
+              return {
+                name: 'multi.provide',
+                multipleProvides: true,
+              };
+            }
+            return undefined;
+          },
+        });
+    expect(jsSources['a.js']).toContain(`goog.require('multi.provide');`);
   });
 
   describe('regressions', () => {
@@ -140,16 +184,15 @@ export function f() { return f; }
            'a.ts': `export const x = 1;`,
            'b.ts': `export * from './a';\n`,
          };
-         const jsSources = emitWithTsickle(
-             tsSources, {
-               declaration: true,
-               module: ts.ModuleKind.ES2015,
-             },
-             {googmodule: false});
+         const {jsSources} = emitWithTsickle(tsSources, {
+           declaration: true,
+           module: ts.ModuleKind.ES2015,
+         });
 
-         expect(jsSources['b.d.ts'])
-             .toEqual(`//!! generated by tsickle from b.ts
-export * from './a';\n`);
+         expect(jsSources['b.d.ts']).toEqual(outdent(`
+           //!! generated by tsickle from b.ts
+           export * from './a';
+         `));
        });
   });
 });
