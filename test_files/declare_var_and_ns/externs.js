@@ -6,8 +6,6 @@
 // Generated from: test_files/declare_var_and_ns/declare_var_and_ns.d.ts
 /** @type {!globalVariable.SomeInterface} */
 var globalVariable;
-/** @const */
-var globalVariable = {};
 /**
  * @record
  * @struct
