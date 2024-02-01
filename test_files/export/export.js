@@ -21,6 +21,8 @@ exports.RenamedTypeDef; // re-export typedef
 exports.TypeDef; // re-export typedef
 /** @typedef {!tsickle_export_helper_1.Interface} */
 exports.Interface; // re-export typedef
+/** @typedef {!tsickle_export_helper_1.ConstEnum} */
+exports.ConstEnum; // re-export typedef
 /** @typedef {!tsickle_export_helper_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
 /** @typedef {!tsickle_export_helper_1.DeclaredInterface} */
