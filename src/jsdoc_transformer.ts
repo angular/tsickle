@@ -791,7 +791,8 @@ export function jsdocTransformer(
           ts.setSyntheticLeadingComments(commentHolder, leading.filter(c => c.text[0] !== '*'));
           stmts.push(commentHolder);
         }
-
+        const isExported = varStmt.modifiers?.some(
+            (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword);
         for (const decl of varStmt.declarationList.declarations) {
           const localTags: jsdoc.Tag[] = [];
           if (tags) {
@@ -827,14 +828,14 @@ export function jsdocTransformer(
             const updatedBinding = renameArrayBindings(decl.name, aliases);
             if (updatedBinding && aliases.length > 0) {
               const declVisited =
-                  // TODO: go/ts50upgrade - Remove after upgrade.
-                  // tslint:disable-next-line:no-unnecessary-type-assertion
                   ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
               const newDecl = ts.factory.updateVariableDeclaration(
                   declVisited, updatedBinding, declVisited.exclamationToken,
                   declVisited.type, declVisited.initializer);
               const newStmt = ts.factory.createVariableStatement(
-                  varStmt.modifiers,
+                  varStmt.modifiers?.filter(
+                      (modifier) =>
+                          modifier.kind !== ts.SyntaxKind.ExportKeyword),
                   ts.factory.createVariableDeclarationList([newDecl], flags));
               if (localTags.length) {
                 addCommentOn(
@@ -842,14 +843,13 @@ export function jsdocTransformer(
               }
               stmts.push(newStmt);
               stmts.push(...createArrayBindingAliases(
-                  varStmt.declarationList.flags, aliases));
+                  varStmt.declarationList.flags, aliases, isExported));
               continue;
             }
           }
-          const newDecl =
-              // TODO: go/ts50upgrade - Remove after upgrade.
-              // tslint:disable-next-line:no-unnecessary-type-assertion
-              ts.visitNode(decl, visitor, ts.isVariableDeclaration)!;
+          const newDecl = ts.setEmitFlags(
+              ts.visitNode(decl, visitor, ts.isVariableDeclaration)!,
+              ts.EmitFlags.NoComments);
           const newStmt = ts.factory.createVariableStatement(
               varStmt.modifiers,
               ts.factory.createVariableDeclarationList([newDecl], flags));
@@ -1116,8 +1116,12 @@ export function jsdocTransformer(
           // Note: We create explicit exports of type symbols for closure in visitExportDeclaration.
           return false;
         }
-        if (!tsOptions.preserveConstEnums && sym.flags & ts.SymbolFlags.ConstEnum) {
-          return false;
+        if (sym.flags & ts.SymbolFlags.ConstEnum) {
+          if (tsOptions.preserveConstEnums) {
+            return !sym.valueDeclaration!.getSourceFile().isDeclarationFile;
+          } else {
+            return false;
+          }
         }
         return true;
       }
@@ -1172,7 +1176,7 @@ export function jsdocTransformer(
           exportDecl = ts.factory.updateExportDeclaration(
               exportDecl, exportDecl.modifiers, isTypeOnlyExport,
               ts.factory.createNamedExports(exportSpecifiers),
-              exportDecl.moduleSpecifier, exportDecl.assertClause);
+              exportDecl.moduleSpecifier, exportDecl.attributes);
         } else if (ts.isNamedExports(exportDecl.exportClause)) {
           // export {a, b, c} from 'abc';
           for (const exp of exportDecl.exportClause.elements) {
@@ -1192,7 +1196,9 @@ export function jsdocTransformer(
           }
           const isTypeAlias = (aliasedSymbol.flags & ts.SymbolFlags.Value) === 0 &&
               (aliasedSymbol.flags & (ts.SymbolFlags.TypeAlias | ts.SymbolFlags.Interface)) !== 0;
-          if (!isTypeAlias) continue;
+          const isConstEnum =
+              (aliasedSymbol.flags & ts.SymbolFlags.ConstEnum) !== 0;
+          if (!isTypeAlias && !isConstEnum) continue;
           const typeName =
               moduleTypeTranslator.symbolsToAliasedNames.get(aliasedSymbol) || aliasedSymbol.name;
           const stmt = ts.factory.createExpressionStatement(
@@ -1273,16 +1279,6 @@ export function jsdocTransformer(
       }
 
       /**
-       * Visits enum declarations to check for validity of JSDoc comments without transforming the
-       * node at all.
-       */
-      function visitEnumDeclaration(node: ts.EnumDeclaration) {
-        // Calling `getJSDoc` will validate and report any errors, but this code
-        // doesn't really care about the return value.
-        moduleTypeTranslator.getJSDoc(node, /* reportWarnings */ true);
-      }
-
-      /**
        * Counter to generate (reasonably) unique alias names for array
        * rebindings.
        */
@@ -1322,8 +1318,6 @@ export function jsdocTransformer(
               e, e.dotDotDotToken,
               ts.visitNode(e.propertyName, visitor, ts.isPropertyName),
               updatedBindingName,
-              // TODO: go/ts50upgrade - Remove after upgrade.
-              // tslint:disable-next-line:no-unnecessary-type-assertion
               ts.visitNode(e.initializer, visitor) as ts.Expression));
         }
         return ts.factory.updateArrayBindingPattern(node, updatedElements);
@@ -1336,8 +1330,8 @@ export function jsdocTransformer(
        *     controls const/let/var in particular.
        */
       function createArrayBindingAliases(
-          flags: ts.NodeFlags,
-          aliases: Array<[ts.Identifier, ts.Identifier]>): ts.Statement[] {
+          flags: ts.NodeFlags, aliases: Array<[ts.Identifier, ts.Identifier]>,
+          needsExport = false): ts.Statement[] {
         const aliasDecls: ts.Statement[] = [];
         for (const [oldName, aliasName] of aliases) {
           const typeStr =
@@ -1354,7 +1348,10 @@ export function jsdocTransformer(
                   /* type? */ undefined, closureCastExpr)],
               flags);
           const varStmt = ts.factory.createVariableStatement(
-              /*modifiers*/ undefined, varDeclList);
+              needsExport ?
+                  [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)] :
+                  undefined,
+              varDeclList);
           aliasDecls.push(varStmt);
         }
         return aliasDecls;
@@ -1406,22 +1403,15 @@ export function jsdocTransformer(
         if (ts.isBlock(node.statement)) {
           updatedStatement = ts.factory.updateBlock(node.statement, [
             ...aliasDecls,
-            // TODO: go/ts50upgrade - Remove after upgrade.
-            // tslint:disable-next-line:no-unnecessary-type-assertion
             ...ts.visitNode(node.statement, visitor, ts.isBlock)!.statements
           ]);
         } else {
           updatedStatement = ts.factory.createBlock([
-            ...aliasDecls,
-            // TODO: go/ts50upgrade - Remove after upgrade.
-            // tslint:disable-next-line:no-unnecessary-type-assertion
-            ts.visitNode(node.statement, visitor) as ts.Statement
+            ...aliasDecls, ts.visitNode(node.statement, visitor) as ts.Statement
           ]);
         }
         return ts.factory.updateForOfStatement(
             node, node.awaitModifier, updatedInitializer,
-            // TODO: go/ts50upgrade - Remove after upgrade.
-            // tslint:disable-next-line:no-unnecessary-type-assertion
             ts.visitNode(node.expression, visitor) as ts.Expression,
             updatedStatement);
       }
@@ -1467,6 +1457,7 @@ export function jsdocTransformer(
           case ts.SyntaxKind.PropertyDeclaration:
           case ts.SyntaxKind.ModuleDeclaration:
           case ts.SyntaxKind.EnumMember:
+          case ts.SyntaxKind.EnumDeclaration:
             escapeIllegalJSDoc(node);
             break;
           case ts.SyntaxKind.Parameter:
@@ -1491,9 +1482,6 @@ export function jsdocTransformer(
           case ts.SyntaxKind.PropertyAccessExpression:
             return visitPropertyAccessExpression(
                 node as ts.PropertyAccessExpression);
-          case ts.SyntaxKind.EnumDeclaration:
-            visitEnumDeclaration(node as ts.EnumDeclaration);
-            break;
           case ts.SyntaxKind.ForOfStatement:
             return visitForOfStatement(node as ts.ForOfStatement);
           case ts.SyntaxKind.DeleteExpression:
