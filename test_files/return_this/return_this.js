@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/return_this/return_this.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.return_this.return_this');
 var module = module || { id: 'test_files/return_this/return_this.ts' };
