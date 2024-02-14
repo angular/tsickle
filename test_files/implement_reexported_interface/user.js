@@ -1,5 +1,4 @@
 /**
- *
  * @fileoverview Tests that a re-exported interface can be implemented.
  *
  * This reproduces a bug where tsickle would define re-exports as just
@@ -9,7 +8,6 @@
  *
  * Generated from: test_files/implement_reexported_interface/user.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.implement_reexported_interface.user');
 var module = module || { id: 'test_files/implement_reexported_interface/user.ts' };

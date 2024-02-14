@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/export/export_star_imported.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.export.export_star_imported');
 var module = module || { id: 'test_files/export/export_star_imported.ts' };
@@ -22,6 +20,8 @@ exports.RenamedTypeDef; // re-export typedef
 exports.TypeDef; // re-export typedef
 /** @typedef {!tsickle_export_helper_1.Interface} */
 exports.Interface; // re-export typedef
+/** @typedef {!tsickle_export_helper_1.ConstEnum} */
+exports.ConstEnum; // re-export typedef
 /** @typedef {!tsickle_export_helper_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
 /** @typedef {!tsickle_export_helper_1.DeclaredInterface} */

@@ -1,14 +1,12 @@
 // test_files/decl_merge/inner_class.ts(49,7): warning TS0: anonymous type has no symbol
 // test_files/decl_merge/inner_class.ts(51,13): warning TS0: anonymous type has no symbol
 /**
- *
  * @fileoverview Ensure inner classes defined with declaration merging
  *   are properly transformed and hoisted out of the namespace, and
  *   no iife is created for the namespace.
  *
  * Generated from: test_files/decl_merge/inner_class.ts
  * @suppress {uselessCode,checkTypes}
- *
  */
 goog.module('test_files.decl_merge.inner_class');
 var module = module || { id: 'test_files/decl_merge/inner_class.ts' };

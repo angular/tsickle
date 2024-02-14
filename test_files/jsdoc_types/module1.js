@@ -1,11 +1,9 @@
 // test_files/jsdoc_types/module1.ts(9,3): warning TS0: handle unnamed member:
 // 'quoted-bad-name': string;
 /**
- *
  * @fileoverview
  * Generated from: test_files/jsdoc_types/module1.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.jsdoc_types.module1');
 var module = module || { id: 'test_files/jsdoc_types/module1.ts' };

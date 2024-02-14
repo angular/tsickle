@@ -1,5 +1,4 @@
 /**
- *
  * @fileoverview TypeScript statically resolves enum member values to constants,
  * if possible, and directly emits those constants. Because of this, TS should
  * elide any imports for modules referenced in the expressions of such constant
@@ -12,7 +11,6 @@
  * (`var ValuesInInitializer = {ENUM_MEMBER: "x"}`), TypeScript no longer elides
  * the import (for `Enum` here). Thus we emit code that has an unncessary
  * import.
- *
  * Generated from: test_files/enum_ref_import/enum_ref_import.ts
  */
 goog.module('test_files.enum_ref_import.enum_ref_import');
