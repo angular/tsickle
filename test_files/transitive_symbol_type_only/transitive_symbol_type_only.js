@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview This file uses a type alias that references a type defined in another file. The
  * test makes sure there is no hard goog.require for the transitive file, as that breaks strict
  * dependency checking in some systems.
- *
  * Generated from: test_files/transitive_symbol_type_only/transitive_symbol_type_only.ts
  */
 goog.module('test_files.transitive_symbol_type_only.transitive_symbol_type_only');

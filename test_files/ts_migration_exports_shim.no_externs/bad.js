@@ -9,13 +9,11 @@
 // test_files/ts_migration_exports_shim.no_externs/bad.ts(51,23): error TS0: export types must be plain identifiers
 // test_files/ts_migration_exports_shim.no_externs/bad.ts(52,28): error TS0: must be a type reference
 /**
- *
  * @fileoverview negative tests for the tsMigrationExportsShim transformation.
  *
  * Suppress expected errors for :test_files_compilation_test
  * Generated from: test_files/ts_migration_exports_shim.no_externs/bad.ts
  * @suppress {checkTypes,uselessCode,visibility}
- *
  */
 // Allowed to be exported by tsmes.
 goog.module('test_files.ts_migration_exports_shim.no_externs.bad');

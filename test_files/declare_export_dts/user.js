@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/declare_export_dts/user.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.declare_export_dts.user');
 var module = module || { id: 'test_files/declare_export_dts/user.ts' };

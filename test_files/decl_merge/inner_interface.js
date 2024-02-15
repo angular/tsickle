@@ -1,12 +1,10 @@
 /**
- *
  * @fileoverview Ensure interfaces nested in an outer class or interface,
  * defined with declaration merging are properly transformed and hoisted out of
  * the namespace, and no iife is created for the namespace.
  *
  * Generated from: test_files/decl_merge/inner_interface.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.decl_merge.inner_interface');
 var module = module || { id: 'test_files/decl_merge/inner_interface.ts' };
@@ -54,7 +52,10 @@ if (false) {
      */
     OC$I.prototype.bar = function (e) { };
 }
-/** @const */
+/**
+ * Bla interface
+ * @const
+ */
 OC.I = OC$I;
 /**
  * @record
@@ -81,14 +82,19 @@ const OI$E = {
 };
 OI$E[OI$E.a] = 'a';
 OI$E[OI$E.b] = 'b';
-/** @const */
+/**
+ * Bla enum
+ * @const
+ */
 OI.E = OI$E;
 /** @const */
 OI.C1 = 0;
 /** @const */
 OI.C2 = 'string const';
-/** Bla const */
-/** @const */
+/**
+ * Bla const
+ * @const
+ */
 OI.C3 = OI.E.a;
 /**
  * @param {!OC.J} j

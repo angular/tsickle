@@ -13,11 +13,9 @@
 // test_files/jsdoc/jsdoc.ts(96,3): warning TS0: @constructor annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/jsdoc.ts(144,1): warning TS0: the type annotation on @define is redundant with its TypeScript type, remove the {...} part
 /**
- *
  * @fileoverview
  * Generated from: test_files/jsdoc/jsdoc.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.jsdoc.jsdoc');
 var module = module || { id: 'test_files/jsdoc/jsdoc.ts' };
