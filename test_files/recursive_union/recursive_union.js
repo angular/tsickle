@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview Reproduces a reported crash in tsickle with recursive union
  * types.
- *
  * Generated from: test_files/recursive_union/recursive_union.ts
  */
 goog.module('test_files.recursive_union.recursive_union');

@@ -312,7 +312,7 @@ export function goldenTests(): GoldenFileTest[] {
         testDir => !testDir.includes('ts_migration_exports_shim'));
   }
   let tests = testDirs.map(testDir => {
-    let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
+    let tsPaths = glob.sync(path.join(testDir, '**/*.ts')).sort();
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
     tsPaths = tsPaths.filter(p => !p.match(/\.(tsickle|decorated|tsmes)\./));
     const tsFiles = tsPaths.map(f => path.relative(testDir, f));
@@ -337,7 +337,9 @@ export function goldenTests(): GoldenFileTest[] {
  * verification by the e2e_clutz_dts_test.
  */
 export function allDtsPaths(): string[] {
-  return glob.sync(path.join(rootDir(), 'test_files', '**/*.d.ts'));
+  // Sorting is no longer supported by glob.sync
+  // (https://github.com/isaacs/node-glob/issues/372)
+  return glob.sync(path.join(rootDir(), 'test_files', '**/*.d.ts')).sort();
 }
 
 /**
@@ -452,4 +454,19 @@ export function pathToModuleName(
 
   if (fileName === tslibPath()) return 'tslib';
   return cliSupport.pathToModuleName(rootModulePath, context, fileName);
+}
+
+/**
+ * Remove the first line (if empty) and unindents the all other lines by the
+ * amount of leading whitespace in the second line.
+ */
+export function outdent(str: string) {
+  const lines = str.split('\n');
+  if (lines.length < 2) return str;
+  if (lines.shift() !== '') return str;
+  const indent = lines[0].match(/^ */)![0].length;
+  for (let i = 0; i < lines.length; i++) {
+    lines[i] = lines[i].substring(indent);
+  }
+  return lines.join('\n');
 }

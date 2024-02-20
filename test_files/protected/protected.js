@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview This test checks that we emit \\@private/\\@protected where
  * necessary.
  * Generated from: test_files/protected/protected.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.protected.protected');
 var module = module || { id: 'test_files/protected/protected.ts' };

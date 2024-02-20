@@ -1,10 +1,10 @@
 /**
- * @fileoverview added by tsickle
- * Generated from: test_files/jsdoc_types.untyped/jsdoc_types.ts
- */
-/**
  * This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
+ */
+/**
+ * @fileoverview added by tsickle
+ * Generated from: test_files/jsdoc_types.untyped/jsdoc_types.ts
  */
 goog.module('test_files.jsdoc_types.untyped.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types.untyped/jsdoc_types.ts' };
