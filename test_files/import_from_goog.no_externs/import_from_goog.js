@@ -1,7 +1,5 @@
 /**
- *
  * @fileoverview
- *
  * Generated from: test_files/import_from_goog.no_externs/import_from_goog.ts
  */
 goog.module('test_files.import_from_goog.no_externs.import_from_goog');

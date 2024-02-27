@@ -1,9 +1,7 @@
 // test_files/invalid_closure_properties/invalid_closure_properties.ts(18,12): warning TS0: omitting inexpressible property name: with spaces
 /**
- *
  * @fileoverview Check the type generated when using a builtin symbol as
  * a computed property.
- *
  * Generated from: test_files/invalid_closure_properties/invalid_closure_properties.ts
  */
 // This test is verifying the type of this expression, which ultimately

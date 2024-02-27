@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview Verify that double-underscored names in various places don't
  * get corrupted. See getIdentifierText() in tsickle.ts.
  * Generated from: test_files/underscore/underscore.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.underscore.underscore');
 var module = module || { id: 'test_files/underscore/underscore.ts' };

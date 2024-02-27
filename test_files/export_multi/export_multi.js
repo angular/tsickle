@@ -3,10 +3,8 @@ var module = module || { id: 'test_files/export_multi/export_multi.ts' };
 goog.require('tslib');
 var _a, _b;
 /**
- *
  * @fileoverview Some export forms that create multi-expression 'export'
  * statements, which are illegal under Closure and must be rewritten.
- *
  * Generated from: test_files/export_multi/export_multi.ts
  */
 /** @enum {string} */

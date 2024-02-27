@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview Use some side-effect imports and verify that tsickle generates
  * proper module code from them.
- *
  * Generated from: test_files/side_effect_import/side_effect_import.ts
  */
 // tslint:disable

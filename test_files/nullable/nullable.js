@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/nullable/nullable.ts
  * @suppress {checkTypes,uselessCode}
- *
  */
 goog.module('test_files.nullable.nullable');
 var module = module || { id: 'test_files/nullable/nullable.ts' };

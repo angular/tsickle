@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/enum/enum_user.ts
  * @suppress {checkTypes,uselessCode}
- *
  */
 goog.module('test_files.enum.enum_user');
 var module = module || { id: 'test_files/enum/enum_user.ts' };

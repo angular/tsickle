@@ -144,6 +144,15 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
 ]);
 
 /**
+ * JSDoc comments not attached to any nodes can generally not contains any tags,
+ * so all are banned. The exception is "license", which is supported as a
+ * standalone comment next to the fileoverview.
+ */
+const BANNED_JSDOC_TAGS_IN_FREESTANDING_COMMENTS =
+    new Set(CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT);
+BANNED_JSDOC_TAGS_IN_FREESTANDING_COMMENTS.delete('license');
+
+/**
  * A list of JSDoc @tags that are never allowed in TypeScript source. These are Closure tags that
  * can be expressed in the TypeScript surface syntax. As tsickle's emit will mangle type names,
  * these will cause Closure Compiler issues and should not be used.
@@ -222,7 +231,7 @@ export function normalizeLineEndings(input: string): string {
  *
  * @param commentText a comment's text content, i.e. the comment w/o /* and * /.
  */
-export function parseContents(commentText: string): ParsedJSDocComment|null {
+function parseContents(commentText: string): ParsedJSDocComment|null {
   // Make sure we have proper line endings before parsing on Windows.
   commentText = normalizeLineEndings(commentText);
   // Strip all the " * " bits from the front of each line.
@@ -233,7 +242,7 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
   for (const line of lines) {
     let match = line.match(/^\s*@([^\s{]+) *({?.*)/);
     if (match) {
-      let [_, tagName, text] = match;
+      let [, tagName, text] = match;
       if (tagName === 'returns') {
         // A synonym for 'return'.
         tagName = 'return';
@@ -276,7 +285,7 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
       let parameterName: string|undefined;
       if (tagName === 'param') {
         match = text.match(/^(\S+) ?(.*)/);
-        if (match) [_, parameterName, text] = match;
+        if (match) [, parameterName, text] = match;
       }
 
       const tag: Tag = {tagName};
@@ -345,7 +354,7 @@ function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
   return out;
 }
 
-/** Tags that must only occur onces in a comment (filtered below). */
+/** Tags that must only occur once in a comment (filtered below). */
 const SINGLETON_TAGS = new Set(['deprecated']);
 
 /**
@@ -365,7 +374,7 @@ export interface SynthesizedCommentWithOriginal extends ts.SynthesizedComment {
  */
 export function synthesizeLeadingComments(node: ts.Node): SynthesizedCommentWithOriginal[] {
   const existing = ts.getSyntheticLeadingComments(node);
-  if (existing) return existing;
+  if (existing && hasLeadingCommentsSuppressed(node)) return existing;
   const text = ts.getOriginalNode(node).getFullText();
   const synthComments = getLeadingCommentRangesSynthesized(text, node.getFullStart());
   if (synthComments.length) {
@@ -373,6 +382,23 @@ export function synthesizeLeadingComments(node: ts.Node): SynthesizedCommentWith
     suppressLeadingCommentsRecursively(node);
   }
   return synthComments;
+}
+
+function hasLeadingCommentsSuppressed(node: ts.Node): boolean {
+  const internalNode = node as InternalNode;
+  if (!internalNode.emitNode) return false;
+  return (internalNode.emitNode.flags & ts.EmitFlags.NoLeadingComments) ===
+      ts.EmitFlags.NoLeadingComments;
+}
+
+declare interface InternalNode extends ts.Node {
+  // http://google3/third_party/javascript/node_modules/typescript/stable/src/compiler/types.ts;l=954;rcl=589121220
+  emitNode?: InternalEmitNode;
+}
+
+declare interface InternalEmitNode {
+  // http://google3/third_party/javascript/node_modules/typescript/stable/src/compiler/types.ts;l=7982;rcl=589121220
+  flags: ts.EmitFlags;
 }
 
 /**
@@ -435,7 +461,8 @@ export function toSynthesizedComment(
 }
 
 /** Serializes a Comment out to a string, but does not include the start and end comment tokens. */
-export function toStringWithoutStartEnd(tags: Tag[], escapeExtraTags = new Set<string>()): string {
+function toStringWithoutStartEnd(
+    tags: Tag[], escapeExtraTags = new Set<string>()): string {
   return serialize(tags, false, escapeExtraTags);
 }
 
@@ -529,22 +556,36 @@ export function createGeneratedFromComment(file: string): string {
  * allows code to modify (including delete) it.
  */
 export class MutableJSDoc {
+  private sanitizedOtherComments = false;
+
   constructor(
       private readonly node: ts.Node,
-      private sourceComment: ts.SynthesizedComment|null, public tags: Tag[]) {}
+      private readonly allComments: ts.SynthesizedComment[],
+      private sourceComment: number, public tags: Tag[]) {}
 
   updateComment(escapeExtraTags?: Set<string>) {
+    if (!this.sanitizedOtherComments) {
+      for (let i = 0; i < this.allComments.length; i++) {
+        if (i === this.sourceComment) continue;
+        const comment = this.allComments[i];
+        const parsed = parse(comment);
+        if (!parsed) continue;
+        comment.text = toStringWithoutStartEnd(
+            parsed.tags, BANNED_JSDOC_TAGS_IN_FREESTANDING_COMMENTS);
+      }
+
+      this.sanitizedOtherComments = true;
+    }
+
     const text = toStringWithoutStartEnd(this.tags, escapeExtraTags);
-    if (this.sourceComment) {
+    if (this.sourceComment >= 0) {
       if (!text) {
         // Delete the (now empty) comment.
-        const comments = ts.getSyntheticLeadingComments(this.node)!;
-        const idx = comments.indexOf(this.sourceComment);
-        comments.splice(idx, 1);
-        this.sourceComment = null;
+        this.allComments.splice(this.sourceComment, 1);
+        this.sourceComment = -1;
         return;
       }
-      this.sourceComment.text = text;
+      this.allComments[this.sourceComment].text = text;
       return;
     }
 
@@ -558,9 +599,9 @@ export class MutableJSDoc {
       pos: -1,
       end: -1,
     };
-    const comments = ts.getSyntheticLeadingComments(this.node) || [];
-    comments.push(comment);
-    ts.setSyntheticLeadingComments(this.node, comments);
+    this.allComments.push(comment);
+    this.sourceComment = this.allComments.length - 1;
+    ts.setSyntheticLeadingComments(this.node, this.allComments);
   }
 }
 
@@ -577,7 +618,7 @@ export function getJSDocTags(
     node: ts.Node, diagnostics?: ts.Diagnostic[],
     sourceFile?: ts.SourceFile): Tag[] {
   if (!ts.getParseTreeNode(node)) return [];
-  const [tags, ] = parseJSDoc(node, diagnostics, sourceFile);
+  const [, , tags] = parseJSDoc(node, diagnostics, sourceFile);
   return tags;
 }
 
@@ -592,13 +633,13 @@ export function getJSDocTags(
 export function getMutableJSDoc(
     node: ts.Node, diagnostics?: ts.Diagnostic[],
     sourceFile?: ts.SourceFile): MutableJSDoc {
-  const [tags, comment] = parseJSDoc(node, diagnostics, sourceFile);
-  return new MutableJSDoc(node, comment, tags);
+  const [comments, i, tags] = parseJSDoc(node, diagnostics, sourceFile);
+  return new MutableJSDoc(node, comments, i, tags);
 }
 
 function parseJSDoc(
     node: ts.Node, diagnostics?: ts.Diagnostic[],
-    sourceFile?: ts.SourceFile): [Tag[], ts.SynthesizedComment|null] {
+    sourceFile?: ts.SourceFile): [ts.SynthesizedComment[], number, Tag[]] {
   // synthesizeLeadingComments below changes text locations for node, so extract
   // the location here in case it is needed later to report diagnostics.
   let nodeCommentRange: ts.TextRange|undefined;
@@ -609,7 +650,7 @@ function parseJSDoc(
   }
 
   const comments = synthesizeLeadingComments(node);
-  if (!comments || comments.length === 0) return [[], null];
+  if (!comments || comments.length === 0) return [[], -1, []];
 
   for (let i = comments.length - 1; i >= 0; i--) {
     const comment = comments[i];
@@ -621,8 +662,8 @@ function parseJSDoc(
             diagnostics, node, parsed.warnings.join('\n'), range,
             ts.DiagnosticCategory.Warning);
       }
-      return [parsed.tags, comment];
+      return [comments, i, parsed.tags];
     }
   }
-  return [[], null];
+  return [comments, -1, []];
 }
