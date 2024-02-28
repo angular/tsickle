@@ -4,14 +4,12 @@ var module = module || { id: 'test_files/decorator/decorator.ts' };
 const tslib_1 = goog.require('tslib');
 const __tsickle_googReflect = goog.require("goog.reflect");
 /**
- *
  * @fileoverview OtherClass is reachable via the imports for './external' and
  * './external2'. Test that were using it from the right import, and not just
  * the first that allows access to the value. That is important when imports are
  * elided.
  * Generated from: test_files/decorator/decorator.ts
  * @suppress {uselessCode}
- *
  */
 const tsickle_default_export_1 = goog.requireType("test_files.decorator.default_export");
 const tsickle_external_2 = goog.requireType("test_files.decorator.external");

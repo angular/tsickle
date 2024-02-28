@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview Test that type casts are emitted when a type is used which was
  * narrowed since declaration.
  * Generated from: test_files/type_narrowing/emit_extra_casts.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.type_narrowing.emit_extra_casts');
 var module = module || { id: 'test_files/type_narrowing/emit_extra_casts.ts' };

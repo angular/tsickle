@@ -3,10 +3,8 @@ goog.module('test_files.decorator.export_const');
 var module = module || { id: 'test_files/decorator/export_const.ts' };
 const tslib_1 = goog.require('tslib');
 /**
- *
  * @fileoverview Decorated class, whose type and value are exported separately.
  * The value used afterwards.
- *
  * Generated from: test_files/decorator/export_const.ts
  */
 /**

@@ -1,12 +1,10 @@
 // test_files/jsdoc_types/jsdoc_types.ts(40,1): warning TS0: dropped implements: {?} type
 // test_files/jsdoc_types/jsdoc_types.ts(43,1): warning TS0: dropped implements: {?} type
 /**
- *
  * @fileoverview This test tests importing a type across module boundaries,
  * ensuring that the type gets the proper name in JSDoc comments.
  * Generated from: test_files/jsdoc_types/jsdoc_types.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.jsdoc_types.jsdoc_types');
 var module = module || { id: 'test_files/jsdoc_types/jsdoc_types.ts' };

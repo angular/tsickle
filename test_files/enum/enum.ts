@@ -36,6 +36,7 @@ let variableUsingExportedEnum: EnumTest2;
 enum ComponentIndex {
   Scheme = 1,
   UserInfo,
+  // TODO: b/313666408 - Fix tsc to not duplicate comments like the following
   Domain = 0,  // Be sure to exercise the code with a 0 enum value.
   UserInfo2 = UserInfo,
 }

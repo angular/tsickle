@@ -2,13 +2,11 @@
 // test_files/generic_in_prop_access/user.ts(17,9): warning TS0: unhandled type flags: IncludesWildcard
 // test_files/generic_in_prop_access/user.ts(17,18): warning TS0: unhandled type flags: IncludesWildcard
 /**
- *
  * @fileoverview Tests template parameters for identifier in property access
  * expression, where TypeScript narrows its type only on usage, i.e. in the
  * return statement below.
  * Generated from: test_files/generic_in_prop_access/user.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.generic_in_prop_access.user');
 var module = module || { id: 'test_files/generic_in_prop_access/user.ts' };

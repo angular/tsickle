@@ -1,11 +1,9 @@
 /**
- *
  * @fileoverview Ensure that a type alias declared in a declaration
  * merging namespace is generated as a property of the merged outer class.
  *
  * Generated from: test_files/decl_merge/inner_typedef.ts
  * @suppress {uselessCode,checkTypes}
- *
  */
 goog.module('test_files.decl_merge.inner_typedef');
 var module = module || { id: 'test_files/decl_merge/inner_typedef.ts' };

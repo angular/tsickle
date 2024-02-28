@@ -1,10 +1,8 @@
 // test_files/partial/partial.ts(12,1): warning TS0: dropped implements: dropped implements of a type literal: Partial<Base>
 /**
- *
  * @fileoverview
  * Generated from: test_files/partial/partial.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.partial.partial');
 var module = module || { id: 'test_files/partial/partial.ts' };

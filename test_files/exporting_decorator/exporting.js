@@ -3,11 +3,9 @@ var module = module || { id: 'test_files/exporting_decorator/exporting.ts' };
 const tslib_1 = goog.require('tslib');
 const __tsickle_googReflect = goog.require("goog.reflect");
 /**
- *
  * @fileoverview
  * Generated from: test_files/exporting_decorator/exporting.ts
  * @suppress {uselessCode}
- *
  */
 /**
  * \@ExportDecoratedItems

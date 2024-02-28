@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/ctors/ctors.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.ctors.ctors');
 var module = module || { id: 'test_files/ctors/ctors.ts' };

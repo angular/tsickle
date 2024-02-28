@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview Test transpilation of namespaces merging with classes or
  * functions.
  * Generated from: test_files/namespaced.no_nstransform/merged_namespace.ts
  * @suppress {checkTypes,constantProperty}
- *
  */
 goog.module('test_files.namespaced.no_nstransform.merged_namespace');
 var module = module || { id: 'test_files/namespaced.no_nstransform/merged_namespace.ts' };
