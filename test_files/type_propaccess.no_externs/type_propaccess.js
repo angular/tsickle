@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/type_propaccess.no_externs/type_propaccess.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.type_propaccess.no_externs.type_propaccess');
 var module = module || { id: 'test_files/type_propaccess.no_externs/type_propaccess.ts' };
