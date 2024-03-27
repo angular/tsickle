@@ -1,11 +1,9 @@
 // test_files/enum/enum.ts(7,7): warning TS0: should not emit a 'never' type
 /**
- *
  * @fileoverview Line with a missing semicolon should not break the following
  * enum.
  * Generated from: test_files/enum/enum.ts
  * @suppress {checkTypes,uselessCode}
- *
  */
 goog.module('test_files.enum.enum');
 var module = module || { id: 'test_files/enum/enum.ts' };
@@ -57,7 +55,8 @@ let variableUsingExportedEnum;
 const ComponentIndex = {
     Scheme: 1,
     UserInfo: 2,
-    Domain: 0,
+    // TODO: b/313666408 - Fix tsc to not duplicate comments like the following
+    Domain: 0, // Be sure to exercise the code with a 0 enum value.
     // Be sure to exercise the code with a 0 enum value.
     UserInfo2: 2,
 };

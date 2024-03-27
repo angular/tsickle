@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/optional_method/optional_method.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.optional_method.optional_method');
 var module = module || { id: 'test_files/optional_method/optional_method.ts' };

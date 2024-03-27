@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview This file isn't itself a test case, but it is imported by the
  * export.in.ts test case.
  * Generated from: test_files/export/export_helper.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.export.export_helper');
 var module = module || { id: 'test_files/export/export_helper.ts' };
@@ -16,6 +14,8 @@ exports.export4 = export_helper_2_1.export4;
 exports.TypeDef; // re-export typedef
 /** @typedef {!tsickle_export_helper_2_1.Interface} */
 exports.Interface; // re-export typedef
+/** @typedef {!tsickle_export_helper_2_1.ConstEnum} */
+exports.ConstEnum; // re-export typedef
 /** @typedef {!tsickle_export_helper_2_1.DeclaredType} */
 exports.DeclaredType; // re-export typedef
 /** @typedef {!tsickle_export_helper_2_1.DeclaredInterface} */

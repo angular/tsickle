@@ -7,17 +7,17 @@
  * found in the LICENSE file at https://angular.io/license
  */
 /**
- * @fileoverview This comment is ignored by Closure compiler.
- * @suppress {undefinedVars}
+ * \@fileoverview This comment is ignored by Closure compiler.
+ * \@suppress {undefinedVars}
  */
 /**
- *
  * @fileoverview The last fileoverview actually takes effect.
  * Generated from: test_files/file_comment/multiple_comments.ts
  * @suppress {const}
- *
  */
-/** Here's another trailing comment */
+/**
+ * Here's another trailing comment
+ */
 goog.module('test_files.file_comment.multiple_comments');
 var module = module || { id: 'test_files/file_comment/multiple_comments.ts' };
 goog.require('tslib');

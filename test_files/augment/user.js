@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/augment/user.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.augment.user');
 var module = module || { id: 'test_files/augment/user.ts' };

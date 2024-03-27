@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview tsickle's Closure compatible exported enum emit does not work in namespaces. Bar
  * below must be exported onto foo, which tsickle does by disabling its emit for namespace'd enums.
- *
  * Generated from: test_files/namespaced.no_nstransform/export_enum_in_namespace.ts
  */
 // tslint:disable:no-namespace

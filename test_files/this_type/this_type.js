@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/this_type/this_type.ts
  * @suppress {checkTypes,uselessCode}
- *
  */
 goog.module('test_files.this_type.this_type');
 var module = module || { id: 'test_files/this_type/this_type.ts' };

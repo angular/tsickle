@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/parameter_properties/parameter_properties.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.parameter_properties.parameter_properties');
 var module = module || { id: 'test_files/parameter_properties/parameter_properties.ts' };

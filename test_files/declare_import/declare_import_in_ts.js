@@ -4,13 +4,11 @@
 // test_files/declare_import/declare_import_in_ts.ts(22,1): warning TS0: dropped extends: {?} type
 // test_files/declare_import/declare_import_in_ts.ts(25,1): warning TS0: dropped extends: {?} type
 /**
- *
  * @fileoverview Tests that imports in .ts resolve to the correct result names. See externs.ts
  * addImportAliases.
  *
  * The code below tests mixing symbols from .d.ts and .ts files, to make sure type references are
  * uniformly generated.
- *
  * Generated from: test_files/declare_import/declare_import_in_ts.ts
  */
 goog.module('test_files.declare_import.declare_import_in_ts');

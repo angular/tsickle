@@ -113,17 +113,6 @@ export function synthesizeCommentRanges(
 }
 
 /**
- * Creates a non emitted statement that can be used to store synthesized comments.
- */
-export function createNotEmittedStatement(sourceFile: ts.SourceFile): ts.NotEmittedStatement {
-  const stmt = ts.factory.createNotEmittedStatement(sourceFile);
-  ts.setOriginalNode(stmt, undefined);
-  ts.setTextRange(stmt, {pos: 0, end: 0});
-  ts.setEmitFlags(stmt, ts.EmitFlags.CustomPrologue);
-  return stmt;
-}
-
-/**
  * This is a version of `ts.visitEachChild` that works that calls our version
  * of `updateSourceFileNode`, so that typescript doesn't lose type information
  * for property decorators.
@@ -152,7 +141,7 @@ export function updateSourceFileNode(
   }
   sf = ts.factory.updateSourceFile(
       sf,
-      statements,
+      ts.setTextRange(statements, sf.statements),
       sf.isDeclarationFile,
       sf.referencedFiles,
       sf.typeReferenceDirectives,
@@ -227,28 +216,30 @@ export function reportDebugWarning(
  * @param textRange pass to overrride the text range from the node with a more specific range.
  */
 export function reportDiagnostic(
-    diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string, textRange?: ts.TextRange,
-    category = ts.DiagnosticCategory.Error) {
+    diagnostics: ts.Diagnostic[], node: ts.Node|undefined, messageText: string,
+    textRange?: ts.TextRange, category = ts.DiagnosticCategory.Error) {
   diagnostics.push(createDiagnostic(node, messageText, textRange, category));
 }
 
 function createDiagnostic(
-    node: ts.Node, messageText: string, textRange: ts.TextRange|undefined,
+    node: ts.Node|undefined, messageText: string,
+    textRange: ts.TextRange|undefined,
     category: ts.DiagnosticCategory): ts.Diagnostic {
-  let start, length: number;
+  let start: number|undefined;
+  let length: number|undefined;
   // getStart on a synthesized node can crash (due to not finding an associated
   // source file). Make sure to use the original node.
   node = ts.getOriginalNode(node);
   if (textRange) {
     start = textRange.pos;
     length = textRange.end - textRange.pos;
-  } else {
+  } else if (node) {
     // Only use getStart if node has a valid pos, as it might be synthesized.
     start = node.pos >= 0 ? node.getStart() : 0;
     length = node.end - node.pos;
   }
   return {
-    file: node.getSourceFile(),
+    file: node?.getSourceFile(),
     start,
     length,
     messageText,

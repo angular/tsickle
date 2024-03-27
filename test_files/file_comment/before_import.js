@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview fileoverview comment before import. transformer_util.ts has
  * special logic to handle comments before import/require() calls. This file
  * tests the regular import case.
- *
  * Generated from: test_files/file_comment/before_import.ts
  */
 goog.module('test_files.file_comment.before_import');
