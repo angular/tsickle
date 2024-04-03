@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview A short test that ensures that string manipulation types (such
  * as `Uncapitalize`) are converted to a generic `string` type.
- *
  * Generated from: test_files/string_manipulations/uncapitalize_lowercase.ts
  */
 goog.module('test_files.string_manipulations.uncapitalize_lowercase');
