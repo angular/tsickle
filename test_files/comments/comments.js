@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/comments/comments.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.comments.comments');
 var module = module || { id: 'test_files/comments/comments.ts' };

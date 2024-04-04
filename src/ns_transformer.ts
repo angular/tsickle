@@ -14,6 +14,7 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
+import {getMutableJSDoc} from './jsdoc';
 import {getIdentifierText, getPreviousDeclaration, hasModifierFlag, isAmbient, markAsMergedDeclaration, reportDiagnostic} from './transformer_util';
 
 /**
@@ -72,8 +73,8 @@ export function namespaceTransformer(
       // transformation fails.
       function transformNamespace(
           ns: ts.ModuleDeclaration,
-          mergedDecl: ts.ClassDeclaration|
-          ts.InterfaceDeclaration): ts.Statement[] {
+          mergedDecl: ts.ClassDeclaration|ts.InterfaceDeclaration|
+          ts.EnumDeclaration): ts.Statement[] {
         if (!ns.body || !ts.isModuleBlock(ns.body)) {
           if (ts.isModuleDeclaration(ns)) {
             error(
@@ -83,10 +84,15 @@ export function namespaceTransformer(
           return [ns];
         }
         const nsName = getIdentifierText(ns.name as ts.Identifier);
+        const mergingWithEnum = ts.isEnumDeclaration(mergedDecl);
         const transformedNsStmts: ts.Statement[] = [];
         for (const stmt of ns.body.statements) {
           if (ts.isEmptyStatement(stmt)) continue;
           if (ts.isClassDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'class');
+              continue;
+            }
             transformInnerDeclaration(
                 stmt, (classDecl, notExported, hoistedIdent) => {
                   return ts.factory.updateClassDeclaration(
@@ -95,12 +101,20 @@ export function namespaceTransformer(
                       classDecl.members);
                 });
           } else if (ts.isEnumDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'enum');
+              continue;
+            }
             transformInnerDeclaration(
                 stmt, (enumDecl, notExported, hoistedIdent) => {
                   return ts.factory.updateEnumDeclaration(
                       enumDecl, notExported, hoistedIdent, enumDecl.members);
                 });
           } else if (ts.isInterfaceDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'interface');
+              continue;
+            }
             transformInnerDeclaration(
                 stmt, (interfDecl, notExported, hoistedIdent) => {
                   return ts.factory.updateInterfaceDeclaration(
@@ -109,6 +123,10 @@ export function namespaceTransformer(
                       interfDecl.members);
                 });
           } else if (ts.isTypeAliasDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'type alias');
+              continue;
+            }
             transformTypeAliasDeclaration(stmt);
           } else if (ts.isVariableStatement(stmt)) {
             if ((ts.getCombinedNodeFlags(stmt.declarationList) &
@@ -116,13 +134,28 @@ export function namespaceTransformer(
               error(
                   stmt,
                   'non-const values are not supported. (go/ts-merged-namespaces)');
+              continue;
             }
             if (!ts.isInterfaceDeclaration(mergedDecl)) {
               error(
                   stmt,
                   'const declaration only allowed when merging with an interface (go/ts-merged-namespaces)');
+              continue;
             }
             transformConstDeclaration(stmt);
+          } else if (ts.isFunctionDeclaration(stmt)) {
+            if (!ts.isEnumDeclaration(mergedDecl)) {
+              error(
+                  stmt,
+                  'function declaration only allowed when merging with an enum (go/ts-merged-namespaces)');
+            }
+            transformInnerDeclaration(
+                stmt, (funcDecl, notExported, hoistedIdent) => {
+                  return ts.factory.updateFunctionDeclaration(
+                      funcDecl, notExported, funcDecl.asteriskToken,
+                      hoistedIdent, funcDecl.typeParameters,
+                      funcDecl.parameters, funcDecl.type, funcDecl.body);
+                });
           } else {
             error(
                 stmt,
@@ -144,6 +177,12 @@ export function namespaceTransformer(
         return transformedNsStmts;
 
         // Local functions follow.
+
+        function errorNotAllowed(stmt: ts.Statement, declKind: string) {
+          error(
+              stmt,
+              `${declKind} cannot be merged with enum declaration. (go/ts-merged-namespaces)`);
+        }
 
         type DeclarationStatement = ts.Declaration&ts.DeclarationStatement;
 
@@ -243,9 +282,10 @@ export function namespaceTransformer(
                   initializer));
           ts.setTextRange(prop, original);
           ts.setOriginalNode(prop, original);
-          return ts.addSyntheticLeadingComment(
-              prop, ts.SyntaxKind.MultiLineCommentTrivia, '* @const ',
-              /* hasTrailingNewLine */ true);
+          const jsDoc = getMutableJSDoc(prop, diagnostics, sourceFile);
+          jsDoc.tags.push({tagName: 'const'});
+          jsDoc.updateComment();
+          return prop;
         }
 
         function isNamespaceRef(ident: ts.Identifier): boolean {
@@ -365,12 +405,13 @@ export function namespaceTransformer(
         }
 
         if (!ts.isInterfaceDeclaration(mergedDecl) &&
-            !ts.isClassDeclaration(mergedDecl)) {
-          // The previous declaration is not a class or interface.
+            !ts.isClassDeclaration(mergedDecl) &&
+            !ts.isEnumDeclaration(mergedDecl)) {
+          // The previous declaration is not a class, enum, or interface.
           transformedStmts.push(ns);  // Nothing to do here.
           error(
               ns.name,
-              'merged declaration must be local class or interface. (go/ts-merged-namespaces)');
+              'merged declaration must be local class, enum, or interface. (go/ts-merged-namespaces)');
           return;
         }
 
