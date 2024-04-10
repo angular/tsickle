@@ -1,7 +1,5 @@
 /**
- *
  * @fileoverview This text here matches the     text below in length.
- *
  * Generated from: test_files/functions/two_jsdoc_blocks.ts
  */
 goog.module('test_files.functions.two_jsdoc_blocks');

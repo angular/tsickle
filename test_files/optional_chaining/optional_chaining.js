@@ -3,7 +3,6 @@ var module = module || { id: 'test_files/optional_chaining/optional_chaining.ts'
 goog.require('tslib');
 var _a, _b, _c;
 /**
- *
  * @fileoverview Tests that tsickle handles non-nullable assertions in optional
  * chains correctly. The correct behavior is not emitting any special casts
  * because Closure Compiler will not check possibly-undefined property access.
@@ -12,7 +11,6 @@ var _a, _b, _c;
  * For more information see jsdoc_transformer.ts.
  * Generated from: test_files/optional_chaining/optional_chaining.ts
  * @suppress {checkTypes}
- *
  */
 /** @type {(undefined|{a: (undefined|{b: number})})} */
 let basic;
