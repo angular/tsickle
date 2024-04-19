@@ -48,12 +48,14 @@ export class FileSummary {
   private readonly strongRequireSet = new Map<string, Symbol>();
   private readonly weakRequireSet = new Map<string, Symbol>();
   private readonly dynamicRequireSet = new Map<string, Symbol>();
+  private readonly maybeRequireSet = new Map<string, Symbol>();
   private readonly modSet = new Map<string, Symbol>();
   private readonly enhancedSet = new Map<string, Symbol>();
   toggles: string[] = [];
-  modName: string|undefined;
+  modName: string | undefined;
   autochunk = false;
   enhanceable = false;
+  legacyNamespace = false;
   moduleType = ModuleType.UNKNOWN;
 
   private stringify(symbol: Symbol): string {
@@ -95,6 +97,14 @@ export class FileSummary {
 
   get dynamicRequires(): Symbol[] {
     return [...this.dynamicRequireSet.values()];
+  }
+
+  addMaybeRequire(maybeRequire: Symbol) {
+    this.maybeRequireSet.set(this.stringify(maybeRequire), maybeRequire);
+  }
+
+  get maybeRequires(): Symbol[] {
+    return [...this.maybeRequireSet.values()];
   }
 
   addMods(mods: Symbol) {

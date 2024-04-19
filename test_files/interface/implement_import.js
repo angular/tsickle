@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/interface/implement_import.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.interface.implement_import');
 var module = module || { id: 'test_files/interface/implement_import.ts' };

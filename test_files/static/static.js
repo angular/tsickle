@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/static/static.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.static.static');
 var module = module || { id: 'test_files/static/static.ts' };
