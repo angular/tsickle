@@ -14,7 +14,15 @@
 import * as ts from 'typescript';
 
 import {AnnotatorHost} from './annotator_host';
-import {getIdentifierText, getPreviousDeclaration, hasModifierFlag, isAmbient, markAsMergedDeclaration, reportDiagnostic} from './transformer_util';
+import {getMutableJSDoc} from './jsdoc';
+import {
+  getIdentifierText,
+  getPreviousDeclaration,
+  hasModifierFlag,
+  isAmbient,
+  markAsMergedDeclaration,
+  reportDiagnostic,
+} from './transformer_util';
 
 /**
  * Transforms declaration merging namespaces.
@@ -43,9 +51,11 @@ import {getIdentifierText, getPreviousDeclaration, hasModifierFlag, isAmbient, m
  *
  */
 export function namespaceTransformer(
-    host: AnnotatorHost, tsOptions: ts.CompilerOptions,
-    typeChecker: ts.TypeChecker,
-    diagnostics: ts.Diagnostic[]): ts.TransformerFactory<ts.SourceFile> {
+  host: AnnotatorHost,
+  tsOptions: ts.CompilerOptions,
+  typeChecker: ts.TypeChecker,
+  diagnostics: ts.Diagnostic[],
+): ts.TransformerFactory<ts.SourceFile> {
   return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
     return (sourceFile: ts.SourceFile): ts.SourceFile => {
       let haveTransformedNs = false;
@@ -59,10 +69,12 @@ export function namespaceTransformer(
         return sourceFile;
       }
       return ts.factory.updateSourceFile(
-          sourceFile,
-          ts.setTextRange(
-              ts.factory.createNodeArray(transformedStmts),
-              sourceFile.statements));
+        sourceFile,
+        ts.setTextRange(
+          ts.factory.createNodeArray(transformedStmts),
+          sourceFile.statements,
+        ),
+      );
 
       // Local functions follow.
 
@@ -71,63 +83,131 @@ export function namespaceTransformer(
       // Returns the transformed module body statements, or [ns] if the
       // transformation fails.
       function transformNamespace(
-          ns: ts.ModuleDeclaration,
-          mergedDecl: ts.ClassDeclaration|
-          ts.InterfaceDeclaration): ts.Statement[] {
+        ns: ts.ModuleDeclaration,
+        mergedDecl:
+          | ts.ClassDeclaration
+          | ts.InterfaceDeclaration
+          | ts.EnumDeclaration,
+      ): ts.Statement[] {
         if (!ns.body || !ts.isModuleBlock(ns.body)) {
           if (ts.isModuleDeclaration(ns)) {
             error(
-                ns.name,
-                'nested namespaces are not supported.  (go/ts-merged-namespaces)');
+              ns.name,
+              'nested namespaces are not supported.  (go/ts-merged-namespaces)',
+            );
           }
           return [ns];
         }
         const nsName = getIdentifierText(ns.name as ts.Identifier);
+        const mergingWithEnum = ts.isEnumDeclaration(mergedDecl);
         const transformedNsStmts: ts.Statement[] = [];
         for (const stmt of ns.body.statements) {
           if (ts.isEmptyStatement(stmt)) continue;
           if (ts.isClassDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'class');
+              continue;
+            }
             transformInnerDeclaration(
-                stmt, (classDecl, notExported, hoistedIdent) => {
-                  return ts.factory.updateClassDeclaration(
-                      classDecl, notExported, hoistedIdent,
-                      classDecl.typeParameters, classDecl.heritageClauses,
-                      classDecl.members);
-                });
+              stmt,
+              (classDecl, notExported, hoistedIdent) => {
+                return ts.factory.updateClassDeclaration(
+                  classDecl,
+                  notExported,
+                  hoistedIdent,
+                  classDecl.typeParameters,
+                  classDecl.heritageClauses,
+                  classDecl.members,
+                );
+              },
+            );
           } else if (ts.isEnumDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'enum');
+              continue;
+            }
             transformInnerDeclaration(
-                stmt, (enumDecl, notExported, hoistedIdent) => {
-                  return ts.factory.updateEnumDeclaration(
-                      enumDecl, notExported, hoistedIdent, enumDecl.members);
-                });
+              stmt,
+              (enumDecl, notExported, hoistedIdent) => {
+                return ts.factory.updateEnumDeclaration(
+                  enumDecl,
+                  notExported,
+                  hoistedIdent,
+                  enumDecl.members,
+                );
+              },
+            );
           } else if (ts.isInterfaceDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'interface');
+              continue;
+            }
             transformInnerDeclaration(
-                stmt, (interfDecl, notExported, hoistedIdent) => {
-                  return ts.factory.updateInterfaceDeclaration(
-                      interfDecl, notExported, hoistedIdent,
-                      interfDecl.typeParameters, interfDecl.heritageClauses,
-                      interfDecl.members);
-                });
+              stmt,
+              (interfDecl, notExported, hoistedIdent) => {
+                return ts.factory.updateInterfaceDeclaration(
+                  interfDecl,
+                  notExported,
+                  hoistedIdent,
+                  interfDecl.typeParameters,
+                  interfDecl.heritageClauses,
+                  interfDecl.members,
+                );
+              },
+            );
           } else if (ts.isTypeAliasDeclaration(stmt)) {
+            if (mergingWithEnum) {
+              errorNotAllowed(stmt, 'type alias');
+              continue;
+            }
             transformTypeAliasDeclaration(stmt);
           } else if (ts.isVariableStatement(stmt)) {
-            if ((ts.getCombinedNodeFlags(stmt.declarationList) &
-                 ts.NodeFlags.Const) === 0) {
+            if (
+              (ts.getCombinedNodeFlags(stmt.declarationList) &
+                ts.NodeFlags.Const) ===
+              0
+            ) {
               error(
-                  stmt,
-                  'non-const values are not supported. (go/ts-merged-namespaces)');
+                stmt,
+                'non-const values are not supported. (go/ts-merged-namespaces)',
+              );
+              continue;
             }
             if (!ts.isInterfaceDeclaration(mergedDecl)) {
               error(
-                  stmt,
-                  'const declaration only allowed when merging with an interface (go/ts-merged-namespaces)');
+                stmt,
+                'const declaration only allowed when merging with an interface (go/ts-merged-namespaces)',
+              );
+              continue;
             }
             transformConstDeclaration(stmt);
+          } else if (ts.isFunctionDeclaration(stmt)) {
+            if (!ts.isEnumDeclaration(mergedDecl)) {
+              error(
+                stmt,
+                'function declaration only allowed when merging with an enum (go/ts-merged-namespaces)',
+              );
+            }
+            transformInnerDeclaration(
+              stmt,
+              (funcDecl, notExported, hoistedIdent) => {
+                return ts.factory.updateFunctionDeclaration(
+                  funcDecl,
+                  notExported,
+                  funcDecl.asteriskToken,
+                  hoistedIdent,
+                  funcDecl.typeParameters,
+                  funcDecl.parameters,
+                  funcDecl.type,
+                  funcDecl.body,
+                );
+              },
+            );
           } else {
             error(
-                stmt,
-                `unsupported statement in declaration merging namespace '${
-                    nsName}' (go/ts-merged-namespaces)`);
+              stmt,
+              `unsupported statement in declaration merging namespace '${nsName}' (go/ts-merged-namespaces)`,
+            );
           }
         }
         if (haveSeenError) {
@@ -145,21 +225,30 @@ export function namespaceTransformer(
 
         // Local functions follow.
 
-        type DeclarationStatement = ts.Declaration&ts.DeclarationStatement;
+        function errorNotAllowed(stmt: ts.Statement, declKind: string) {
+          error(
+            stmt,
+            `${declKind} cannot be merged with enum declaration. (go/ts-merged-namespaces)`,
+          );
+        }
+
+        type DeclarationStatement = ts.Declaration & ts.DeclarationStatement;
 
         function transformConstDeclaration(varDecl: ts.VariableStatement) {
           for (let decl of varDecl.declarationList.declarations) {
             if (!decl.name || !ts.isIdentifier(decl.name)) {
               error(
-                  decl,
-                  'Destructuring declarations are not supported. (go/ts-merged-namespaces)');
+                decl,
+                'Destructuring declarations are not supported. (go/ts-merged-namespaces)',
+              );
               return;
             }
             const originalName = getIdentifierText(decl.name);
             if (!hasModifierFlag(decl, ts.ModifierFlags.Export)) {
               error(
-                  decl,
-                  `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
+                decl,
+                `'${originalName}' must be exported. (go/ts-merged-namespaces)`,
+              );
               return;
             }
             decl = fixReferences(decl);
@@ -168,26 +257,33 @@ export function namespaceTransformer(
               return;
             }
             transformedNsStmts.push(
-                createInnerNameAlias(originalName, decl.initializer, varDecl));
+              createInnerNameAlias(originalName, decl.initializer, varDecl),
+            );
           }
         }
 
         function transformTypeAliasDeclaration(
-            aliasDecl: ts.TypeAliasDeclaration) {
+          aliasDecl: ts.TypeAliasDeclaration,
+        ) {
           // Check that the inner declaration is exported.
           const originalName = getIdentifierText(aliasDecl.name);
           if (!hasModifierFlag(aliasDecl, ts.ModifierFlags.Export)) {
             error(
-                aliasDecl,
-                `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
+              aliasDecl,
+              `'${originalName}' must be exported. (go/ts-merged-namespaces)`,
+            );
           }
           aliasDecl = fixReferences(aliasDecl);
           const notExported = ts.factory.createModifiersFromModifierFlags(
-              ts.getCombinedModifierFlags(aliasDecl) &
-              (~ts.ModifierFlags.Export));
+            ts.getCombinedModifierFlags(aliasDecl) & ~ts.ModifierFlags.Export,
+          );
           aliasDecl = ts.factory.updateTypeAliasDeclaration(
-              aliasDecl, notExported, aliasDecl.name, aliasDecl.typeParameters,
-              aliasDecl.type);
+            aliasDecl,
+            notExported,
+            aliasDecl.name,
+            aliasDecl.typeParameters,
+            aliasDecl.type,
+          );
           // visitTypeAliasDeclaration() in jsdocTransformer() recognizes
           // that the type alias is declared in a transformed namespace and
           // generates the type alias as a property of the namespace. No
@@ -196,22 +292,27 @@ export function namespaceTransformer(
         }
 
         function transformInnerDeclaration<T extends DeclarationStatement>(
+          decl: T,
+          updateDecl: (
             decl: T,
-            updateDecl: (
-                decl: T, modifiers: ts.Modifier[]|undefined,
-                newIdent: ts.Identifier) => T) {
+            modifiers: ts.Modifier[] | undefined,
+            newIdent: ts.Identifier,
+          ) => T,
+        ) {
           if (!decl.name || !ts.isIdentifier(decl.name)) {
             error(
-                decl,
-                'Anonymous declaration cannot be merged. (go/ts-merged-namespaces)');
+              decl,
+              'Anonymous declaration cannot be merged. (go/ts-merged-namespaces)',
+            );
             return;
           }
           // Check that the inner declaration is exported.
           const originalName = getIdentifierText(decl.name);
           if (!hasModifierFlag(decl, ts.ModifierFlags.Export)) {
             error(
-                decl,
-                `'${originalName}' must be exported. (go/ts-merged-namespaces)`);
+              decl,
+              `'${originalName}' must be exported. (go/ts-merged-namespaces)`,
+            );
           }
           decl = fixReferences(decl);
 
@@ -221,12 +322,16 @@ export function namespaceTransformer(
 
           // The hoisted declaration is not directly exported.
           const notExported = ts.factory.createModifiersFromModifierFlags(
-              ts.getCombinedModifierFlags(decl) & (~ts.ModifierFlags.Export));
+            ts.getCombinedModifierFlags(decl) & ~ts.ModifierFlags.Export,
+          );
           const hoistedDecl = updateDecl(decl, notExported, hoistedIdent);
           transformedNsStmts.push(hoistedDecl);
           // Add alias `/** @const */ nsName.originalName = hoistedName;`
-          const aliasProp =
-              createInnerNameAlias(originalName, hoistedIdent, decl);
+          const aliasProp = createInnerNameAlias(
+            originalName,
+            hoistedIdent,
+            decl,
+          );
           // Don't repeat any comments from the original declaration. They
           // are already on the hoisted declaration.
           ts.setEmitFlags(aliasProp, ts.EmitFlags.NoLeadingComments);
@@ -234,18 +339,25 @@ export function namespaceTransformer(
         }
 
         function createInnerNameAlias(
-            propName: string, initializer: ts.Expression,
-            original: ts.Node): ts.Statement {
-          const prop =
-              ts.factory.createExpressionStatement(ts.factory.createAssignment(
-                  ts.factory.createPropertyAccessExpression(
-                      mergedDecl.name!, propName),
-                  initializer));
+          propName: string,
+          initializer: ts.Expression,
+          original: ts.Node,
+        ): ts.Statement {
+          const prop = ts.factory.createExpressionStatement(
+            ts.factory.createAssignment(
+              ts.factory.createPropertyAccessExpression(
+                mergedDecl.name!,
+                propName,
+              ),
+              initializer,
+            ),
+          );
           ts.setTextRange(prop, original);
           ts.setOriginalNode(prop, original);
-          return ts.addSyntheticLeadingComment(
-              prop, ts.SyntaxKind.MultiLineCommentTrivia, '* @const ',
-              /* hasTrailingNewLine */ true);
+          const jsDoc = getMutableJSDoc(prop, diagnostics, sourceFile);
+          jsDoc.tags.push({tagName: 'const'});
+          jsDoc.updateComment();
+          return prop;
         }
 
         function isNamespaceRef(ident: ts.Identifier): boolean {
@@ -263,12 +375,15 @@ export function namespaceTransformer(
 
         // Build a property access expression if the identifier refers to a
         // symbol defined in the transformed namespace.
-        function maybeFixIdentifier(ident: ts.Identifier): ts.Identifier|
-            ts.PropertyAccessExpression {
+        function maybeFixIdentifier(
+          ident: ts.Identifier,
+        ): ts.Identifier | ts.PropertyAccessExpression {
           if (isNamespaceRef(ident)) {
             const nsIdentifier = ts.factory.createIdentifier(nsName);
-            const nsProp =
-                ts.factory.createPropertyAccessExpression(nsIdentifier, ident);
+            const nsProp = ts.factory.createPropertyAccessExpression(
+              nsIdentifier,
+              ident,
+            );
             ts.setOriginalNode(nsProp, ident);
             ts.setTextRange(nsProp, ident);
             return nsProp;
@@ -278,13 +393,17 @@ export function namespaceTransformer(
 
         // Update the property access expression if the leftmost identifier
         // refers to a symbol defined in the transformed namespace.
-        function maybeFixPropertyAccess(prop: ts.PropertyAccessExpression):
-            ts.PropertyAccessExpression {
+        function maybeFixPropertyAccess(
+          prop: ts.PropertyAccessExpression,
+        ): ts.PropertyAccessExpression {
           if (ts.isPropertyAccessExpression(prop.expression)) {
             const updatedProp = maybeFixPropertyAccess(prop.expression);
             if (updatedProp !== prop.expression) {
               return ts.factory.updatePropertyAccessExpression(
-                  prop, updatedProp, prop.name);
+                prop,
+                updatedProp,
+                prop.name,
+              );
             }
             return prop;
           }
@@ -295,7 +414,10 @@ export function namespaceTransformer(
           const nsProp = maybeFixIdentifier(prop.expression);
           if (nsProp !== prop.expression) {
             const newPropAccess = ts.factory.updatePropertyAccessExpression(
-                prop, nsProp, prop.name);
+              prop,
+              nsProp,
+              prop.name,
+            );
             return newPropAccess;
           }
           return prop;
@@ -306,7 +428,7 @@ export function namespaceTransformer(
         function fixReferences<T extends ts.Node>(node: T): T {
           // TODO: Are there other node types that need to be handled?
           const rootNode = node;
-          function refCheckVisitor(node: ts.Node): ts.Node|undefined {
+          function refCheckVisitor(node: ts.Node): ts.Node | undefined {
             if (ts.isTypeReferenceNode(node) || ts.isTypeQueryNode(node)) {
               // Type reference nodes are used for explicit type annotations of
               // properties, parameters, function results etc. References to
@@ -357,20 +479,25 @@ export function namespaceTransformer(
         // For a merged namespace, the symbol must already have been declared
         // prior to the namespace declaration, or the compiler reports TS2434.
         if (!mergedDecl) {
-          transformedStmts.push(ns);  // Nothing to do here.
+          transformedStmts.push(ns); // Nothing to do here.
           error(
-              ns.name,
-              'transformation of plain namespace not supported. (go/ts-merged-namespaces)');
+            ns.name,
+            'transformation of plain namespace not supported. (go/ts-merged-namespaces)',
+          );
           return;
         }
 
-        if (!ts.isInterfaceDeclaration(mergedDecl) &&
-            !ts.isClassDeclaration(mergedDecl)) {
-          // The previous declaration is not a class or interface.
-          transformedStmts.push(ns);  // Nothing to do here.
+        if (
+          !ts.isInterfaceDeclaration(mergedDecl) &&
+          !ts.isClassDeclaration(mergedDecl) &&
+          !ts.isEnumDeclaration(mergedDecl)
+        ) {
+          // The previous declaration is not a class, enum, or interface.
+          transformedStmts.push(ns); // Nothing to do here.
           error(
-              ns.name,
-              'merged declaration must be local class or interface. (go/ts-merged-namespaces)');
+            ns.name,
+            'merged declaration must be local class, enum, or interface. (go/ts-merged-namespaces)',
+          );
           return;
         }
 

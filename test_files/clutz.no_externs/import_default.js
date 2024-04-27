@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview Reproduces a problem where a renamed Clutz default export ({default as X}) would
  * produce type annotations including an indirection to the aliased symbol.
- *
  * Generated from: test_files/clutz.no_externs/import_default.ts
  */
 goog.module('test_files.clutz.no_externs.import_default');
