@@ -6,7 +6,6 @@
 // test_files/class/class.ts(136,38): warning TS0: type/symbol conflict for Zone, using {?} for now
 // test_files/class/class.ts(136,1): warning TS0: dropped implements: {?} type
 /**
- *
  * @fileoverview This test exercises the various ways classes and interfaces can
  * interact. There are three types of classy things: interface, class, abstract
  * class And there are two keywords for relating them: extends, implements You
@@ -16,7 +15,6 @@
  * Generated from: test_files/class/class.ts
  * @suppress {uselessCode}
  * @suppress {dangerousUnrecognizedTypeError}
- *
  */
 goog.module('test_files.class.class');
 var module = module || { id: 'test_files/class/class.ts' };
