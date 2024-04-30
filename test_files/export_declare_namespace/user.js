@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/export_declare_namespace/user.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.export_declare_namespace.user');
 var module = module || { id: 'test_files/export_declare_namespace/user.ts' };

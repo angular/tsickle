@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/debugger/user.ts
  * @suppress {checkTypes}
- *
  */
 // TODO: the type below should be emitted as `outer.debugger.Foo`. However
 // TypeScript does not take the re-export in the outer namespace into account,
