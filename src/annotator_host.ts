@@ -53,6 +53,9 @@ export interface AnnotatorHost {
  * prefix to scope symbols in externs file (see externs.ts).
  */
 export function moduleNameAsIdentifier(
-    host: AnnotatorHost, fileName: string, context = ''): string {
+  host: AnnotatorHost,
+  fileName: string,
+  context = '',
+): string {
   return host.pathToModuleName(context, fileName).replace(/\./g, '$');
 }

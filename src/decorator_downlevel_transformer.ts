@@ -31,7 +31,11 @@ import * as ts from 'typescript';
 
 import {getDecoratorDeclarations} from './decorators';
 import * as jsdoc from './jsdoc';
-import {getAllLeadingComments, symbolIsValue, visitEachChild} from './transformer_util';
+import {
+  getAllLeadingComments,
+  symbolIsValue,
+  visitEachChild,
+} from './transformer_util';
 
 /**
  * Returns true if the given decorator should be downleveled.
@@ -70,14 +74,16 @@ function shouldLower(decorator: ts.Decorator, typeChecker: ts.TypeChecker) {
 }
 
 const DECORATOR_INVOCATION_JSDOC_TYPE =
-    '!Array<{type: !Function, args: (undefined|!Array<?>)}>';
+  '!Array<{type: !Function, args: (undefined|!Array<?>)}>';
 
 function addJSDocTypeAnnotation(node: ts.Node, jsdocType: string): void {
   ts.setSyntheticLeadingComments(node, [
-    jsdoc.toSynthesizedComment([{
-      tagName: 'type',
-      type: jsdocType,
-    }]),
+    jsdoc.toSynthesizedComment([
+      {
+        tagName: 'type',
+        type: jsdocType,
+      },
+    ]),
   ]);
 }
 
@@ -89,29 +95,35 @@ function addJSDocTypeAnnotation(node: ts.Node, jsdocType: string): void {
  *     { type: decorator, args: [arg1, arg2] }
  */
 function extractMetadataFromSingleDecorator(
-    decorator: ts.Decorator, diagnostics: ts.Diagnostic[]): ts.ObjectLiteralExpression {
+  decorator: ts.Decorator,
+  diagnostics: ts.Diagnostic[],
+): ts.ObjectLiteralExpression {
   const metadataProperties: ts.ObjectLiteralElementLike[] = [];
   const expr = decorator.expression;
   switch (expr.kind) {
     case ts.SyntaxKind.Identifier:
       // The decorator was a plain @Foo.
       metadataProperties.push(
-          ts.factory.createPropertyAssignment('type', expr));
+        ts.factory.createPropertyAssignment('type', expr),
+      );
       break;
     case ts.SyntaxKind.CallExpression:
       // The decorator was a call, like @Foo(bar).
       const call = expr as ts.CallExpression;
       metadataProperties.push(
-          ts.factory.createPropertyAssignment('type', call.expression));
+        ts.factory.createPropertyAssignment('type', call.expression),
+      );
       if (call.arguments.length) {
         const args: ts.Expression[] = [];
         for (const arg of call.arguments) {
           args.push(arg);
         }
         const argsArrayLiteral = ts.factory.createArrayLiteralExpression(
-            ts.factory.createNodeArray(args, /* hasTrailingComma */ true));
+          ts.factory.createNodeArray(args, /* hasTrailingComma */ true),
+        );
         metadataProperties.push(
-            ts.factory.createPropertyAssignment('args', argsArrayLiteral));
+          ts.factory.createPropertyAssignment('args', argsArrayLiteral),
+        );
       }
       break;
     default:
@@ -119,8 +131,9 @@ function extractMetadataFromSingleDecorator(
         file: decorator.getSourceFile(),
         start: decorator.getStart(),
         length: decorator.getEnd() - decorator.getStart(),
-        messageText:
-            `${ts.SyntaxKind[decorator.kind]} not implemented in gathering decorator metadata`,
+        messageText: `${
+          ts.SyntaxKind[decorator.kind]
+        } not implemented in gathering decorator metadata`,
         category: ts.DiagnosticCategory.Error,
         code: 0,
       });
@@ -133,13 +146,21 @@ function extractMetadataFromSingleDecorator(
  * Takes a list of decorator metadata object ASTs and produces an AST for a
  * static class property of an array of those metadata objects.
  */
-function createDecoratorClassProperty(decoratorList: ts.ObjectLiteralExpression[]) {
+function createDecoratorClassProperty(
+  decoratorList: ts.ObjectLiteralExpression[],
+) {
   const modifier = ts.factory.createToken(ts.SyntaxKind.StaticKeyword);
   const initializer = ts.factory.createArrayLiteralExpression(
-      ts.factory.createNodeArray(decoratorList, /* hasTrailingComma */ true),
-      true);
+    ts.factory.createNodeArray(decoratorList, /* hasTrailingComma */ true),
+    true,
+  );
   const prop = ts.factory.createPropertyDeclaration(
-      [modifier], 'decorators', undefined, undefined, initializer);
+    [modifier],
+    'decorators',
+    undefined,
+    undefined,
+    initializer,
+  );
   addJSDocTypeAnnotation(prop, DECORATOR_INVOCATION_JSDOC_TYPE);
 
   // NB: the .decorators property does not get a @nocollapse property. There is
@@ -165,9 +186,10 @@ function createDecoratorClassProperty(decoratorList: ts.ObjectLiteralExpression[
  *     }];
  */
 function createCtorParametersClassProperty(
-    diagnostics: ts.Diagnostic[],
-    entityNameToExpression: (n: ts.EntityName) => ts.Expression | undefined,
-    ctorParameters: ParameterDecorationInfo[]): ts.PropertyDeclaration {
+  diagnostics: ts.Diagnostic[],
+  entityNameToExpression: (n: ts.EntityName) => ts.Expression | undefined,
+  ctorParameters: ParameterDecorationInfo[],
+): ts.PropertyDeclaration {
   const params: ts.Expression[] = [];
 
   for (const ctorParam of ctorParameters) {
@@ -176,40 +198,58 @@ function createCtorParametersClassProperty(
       continue;
     }
 
-    const paramType = ctorParam.type ?
-        typeReferenceToExpression(entityNameToExpression, ctorParam.type) :
-        undefined;
-    const members =
-        [ts.factory.createPropertyAssignment('type', paramType || ts.factory.createIdentifier('undefined'))];
+    const paramType = ctorParam.type
+      ? typeReferenceToExpression(entityNameToExpression, ctorParam.type)
+      : undefined;
+    const members = [
+      ts.factory.createPropertyAssignment(
+        'type',
+        paramType || ts.factory.createIdentifier('undefined'),
+      ),
+    ];
 
     const decorators: ts.ObjectLiteralExpression[] = [];
     for (const deco of ctorParam.decorators) {
       decorators.push(extractMetadataFromSingleDecorator(deco, diagnostics));
     }
     if (decorators.length) {
-      members.push(ts.factory.createPropertyAssignment('decorators', ts.factory.createArrayLiteralExpression(decorators)));
+      members.push(
+        ts.factory.createPropertyAssignment(
+          'decorators',
+          ts.factory.createArrayLiteralExpression(decorators),
+        ),
+      );
     }
     params.push(ts.factory.createObjectLiteralExpression(members));
   }
 
   const initializer = ts.factory.createArrowFunction(
-      undefined, undefined, [], undefined, ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-      ts.factory.createArrayLiteralExpression(params, true));
+    undefined,
+    undefined,
+    [],
+    undefined,
+    ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+    ts.factory.createArrayLiteralExpression(params, true),
+  );
   const ctorProp = ts.factory.createPropertyDeclaration(
-      [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)], 'ctorParameters',
-      undefined, undefined, initializer);
+    [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)],
+    'ctorParameters',
+    undefined,
+    undefined,
+    initializer,
+  );
   ts.setSyntheticLeadingComments(ctorProp, [
     jsdoc.toSynthesizedComment([
       {
         tagName: 'type',
         type: lines(
-            `function(): !Array<(null|{`,
-            `  type: ?,`,
-            `  decorators: (undefined|${DECORATOR_INVOCATION_JSDOC_TYPE}),`,
-            `})>`,
-            ),
+          `function(): !Array<(null|{`,
+          `  type: ?,`,
+          `  decorators: (undefined|${DECORATOR_INVOCATION_JSDOC_TYPE}),`,
+          `})>`,
+        ),
       },
-      {tagName: 'nocollapse'}
+      {tagName: 'nocollapse'},
     ]),
   ]);
 
@@ -226,21 +266,35 @@ function createCtorParametersClassProperty(
  *     };
  */
 function createPropDecoratorsClassProperty(
-    diagnostics: ts.Diagnostic[], properties: Map<string, ts.Decorator[]>): ts.PropertyDeclaration {
+  diagnostics: ts.Diagnostic[],
+  properties: Map<string, ts.Decorator[]>,
+): ts.PropertyDeclaration {
   //  `static propDecorators: {[key: string]: ` + {type: Function, args?: any[]}[] + `} = {\n`);
   const entries: ts.ObjectLiteralElementLike[] = [];
   for (const [name, decorators] of properties.entries()) {
-    entries.push(ts.factory.createPropertyAssignment(
+    entries.push(
+      ts.factory.createPropertyAssignment(
         name,
         ts.factory.createArrayLiteralExpression(
-            decorators.map(deco => extractMetadataFromSingleDecorator(deco, diagnostics)))));
+          decorators.map((deco) =>
+            extractMetadataFromSingleDecorator(deco, diagnostics),
+          ),
+        ),
+      ),
+    );
   }
   const initializer = ts.factory.createObjectLiteralExpression(entries, true);
   const prop = ts.factory.createPropertyDeclaration(
-      [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)], 'propDecorators',
-      undefined, undefined, initializer);
+    [ts.factory.createToken(ts.SyntaxKind.StaticKeyword)],
+    'propDecorators',
+    undefined,
+    undefined,
+    initializer,
+  );
   addJSDocTypeAnnotation(
-      prop, `!Object<string, ${DECORATOR_INVOCATION_JSDOC_TYPE}>`);
+    prop,
+    `!Object<string, ${DECORATOR_INVOCATION_JSDOC_TYPE}>`,
+  );
   return prop;
 }
 
@@ -253,8 +307,9 @@ function createPropDecoratorsClassProperty(
  * metadata.
  */
 function typeReferenceToExpression(
-    entityNameToExpression: (n: ts.EntityName) => ts.Expression | undefined,
-    node: ts.TypeNode): ts.Expression|undefined {
+  entityNameToExpression: (n: ts.EntityName) => ts.Expression | undefined,
+  node: ts.TypeNode,
+): ts.Expression | undefined {
   let kind = node.kind;
   if (ts.isLiteralTypeNode(node)) {
     // Treat literal types like their base type (boolean, string, number).
@@ -295,7 +350,7 @@ interface ParameterDecorationInfo {
    * The type declaration for the parameter. Only set if the type is a value (e.g. a class, not an
    * interface).
    */
-  type: ts.TypeNode|null;
+  type: ts.TypeNode | null;
   /** The list of decorators found on the parameter, null if none. */
   decorators: ts.Decorator[];
 }
@@ -304,8 +359,9 @@ interface ParameterDecorationInfo {
  * Transformer factory for the decorator downlevel transformer. See fileoverview for details.
  */
 export function decoratorDownlevelTransformer(
-    typeChecker: ts.TypeChecker, diagnostics: ts.Diagnostic[]):
-    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
+  typeChecker: ts.TypeChecker,
+  diagnostics: ts.Diagnostic[],
+): (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext) => {
     /** A map from symbols to the identifier of an import, reset per SourceFile. */
     let importNamesBySymbol = new Map<ts.Symbol, ts.Identifier>();
@@ -325,7 +381,9 @@ export function decoratorDownlevelTransformer(
      * identifier is not marked as stemming from a "type only" expression, causing it to be emitted
      * and causing the import to be retained.
      */
-    function entityNameToExpression(name: ts.EntityName): ts.Expression|undefined {
+    function entityNameToExpression(
+      name: ts.EntityName,
+    ): ts.Expression | undefined {
       const sym = typeChecker.getSymbolAtLocation(name);
       if (!sym) return undefined;
       // Check if the entity name references a symbol that is an actual value. If it is not, it
@@ -350,9 +408,12 @@ export function decoratorDownlevelTransformer(
      * element, or the element has an exotic name.
      */
     function transformClassElement(
-        element: ts.PropertyDeclaration|ts.GetAccessorDeclaration|
-        ts.SetAccessorDeclaration|ts.MethodDeclaration):
-        [string|undefined, ts.ClassElement, ts.Decorator[]] {
+      element:
+        | ts.PropertyDeclaration
+        | ts.GetAccessorDeclaration
+        | ts.SetAccessorDeclaration
+        | ts.MethodDeclaration,
+    ): [string | undefined, ts.ClassElement, ts.Decorator[]] {
       element = ts.visitEachChild(element, visitor, context);
       const modifiersToKeep: ts.ModifierLike[] = [];
       const toLower: ts.Decorator[] = [];
@@ -383,33 +444,54 @@ export function decoratorDownlevelTransformer(
 
       const name = element.name.text;
       let newNode: ts.ClassElement;
-      const modifiers = modifiersToKeep.length ?
-          ts.setTextRange(
-              ts.factory.createNodeArray(modifiersToKeep),
-              ts.factory.createNodeArray(element.modifiers ?? [])) :
-          undefined;
+      const modifiers = modifiersToKeep.length
+        ? ts.setTextRange(
+            ts.factory.createNodeArray(modifiersToKeep),
+            ts.factory.createNodeArray(element.modifiers ?? []),
+          )
+        : undefined;
       switch (element.kind) {
         case ts.SyntaxKind.PropertyDeclaration:
           newNode = ts.factory.updatePropertyDeclaration(
-              element, modifiers, element.name,
-              element.questionToken ?? element.exclamationToken, element.type,
-              element.initializer);
+            element,
+            modifiers,
+            element.name,
+            element.questionToken ?? element.exclamationToken,
+            element.type,
+            element.initializer,
+          );
           break;
         case ts.SyntaxKind.GetAccessor:
           newNode = ts.factory.updateGetAccessorDeclaration(
-              element, modifiers, element.name, element.parameters,
-              element.type, element.body);
+            element,
+            modifiers,
+            element.name,
+            element.parameters,
+            element.type,
+            element.body,
+          );
           break;
         case ts.SyntaxKind.SetAccessor:
           newNode = ts.factory.updateSetAccessorDeclaration(
-              element, modifiers, element.name, element.parameters,
-              element.body);
+            element,
+            modifiers,
+            element.name,
+            element.parameters,
+            element.body,
+          );
           break;
         case ts.SyntaxKind.MethodDeclaration:
           newNode = ts.factory.updateMethodDeclaration(
-              element, modifiers, element.asteriskToken, element.name,
-              element.questionToken, element.typeParameters, element.parameters,
-              element.type, element.body);
+            element,
+            modifiers,
+            element.asteriskToken,
+            element.name,
+            element.questionToken,
+            element.typeParameters,
+            element.parameters,
+            element.type,
+            element.body,
+          );
           break;
         default:
           throw new Error(`unexpected element: ${element}`);
@@ -421,12 +503,17 @@ export function decoratorDownlevelTransformer(
      * Transforms a constructor. Returns the transformed constructor and the list of parameter
      * information collected, consisting of decorators and optional type.
      */
-    function transformConstructor(ctor: ts.ConstructorDeclaration):
-        [ts.ConstructorDeclaration, ParameterDecorationInfo[]] {
+    function transformConstructor(
+      ctor: ts.ConstructorDeclaration,
+    ): [ts.ConstructorDeclaration, ParameterDecorationInfo[]] {
       ctor = ts.visitEachChild(ctor, visitor, context);
 
       const newParameters: ts.ParameterDeclaration[] = [];
-      const oldParameters = ts.visitParameterList(ctor.parameters, visitor, context);
+      const oldParameters = ts.visitParameterList(
+        ctor.parameters,
+        visitor,
+        context,
+      );
       const parametersInfo: ParameterDecorationInfo[] = [];
       for (const param of oldParameters) {
         const modifiersToKeep: ts.ModifierLike[] = [];
@@ -450,16 +537,24 @@ export function decoratorDownlevelTransformer(
         }
         parametersInfo.push(paramInfo);
         const newParam = ts.factory.updateParameterDeclaration(
-            param,  // Must pass 'undefined' to avoid emitting decorator
-                    // metadata.
-            modifiersToKeep, param.dotDotDotToken, param.name,
-            param.questionToken, param.type, param.initializer);
+          param, // Must pass 'undefined' to avoid emitting decorator
+          // metadata.
+          modifiersToKeep,
+          param.dotDotDotToken,
+          param.name,
+          param.questionToken,
+          param.type,
+          param.initializer,
+        );
         newParameters.push(newParam);
       }
 
       const updated = ts.factory.updateConstructorDeclaration(
-          ctor, ctor.modifiers, newParameters,
-          ts.visitFunctionBody(ctor.body, visitor, context));
+        ctor,
+        ctor.modifiers,
+        newParameters,
+        ts.visitFunctionBody(ctor.body, visitor, context),
+      );
       return [updated, parametersInfo];
     }
 
@@ -470,10 +565,12 @@ export function decoratorDownlevelTransformer(
      * - creates a ctorParameters property
      * - creates a propDecorators property
      */
-    function transformClassDeclaration(classDecl: ts.ClassDeclaration): ts.ClassDeclaration {
+    function transformClassDeclaration(
+      classDecl: ts.ClassDeclaration,
+    ): ts.ClassDeclaration {
       const newMembers: ts.ClassElement[] = [];
       const decoratedProperties = new Map<string, ts.Decorator[]>();
-      let classParameters: ParameterDecorationInfo[]|null = null;
+      let classParameters: ParameterDecorationInfo[] | null = null;
 
       for (const member of classDecl.members) {
         switch (member.kind) {
@@ -482,8 +579,12 @@ export function decoratorDownlevelTransformer(
           case ts.SyntaxKind.SetAccessor:
           case ts.SyntaxKind.MethodDeclaration: {
             const [name, newMember, decorators] = transformClassElement(
-                member as ts.PropertyDeclaration | ts.GetAccessorDeclaration |
-                ts.SetAccessorDeclaration | ts.MethodDeclaration);
+              member as
+                | ts.PropertyDeclaration
+                | ts.GetAccessorDeclaration
+                | ts.SetAccessorDeclaration
+                | ts.MethodDeclaration,
+            );
             newMembers.push(newMember);
             if (name) decoratedProperties.set(name, decorators);
             continue;
@@ -491,8 +592,9 @@ export function decoratorDownlevelTransformer(
           case ts.SyntaxKind.Constructor: {
             const ctor = member as ts.ConstructorDeclaration;
             if (!ctor.body) break;
-            const [newMember, parametersInfo] =
-                transformConstructor(member as ts.ConstructorDeclaration);
+            const [newMember, parametersInfo] = transformConstructor(
+              member as ts.ConstructorDeclaration,
+            );
             classParameters = parametersInfo;
             newMembers.push(newMember);
             continue;
@@ -509,7 +611,8 @@ export function decoratorDownlevelTransformer(
         if (ts.isDecorator(modifier)) {
           if (shouldLower(modifier, typeChecker)) {
             decoratorsToLower.push(
-                extractMetadataFromSingleDecorator(modifier, diagnostics));
+              extractMetadataFromSingleDecorator(modifier, diagnostics),
+            );
             continue;
           }
         }
@@ -520,23 +623,40 @@ export function decoratorDownlevelTransformer(
         newMembers.push(createDecoratorClassProperty(decoratorsToLower));
       }
       if (classParameters) {
-        if ((decoratorsToLower.length) || classParameters.some(p => !!p.decorators.length)) {
+        if (
+          decoratorsToLower.length ||
+          classParameters.some((p) => !!p.decorators.length)
+        ) {
           // emit ctorParameters if the class was decoratored at all, or if any of its ctors
           // were classParameters
-          newMembers.push(createCtorParametersClassProperty(
-              diagnostics, entityNameToExpression, classParameters));
+          newMembers.push(
+            createCtorParametersClassProperty(
+              diagnostics,
+              entityNameToExpression,
+              classParameters,
+            ),
+          );
         }
       }
       if (decoratedProperties.size) {
-        newMembers.push(createPropDecoratorsClassProperty(diagnostics, decoratedProperties));
+        newMembers.push(
+          createPropDecoratorsClassProperty(diagnostics, decoratedProperties),
+        );
       }
       return ts.factory.updateClassDeclaration(
-          classDecl, modifiersToKeep.length ? modifiersToKeep : undefined,
-          classDecl.name, classDecl.typeParameters, classDecl.heritageClauses,
-          ts.setTextRange(
-              ts.factory.createNodeArray(
-                  newMembers, classDecl.members.hasTrailingComma),
-              classDecl.members));
+        classDecl,
+        modifiersToKeep.length ? modifiersToKeep : undefined,
+        classDecl.name,
+        classDecl.typeParameters,
+        classDecl.heritageClauses,
+        ts.setTextRange(
+          ts.factory.createNodeArray(
+            newMembers,
+            classDecl.members.hasTrailingComma,
+          ),
+          classDecl.members,
+        ),
+      );
     }
 
     function visitor(node: ts.Node): ts.Node {
@@ -553,10 +673,13 @@ export function decoratorDownlevelTransformer(
             if (importClause.name) {
               names.push(importClause.name);
             }
-            if (importClause.namedBindings &&
-                importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+            if (
+              importClause.namedBindings &&
+              importClause.namedBindings.kind === ts.SyntaxKind.NamedImports
+            ) {
               names.push(
-                  ...importClause.namedBindings.elements.map(e => e.name));
+                ...importClause.namedBindings.elements.map((e) => e.name),
+              );
             }
             for (const name of names) {
               const sym = typeChecker.getSymbolAtLocation(name)!;

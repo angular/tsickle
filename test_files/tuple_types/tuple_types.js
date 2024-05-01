@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview Tests that tuple types get emitted with local aliases to
  * attach Closure types to.
- *
  * Generated from: test_files/tuple_types/tuple_types.ts
  */
 goog.module('test_files.tuple_types.tuple_types');

@@ -19,10 +19,17 @@
  * type resolve ("@type {Foo}").
  */
 
+import {TsickleHost} from 'tsickle';
 import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
-import {createSingleQuoteStringLiteral, getIdentifierText, hasModifierFlag, isAmbient, isMergedDeclaration} from './transformer_util';
+import {
+  createSingleQuoteStringLiteral,
+  getIdentifierText,
+  hasModifierFlag,
+  isAmbient,
+  isMergedDeclaration,
+} from './transformer_util';
 
 /**
  * isInUnsupportedNamespace returns true if any of node's ancestors is a
@@ -45,7 +52,10 @@ function isInUnsupportedNamespace(node: ts.Node) {
 /**
  * getEnumMemberType computes the type of an enum member by inspecting its initializer expression.
  */
-function getEnumMemberType(typeChecker: ts.TypeChecker, member: ts.EnumMember): 'number'|'string' {
+function getEnumMemberType(
+  typeChecker: ts.TypeChecker,
+  member: ts.EnumMember,
+): 'number' | 'string' {
   // Enum members without initialization have type 'number'
   if (!member.initializer) {
     return 'number';
@@ -68,8 +78,10 @@ function getEnumMemberType(typeChecker: ts.TypeChecker, member: ts.EnumMember): 
  * getEnumType computes the Closure type of an enum, by iterating through the members and gathering
  * their types.
  */
-export function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclaration): 'number'|
-    'string'|'?' {
+export function getEnumType(
+  typeChecker: ts.TypeChecker,
+  enumDecl: ts.EnumDeclaration,
+): 'number' | 'string' | '?' {
   let hasNumber = false;
   let hasString = false;
   for (const member of enumDecl.members) {
@@ -81,7 +93,7 @@ export function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclar
     }
   }
   if (hasNumber && hasString) {
-    return '?';  // Closure's new type inference doesn't support enums of unions.
+    return '?'; // Closure's new type inference doesn't support enums of unions.
   } else if (hasNumber) {
     return 'number';
   } else if (hasString) {
@@ -95,11 +107,15 @@ export function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclar
 /**
  * Transformer factory for the enum transformer. See fileoverview for details.
  */
-export function enumTransformer(typeChecker: ts.TypeChecker):
-    (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
+export function enumTransformer(
+  host: TsickleHost,
+  typeChecker: ts.TypeChecker,
+): (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext) => {
-    function visitor<T extends ts.Node>(node: T): T|ts.Node[] {
-      if (!ts.isEnumDeclaration(node)) return ts.visitEachChild(node, visitor, context);
+    function visitor<T extends ts.Node>(node: T): T | ts.Node[] {
+      if (!ts.isEnumDeclaration(node)) {
+        return ts.visitEachChild(node, visitor, context);
+      }
 
       // TODO(martinprobst): The enum transformer does not work for enums embedded in namespaces,
       // because TS does not support splitting export and declaration ("export {Foo};") in
@@ -126,8 +142,9 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
             enumIndex = enumConstValue + 1;
             if (enumConstValue < 0) {
               enumValue = ts.factory.createPrefixUnaryExpression(
-                  ts.SyntaxKind.MinusToken,
-                  ts.factory.createNumericLiteral(-enumConstValue));
+                ts.SyntaxKind.MinusToken,
+                ts.factory.createNumericLiteral(-enumConstValue),
+              );
             } else {
               enumValue = ts.factory.createNumericLiteral(enumConstValue);
             }
@@ -161,28 +178,46 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
           enumValue = ts.factory.createNumericLiteral(enumIndex);
           enumIndex++;
         }
-        values.push(ts.setOriginalNode(
+        values.push(
+          ts.setOriginalNode(
             ts.setTextRange(
-                ts.factory.createPropertyAssignment(member.name, enumValue),
-                member),
-            member));
+              ts.factory.createPropertyAssignment(member.name, enumValue),
+              member,
+            ),
+            member,
+          ),
+        );
       }
 
       const varDecl = ts.factory.createVariableDeclaration(
-          node.name, /* exclamationToken */ undefined, /* type */ undefined,
-          ts.factory.createObjectLiteralExpression(
-              ts.setTextRange(
-                  ts.factory.createNodeArray(values, true), node.members),
-              true));
-      const varDeclStmt = ts.setOriginalNode(
+        node.name,
+        /* exclamationToken */ undefined,
+        /* type */ undefined,
+        ts.factory.createObjectLiteralExpression(
           ts.setTextRange(
-              ts.factory.createVariableStatement(
-                  /* modifiers */ undefined,
-                  ts.factory.createVariableDeclarationList(
-                      [varDecl],
-                      /* create a const var */ ts.NodeFlags.Const)),
-              node),
-          node);
+            ts.factory.createNodeArray(values, true),
+            node.members,
+          ),
+          true,
+        ),
+      );
+      const varDeclStmt = ts.setOriginalNode(
+        ts.setTextRange(
+          ts.factory.createVariableStatement(
+            /* modifiers */ undefined,
+            ts.factory.createVariableDeclarationList(
+              [varDecl],
+              /* When using unoptimized namespaces, create a var
+                         declaration, otherwise create a const var. See b/157460535 */
+              host.useDeclarationMergingTransformation
+                ? ts.NodeFlags.Const
+                : undefined,
+            ),
+          ),
+          node,
+        ),
+        node,
+      );
 
       const tags = jsdoc.getJSDocTags(ts.getOriginalNode(node));
       tags.push({tagName: 'enum', type: enumType});
@@ -194,11 +229,19 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
       if (isExported) {
         // Create a separate export {...} statement, so that the enum name can be used in local
         // type annotations within the file.
-        resultNodes.push(ts.factory.createExportDeclaration(
+        resultNodes.push(
+          ts.factory.createExportDeclaration(
             /* modifiers */ undefined,
             /* isTypeOnly */ false,
-            ts.factory.createNamedExports([ts.factory.createExportSpecifier(
-                /* isTypeOnly */ false, undefined, name)])));
+            ts.factory.createNamedExports([
+              ts.factory.createExportSpecifier(
+                /* isTypeOnly */ false,
+                undefined,
+                name,
+              ),
+            ]),
+          ),
+        );
       }
 
       if (hasModifierFlag(node, ts.ModifierFlags.Const)) {
@@ -227,21 +270,34 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
           // Foo[Foo.ABC] = "ABC";
           nameExpr = createSingleQuoteStringLiteral(memberName.text);
           // Make sure to create a clean, new identifier, so comments do not get emitted twice.
-          const ident =
-              ts.factory.createIdentifier(getIdentifierText(memberName));
+          const ident = ts.factory.createIdentifier(
+            getIdentifierText(memberName),
+          );
           memberAccess = ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier(name), ident);
+            ts.factory.createIdentifier(name),
+            ident,
+          );
         } else {
           // Foo[Foo["A B C"]] = "A B C"; or Foo[Foo[expression]] = expression;
-          nameExpr = ts.isComputedPropertyName(memberName) ? memberName.expression : memberName;
+          nameExpr = ts.isComputedPropertyName(memberName)
+            ? memberName.expression
+            : memberName;
           memberAccess = ts.factory.createElementAccessExpression(
-              ts.factory.createIdentifier(name), nameExpr);
+            ts.factory.createIdentifier(name),
+            nameExpr,
+          );
         }
         resultNodes.push(
-            ts.factory.createExpressionStatement(ts.factory.createAssignment(
-                ts.factory.createElementAccessExpression(
-                    ts.factory.createIdentifier(name), memberAccess),
-                nameExpr)));
+          ts.factory.createExpressionStatement(
+            ts.factory.createAssignment(
+              ts.factory.createElementAccessExpression(
+                ts.factory.createIdentifier(name),
+                memberAccess,
+              ),
+              nameExpr,
+            ),
+          ),
+        );
       }
       return resultNodes;
     }
