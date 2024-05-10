@@ -3,12 +3,10 @@
 // test_files/jsdoc/enum_tag.ts(21,1): warning TS0: @enum annotations are redundant with TypeScript equivalents
 // test_files/jsdoc/enum_tag.ts(30,3): warning TS0: @enum annotations are redundant with TypeScript equivalents
 /**
- *
  * @fileoverview Checks that JSDoc `\@enum` tags on an `enum` are flagged as
  * warnings.
  * Generated from: test_files/jsdoc/enum_tag.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.jsdoc.enum_tag');
 var module = module || { id: 'test_files/jsdoc/enum_tag.ts' };

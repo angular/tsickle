@@ -13,10 +13,18 @@
  * same.
  */
 
-import {DefaultExportClassFromJs, DefaultExportTypeFromJs, NamedExportClassFromJs, RenamedExportedTypeFromJs} from 'goog:goog.module.ref';
+import {
+  DefaultExportClassFromJs,
+  DefaultExportTypeFromJs,
+  NamedExportClassFromJs,
+  RenamedExportedTypeFromJs,
+} from 'goog:goog.module.ref';
 import DefaultExportType from 'goog:migrated.module.default.type';
 import DefaultExportClass from 'goog:migrated.module.default.value';
-import {NamedExportClassRenamed, RenamedExportedType} from 'goog:migrated.module.named';
+import {
+  NamedExportClassRenamed,
+  RenamedExportedType,
+} from 'goog:migrated.module.named';
 
 // tslint:disable
 
