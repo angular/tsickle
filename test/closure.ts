@@ -33,7 +33,7 @@ export interface Options {
  * repeated form expected by the compiler.
  */
 export interface Flags {
-  [flag: string]: boolean|string|string[];
+  [flag: string]: boolean | string | string[];
 }
 
 /** The type of compilation results, containing exit code and console output. */
@@ -53,7 +53,8 @@ function flagsToArgs(flags: Flags): string[] {
       args.push(`--${flag}`);
     } else if (typeof value === 'string') {
       args.push(`--${flag}=${value}`);
-    } else {  // string[]
+    } else {
+      // string[]
       for (const val of value) {
         args.push(`--${flag}=${val}`);
       }
@@ -83,16 +84,16 @@ export function compile(options: Options, flags: Flags): Promise<Result> {
     let stderr = '';
     if (!compilerProcess.stdout) throw new Error('missing stdout');
     if (!compilerProcess.stderr) throw new Error('missing stderr');
-    compilerProcess.stdout.on('data', data => {
+    compilerProcess.stdout.on('data', (data) => {
       stdout += data;
     });
-    compilerProcess.stderr.on('data', data => {
+    compilerProcess.stderr.on('data', (data) => {
       stderr += data;
     });
-    compilerProcess.on('close', exitCode => {
+    compilerProcess.on('close', (exitCode) => {
       resolve({stdout, stderr, exitCode: exitCode || 0});
     });
-    compilerProcess.on('error', err => {
+    compilerProcess.on('error', (err) => {
       reject(err);
     });
   });

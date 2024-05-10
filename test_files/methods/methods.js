@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/methods/methods.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.methods.methods');
 var module = module || { id: 'test_files/methods/methods.ts' };

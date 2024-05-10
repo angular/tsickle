@@ -20,43 +20,43 @@ describe('golden file tests', () => {
   });
   it('compile with Closure', (done) => {
     // Declaration tests do not produce .js files.
-    const tests = goldenTests().filter(t => !t.isDeclarationTest);
+    const tests = goldenTests().filter((t) => !t.isDeclarationTest);
     // Collect all JavaScript outputs generated from .ts files.
-    const goldenJs = ([] as string[]).concat(...tests.map(t => t.jsPaths()));
+    const goldenJs = ([] as string[]).concat(...tests.map((t) => t.jsPaths()));
     // Manually add extra .js files that are not generated from .ts. Several tests include `.d.ts`
     // files describing symbols defined in JavaScript, e.g. for `goog:...` style Clutz imports.
     // These definitions must be included here so that Closure Compiler sees all definitions.
     goldenJs.push(
-        'src/closure_externs.js',
-        'third_party/tslib/externs.js',
-        'third_party/tslib/tslib.js',
-        'test/googbase_fake.js',
-        'test_files/augment/shim.js',
-        'test_files/clutz_type_value.no_externs/type_value.js',
-        'test_files/clutz.no_externs/default_export.js',
-        'test_files/clutz.no_externs/some_name_space.js',
-        'test_files/clutz.no_externs/some_other.js',
-        'test_files/declare_export_dts/shim.js',
-        'test_files/declare_import/closure_default_export.js',
-        'test_files/declare_import/closure_named_export.js',
-        'test_files/declare_import/exporting.js',
-        'test_files/declare/shim.js',
-        'test_files/direct_externs_type_reference/shim.js',
-        'test_files/export_equals.shim/shim.js',
-        'test_files/fake_goog_reflect.js',
-        'test_files/googmodule_esmodule.declaration.no_externs/some_module.js',
-        'test_files/googmodule_esmodule.no_externs/some_module.js',
-        'test_files/import_by_path.no_externs/jsprovides.js',
-        'test_files/import_equals/exporter.js',
-        'test_files/import_from_goog.no_externs/closure_LegacyModule.js',
-        'test_files/import_from_goog.no_externs/closure_Module.js',
-        'test_files/import_from_goog.no_externs/closure_OtherModule.js',
-        'test_files/import_from_goog.no_externs/transitive_type.js',
-        'test_files/no_dollar_type_reference.no_externs/closure_x.js',
-        'test_files/no_dollar_type_reference.no_externs/closure_y.js',
-        'test_files/type_propaccess.no_externs/nested_clazz.js',
+      'src/closure_externs.js',
+      'third_party/tslib/externs.js',
+      'third_party/tslib/tslib.js',
+      'test/googbase_fake.js',
+      'test_files/augment/shim.js',
+      'test_files/clutz_type_value.no_externs/type_value.js',
+      'test_files/clutz.no_externs/default_export.js',
+      'test_files/clutz.no_externs/some_name_space.js',
+      'test_files/clutz.no_externs/some_other.js',
+      'test_files/declare_export_dts/shim.js',
+      'test_files/declare_import/closure_default_export.js',
+      'test_files/declare_import/closure_named_export.js',
+      'test_files/declare_import/exporting.js',
+      'test_files/declare/shim.js',
+      'test_files/direct_externs_type_reference/shim.js',
+      'test_files/export_equals.shim/shim.js',
+      'test_files/fake_goog_reflect.js',
+      'test_files/googmodule_esmodule.declaration.no_externs/some_module.js',
+      'test_files/googmodule_esmodule.no_externs/some_module.js',
+      'test_files/import_by_path.no_externs/jsprovides.js',
+      'test_files/import_equals/exporter.js',
+      'test_files/import_from_goog.no_externs/closure_LegacyModule.js',
+      'test_files/import_from_goog.no_externs/closure_Module.js',
+      'test_files/import_from_goog.no_externs/closure_OtherModule.js',
+      'test_files/import_from_goog.no_externs/transitive_type.js',
+      'test_files/no_dollar_type_reference.no_externs/closure_x.js',
+      'test_files/no_dollar_type_reference.no_externs/closure_y.js',
+      'test_files/type_propaccess.no_externs/nested_clazz.js',
     );
-    const externs = tests.map(t => t.externsPath()).filter(fs.existsSync);
+    const externs = tests.map((t) => t.externsPath()).filter(fs.existsSync);
     const startTime = Date.now();
     const total = goldenJs.length;
     if (!total) throw new Error('No JS files in ' + JSON.stringify(goldenJs));
@@ -122,27 +122,34 @@ describe('golden file tests', () => {
     // if you have any async expression in the function body whose result
     // is unused(!).
 
-    closure.compile({}, CLOSURE_FLAGS)
-        .then(({exitCode, stdout, stderr}) => {
-          const durationMs = Date.now() - startTime;
-          console.error('Closure compilation of', total, 'files done after', durationMs, 'ms');
-          // Some problems only print as warnings, without a way to promote them to errors.
-          // So treat any stderr output as a reason to fail the test.
-          // In JDK 9+, closure-compiler prints warnigns about unsafe access via reflection from
-          // com.google.protobuf.UnsafeUtil. Ignore those.
-          stderr = stderr.replace(/WARNING: .*\n/g, '');
-          if (exitCode !== 0 || stderr.length > 0) {
-            // expect() with a message abbreviates the text, so just emit
-            // everything here.
-            console.error(stderr);
-            fail('Closure Compiler warned or errored');
-          }
-        })
-        .catch(err => {
-          expect(err).toBe(null);
-        })
-        .then(() => {
-          done();
-        });
+    closure
+      .compile({}, CLOSURE_FLAGS)
+      .then(({exitCode, stdout, stderr}) => {
+        const durationMs = Date.now() - startTime;
+        console.error(
+          'Closure compilation of',
+          total,
+          'files done after',
+          durationMs,
+          'ms',
+        );
+        // Some problems only print as warnings, without a way to promote them to errors.
+        // So treat any stderr output as a reason to fail the test.
+        // In JDK 9+, closure-compiler prints warnigns about unsafe access via reflection from
+        // com.google.protobuf.UnsafeUtil. Ignore those.
+        stderr = stderr.replace(/WARNING: .*\n/g, '');
+        if (exitCode !== 0 || stderr.length > 0) {
+          // expect() with a message abbreviates the text, so just emit
+          // everything here.
+          console.error(stderr);
+          fail('Closure Compiler warned or errored');
+        }
+      })
+      .catch((err) => {
+        expect(err).toBe(null);
+      })
+      .then(() => {
+        done();
+      });
   }, 60000 /* ms timeout */);
 });
