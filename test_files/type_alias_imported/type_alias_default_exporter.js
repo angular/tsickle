@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview Declares a type alias as default export. This allows testing that the appropriate
  * type reference is created (no .default property).
- *
  * Generated from: test_files/type_alias_imported/type_alias_default_exporter.ts
  */
 goog.module('test_files.type_alias_imported.type_alias_default_exporter');

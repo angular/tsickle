@@ -23,9 +23,14 @@ declare module 'typescript' {
   function combinePaths(...paths: string[]): string;
   function getDirectoryPath(path: string): string;
   function convertToRelativePath(
-      absoluteOrRelativePath: string, basePath: string,
-      getCanonicalFileName: (path: string) => string): string;
-  function resolvePath(path: string, ...paths: Array<string|undefined>): string;
+    absoluteOrRelativePath: string,
+    basePath: string,
+    getCanonicalFileName: (path: string) => string,
+  ): string;
+  function resolvePath(
+    path: string,
+    ...paths: Array<string | undefined>
+  ): string;
 }
 
 export function isAbsolute(path: string): boolean {
@@ -41,7 +46,7 @@ export function dirname(path: string): string {
 }
 
 export function relative(base: string, rel: string): string {
-  return ts.convertToRelativePath(rel, base, p => p);
+  return ts.convertToRelativePath(rel, base, (p) => p);
 }
 
 export function normalize(path: string): string {

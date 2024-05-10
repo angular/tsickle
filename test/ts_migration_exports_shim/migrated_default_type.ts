@@ -24,4 +24,6 @@ const b: DefaultExportType = {
 
 /** See what happens when we use the syntax for shimming default exports. */
 goog.tsMigrationExportsShim(
-    'migrated.module.default.type', {} as DefaultExportType);
+  'migrated.module.default.type',
+  {} as DefaultExportType,
+);

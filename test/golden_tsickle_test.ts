@@ -34,13 +34,18 @@ const UPDATE_GOLDENS = !!process.env['UPDATE_GOLDENS'];
  * @param goldenPath The absolute path to the matching golden file.
  */
 function compareAgainstGolden(
-    output: string|null, goldenPath: string, test: testSupport.GoldenFileTest) {
-  let golden: string|null = null;
+  output: string | null,
+  goldenPath: string,
+  test: testSupport.GoldenFileTest,
+) {
+  let golden: string | null = null;
   try {
     golden = fs.readFileSync(goldenPath, 'utf-8');
   } catch (e: unknown) {
-    if ((e as {code: string}).code === 'ENOENT' &&
-        (UPDATE_GOLDENS || output === null)) {
+    if (
+      (e as {code: string}).code === 'ENOENT' &&
+      (UPDATE_GOLDENS || output === null)
+    ) {
       // A missing file is acceptable if we're updating goldens or
       // if we're expected to produce no output.
     } else {
@@ -55,9 +60,9 @@ function compareAgainstGolden(
   if (UPDATE_GOLDENS && output !== golden) {
     // Ensure goldenPath refers to the path within the original source root, and
     // not some testing environment symlink.
-    goldenPath = fs.lstatSync(goldenPath).isSymbolicLink() ?
-        fs.readlinkSync(goldenPath) :
-        goldenPath;
+    goldenPath = fs.lstatSync(goldenPath).isSymbolicLink()
+      ? fs.readlinkSync(goldenPath)
+      : goldenPath;
     console.log('Updating golden file for', goldenPath);
     if (output !== null) {
       fs.writeFileSync(goldenPath, output, {encoding: 'utf-8'});
@@ -65,7 +70,8 @@ function compareAgainstGolden(
       // We don't delete the file automatically in case the existence of the
       // file triggers an assertion.
       throw new Error(
-          `Expected ${goldenPath} to be absent. Please delete it manually.`);
+        `Expected ${goldenPath} to be absent. Please delete it manually.`,
+      );
     }
   } else {
     expect(output).withContext(`${goldenPath}`).toEqualWithDiff(golden!);
@@ -115,8 +121,10 @@ testFn('golden tests', () => {
         // Test that creating declarations does not throw
         declaration: emitDeclarations,
       };
-      const {program, host: tsHost} =
-          testSupport.createProgramAndHost(tsSources, tsCompilerOptions);
+      const {program, host: tsHost} = testSupport.createProgramAndHost(
+        tsSources,
+        tsCompilerOptions,
+      );
       {
         const diagnostics = ts.getPreEmitDiagnostics(program);
         if (diagnostics.length) {
@@ -134,11 +142,13 @@ testFn('golden tests', () => {
         // test_files/ignored_ambient_external_module/ignored.d.ts
         unknownTypesPaths: new Set([
           path.join(
-              tsCompilerOptions.rootDir!,
-              'test_files/jsdoc_types/nevertyped.ts'),
+            tsCompilerOptions.rootDir!,
+            'test_files/jsdoc_types/nevertyped.ts',
+          ),
           path.join(
-              tsCompilerOptions.rootDir!,
-              'test_files/ignored_ambient_external_module/ignored.d.ts'),
+            tsCompilerOptions.rootDir!,
+            'test_files/ignored_ambient_external_module/ignored.d.ts',
+          ),
         ]),
         transformDecorators: !test.isPureTransformerTest,
         transformTypesToClosure: !test.isPureTransformerTest,
@@ -149,7 +159,7 @@ testFn('golden tests', () => {
         // test.isDeclarationTest is true).
         addDtsClutzAliases: true,
         useDeclarationMergingTransformation:
-            test.isNamespaceTransformationEnabled,
+          test.isNamespaceTransformationEnabled,
         untyped: test.isUntypedTest,
         provideExternalModuleDtsNamespace: !test.hasShim,
         logWarning: (diag: ts.Diagnostic) => {
@@ -159,8 +169,12 @@ testFn('golden tests', () => {
         shouldIgnoreWarningsForPath: () => false,
         pathToModuleName: (context, importPath) => {
           return testSupport.pathToModuleName(
-              tsCompilerOptions.rootDir!, context, importPath,
-              tsCompilerOptions, tsHost);
+            tsCompilerOptions.rootDir!,
+            context,
+            importPath,
+            tsCompilerOptions,
+            tsHost,
+          );
         },
         fileNameToModuleId: (fileName) => {
           assertAbsolute(fileName);
@@ -175,7 +189,7 @@ testFn('golden tests', () => {
       };
 
       const tscOutput = new Map<string, string>();
-      const targetSource: ts.SourceFile|undefined = undefined;
+      const targetSource: ts.SourceFile | undefined = undefined;
 
       /** Returns true if we test the emitted output for the given path. */
       function shouldCompareOutputToGolden(fileName: string): boolean {
@@ -195,38 +209,44 @@ testFn('golden tests', () => {
       }
 
       const {diagnostics, externs, tsMigrationExportsShimFiles} = tsickle.emit(
-          program, transformerHost, (fileName: string, data: string) => {
-            if (shouldCompareOutputToGolden(fileName)) {
-              tscOutput.set(fileName, data);
-            }
-          }, targetSource);
+        program,
+        transformerHost,
+        (fileName: string, data: string) => {
+          if (shouldCompareOutputToGolden(fileName)) {
+            tscOutput.set(fileName, data);
+          }
+        },
+        targetSource,
+      );
       for (const d of diagnostics) {
         allDiagnostics.add(d);
       }
 
       const diagnosticsByFile = new Map<string, ts.Diagnostic[]>();
       for (const d of allDiagnostics) {
-        const fileName = d.file?.fileName ??
-            'unhandled diagnostic with no file name attached';
+        const fileName =
+          d.file?.fileName ?? 'unhandled diagnostic with no file name attached';
         let diags = diagnosticsByFile.get(fileName);
-        if (!diags) diagnosticsByFile.set(fileName, diags = []);
+        if (!diags) diagnosticsByFile.set(fileName, (diags = []));
         diags.push(d);
       }
       if (!test.isDeclarationTest) {
         const sortedPaths = test.jsPaths().sort();
         const actualPaths = Array.from(tscOutput.keys())
-                                .map(p => p.replace(/^\.\//, ''))
-                                .sort();
+          .map((p) => p.replace(/^\.\//, ''))
+          .sort();
         expect(sortedPaths)
-            .withContext(`${test.jsPaths} vs ${actualPaths}`)
-            .toEqual(actualPaths);
+          .withContext(`${test.jsPaths} vs ${actualPaths}`)
+          .toEqual(actualPaths);
       }
 
-      let allExterns: string|null = null;
+      let allExterns: string | null = null;
       if (!test.name.endsWith('.no_externs')) {
         // Concatenate externs for the files that are in this tests sources (but
         // not other, shared .d.ts files).
-        const filteredExterns: {[k: string]: { output: string; moduleNamespace: string; }} = {};
+        const filteredExterns: {
+          [k: string]: {output: string; moduleNamespace: string};
+        } = {};
         let anyExternsGenerated = false;
         for (const fileName of tsSources.keys()) {
           if (externs[fileName]) {
@@ -235,8 +255,10 @@ testFn('golden tests', () => {
           }
         }
         if (anyExternsGenerated) {
-          allExterns =
-              getGeneratedExterns(filteredExterns, tsCompilerOptions.rootDir!);
+          allExterns = getGeneratedExterns(
+            filteredExterns,
+            tsCompilerOptions.rootDir!,
+          );
         }
       }
       compareAgainstGolden(allExterns, test.externsPath(), test);
@@ -244,27 +266,25 @@ testFn('golden tests', () => {
       for (const absFilename of test.tsMigrationExportsShimPaths()) {
         const relativeFilename = rootDirsRelative(absFilename);
         const exportShim =
-            tsMigrationExportsShimFiles.get(relativeFilename) ?? null;
-        compareAgainstGolden(
-            exportShim,
-            absFilename,
-            test,
-        );
+          tsMigrationExportsShimFiles.get(relativeFilename) ?? null;
+        compareAgainstGolden(exportShim, absFilename, test);
       }
 
       for (const [outputPath, output] of tscOutput) {
-        const tsPath =
-            outputPath.replace(/\.js$|\.d.ts$/, '.ts').replace(/^\.\//, '');
+        const tsPath = outputPath
+          .replace(/\.js$|\.d.ts$/, '.ts')
+          .replace(/^\.\//, '');
         const diags = diagnosticsByFile.get(tsPath);
         diagnosticsByFile.delete(tsPath);
         let out = output;
         if (diags) {
-          out = testSupport.formatDiagnostics(diags)
-                    .trim()
-                    .split('\n')
-                    .map(line => `// ${line}\n`)
-                    .join('') +
-              out;
+          out =
+            testSupport
+              .formatDiagnostics(diags)
+              .trim()
+              .split('\n')
+              .map((line) => `// ${line}\n`)
+              .join('') + out;
         }
         compareAgainstGolden(out, outputPath, test);
       }
@@ -276,14 +296,16 @@ testFn('golden tests', () => {
             continue;
           }
           expect(testSupport.formatDiagnostics(diags))
-              .withContext(`unhandled diagnostics for ${path}`)
-              .toBe('');
+            .withContext(`unhandled diagnostics for ${path}`)
+            .toBe('');
         }
       }
       if (dtsDiags.length) {
         compareAgainstGolden(
-            testSupport.formatDiagnostics(dtsDiags),
-            path.join(test.root, 'dtsdiagnostics.txt'), test);
+          testSupport.formatDiagnostics(dtsDiags),
+          path.join(test.root, 'dtsdiagnostics.txt'),
+          test,
+        );
       }
     });
   }
