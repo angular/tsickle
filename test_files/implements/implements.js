@@ -1,12 +1,10 @@
 // test_files/implements/implements.ts(13,1): warning TS0: dropped implements: dropped implements of a type literal: MyRecord
 // test_files/implements/implements.ts(19,1): warning TS0: dropped implements: dropped implements of a type literal: RecordAlias
 /**
- *
  * @fileoverview Tests various types of 'implements' clauses, e.g. 'implements'
  * of a generic type alias of an underlying interface.
  * Generated from: test_files/implements/implements.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.implements.implements');
 var module = module || { id: 'test_files/implements/implements.ts' };

@@ -9,7 +9,12 @@
 // Install source-map-support so that stack traces are mapped back to TS code.
 import 'source-map-support';
 
-import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch as DiffMatchPatch} from 'diff-match-patch';
+import {
+  DIFF_DELETE,
+  DIFF_EQUAL,
+  DIFF_INSERT,
+  diff_match_patch as DiffMatchPatch,
+} from 'diff-match-patch';
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
@@ -87,7 +92,7 @@ export const baseCompilerOptions: ts.CompilerOptions = {
   paths: {
     // The compiler builtin 'tslib' library is looked up by name,
     // so this entry controls which code is used for tslib.
-    'tslib': [tslibPath()]
+    'tslib': [tslibPath()],
   },
 };
 
@@ -126,22 +131,26 @@ const cachedLibDir = path.normalize(path.dirname(ts.getDefaultLibFilePath({})));
 
 /** Creates a ts.Program from a set of input files. */
 export function createProgram(
-    sources: Map<string, string>,
-    tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.Program {
+  sources: Map<string, string>,
+  tsCompilerOptions: ts.CompilerOptions = compilerOptions,
+): ts.Program {
   return createProgramAndHost(sources, tsCompilerOptions).program;
 }
 
 export function createSourceCachingHost(
-    sources: Map<string, string>,
-    tsCompilerOptions: ts.CompilerOptions = compilerOptions): ts.CompilerHost {
+  sources: Map<string, string>,
+  tsCompilerOptions: ts.CompilerOptions = compilerOptions,
+): ts.CompilerHost {
   const host = ts.createCompilerHost(tsCompilerOptions);
 
   host.getCurrentDirectory = () => {
     return rootDir();
   };
-  host.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
-                        onError?: (msg: string) => void): ts.SourceFile|
-                       undefined => {
+  host.getSourceFile = (
+    fileName: string,
+    languageVersion: ts.ScriptTarget,
+    onError?: (msg: string) => void,
+  ): ts.SourceFile | undefined => {
     cliSupport.assertAbsolute(fileName);
     // Normalize path to fix wrong directory separators on Windows which
     // would break the equality check.
@@ -150,22 +159,36 @@ export function createSourceCachingHost(
     // Cache files in TypeScript's lib directory.
     if (fileName.startsWith(cachedLibDir)) {
       const sf = ts.createSourceFile(
-          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest,
-          true);
+        fileName,
+        fs.readFileSync(fileName, 'utf8'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
       cachedLibs.set(fileName, sf);
       return sf;
     }
     if (fileName === tslibPath()) {
       return ts.createSourceFile(
-          fileName, fs.readFileSync(fileName, 'utf8'), ts.ScriptTarget.Latest,
-          true);
+        fileName,
+        fs.readFileSync(fileName, 'utf8'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
     }
     const contents = sources.get(fileName);
     if (contents !== undefined) {
-      return ts.createSourceFile(fileName, contents, ts.ScriptTarget.Latest, true);
+      return ts.createSourceFile(
+        fileName,
+        contents,
+        ts.ScriptTarget.Latest,
+        true,
+      );
     }
-    throw new Error(`unexpected file read of ${fileName} not in ${
-        Array.from(sources.keys())}`);
+    throw new Error(
+      `unexpected file read of ${fileName} not in ${Array.from(
+        sources.keys(),
+      )}`,
+    );
   };
   const originalFileExists = host.fileExists;
   host.fileExists = (fileName: string): boolean => {
@@ -192,11 +215,15 @@ export function createSourceCachingHost(
 }
 
 export function createProgramAndHost(
-    sources: Map<string, string>,
-    tsCompilerOptions: ts.CompilerOptions =
-        compilerOptions): {host: ts.CompilerHost, program: ts.Program} {
+  sources: Map<string, string>,
+  tsCompilerOptions: ts.CompilerOptions = compilerOptions,
+): {host: ts.CompilerHost; program: ts.Program} {
   const host = createSourceCachingHost(sources);
-  const program = ts.createProgram(Array.from(sources.keys()), tsCompilerOptions, host);
+  const program = ts.createProgram(
+    Array.from(sources.keys()),
+    tsCompilerOptions,
+    host,
+  );
   return {program, host};
 }
 
@@ -209,7 +236,10 @@ export class GoldenFileTest {
    * @param tsPaths Relative paths from this.path to all .ts/.d.ts files in the
    *     test.
    */
-  constructor(readonly root: string, private readonly tsPaths: string[]) {
+  constructor(
+    readonly root: string,
+    private readonly tsPaths: string[],
+  ) {
     cliSupport.assertAbsolute(this.root);
   }
 
@@ -226,24 +256,28 @@ export class GoldenFileTest {
    */
   inputPaths(): string[] {
     return this.tsPaths
-        .filter(p => {
-          // For .declaration tests, .d.ts's are goldens, not inputs, when there
-          // is a corresponding .ts file.
-          if (this.isDeclarationTest && p.endsWith('.d.ts') &&
-              this.tsPaths.includes(p.replace(/\.d\.ts$/, '.ts'))) {
-            return false;
-          }
-          return true;
-        })
-        .map(p => path.join(this.root, p));
+      .filter((p) => {
+        // For .declaration tests, .d.ts's are goldens, not inputs, when there
+        // is a corresponding .ts file.
+        if (
+          this.isDeclarationTest &&
+          p.endsWith('.d.ts') &&
+          this.tsPaths.includes(p.replace(/\.d\.ts$/, '.ts'))
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((p) => path.join(this.root, p));
   }
 
   /**
    * Gets the absolute paths to the expected .js outputs of the test.
    */
   jsPaths(): string[] {
-    return this.tsPaths.filter(f => !/\.d\.ts/.test(f))
-        .map(f => path.join(this.root, GoldenFileTest.tsPathToJs(f)));
+    return this.tsPaths
+      .filter((f) => !/\.d\.ts/.test(f))
+      .map((f) => path.join(this.root, GoldenFileTest.tsPathToJs(f)));
   }
 
   /**
@@ -251,13 +285,13 @@ export class GoldenFileTest {
    */
   tsMigrationExportsShimPaths(): string[] {
     return this.tsPaths
-        .map(
-            (p) =>
-                [p.replace('.ts', '.tsmes.d.ts'),
-                 p.replace('.ts', '.tsmes.js')])
-        .flat()
-        .map((p) => path.join(this.root, p))
-        .filter((p) => fs.existsSync(p));
+      .map((p) => [
+        p.replace('.ts', '.tsmes.d.ts'),
+        p.replace('.ts', '.tsmes.js'),
+      ])
+      .flat()
+      .map((p) => path.join(this.root, p))
+      .filter((p) => fs.existsSync(p));
   }
 
   /**
@@ -303,29 +337,32 @@ export function goldenTests(): GoldenFileTest[] {
   const basePath = path.join(rootDir(), 'test_files');
   const testNames = fs.readdirSync(basePath);
 
-  let testDirs = testNames.map(testName => path.join(basePath, testName))
-                     .filter(testDir => fs.statSync(testDir).isDirectory());
+  let testDirs = testNames
+    .map((testName) => path.join(basePath, testName))
+    .filter((testDir) => fs.statSync(testDir).isDirectory());
   if (!isInBazel()) {
     // TODO(nickreid): the migration shim code is incompatible with the open
     // source build.
     testDirs = testDirs.filter(
-        testDir => !testDir.includes('ts_migration_exports_shim'));
+      (testDir) => !testDir.includes('ts_migration_exports_shim'),
+    );
   }
-  let tests = testDirs.map(testDir => {
-    let tsPaths = glob.sync(path.join(testDir, '**/*.ts'));
+  let tests = testDirs.map((testDir) => {
+    let tsPaths = glob.sync(path.join(testDir, '**/*.ts')).sort();
     tsPaths = tsPaths.concat(glob.sync(path.join(testDir, '*.tsx')));
-    tsPaths = tsPaths.filter(p => !p.match(/\.(tsickle|decorated|tsmes)\./));
-    const tsFiles = tsPaths.map(f => path.relative(testDir, f));
-    tsFiles.sort();  // Source order is significant for externs concatenation after the test.
+    tsPaths = tsPaths.filter((p) => !p.match(/\.(tsickle|decorated|tsmes)\./));
+    const tsFiles = tsPaths.map((f) => path.relative(testDir, f));
+    tsFiles.sort(); // Source order is significant for externs concatenation after the test.
     return new GoldenFileTest(testDir, tsFiles);
   });
 
   if (process.env['TESTBRIDGE_TEST_ONLY']) {
     const re = new RegExp(process.env['TESTBRIDGE_TEST_ONLY']);
-    tests = tests.filter(t => re.test(t.name));
+    tests = tests.filter((t) => re.test(t.name));
     if (tests.length === 0) {
-      console.error(`'--test_filter=${
-          process.env['TESTBRIDGE_TEST_ONLY']}' did not match any tests`);
+      console.error(
+        `'--test_filter=${process.env['TESTBRIDGE_TEST_ONLY']}' did not match any tests`,
+      );
       process.exit(1);
     }
   }
@@ -337,7 +374,9 @@ export function goldenTests(): GoldenFileTest[] {
  * verification by the e2e_clutz_dts_test.
  */
 export function allDtsPaths(): string[] {
-  return glob.sync(path.join(rootDir(), 'test_files', '**/*.d.ts'));
+  // Sorting is no longer supported by glob.sync
+  // (https://github.com/isaacs/node-glob/issues/372)
+  return glob.sync(path.join(rootDir(), 'test_files', '**/*.d.ts')).sort();
 }
 
 /**
@@ -345,12 +384,14 @@ export function allDtsPaths(): string[] {
  * readable, diff using diff-match-patch.
  */
 function diffStrings(
-    actual: {}, expected: {}): {pass: boolean, message?: string} {
+  actual: {},
+  expected: {},
+): {pass: boolean; message?: string} {
   if (actual === expected) return {pass: true};
   if (typeof actual !== 'string' || typeof expected !== 'string') {
     return {
       pass: false,
-      message: `toEqualWithDiff takes two strings, got ${actual}, ${expected}`
+      message: `toEqualWithDiff takes two strings, got ${actual}, ${expected}`,
     };
   }
   const dmp = new DiffMatchPatch();
@@ -363,8 +404,8 @@ function diffStrings(
   }
 
   let message =
-      '\nStrings differ:\n\x1B[37;41m⌊missing expected content⌋\x1b[0m ' +
-      '/ \x1B[90;42m⌈new actual content⌉\x1b[0m\n\n';
+    '\nStrings differ:\n\x1B[37;41m⌊missing expected content⌋\x1b[0m ' +
+    '/ \x1B[90;42m⌈new actual content⌉\x1b[0m\n\n';
   for (const [diffKind, text] of diff) {
     switch (diffKind) {
       case DIFF_EQUAL:
@@ -430,7 +471,8 @@ export function formatDiagnostics(diags: ReadonlyArray<ts.Diagnostic>): string {
 export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
   if (diags.length !== 0) {
     throw new Error(
-        `Expected no diagnostics but got: ` + formatDiagnostics(diags));
+      `Expected no diagnostics but got: ` + formatDiagnostics(diags),
+    );
   }
 }
 
@@ -442,14 +484,36 @@ export function expectDiagnosticsEmpty(diags: ReadonlyArray<ts.Diagnostic>) {
  * environment-specific path).
  */
 export function pathToModuleName(
-    rootModulePath: string, context: string, fileName: string,
-    options: ts.CompilerOptions, host: ts.ModuleResolutionHost): string {
+  rootModulePath: string,
+  context: string,
+  fileName: string,
+  options: ts.CompilerOptions,
+  host: ts.ModuleResolutionHost,
+): string {
   const resolved = ts.resolveModuleName(fileName, context, options, host);
-  if (resolved && resolved.resolvedModule &&
-      resolved.resolvedModule.resolvedFileName) {
+  if (
+    resolved &&
+    resolved.resolvedModule &&
+    resolved.resolvedModule.resolvedFileName
+  ) {
     fileName = resolved.resolvedModule.resolvedFileName;
   }
 
   if (fileName === tslibPath()) return 'tslib';
   return cliSupport.pathToModuleName(rootModulePath, context, fileName);
+}
+
+/**
+ * Remove the first line (if empty) and unindents the all other lines by the
+ * amount of leading whitespace in the second line.
+ */
+export function outdent(str: string) {
+  const lines = str.split('\n');
+  if (lines.length < 2) return str;
+  if (lines.shift() !== '') return str;
+  const indent = lines[0].match(/^ */)![0].length;
+  for (let i = 0; i < lines.length; i++) {
+    lines[i] = lines[i].substring(indent);
+  }
+  return lines.join('\n');
 }

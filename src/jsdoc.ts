@@ -144,15 +144,43 @@ const CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT = new Set([
 ]);
 
 /**
+ * JSDoc comments not attached to any nodes can generally not contains any tags,
+ * so all are banned. The exception is "license", which is supported as a
+ * standalone comment next to the fileoverview.
+ */
+const BANNED_JSDOC_TAGS_IN_FREESTANDING_COMMENTS = new Set(
+  CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT,
+);
+BANNED_JSDOC_TAGS_IN_FREESTANDING_COMMENTS.delete('license');
+
+/**
  * A list of JSDoc @tags that are never allowed in TypeScript source. These are Closure tags that
  * can be expressed in the TypeScript surface syntax. As tsickle's emit will mangle type names,
  * these will cause Closure Compiler issues and should not be used.
  * Note: 'template' is special-cased below; see where this set is queried.
  */
 const BANNED_JSDOC_TAGS_INPUT = new Set([
-  'augments', 'class',      'constructs', 'constructor', 'enum',      'extends', 'field',
-  'function', 'implements', 'interface',  'lends',       'namespace', 'private', 'protected',
-  'public',   'record',     'static',     'template',    'this',      'type',    'typedef',
+  'augments',
+  'class',
+  'constructs',
+  'constructor',
+  'enum',
+  'extends',
+  'field',
+  'function',
+  'implements',
+  'interface',
+  'lends',
+  'namespace',
+  'private',
+  'protected',
+  'public',
+  'record',
+  'static',
+  'template',
+  'this',
+  'type',
+  'typedef',
 ]);
 
 /**
@@ -170,15 +198,20 @@ const JSDOC_TAGS_WITH_TYPES = new Set([
   'const',
   'define',
   'export',
-  ...TAGS_CONFLICTING_WITH_TYPE
+  ...TAGS_CONFLICTING_WITH_TYPE,
 ]);
 
 /**
  * Tags that, if they are the only tag, should be printed in a single line JSDoc
  * comment.
  */
-const ONE_LINER_TAGS =
-    new Set(['type', 'typedef', 'nocollapse', 'const', 'enum']);
+const ONE_LINER_TAGS = new Set([
+  'type',
+  'typedef',
+  'nocollapse',
+  'const',
+  'enum',
+]);
 
 /**
  * Result of parsing a JSDoc comment. Such comments essentially are built of a list of tags.
@@ -198,7 +231,9 @@ export interface ParsedJSDocComment {
 // such as merging (below), de-duplicating certain tags (@deprecated), and special treatment for
 // others (e.g. @suppress). We should introduce a proper model class with a more suitable data
 // strucure (e.g. a Map<TagName, Values[]>).
-export function parse(comment: ts.SynthesizedComment): ParsedJSDocComment|null {
+export function parse(
+  comment: ts.SynthesizedComment,
+): ParsedJSDocComment | null {
   // TODO(evanm): this is a pile of hacky regexes for now, because we
   // would rather use the better TypeScript implementation of JSDoc
   // parsing.  https://github.com/Microsoft/TypeScript/issues/7393
@@ -222,7 +257,7 @@ export function normalizeLineEndings(input: string): string {
  *
  * @param commentText a comment's text content, i.e. the comment w/o /* and * /.
  */
-export function parseContents(commentText: string): ParsedJSDocComment|null {
+function parseContents(commentText: string): ParsedJSDocComment | null {
   // Make sure we have proper line endings before parsing on Windows.
   commentText = normalizeLineEndings(commentText);
   // Strip all the " * " bits from the front of each line.
@@ -233,18 +268,20 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
   for (const line of lines) {
     let match = line.match(/^\s*@([^\s{]+) *({?.*)/);
     if (match) {
-      let [_, tagName, text] = match;
+      let [, tagName, text] = match;
       if (tagName === 'returns') {
         // A synonym for 'return'.
         tagName = 'return';
       }
-      let type: string|undefined;
+      let type: string | undefined;
       if (BANNED_JSDOC_TAGS_INPUT.has(tagName)) {
         if (tagName !== 'template') {
           // Tell the user to not write banned tags, because there is TS
           // syntax available for them.
-          warnings.push(`@${tagName} annotations are redundant with TypeScript equivalents`);
-          continue;  // Drop the tag so Closure won't process it.
+          warnings.push(
+            `@${tagName} annotations are redundant with TypeScript equivalents`,
+          );
+          continue; // Drop the tag so Closure won't process it.
         } else {
           // But @template in particular is special: it's ok for the user to
           // write it for documentation purposes, but we don't want the
@@ -256,8 +293,9 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
       } else if (JSDOC_TAGS_WITH_TYPES.has(tagName)) {
         if (text[0] === '{') {
           warnings.push(
-              `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
-              `remove the {...} part`);
+            `the type annotation on @${tagName} is redundant with its TypeScript type, ` +
+              `remove the {...} part`,
+          );
           continue;
         }
       } else if (tagName === 'suppress') {
@@ -268,15 +306,17 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
           warnings.push(`malformed @${tagName} tag: "${text}"`);
         }
       } else if (tagName === 'dict') {
-        warnings.push('use index signatures (`[k: string]: type`) instead of @dict');
+        warnings.push(
+          'use index signatures (`[k: string]: type`) instead of @dict',
+        );
         continue;
       }
 
       // Grab the parameter name from @param tags.
-      let parameterName: string|undefined;
+      let parameterName: string | undefined;
       if (tagName === 'param') {
         match = text.match(/^(\S+) ?(.*)/);
-        if (match) [_, parameterName, text] = match;
+        if (match) [, parameterName, text] = match;
       }
 
       const tag: Tag = {tagName};
@@ -308,7 +348,10 @@ export function parseContents(commentText: string): ParsedJSDocComment|null {
 function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
   let out = '';
   if (tag.tagName) {
-    if (!CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT.has(tag.tagName) || escapeExtraTags.has(tag.tagName)) {
+    if (
+      !CLOSURE_ALLOWED_JSDOC_TAGS_OUTPUT.has(tag.tagName) ||
+      escapeExtraTags.has(tag.tagName)
+    ) {
       // Escape tags we don't understand.  This is a subtle
       // compromise between multiple issues.
       // 1) If we pass through these non-Closure tags, the user will
@@ -345,7 +388,7 @@ function tagToString(tag: Tag, escapeExtraTags = new Set<string>()): string {
   return out;
 }
 
-/** Tags that must only occur onces in a comment (filtered below). */
+/** Tags that must only occur once in a comment (filtered below). */
 const SINGLETON_TAGS = new Set(['deprecated']);
 
 /**
@@ -363,16 +406,40 @@ export interface SynthesizedCommentWithOriginal extends ts.SynthesizedComment {
  * to synthetic comments, and makes sure the original text comments do not get
  * emitted by TypeScript.
  */
-export function synthesizeLeadingComments(node: ts.Node): SynthesizedCommentWithOriginal[] {
+export function synthesizeLeadingComments(
+  node: ts.Node,
+): SynthesizedCommentWithOriginal[] {
   const existing = ts.getSyntheticLeadingComments(node);
-  if (existing) return existing;
+  if (existing && hasLeadingCommentsSuppressed(node)) return existing;
   const text = ts.getOriginalNode(node).getFullText();
-  const synthComments = getLeadingCommentRangesSynthesized(text, node.getFullStart());
+  const synthComments = getLeadingCommentRangesSynthesized(
+    text,
+    node.getFullStart(),
+  );
   if (synthComments.length) {
     ts.setSyntheticLeadingComments(node, synthComments);
     suppressLeadingCommentsRecursively(node);
   }
   return synthComments;
+}
+
+function hasLeadingCommentsSuppressed(node: ts.Node): boolean {
+  const internalNode = node as InternalNode;
+  if (!internalNode.emitNode) return false;
+  return (
+    (internalNode.emitNode.flags & ts.EmitFlags.NoLeadingComments) ===
+    ts.EmitFlags.NoLeadingComments
+  );
+}
+
+declare interface InternalNode extends ts.Node {
+  // http://google3/third_party/javascript/node_modules/typescript/stable/src/compiler/types.ts;l=954;rcl=589121220
+  emitNode?: InternalEmitNode;
+}
+
+declare interface InternalEmitNode {
+  // http://google3/third_party/javascript/node_modules/typescript/stable/src/compiler/types.ts;l=7982;rcl=589121220
+  flags: ts.EmitFlags;
 }
 
 /**
@@ -382,20 +449,23 @@ export function synthesizeLeadingComments(node: ts.Node): SynthesizedCommentWith
  */
 // VisibleForTesting
 export function getLeadingCommentRangesSynthesized(
-    text: string, offset = 0): SynthesizedCommentWithOriginal[] {
+  text: string,
+  offset = 0,
+): SynthesizedCommentWithOriginal[] {
   const comments = ts.getLeadingCommentRanges(text, 0) || [];
   return comments.map((cr): SynthesizedCommentWithOriginal => {
     // Confusingly, CommentRange in TypeScript includes start and end markers, but
     // SynthesizedComments do not.
-    const commentText = cr.kind === ts.SyntaxKind.SingleLineCommentTrivia ?
-        text.substring(cr.pos + 2, cr.end) :
-        text.substring(cr.pos + 2, cr.end - 2);
+    const commentText =
+      cr.kind === ts.SyntaxKind.SingleLineCommentTrivia
+        ? text.substring(cr.pos + 2, cr.end)
+        : text.substring(cr.pos + 2, cr.end - 2);
     return {
       ...cr,
       text: commentText,
       pos: -1,
       end: -1,
-      originalRange: {pos: cr.pos + offset, end: cr.end + offset}
+      originalRange: {pos: cr.pos + offset, end: cr.end + offset},
     };
   });
 }
@@ -423,8 +493,10 @@ export function suppressLeadingCommentsRecursively(node: ts.Node) {
 }
 
 export function toSynthesizedComment(
-    tags: Tag[], escapeExtraTags?: Set<string>,
-    hasTrailingNewLine = true): ts.SynthesizedComment {
+  tags: Tag[],
+  escapeExtraTags?: Set<string>,
+  hasTrailingNewLine = true,
+): ts.SynthesizedComment {
   return {
     kind: ts.SyntaxKind.MultiLineCommentTrivia,
     text: toStringWithoutStartEnd(tags, escapeExtraTags),
@@ -435,22 +507,33 @@ export function toSynthesizedComment(
 }
 
 /** Serializes a Comment out to a string, but does not include the start and end comment tokens. */
-export function toStringWithoutStartEnd(tags: Tag[], escapeExtraTags = new Set<string>()): string {
+function toStringWithoutStartEnd(
+  tags: Tag[],
+  escapeExtraTags = new Set<string>(),
+): string {
   return serialize(tags, false, escapeExtraTags);
 }
 
 /** Serializes a Comment out to a string usable in source code. */
-export function toString(tags: Tag[], escapeExtraTags = new Set<string>()): string {
+export function toString(
+  tags: Tag[],
+  escapeExtraTags = new Set<string>(),
+): string {
   return serialize(tags, true, escapeExtraTags);
 }
 
 function serialize(
-    tags: Tag[], includeStartEnd: boolean, escapeExtraTags = new Set<string>()): string {
+  tags: Tag[],
+  includeStartEnd: boolean,
+  escapeExtraTags = new Set<string>(),
+): string {
   if (tags.length === 0) return '';
   if (tags.length === 1) {
     const tag = tags[0];
-    if (ONE_LINER_TAGS.has(tag.tagName) &&
-        (!tag.text || !tag.text.match('\n'))) {
+    if (
+      ONE_LINER_TAGS.has(tag.tagName) &&
+      (!tag.text || !tag.text.match('\n'))
+    ) {
       // Special-case one-liner "type" and "nocollapse" tags to fit on one line, e.g.
       //   /** @type {foo} */
       const text = tagToString(tag, escapeExtraTags);
@@ -498,11 +581,16 @@ export function merge(tags: Tag[]): Tag {
   }
   const tagName = tagNames.values().next().value;
   const parameterName =
-      parameterNames.size > 0 ? Array.from(parameterNames).join('_or_') : undefined;
+    parameterNames.size > 0
+      ? Array.from(parameterNames).join('_or_')
+      : undefined;
   const type = types.size > 0 ? Array.from(types).join('|') : undefined;
   // @template uses text (not type!) to declare its type parameters, with ','-separated text.
   const isTemplateTag = tagName === 'template';
-  const text = texts.size > 0 ? Array.from(texts).join(isTemplateTag ? ',' : ' / ') : undefined;
+  const text =
+    texts.size > 0
+      ? Array.from(texts).join(isTemplateTag ? ',' : ' / ')
+      : undefined;
   const tag: Tag = {tagName, parameterName, type, text};
   // Note: a param can either be optional or a rest param; if we merged an
   // optional and rest param together, prefer marking it as a rest param.
@@ -529,22 +617,40 @@ export function createGeneratedFromComment(file: string): string {
  * allows code to modify (including delete) it.
  */
 export class MutableJSDoc {
+  private sanitizedOtherComments = false;
+
   constructor(
-      private readonly node: ts.Node,
-      private sourceComment: ts.SynthesizedComment|null, public tags: Tag[]) {}
+    private readonly node: ts.Node,
+    private readonly allComments: ts.SynthesizedComment[],
+    private sourceComment: number,
+    public tags: Tag[],
+  ) {}
 
   updateComment(escapeExtraTags?: Set<string>) {
+    if (!this.sanitizedOtherComments) {
+      for (let i = 0; i < this.allComments.length; i++) {
+        if (i === this.sourceComment) continue;
+        const comment = this.allComments[i];
+        const parsed = parse(comment);
+        if (!parsed) continue;
+        comment.text = toStringWithoutStartEnd(
+          parsed.tags,
+          BANNED_JSDOC_TAGS_IN_FREESTANDING_COMMENTS,
+        );
+      }
+
+      this.sanitizedOtherComments = true;
+    }
+
     const text = toStringWithoutStartEnd(this.tags, escapeExtraTags);
-    if (this.sourceComment) {
+    if (this.sourceComment >= 0) {
       if (!text) {
         // Delete the (now empty) comment.
-        const comments = ts.getSyntheticLeadingComments(this.node)!;
-        const idx = comments.indexOf(this.sourceComment);
-        comments.splice(idx, 1);
-        this.sourceComment = null;
+        this.allComments.splice(this.sourceComment, 1);
+        this.sourceComment = -1;
         return;
       }
-      this.sourceComment.text = text;
+      this.allComments[this.sourceComment].text = text;
       return;
     }
 
@@ -558,9 +664,9 @@ export class MutableJSDoc {
       pos: -1,
       end: -1,
     };
-    const comments = ts.getSyntheticLeadingComments(this.node) || [];
-    comments.push(comment);
-    ts.setSyntheticLeadingComments(this.node, comments);
+    this.allComments.push(comment);
+    this.sourceComment = this.allComments.length - 1;
+    ts.setSyntheticLeadingComments(this.node, this.allComments);
   }
 }
 
@@ -574,10 +680,12 @@ export class MutableJSDoc {
  *     diagnostic location.
  */
 export function getJSDocTags(
-    node: ts.Node, diagnostics?: ts.Diagnostic[],
-    sourceFile?: ts.SourceFile): Tag[] {
+  node: ts.Node,
+  diagnostics?: ts.Diagnostic[],
+  sourceFile?: ts.SourceFile,
+): Tag[] {
   if (!ts.getParseTreeNode(node)) return [];
-  const [tags, ] = parseJSDoc(node, diagnostics, sourceFile);
+  const [, , tags] = parseJSDoc(node, diagnostics, sourceFile);
   return tags;
 }
 
@@ -590,18 +698,22 @@ export function getJSDocTags(
  *     diagnostic location.
  */
 export function getMutableJSDoc(
-    node: ts.Node, diagnostics?: ts.Diagnostic[],
-    sourceFile?: ts.SourceFile): MutableJSDoc {
-  const [tags, comment] = parseJSDoc(node, diagnostics, sourceFile);
-  return new MutableJSDoc(node, comment, tags);
+  node: ts.Node,
+  diagnostics?: ts.Diagnostic[],
+  sourceFile?: ts.SourceFile,
+): MutableJSDoc {
+  const [comments, i, tags] = parseJSDoc(node, diagnostics, sourceFile);
+  return new MutableJSDoc(node, comments, i, tags);
 }
 
 function parseJSDoc(
-    node: ts.Node, diagnostics?: ts.Diagnostic[],
-    sourceFile?: ts.SourceFile): [Tag[], ts.SynthesizedComment|null] {
+  node: ts.Node,
+  diagnostics?: ts.Diagnostic[],
+  sourceFile?: ts.SourceFile,
+): [ts.SynthesizedComment[], number, Tag[]] {
   // synthesizeLeadingComments below changes text locations for node, so extract
   // the location here in case it is needed later to report diagnostics.
-  let nodeCommentRange: ts.TextRange|undefined;
+  let nodeCommentRange: ts.TextRange | undefined;
   if (diagnostics !== undefined) {
     const pos = node.getFullStart();
     const length = node.getLeadingTriviaWidth(sourceFile);
@@ -609,7 +721,7 @@ function parseJSDoc(
   }
 
   const comments = synthesizeLeadingComments(node);
-  if (!comments || comments.length === 0) return [[], null];
+  if (!comments || comments.length === 0) return [[], -1, []];
 
   for (let i = comments.length - 1; i >= 0; i--) {
     const comment = comments[i];
@@ -618,11 +730,15 @@ function parseJSDoc(
       if (diagnostics !== undefined && parsed.warnings) {
         const range = comment.originalRange || nodeCommentRange;
         reportDiagnostic(
-            diagnostics, node, parsed.warnings.join('\n'), range,
-            ts.DiagnosticCategory.Warning);
+          diagnostics,
+          node,
+          parsed.warnings.join('\n'),
+          range,
+          ts.DiagnosticCategory.Warning,
+        );
       }
-      return [parsed.tags, comment];
+      return [comments, i, parsed.tags];
     }
   }
-  return [[], null];
+  return [comments, -1, []];
 }

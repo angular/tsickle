@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview Using a namespace that provides multiple, nested symbols.
  * Generated from: test_files/import_by_path.no_externs/using_multiple.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.import_by_path.no_externs.using_multiple');
 var module = module || { id: 'test_files/import_by_path.no_externs/using_multiple.ts' };

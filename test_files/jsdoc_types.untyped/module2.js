@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/jsdoc_types.untyped/module2.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.jsdoc_types.untyped.module2');
 var module = module || { id: 'test_files/jsdoc_types.untyped/module2.ts' };

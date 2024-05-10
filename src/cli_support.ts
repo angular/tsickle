@@ -25,7 +25,10 @@ export function assertAbsolute(fileName: string) {
  * import and generates a googmodule module name for the imported module.
  */
 export function pathToModuleName(
-    rootModulePath: string, context: string, fileName: string): string {
+  rootModulePath: string,
+  context: string,
+  fileName: string,
+): string {
   fileName = fileName.replace(/(\.d)?\.[tj]s$/, '');
 
   if (fileName[0] === '.') {
@@ -37,7 +40,9 @@ export function pathToModuleName(
   // TODO(evanm): various tests assume they can import relative paths like
   // 'foo/bar' and have them interpreted as root-relative; preserve that here.
   // Fix this by removing the next line.
-  if (!path.isAbsolute(fileName)) fileName = path.join(rootModulePath, fileName);
+  if (!path.isAbsolute(fileName)) {
+    fileName = path.join(rootModulePath, fileName);
+  }
 
   // TODO(evanm): various tests assume they can pass in a 'fileName' like
   // 'goog:foo.bar' and have this function do something reasonable.
@@ -50,8 +55,10 @@ export function pathToModuleName(
   }
 
   // Replace characters not supported by goog.module.
-  const moduleName =
-      fileName.replace(/\/|\\/g, '.').replace(/^[^a-zA-Z_$]/, '_').replace(/[^a-zA-Z0-9._$]/g, '_');
+  const moduleName = fileName
+    .replace(/\/|\\/g, '.')
+    .replace(/^[^a-zA-Z_$]/, '_')
+    .replace(/[^a-zA-Z0-9._$]/g, '_');
 
   return moduleName;
 }

@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview Tests that destructured parameters get aliased into more
  * specific local variables.
  * Generated from: test_files/tuple_types/tuple_functions.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.tuple_types.tuple_functions');
 var module = module || { id: 'test_files/tuple_types/tuple_functions.ts' };

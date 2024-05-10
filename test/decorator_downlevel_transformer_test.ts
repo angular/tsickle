@@ -17,7 +17,6 @@ import * as testSupport from './test_support';
 
 const testCaseFileName = 'testcase.ts';
 
-
 describe('decorator_downlevel_transformer', () => {
   beforeEach(() => {
     testSupport.addDiffMatchers();
@@ -30,15 +29,18 @@ describe('decorator_downlevel_transformer', () => {
       // annotator without the compiler complaining we didn't actually provide a
       // value
       [
-        path.join(rootDir, 'bar.d.ts'), `declare module "bar" {
+        path.join(rootDir, 'bar.d.ts'),
+        `declare module "bar" {
           export class BarService {}
           type FakeDecorator = any;
-        }`
-      ]
+        }`,
+      ],
     ]);
 
-    const {program} =
-        testSupport.createProgramAndHost(sources, testSupport.compilerOptions);
+    const {program} = testSupport.createProgramAndHost(
+      sources,
+      testSupport.compilerOptions,
+    );
     if (!allowErrors) {
       const diagnostics = ts.getPreEmitDiagnostics(program);
       testSupport.expectDiagnosticsEmpty(diagnostics);
@@ -62,8 +64,14 @@ describe('decorator_downlevel_transformer', () => {
 
     const files = new Map<string, string>();
     const {diagnostics} = tsickle.emit(
-        program, transformerHost, (path, contents) => {}, undefined, undefined,
-        undefined, {beforeTs: [createAstPrintingTransform(files)]});
+      program,
+      transformerHost,
+      (path, contents) => {},
+      undefined,
+      undefined,
+      undefined,
+      {beforeTs: [createAstPrintingTransform(files)]},
+    );
 
     if (!allowErrors) {
       testSupport.expectDiagnosticsEmpty(diagnostics);
@@ -71,7 +79,7 @@ describe('decorator_downlevel_transformer', () => {
 
     return {
       output: files.get(path.join(rootDir, testCaseFileName))!,
-      diagnostics
+      diagnostics,
     };
   }
 
@@ -128,9 +136,8 @@ class Foo {
 `);
     });
 
-    it('transforms decorated classes with function expression annotation declaration',
-       () => {
-         expectTranslated(`
+    it('transforms decorated classes with function expression annotation declaration', () => {
+      expectTranslated(`
 /** @Annotation */ function Test(t: any) {};
 @Test
 class Foo {
@@ -145,11 +152,10 @@ class Foo {
     ];
 }
 `);
-       });
+    });
 
-    it('transforms decorated classes with an exported annotation declaration',
-       () => {
-         expectTranslated(`
+    it('transforms decorated classes with an exported annotation declaration', () => {
+      expectTranslated(`
 import {FakeDecorator} from 'bar';
 /** @Annotation */ export let Test: FakeDecorator;
 @Test
@@ -165,7 +171,7 @@ class Foo {
     ];
 }
 `);
-       });
+    });
 
     it('accepts various complicated decorators', () => {
       expectTranslated(`
@@ -322,9 +328,8 @@ class Foo {
 `);
     });
 
-    it('stores non annotated parameters if the class has at least one decorator',
-       () => {
-         expectTranslated(`
+    it('stores non annotated parameters if the class has at least one decorator', () => {
+      expectTranslated(`
 import {BarService, FakeDecorator} from 'bar';
 /** @Annotation */ let Test1: FakeDecorator;
 @Test1()
@@ -353,7 +358,7 @@ class Foo {
     ];
 }
 `);
-       });
+    });
 
     it('handles complex ctor parameters', () => {
       expectTranslated(`
@@ -547,18 +552,19 @@ class ClassWithDecorators {
 
     it('errors on weird class members', () => {
       const {diagnostics} = translate(
-          `
+        `
 /** @Annotation */ let Test1: Function;
 let param: any;
 class Foo {
   @Test1('somename')
   [param]() {}
 }`,
-          true /* allow errors */);
+        true /* allow errors */,
+      );
 
-      expect(testSupport.formatDiagnostics(diagnostics))
-          .toBe(
-              'testcase.ts(5,3): error TS0: cannot process decorators on strangely named method\n');
+      expect(testSupport.formatDiagnostics(diagnostics)).toBe(
+        'testcase.ts(5,3): error TS0: cannot process decorators on strangely named method\n',
+      );
     });
     it('avoids mangling code relying on ASI', () => {
       expectTranslated(`
