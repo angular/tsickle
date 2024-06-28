@@ -227,28 +227,30 @@ export function reportDebugWarning(
  * @param textRange pass to overrride the text range from the node with a more specific range.
  */
 export function reportDiagnostic(
-    diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string, textRange?: ts.TextRange,
-    category = ts.DiagnosticCategory.Error) {
+    diagnostics: ts.Diagnostic[], node: ts.Node|undefined, messageText: string,
+    textRange?: ts.TextRange, category = ts.DiagnosticCategory.Error) {
   diagnostics.push(createDiagnostic(node, messageText, textRange, category));
 }
 
 function createDiagnostic(
-    node: ts.Node, messageText: string, textRange: ts.TextRange|undefined,
+    node: ts.Node|undefined, messageText: string,
+    textRange: ts.TextRange|undefined,
     category: ts.DiagnosticCategory): ts.Diagnostic {
-  let start, length: number;
+  let start: number|undefined;
+  let length: number|undefined;
   // getStart on a synthesized node can crash (due to not finding an associated
   // source file). Make sure to use the original node.
   node = ts.getOriginalNode(node);
   if (textRange) {
     start = textRange.pos;
     length = textRange.end - textRange.pos;
-  } else {
+  } else if (node) {
     // Only use getStart if node has a valid pos, as it might be synthesized.
     start = node.pos >= 0 ? node.getStart() : 0;
     length = node.end - node.pos;
   }
   return {
-    file: node.getSourceFile(),
+    file: node?.getSourceFile(),
     start,
     length,
     messageText,
