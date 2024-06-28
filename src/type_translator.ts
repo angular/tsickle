@@ -860,6 +860,20 @@ export class TypeTranslator {
         if (sigs.length === 1) {
           return this.signatureToClosure(sigs[0]);
         }
+        // Function has multiple declaration. Let's see if we can find a single
+        // declaration with an implementation. In this case all the other
+        // declarations are overloads and the implementation must have a
+        // signature that matches all of them.
+        const declWithBody = type.symbol.declarations?.filter(
+            (d): d is ts.FunctionLikeDeclaration =>
+                isFunctionLikeDeclaration(d) && d.body != null);
+        if (declWithBody?.length === 1) {
+          const sig =
+              this.typeChecker.getSignatureFromDeclaration(declWithBody[0]);
+          if (sig) {
+            return this.signatureToClosure(sig);
+          }
+        }
         this.warn('unhandled anonymous type with multiple call signatures');
         return '?';
       }
@@ -1172,4 +1186,12 @@ export function restParameterType(
     return undefined;
   }
   return typeArgs[0];
+}
+
+function isFunctionLikeDeclaration(node: ts.Node):
+    node is ts.FunctionLikeDeclaration {
+  return ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node) ||
+      ts.isConstructorDeclaration(node) || ts.isGetAccessorDeclaration(node) ||
+      ts.isSetAccessorDeclaration(node) || ts.isFunctionExpression(node) ||
+      ts.isArrowFunction(node);
 }
