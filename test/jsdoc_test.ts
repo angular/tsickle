@@ -20,7 +20,9 @@ describe('jsdoc.parse', () => {
   });
   it('grabs plain text from jsdoc', () => {
     const source = '/** jsdoc comment */';
-    expect(parse(source)).toEqual({tags: [{tagName: '', text: 'jsdoc comment'}]});
+    expect(parse(source)).toEqual({
+      tags: [{tagName: '', text: 'jsdoc comment'}],
+    });
   });
   it('gathers @tags from jsdoc', () => {
     const source = `/**
@@ -39,12 +41,12 @@ describe('jsdoc.parse', () => {
         {
           tagName: 'param',
           parameterName: 'bar',
-          text: 'multiple\n   line comment'
+          text: 'multiple\n   line comment',
         },
         {tagName: 'return', text: 'foobar'},
         {tagName: 'nosideeffects'},
         {tagName: 'nospacebeforebracket', text: '{text in bracket}'},
-      ]
+      ],
     });
   });
   it('warns on type annotations in parameters', () => {
@@ -54,21 +56,21 @@ describe('jsdoc.parse', () => {
     expect(parse(source)).toEqual({
       tags: [],
       warnings: [
-        'the type annotation on @param is redundant with its TypeScript type, remove the {...} part'
-      ]
+        'the type annotation on @param is redundant with its TypeScript type, remove the {...} part',
+      ],
     });
   });
   it('warns on @type annotations', () => {
     const source = `/** @type {string} foo */`;
     expect(parse(source)).toEqual({
       tags: [],
-      warnings: ['@type annotations are redundant with TypeScript equivalents']
+      warnings: ['@type annotations are redundant with TypeScript equivalents'],
     });
   });
   it('allows @suppress annotations', () => {
     const source = `/** @suppress {checkTypes} I hate types */`;
     expect(parse(source)).toEqual({
-      tags: [{tagName: 'suppress', type: 'checkTypes', text: ' I hate types'}]
+      tags: [{tagName: 'suppress', type: 'checkTypes', text: ' I hate types'}],
     });
     const malformed = `/** @suppress malformed */`;
     expect(parse(malformed)).toEqual({
@@ -80,10 +82,13 @@ describe('jsdoc.parse', () => {
 
 describe('jsdoc.toString', () => {
   it('filters duplicated @deprecated tags', () => {
-    expect(jsdoc.toString([
-      {tagName: 'deprecated'}, {tagName: 'param', parameterName: 'hello', text: 'world'},
-      {tagName: 'deprecated'}
-    ])).toBe(`/**
+    expect(
+      jsdoc.toString([
+        {tagName: 'deprecated'},
+        {tagName: 'param', parameterName: 'hello', text: 'world'},
+        {tagName: 'deprecated'},
+      ]),
+    ).toBe(`/**
  * @deprecated
  * @param hello world
  */
@@ -91,9 +96,11 @@ describe('jsdoc.toString', () => {
   });
 
   it('escapes @argument tags', () => {
-    expect(jsdoc.toString([
-      {tagName: 'argument', parameterName: 'hello', text: 'world'},
-    ])).toBe(`/**
+    expect(
+      jsdoc.toString([
+        {tagName: 'argument', parameterName: 'hello', text: 'world'},
+      ]),
+    ).toBe(`/**
  * \\@argument hello world
  */
 `);
