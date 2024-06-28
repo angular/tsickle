@@ -17,7 +17,12 @@ import * as ts from 'typescript';
 import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import * as googmodule from './googmodule';
 import * as jsdoc from './jsdoc';
-import {getIdentifierText, hasModifierFlag, reportDebugWarning, reportDiagnostic} from './transformer_util';
+import {
+  getIdentifierText,
+  hasModifierFlag,
+  reportDebugWarning,
+  reportDiagnostic,
+} from './transformer_util';
 import * as typeTranslator from './type_translator';
 
 /**
@@ -27,8 +32,9 @@ declare interface SymbolWithParent extends ts.Symbol {
   parent?: SymbolWithParent;
 }
 
-function getDefinedModule(symbol: SymbolWithParent|undefined): ts.Symbol|
-    undefined {
+function getDefinedModule(
+  symbol: SymbolWithParent | undefined,
+): ts.Symbol | undefined {
   while (symbol) {
     if (symbol.flags & ts.SymbolFlags.Module) {
       return symbol;
@@ -43,7 +49,9 @@ function getDefinedModule(symbol: SymbolWithParent|undefined): ts.Symbol|
  * destructuring.
  */
 function getParameterName(
-    param: ts.ParameterDeclaration, index: number): string {
+  param: ts.ParameterDeclaration,
+  index: number,
+): string {
   switch (param.name.kind) {
     case ts.SyntaxKind.Identifier:
       let name = getIdentifierText(param.name);
@@ -61,8 +69,9 @@ function getParameterName(
       // The above list of kinds is exhaustive.  param.name is 'never' at this
       // point.
       const paramName = param.name as ts.Node;
-      throw new Error(`unhandled function parameter kind: ${
-          ts.SyntaxKind[paramName.kind]}`);
+      throw new Error(
+        `unhandled function parameter kind: ${ts.SyntaxKind[paramName.kind]}`,
+      );
   }
 }
 
@@ -100,17 +109,17 @@ export class ModuleTypeTranslator {
   private readonly additionalImports: ts.Statement[] = [];
 
   constructor(
-      readonly sourceFile: ts.SourceFile,
-      readonly typeChecker: ts.TypeChecker,
-      private readonly host: AnnotatorHost&googmodule.GoogModuleProcessorHost,
-      private readonly diagnostics: ts.Diagnostic[],
-      private readonly isForExterns: boolean,
-      private readonly useInternalNamespaceForExterns = false,
+    readonly sourceFile: ts.SourceFile,
+    readonly typeChecker: ts.TypeChecker,
+    private readonly host: AnnotatorHost & googmodule.GoogModuleProcessorHost,
+    private readonly diagnostics: ts.Diagnostic[],
+    private readonly isForExterns: boolean,
+    private readonly useInternalNamespaceForExterns = false,
   ) {
     // TODO: remove once AnnotatorHost.typeBlackListPaths is removed.
     this.host.unknownTypesPaths =
-        // tslint:disable-next-line:deprecation
-        this.host.unknownTypesPaths ?? this.host.typeBlackListPaths;
+      // tslint:disable-next-line:deprecation
+      this.host.unknownTypesPaths ?? this.host.typeBlackListPaths;
   }
 
   debugWarn(context: ts.Node, messageText: string) {
@@ -143,14 +152,15 @@ export class ModuleTypeTranslator {
     try {
       return this.newTypeTranslator(context).translate(type);
     } catch (e: unknown) {
-      if (!(e instanceof Error)) throw e;  // should not happen (tm)
+      if (!(e instanceof Error)) throw e; // should not happen (tm)
       const sourceFile = context.getSourceFile();
-      const {line, character} = context.pos !== -1 ?
-          sourceFile.getLineAndCharacterOfPosition(context.pos) :
-          {line: 0, character: 0};
-      e.message = `internal error converting type at ${sourceFile.fileName}:${
-                      line}:${character}:\n\n` +
-          e.message;
+      const {line, character} =
+        context.pos !== -1
+          ? sourceFile.getLineAndCharacterOfPosition(context.pos)
+          : {line: 0, character: 0};
+      e.message =
+        `internal error converting type at ${sourceFile.fileName}:${line}:${character}:\n\n` +
+        e.message;
       throw e;
     }
   }
@@ -161,14 +171,18 @@ export class ModuleTypeTranslator {
     const translationContext = this.isForExterns ? this.sourceFile : context;
 
     const translator = new typeTranslator.TypeTranslator(
-        this.host, this.typeChecker, translationContext,
-        this.host.unknownTypesPaths || new Set(), this.symbolsToAliasedNames,
-        this.symbolToNameCache,
-        (sym: ts.Symbol) => void this.ensureSymbolDeclared(sym));
+      this.host,
+      this.typeChecker,
+      translationContext,
+      this.host.unknownTypesPaths || new Set(),
+      this.symbolsToAliasedNames,
+      this.symbolToNameCache,
+      (sym: ts.Symbol) => void this.ensureSymbolDeclared(sym),
+    );
     translator.isForExterns = this.isForExterns;
     translator.useInternalNamespaceForExterns =
-        this.useInternalNamespaceForExterns;
-    translator.warn = msg => void this.debugWarn(context, msg);
+      this.useInternalNamespaceForExterns;
+    translator.warn = (msg) => void this.debugWarn(context, msg);
     return translator;
   }
 
@@ -197,8 +211,10 @@ export class ModuleTypeTranslator {
    * If the given declaration is an ES module export, returns true and adds a
    * goog.requireType alias for it in the current file. Otherwise returns false.
    */
-  private addRequireTypeIfIsExported(decl: ts.Declaration, sym: ts.Symbol):
-      boolean {
+  private addRequireTypeIfIsExported(
+    decl: ts.Declaration,
+    sym: ts.Symbol,
+  ): boolean {
     // Check for Export | Default (default being a default export).
     if (!hasModifierFlag(decl, ts.ModifierFlags.ExportDefault)) return false;
     // Symbols declared in `declare global {...}` blocks are global and don't
@@ -220,10 +236,13 @@ export class ModuleTypeTranslator {
 
     if (this.isForExterns) {
       this.error(
-          decl, `declaration from module used in ambient type: ${sym.name}`);
+        decl,
+        `declaration from module used in ambient type: ${sym.name}`,
+      );
     } else if (
-        sourceFile.isDeclarationFile &&
-        !sourceFile.text.match(/^\/\/!! generated by (clutz|tsickle|clutz2)/)) {
+      sourceFile.isDeclarationFile &&
+      !sourceFile.text.match(/^\/\/!! generated by (clutz|tsickle|clutz2)/)
+    ) {
       this.registerExternSymbolAliases(sourceFile.fileName, moduleSymbol);
     } else {
       // Actually import the symbol.
@@ -238,9 +257,10 @@ export class ModuleTypeTranslator {
    * context, to make debugging the emitted Closure types a bit easier.
    */
   private generateModulePrefix(importPath: string) {
-    const modulePrefix = importPath.replace(/(\/index)?(\.d)?\.[tj]sx?$/, '')
-                             .replace(/^.*[/.](.+?)/, '$1')
-                             .replace(/\W/g, '_');
+    const modulePrefix = importPath
+      .replace(/(\/index)?(\.d)?\.[tj]sx?$/, '')
+      .replace(/^.*[/.](.+?)/, '$1')
+      .replace(/\W/g, '_');
     return `tsickle_${modulePrefix || 'reqType'}_`;
   }
 
@@ -254,25 +274,44 @@ export class ModuleTypeTranslator {
    *     emit a `.default`.
    */
   requireType(
-      context: ts.Node, importPath: string, moduleSymbol: ts.Symbol,
-      isDefaultImport = false) {
+    context: ts.Node,
+    importPath: string,
+    moduleSymbol: ts.Symbol,
+    isDefaultImport = false,
+  ) {
     if (this.host.untyped) return;
     // Already imported? Do not emit a duplicate requireType.
     if (this.requireTypeModules.has(moduleSymbol)) return;
-    if (typeTranslator.isAlwaysUnknownSymbol(
-            this.host.unknownTypesPaths, moduleSymbol)) {
-      return;  // Do not emit goog.requireType for paths marked as always
-               // unknown.
+    if (
+      typeTranslator.isAlwaysUnknownSymbol(
+        this.host.unknownTypesPaths,
+        moduleSymbol,
+      )
+    ) {
+      return; // Do not emit goog.requireType for paths marked as always
+      // unknown.
     }
     const nsImport = googmodule.jsPathToNamespace(
-        this.host, context, this.diagnostics, importPath, () => moduleSymbol);
-    const requireTypePrefix = this.generateModulePrefix(importPath) +
-        String(this.requireTypeModules.size + 1);
-    const moduleNamespace = nsImport != null ?
-        nsImport :
-        this.host.pathToModuleName(this.sourceFile.fileName, importPath);
-    if (googmodule.jsPathToStripProperty(
-            this.host, importPath, () => moduleSymbol)) {
+      this.host,
+      context,
+      this.diagnostics,
+      importPath,
+      () => moduleSymbol,
+    );
+    const requireTypePrefix =
+      this.generateModulePrefix(importPath) +
+      String(this.requireTypeModules.size + 1);
+    const moduleNamespace =
+      nsImport != null
+        ? nsImport
+        : this.host.pathToModuleName(this.sourceFile.fileName, importPath);
+    if (
+      googmodule.jsPathToStripProperty(
+        this.host,
+        importPath,
+        () => moduleSymbol,
+      )
+    ) {
       // Symbols using import-by-path with strip property should be mapped to a
       // default import. This makes sure that type annotations get emitted as
       // "@type {module_alias}", not "@type {module_alias.TheStrippedName}".
@@ -286,36 +325,55 @@ export class ModuleTypeTranslator {
     // goog.requireType types, which allows using them in type annotations
     // without causing a load.
     //   const requireTypePrefix = goog.requireType(moduleNamespace)
-    this.additionalImports.push(ts.factory.createVariableStatement(
+    this.additionalImports.push(
+      ts.factory.createVariableStatement(
         undefined,
         ts.factory.createVariableDeclarationList(
-            [ts.factory.createVariableDeclaration(
-                requireTypePrefix, /* exclamationToken */ undefined,
-                /* type */ undefined,
-                ts.factory.createCallExpression(
-                    ts.factory.createPropertyAccessExpression(
-                        ts.factory.createIdentifier('goog'), 'requireType'),
-                    undefined,
-                    [ts.factory.createStringLiteral(moduleNamespace)]))],
-            ts.NodeFlags.Const)));
+          [
+            ts.factory.createVariableDeclaration(
+              requireTypePrefix,
+              /* exclamationToken */ undefined,
+              /* type */ undefined,
+              ts.factory.createCallExpression(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier('goog'),
+                  'requireType',
+                ),
+                undefined,
+                [ts.factory.createStringLiteral(moduleNamespace)],
+              ),
+            ),
+          ],
+          ts.NodeFlags.Const,
+        ),
+      ),
+    );
     this.requireTypeModules.add(moduleSymbol);
 
     this.registerImportSymbolAliases(
-        nsImport, isDefaultImport, moduleSymbol, () => requireTypePrefix);
+      nsImport,
+      isDefaultImport,
+      moduleSymbol,
+      () => requireTypePrefix,
+    );
     this.registerImportTypeSymbolAliases(
-        nsImport, isDefaultImport, moduleSymbol, requireTypePrefix);
+      nsImport,
+      isDefaultImport,
+      moduleSymbol,
+      requireTypePrefix,
+    );
   }
 
   /**
    * Get qualified name of a symbol by navigating through its parents.
    */
   private qualifiedNameFromSymbolChain(
-      leafSymbol: SymbolWithParent,
-      googNamespace: string|undefined,
-      isDefaultImport: boolean,
-      aliasPrefix: string,
-      namedDefaultImport: boolean,
-      ): string {
+    leafSymbol: SymbolWithParent,
+    googNamespace: string | undefined,
+    isDefaultImport: boolean,
+    aliasPrefix: string,
+    namedDefaultImport: boolean,
+  ): string {
     if (googNamespace && (isDefaultImport || namedDefaultImport)) {
       return aliasPrefix;
     }
@@ -325,8 +383,10 @@ export class ModuleTypeTranslator {
     // itself. For those cases it is not enough just to append the symbol name
     // to the aliasPrefix, because we actually need to know the namespace
     // hierarchy and properly append that to the requireType-ed symbol.
-    while (typeSymbol.parent &&
-           typeSymbol.parent.flags & ts.SymbolFlags.NamespaceModule) {
+    while (
+      typeSymbol.parent &&
+      typeSymbol.parent.flags & ts.SymbolFlags.NamespaceModule
+    ) {
       typeSymbol = typeSymbol.parent;
       symbols.push(typeSymbol);
     }
@@ -343,8 +403,9 @@ export class ModuleTypeTranslator {
         aliasResolved = true;
         continue;
       }
-      qualifiedName =
-          qualifiedName ? qualifiedName + '.' + symbol.name : symbol.name;
+      qualifiedName = qualifiedName
+        ? qualifiedName + '.' + symbol.name
+        : symbol.name;
     }
     // parent being undefined indicates that this type is the global scope,
     // thus no need of alias prefix from `requireType`s.
@@ -371,10 +432,14 @@ export class ModuleTypeTranslator {
    * reuse the results, because it will start to break builds.
    */
   private registerImportTypeSymbolAliases(
-      googNamespace: string|undefined, isDefaultImport: boolean,
-      moduleSymbol: ts.Symbol, aliasPrefix: string) {
-    for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol) as
-         SymbolWithParent[]) {
+    googNamespace: string | undefined,
+    isDefaultImport: boolean,
+    moduleSymbol: ts.Symbol,
+    aliasPrefix: string,
+  ) {
+    for (let sym of this.typeChecker.getExportsOfModule(
+      moduleSymbol,
+    ) as SymbolWithParent[]) {
       // Some users import {default as SomeAlias} from 'goog:...';
       // The code below must recognize this as a default import to alias the
       // symbol to just the blank module name.
@@ -386,23 +451,25 @@ export class ModuleTypeTranslator {
       // We only put into the cache when it's a class or an interface, because
       // more complex types (e.g. union) don't map to a single Symbol and
       // for other simple types it doesn't take much time to generate a string.
-      const typeSymbol: SymbolWithParent|undefined =
-          this.getTypeSymbolOfSymbolIfClassOrInterface(sym);
+      const typeSymbol: SymbolWithParent | undefined =
+        this.getTypeSymbolOfSymbolIfClassOrInterface(sym);
       if (!typeSymbol) continue;
       // In case the type is defined in a different file from the requireType-ed
       // module, indicating that this is a type alias and thus will either be
       // covered by other requireType statements, or should have been defined
       // in the immediate file itself.
-      if (typeSymbol.parent &&
-          getDefinedModule(sym) !== getDefinedModule(typeSymbol)) {
+      if (
+        typeSymbol.parent &&
+        getDefinedModule(sym) !== getDefinedModule(typeSymbol)
+      ) {
         continue;
       }
       const qualifiedName = this.qualifiedNameFromSymbolChain(
-          typeSymbol,
-          googNamespace,
-          isDefaultImport,
-          aliasPrefix,
-          namedDefaultImport,
+        typeSymbol,
+        googNamespace,
+        isDefaultImport,
+        aliasPrefix,
+        namedDefaultImport,
       );
       const cache = this.symbolToNameCache.get(typeSymbol);
       // Put in shorter symbols, as a proxy of prefering non-aliases.
@@ -416,8 +483,9 @@ export class ModuleTypeTranslator {
    * Returns the symbol of the type for the given symbol, if the type is a class
    * or an interface.
    */
-  private getTypeSymbolOfSymbolIfClassOrInterface(symbol: ts.Symbol): ts.Symbol
-      |undefined {
+  private getTypeSymbolOfSymbolIfClassOrInterface(
+    symbol: ts.Symbol,
+  ): ts.Symbol | undefined {
     const type = this.typeChecker.getDeclaredTypeOfSymbol(symbol);
     const typeSymbol = type.getSymbol();
     if (!typeSymbol) {
@@ -427,8 +495,9 @@ export class ModuleTypeTranslator {
       return undefined;
     }
     const objectFlags = (type as ts.ObjectType).objectFlags;
-    return objectFlags & ts.ObjectFlags.ClassOrInterface ? typeSymbol :
-                                                           undefined;
+    return objectFlags & ts.ObjectFlags.ClassOrInterface
+      ? typeSymbol
+      : undefined;
   }
 
   /**
@@ -445,8 +514,11 @@ export class ModuleTypeTranslator {
    *     exported symbol. The registered alias is <aliasPrefix>.<exportedName>.
    */
   registerImportSymbolAliases(
-      googNamespace: string|undefined, isDefaultImport: boolean,
-      moduleSymbol: ts.Symbol, getAliasPrefix: (symbol: ts.Symbol) => string) {
+    googNamespace: string | undefined,
+    isDefaultImport: boolean,
+    moduleSymbol: ts.Symbol,
+    getAliasPrefix: (symbol: ts.Symbol) => string,
+  ) {
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
       const aliasPrefix = getAliasPrefix(sym);
       // Some users import {default as SomeAlias} from 'goog:...';
@@ -456,9 +528,9 @@ export class ModuleTypeTranslator {
       // goog: imports don't actually use the .default property that TS thinks
       // they have.
       const qualifiedName =
-          googNamespace && (isDefaultImport || namedDefaultImport) ?
-          aliasPrefix :
-          aliasPrefix + '.' + sym.name;
+        googNamespace && (isDefaultImport || namedDefaultImport)
+          ? aliasPrefix
+          : aliasPrefix + '.' + sym.name;
       if (sym.flags & ts.SymbolFlags.Alias) {
         sym = this.typeChecker.getAliasedSymbol(sym);
       }
@@ -473,8 +545,11 @@ export class ModuleTypeTranslator {
    * user-supplied `.d.ts` files.
    */
   registerExternSymbolAliases(importPath: string, moduleSymbol: ts.Symbol) {
-    const moduleNamespace =
-        moduleNameAsIdentifier(this.host, importPath, this.sourceFile.fileName);
+    const moduleNamespace = moduleNameAsIdentifier(
+      this.host,
+      importPath,
+      this.sourceFile.fileName,
+    );
     for (let sym of this.typeChecker.getExportsOfModule(moduleSymbol)) {
       // Some users import {default as SomeAlias} from 'goog:...';
       // The code below must recognize this as a default import to alias the
@@ -510,7 +585,7 @@ export class ModuleTypeTranslator {
     const declarations = sym.declarations!;
     // A symbol declared in this file does not need to be imported.
     const thisSourceFile = ts.getOriginalNode(this.sourceFile);
-    if (declarations.some(d => d.getSourceFile() === thisSourceFile)) {
+    if (declarations.some((d) => d.getSourceFile() === thisSourceFile)) {
       return;
     }
 
@@ -529,43 +604,50 @@ export class ModuleTypeTranslator {
     if (!clutzDecl) return;
 
     const clutzDts = clutzDecl.getSourceFile();
-    const clutzModule =
-        this.typeChecker.getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
-            .find(
-                (module: ts.Symbol) => module.getName().startsWith('"goog:') &&
-                    module.valueDeclaration?.getSourceFile() === clutzDts &&
-                    this.typeChecker.getExportsOfModule(module).some(
-                        (exported: ts.Symbol) => {
-                          if (exported.flags & ts.SymbolFlags.Alias) {
-                            exported =
-                                this.typeChecker.getAliasedSymbol(exported);
-                          }
-                          if (exported === sym) {
-                            return true;
-                          }
-                          // In case the symbol is coming from a default export,
-                          // we need to navigate through the child of the
-                          // default nested to compare the symbol.
-                          if (exported.exports) {
-                            let found = false;
-                            exported.exports.forEach((symbol, key) => {
-                              found = found || symbol === sym;
-                            });
-                            return found;
-                          }
-                          return false;
-                        }));
+    const clutzModule = this.typeChecker
+      .getSymbolsInScope(clutzDts, ts.SymbolFlags.Module)
+      .find(
+        (module: ts.Symbol) =>
+          module.getName().startsWith('"goog:') &&
+          module.valueDeclaration?.getSourceFile() === clutzDts &&
+          this.typeChecker
+            .getExportsOfModule(module)
+            .some((exported: ts.Symbol) => {
+              if (exported.flags & ts.SymbolFlags.Alias) {
+                exported = this.typeChecker.getAliasedSymbol(exported);
+              }
+              if (exported === sym) {
+                return true;
+              }
+              // In case the symbol is coming from a default export,
+              // we need to navigate through the child of the
+              // default nested to compare the symbol.
+              if (exported.exports) {
+                let found = false;
+                exported.exports.forEach((symbol, key) => {
+                  found = found || symbol === sym;
+                });
+                return found;
+              }
+              return false;
+            }),
+      );
     if (clutzModule) {
       this.requireType(
-          clutzDecl, clutzModule.getName().slice(1, -1), clutzModule);
+        clutzDecl,
+        clutzModule.getName().slice(1, -1),
+        clutzModule,
+      );
     }
   }
 
   insertAdditionalImports(sourceFile: ts.SourceFile) {
     let insertion = 0;
     // Skip over a leading file comment holder.
-    if (sourceFile.statements.length &&
-        sourceFile.statements[0].kind === ts.SyntaxKind.NotEmittedStatement) {
+    if (
+      sourceFile.statements.length &&
+      sourceFile.statements[0].kind === ts.SyntaxKind.NotEmittedStatement
+    ) {
       insertion++;
     }
     return ts.factory.updateSourceFile(sourceFile, [
@@ -584,7 +666,10 @@ export class ModuleTypeTranslator {
    */
   getJSDoc(node: ts.Node, reportWarnings: boolean): jsdoc.Tag[] {
     return jsdoc.getJSDocTags(
-        node, reportWarnings ? this.diagnostics : undefined, this.sourceFile);
+      node,
+      reportWarnings ? this.diagnostics : undefined,
+      this.sourceFile,
+    );
   }
 
   getMutableJSDoc(node: ts.Node): jsdoc.MutableJSDoc {
@@ -598,15 +683,21 @@ export class ModuleTypeTranslator {
    * `@param {...number} x`. The code below unwraps the Array<> wrapper.
    */
   private resolveRestParameterType(
-      newTag: jsdoc.Tag, fnDecl: ts.SignatureDeclaration,
-      paramNode: ts.ParameterDeclaration) {
+    newTag: jsdoc.Tag,
+    fnDecl: ts.SignatureDeclaration,
+    paramNode: ts.ParameterDeclaration,
+  ) {
     const type = typeTranslator.restParameterType(
-        this.typeChecker, this.typeChecker.getTypeAtLocation(paramNode));
+      this.typeChecker,
+      this.typeChecker.getTypeAtLocation(paramNode),
+    );
     newTag.restParam = true;
     if (!type) {
       // If we fail to unwrap the Array<> type, emit an unknown type.
       this.debugWarn(
-          paramNode, 'failed to resolve rest parameter type, emitting ?');
+        paramNode,
+        'failed to resolve rest parameter type, emitting ?',
+      );
       newTag.type = '?';
       return;
     }
@@ -627,25 +718,29 @@ export class ModuleTypeTranslator {
    *    function statement; for overloads, name will have been merged.
    */
   getFunctionTypeJSDoc(
-      fnDecls: ts.SignatureDeclaration[], extraTags: jsdoc.Tag[] = []): {
-    tags: jsdoc.Tag[],
-    parameterNames: string[],
-    thisReturnType: ts.Type|null
+    fnDecls: ts.SignatureDeclaration[],
+    extraTags: jsdoc.Tag[] = [],
+  ): {
+    tags: jsdoc.Tag[];
+    parameterNames: string[];
+    thisReturnType: ts.Type | null;
   } {
     const typeChecker = this.typeChecker;
 
     // De-duplicate tags and docs found for the fnDecls.
     const tagsByName = new Map<string, jsdoc.Tag>();
     function addTag(tag: jsdoc.Tag) {
-      if (tag.tagName === 'implements') return;  // implements cannot be merged.
+      if (tag.tagName === 'implements') return; // implements cannot be merged.
       const existing = tagsByName.get(tag.tagName);
       tagsByName.set(
-          tag.tagName, existing ? jsdoc.merge([existing, tag]) : tag);
+        tag.tagName,
+        existing ? jsdoc.merge([existing, tag]) : tag,
+      );
     }
     for (const extraTag of extraTags) addTag(extraTag);
 
     const isConstructor =
-        fnDecls.find(d => d.kind === ts.SyntaxKind.Constructor) !== undefined;
+      fnDecls.find((d) => d.kind === ts.SyntaxKind.Constructor) !== undefined;
     // For each parameter index i, paramTags[i] is an array of parameters
     // that can be found at index i.  E.g.
     //    function foo(x: string)
@@ -657,7 +752,7 @@ export class ModuleTypeTranslator {
     const typeParameterNames = new Set<string>();
 
     const argCounts = [];
-    let thisReturnType: ts.Type|null = null;
+    let thisReturnType: ts.Type | null = null;
     for (const fnDecl of fnDecls) {
       // Construct the JSDoc comment by reading the existing JSDoc, if
       // any, and merging it with the known types of the function
@@ -681,9 +776,14 @@ export class ModuleTypeTranslator {
       // Add @protected/@private if present, but not to function declarations,
       // function expressions, nor arrow functions (who are not class members,
       // so visibility does not apply).
-      if (fnDecls.every(
-              d => !ts.isFunctionDeclaration(d) &&
-                  !ts.isFunctionExpression(d) && !ts.isArrowFunction(d))) {
+      if (
+        fnDecls.every(
+          (d) =>
+            !ts.isFunctionDeclaration(d) &&
+            !ts.isFunctionExpression(d) &&
+            !ts.isArrowFunction(d),
+        )
+      ) {
         if (flags & ts.ModifierFlags.Protected) {
           addTag({tagName: 'protected'});
         } else if (flags & ts.ModifierFlags.Private) {
@@ -723,15 +823,18 @@ export class ModuleTypeTranslator {
 
         const newTag: jsdoc.Tag = {
           tagName: isThisParam ? 'this' : 'param',
-          optional: paramNode.initializer !== undefined ||
-              paramNode.questionToken !== undefined,
+          optional:
+            paramNode.initializer !== undefined ||
+            paramNode.questionToken !== undefined,
           parameterName: isThisParam ? undefined : name,
         };
 
         if (paramNode.dotDotDotToken === undefined) {
           // The simple case: a plain parameter type.
           newTag.type = this.typeToClosure(
-              fnDecl, this.typeChecker.getTypeAtLocation(paramNode));
+            fnDecl,
+            this.typeChecker.getTypeAtLocation(paramNode),
+          );
         } else {
           // The complex case: resolve the array member type in ...foo[].
           this.resolveRestParameterType(newTag, fnDecl, paramNode);
@@ -752,8 +855,10 @@ export class ModuleTypeTranslator {
         }
       }
       argCounts.push(
-          hasThisParam ? sig.declaration.parameters.length - 1 :
-                         sig.declaration.parameters.length);
+        hasThisParam
+          ? sig.declaration.parameters.length - 1
+          : sig.declaration.parameters.length,
+      );
 
       // Return type.
       if (!isConstructor) {
@@ -789,7 +894,7 @@ export class ModuleTypeTranslator {
     if (typeParameterNames.size > 0) {
       addTag({
         tagName: 'template',
-        text: Array.from(typeParameterNames.values()).join(', ')
+        text: Array.from(typeParameterNames.values()).join(', '),
       });
     }
 
@@ -822,8 +927,10 @@ export class ModuleTypeTranslator {
       // If the tag is optional, mark parameters following optional as optional,
       // even if they are not, since Closure restricts this, see
       // https://github.com/google/closure-compiler/issues/2314
-      if (!paramTag.restParam &&
-          (paramTag.optional || foundOptional || i >= minArgsCount)) {
+      if (
+        !paramTag.restParam &&
+        (paramTag.optional || foundOptional || i >= minArgsCount)
+      ) {
         foundOptional = true;
         paramTag.optional = true;
       }
@@ -842,8 +949,9 @@ export class ModuleTypeTranslator {
 
     return {
       tags: newDoc,
-      parameterNames:
-          newDoc.filter(t => t.tagName === 'param').map(t => t.parameterName!),
+      parameterNames: newDoc
+        .filter((t) => t.tagName === 'param')
+        .map((t) => t.parameterName!),
       thisReturnType,
     };
   }
@@ -851,7 +959,7 @@ export class ModuleTypeTranslator {
 
 /** Returns whether this declaration is in a `declare global {...} block */
 function isGlobalAugmentation(decl: ts.Declaration) {
-  let current: ts.Node|undefined = decl;
+  let current: ts.Node | undefined = decl;
   while (current) {
     if (current.flags & ts.NodeFlags.GlobalAugmentation) return true;
     current = current.parent;

@@ -60,7 +60,7 @@ var ReadonlySet;
  * @template T
  * @extends {IThenable<T>}
  */
-function PromiseLike() {};
+function PromiseLike() {}
 
 /** @typedef {function(new:Promise)} */
 var PromiseConstructor;
@@ -94,7 +94,7 @@ var TemplateStringsArray;
 var RegExpMatchArray;
 
 /** @record */
-function ImportMeta() {};
+function ImportMeta() {}
 
 // Representations for TS' EventMap objects.
 // These are types that contain a mapping from event names to event object

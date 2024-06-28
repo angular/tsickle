@@ -1,7 +1,5 @@
 /**
- *
  * @fileoverview A module for importing from the main test.
- *
  * Generated from: test_files/side_effect_import/module1.ts
  */
 goog.module('test_files.side_effect_import.module1');

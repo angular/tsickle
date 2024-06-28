@@ -71,10 +71,21 @@ import {AnnotatorHost, moduleNameAsIdentifier} from './annotator_host';
 import {getEnumType} from './enum_transformer';
 import {GoogModuleProcessorHost, jsPathToNamespace} from './googmodule';
 import * as jsdoc from './jsdoc';
-import {escapeForComment, maybeAddHeritageClauses, maybeAddTemplateClause} from './jsdoc_transformer';
+import {
+  escapeForComment,
+  maybeAddHeritageClauses,
+  maybeAddTemplateClause,
+} from './jsdoc_transformer';
 import {ModuleTypeTranslator} from './module_type_translator';
 import * as path from './path';
-import {getEntityNameText, getIdentifierText, hasModifierFlag, isAmbient, isDtsFileName, reportDiagnostic} from './transformer_util';
+import {
+  getEntityNameText,
+  getIdentifierText,
+  hasModifierFlag,
+  isAmbient,
+  isDtsFileName,
+  reportDiagnostic,
+} from './transformer_util';
 import {isValidClosurePropertyName} from './type_translator';
 
 /**
@@ -96,7 +107,6 @@ const PREDECLARED_CLOSURE_EXTERNS_LIST: ReadonlyArray<string> = [
   'Symbol',
   'WorkerGlobalScope',
 ];
-
 
 /**
  * The header to be used in generated externs.  This is not included in the
@@ -129,8 +139,9 @@ const EXTERNS_HEADER = `/**
  *     to this root.
  */
 export function getGeneratedExterns(
-    externs: {[fileName: string]: {output: string, moduleNamespace: string}},
-    rootDir: string): string {
+  externs: {[fileName: string]: {output: string; moduleNamespace: string}},
+  rootDir: string,
+): string {
   let allExterns = EXTERNS_HEADER;
   for (const fileName of Object.keys(externs)) {
     const srcPath = path.relative(rootDir, fileName);
@@ -148,7 +159,9 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
   // declare global { ... } creates a ModuleDeclaration containing a ModuleBlock containing the
   // declaration, with the ModuleDeclaration having the GlobalAugmentation flag set.
   if (!declaration.parent || !declaration.parent.parent) return false;
-  return (declaration.parent.parent.flags & ts.NodeFlags.GlobalAugmentation) !== 0;
+  return (
+    (declaration.parent.parent.flags & ts.NodeFlags.GlobalAugmentation) !== 0
+  );
 }
 
 /**
@@ -157,9 +170,10 @@ function isInGlobalAugmentation(declaration: ts.Declaration): boolean {
  * comment with \@fileoverview and #externs (see above for that).
  */
 export function generateExterns(
-    typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile,
-    host: AnnotatorHost&GoogModuleProcessorHost):
-    {output: string, diagnostics: ts.Diagnostic[], moduleNamespace: string} {
+  typeChecker: ts.TypeChecker,
+  sourceFile: ts.SourceFile,
+  host: AnnotatorHost & GoogModuleProcessorHost,
+): {output: string; diagnostics: ts.Diagnostic[]; moduleNamespace: string} {
   let output = '';
   const diagnostics: ts.Diagnostic[] = [];
   const isDts = isDtsFileName(sourceFile.fileName);
@@ -204,14 +218,25 @@ export function generateExterns(
   }
 
   const mtt = new ModuleTypeTranslator(
-      sourceFile, typeChecker, host, diagnostics, /*isForExterns*/ true,
-      /*useInternalNamespaceForExterns=*/ hasExportEquals);
+    sourceFile,
+    typeChecker,
+    host,
+    diagnostics,
+    /*isForExterns*/ true,
+    /*useInternalNamespaceForExterns=*/ hasExportEquals,
+  );
 
   for (const stmt of sourceFile.statements) {
     // Always collect alises for imported symbols.
     importsVisitor(stmt);
 
-    if (!isDts && !hasModifierFlag(stmt as ts.DeclarationStatement, ts.ModifierFlags.Ambient)) {
+    if (
+      !isDts &&
+      !hasModifierFlag(
+        stmt as ts.DeclarationStatement,
+        ts.ModifierFlags.Ambient,
+      )
+    ) {
       continue;
     }
     visitor(stmt, []);
@@ -224,7 +249,9 @@ export function generateExterns(
    * to it with the mangled module namespace as it is emitted in the global namespace. Similarly, if
    * the symbol is declared in a non-module context, it must not be mangled.
    */
-  function qualifiedNameToMangledIdentifier(name: ts.Identifier|ts.QualifiedName) {
+  function qualifiedNameToMangledIdentifier(
+    name: ts.Identifier | ts.QualifiedName,
+  ) {
     const entityName = getEntityNameText(name);
     let symbol = typeChecker.getSymbolAtLocation(name);
     if (symbol) {
@@ -234,13 +261,16 @@ export function generateExterns(
       }
       const alias = mtt.symbolsToAliasedNames.get(symbol);
       if (alias) return alias;
-      const isGlobalSymbol = symbol && symbol.declarations && symbol.declarations.some(d => {
-        if (isInGlobalAugmentation(d)) return true;
-        // If the declaration's source file is not a module, it must be global.
-        // If it is a module, the identifier must be local to this file, or handled above via the
-        // alias.
-        return !ts.isExternalModule(d.getSourceFile());
-      });
+      const isGlobalSymbol =
+        symbol &&
+        symbol.declarations &&
+        symbol.declarations.some((d) => {
+          if (isInGlobalAugmentation(d)) return true;
+          // If the declaration's source file is not a module, it must be global.
+          // If it is a module, the identifier must be local to this file, or handled above via the
+          // alias.
+          return !ts.isExternalModule(d.getSourceFile());
+        });
       if (isGlobalSymbol) return entityName;
     }
     return rootNamespace + '.' + entityName;
@@ -253,21 +283,30 @@ export function generateExterns(
 
     let exportedNamespace = rootNamespace;
     if (exportAssignment && hasExportEquals) {
-      if (ts.isIdentifier(exportAssignment.expression) ||
-          ts.isQualifiedName(exportAssignment.expression)) {
+      if (
+        ts.isIdentifier(exportAssignment.expression) ||
+        ts.isQualifiedName(exportAssignment.expression)
+      ) {
         // E.g. export = someName;
         // If someName is "declare global { namespace someName {...} }", tsickle must not qualify
         // access to it with module namespace as it is emitted in the global namespace.
-        exportedNamespace = qualifiedNameToMangledIdentifier(exportAssignment.expression);
+        exportedNamespace = qualifiedNameToMangledIdentifier(
+          exportAssignment.expression,
+        );
       } else {
         reportDiagnostic(
-            diagnostics, exportAssignment.expression,
-            `export = expression must be a qualified name, got ${
-                ts.SyntaxKind[exportAssignment.expression.kind]}.`);
+          diagnostics,
+          exportAssignment.expression,
+          `export = expression must be a qualified name, got ${
+            ts.SyntaxKind[exportAssignment.expression.kind]
+          }.`,
+        );
       }
       // Assign the actually exported namespace object (which lives somewhere under rootNamespace)
       // into the module's namespace.
-      emit(`/**\n * export = ${exportAssignment.expression.getText()}\n * @const\n */\n`);
+      emit(
+        `/**\n * export = ${exportAssignment.expression.getText()}\n * @const\n */\n`,
+      );
       emit(`var ${moduleNamespace} = ${exportedNamespace};\n`);
     }
 
@@ -275,7 +314,9 @@ export function generateExterns(
       // In a non-shimmed module, create a global namespace. This exists purely for backwards
       // compatiblity, in the medium term all code using tsickle should always use `goog.module`s,
       // so global names should not be neccessary.
-      for (const nsExport of sourceFile.statements.filter(ts.isNamespaceExportDeclaration)) {
+      for (const nsExport of sourceFile.statements.filter(
+        ts.isNamespaceExportDeclaration,
+      )) {
         const namespaceName = getIdentifierText(nsExport.name);
         emit(`// export as namespace ${namespaceName}\n`);
         writeVariableStatement(namespaceName, [], exportedNamespace);
@@ -295,28 +336,31 @@ export function generateExterns(
    *   interface Foo { x: number; }
    *   interface Foo { y: number; }
    * we only want to emit the "\@record" for Foo on the first one.
-   *
-   * The exception are variable declarations, which - in externs - do not assign a value:
-   *   /.. \@type {...} ./
-   *   var someVariable;
-   *   /.. \@type {...} ./
-   *   someNamespace.someVariable;
-   * If a later declaration wants to add additional properties on someVariable, tsickle must still
-   * emit an assignment into the object, as it's otherwise absent.
    */
   function isFirstValueDeclaration(decl: ts.DeclarationStatement): boolean {
     if (!decl.name) return true;
     const sym = typeChecker.getSymbolAtLocation(decl.name)!;
     if (!sym.declarations || sym.declarations.length < 2) return true;
-    const earlierDecls = sym.declarations.slice(0, sym.declarations.indexOf(decl));
-    // Either there are no earlier declarations, or all of them are variables (see above). tsickle
-    // emits a value for all other declaration kinds (function for functions, classes, interfaces,
-    // {} object for namespaces).
-    return earlierDecls.length === 0 || earlierDecls.every(ts.isVariableDeclaration);
+    const earlierDecls = sym.declarations.slice(
+      0,
+      sym.declarations.indexOf(decl),
+    );
+    return (
+      earlierDecls.length === 0 ||
+      earlierDecls.every(
+        (d) =>
+          ts.isVariableDeclaration(d) &&
+          d.getSourceFile() !== decl.getSourceFile(),
+      )
+    );
   }
 
   /** Writes the actual variable statement of a Closure variable declaration. */
-  function writeVariableStatement(name: string, namespace: ReadonlyArray<string>, value?: string) {
+  function writeVariableStatement(
+    name: string,
+    namespace: ReadonlyArray<string>,
+    value?: string,
+  ) {
     const qualifiedName = namespace.concat([name]).join('.');
     if (namespace.length === 0) emit(`var `);
     emit(qualifiedName);
@@ -329,7 +373,9 @@ export function generateExterns(
    * comment making it a declaration.
    */
   function writeVariableDeclaration(
-      decl: ts.VariableDeclaration, namespace: ReadonlyArray<string>) {
+    decl: ts.VariableDeclaration,
+    namespace: ReadonlyArray<string>,
+  ) {
     if (decl.name.kind === ts.SyntaxKind.Identifier) {
       const name = getIdentifierText(decl.name);
       if (PREDECLARED_CLOSURE_EXTERNS_LIST.indexOf(name) >= 0) return;
@@ -345,31 +391,45 @@ export function generateExterns(
    * Emits a JSDoc declaration that merges the signatures of the given function declaration (for
    * overloads), and returns the parameter names chosen.
    */
-  function emitFunctionType(decls: ts.FunctionLikeDeclaration[], extraTags: jsdoc.Tag[] = []) {
+  function emitFunctionType(
+    decls: ts.FunctionLikeDeclaration[],
+    extraTags: jsdoc.Tag[] = [],
+  ) {
     const {tags, parameterNames} = mtt.getFunctionTypeJSDoc(decls, extraTags);
     emit('\n');
     emit(jsdoc.toString(tags));
     return parameterNames;
   }
 
-  function writeFunction(name: ts.Node, params: string[], namespace: ReadonlyArray<string>) {
+  function writeFunction(
+    name: ts.Node,
+    params: string[],
+    namespace: ReadonlyArray<string>,
+  ) {
     const paramsStr = params.join(', ');
     if (namespace.length > 0) {
       let fqn = namespace.join('.');
       if (name.kind === ts.SyntaxKind.Identifier) {
-        fqn += '.';  // computed names include [ ] in their getText() representation.
+        fqn += '.'; // computed names include [ ] in their getText() representation.
       }
       fqn += name.getText();
       emit(`${fqn} = function(${paramsStr}) {};\n`);
     } else {
       if (name.kind !== ts.SyntaxKind.Identifier) {
-        reportDiagnostic(diagnostics, name, 'Non-namespaced computed name in externs');
+        reportDiagnostic(
+          diagnostics,
+          name,
+          'Non-namespaced computed name in externs',
+        );
       }
       emit(`function ${name.getText()}(${paramsStr}) {}\n`);
     }
   }
 
-  function writeEnum(decl: ts.EnumDeclaration, namespace: ReadonlyArray<string>) {
+  function writeEnum(
+    decl: ts.EnumDeclaration,
+    namespace: ReadonlyArray<string>,
+  ) {
     // E.g. /** @enum {number} */ var COUNTRY = {US: 1, CA: 1};
     const name = getIdentifierText(decl.name);
     let members = '';
@@ -378,7 +438,7 @@ export function generateExterns(
     // matter in externs.
     const initializer = enumType === 'string' ? `''` : 1;
     for (const member of decl.members) {
-      let memberName: string|undefined;
+      let memberName: string | undefined;
       switch (member.name.kind) {
         case ts.SyntaxKind.Identifier:
           memberName = getIdentifierText(member.name);
@@ -391,8 +451,9 @@ export function generateExterns(
           break;
       }
       if (!memberName) {
-        members += `  /* TODO: ${ts.SyntaxKind[member.name.kind]}: ${
-            escapeForComment(member.name.getText())} */\n`;
+        members += `  /* TODO: ${
+          ts.SyntaxKind[member.name.kind]
+        }: ${escapeForComment(member.name.getText())} */\n`;
         continue;
       }
       members += `  ${memberName}: ${initializer},\n`;
@@ -410,8 +471,10 @@ export function generateExterns(
    * alias for them.
    */
   function handleLostProperties(
-      decl: ts.TypeAliasDeclaration, namespace: readonly string[]) {
-    let propNames: Set<string>|undefined = undefined;
+    decl: ts.TypeAliasDeclaration,
+    namespace: readonly string[],
+  ) {
+    let propNames: Set<string> | undefined = undefined;
 
     function collectPropertyNames(node: ts.Node) {
       if (ts.isTypeLiteralNode(node)) {
@@ -436,14 +499,20 @@ export function generateExterns(
     ts.forEachChild(decl, findTypeIntersection);
     if (propNames) {
       const helperName =
-          getIdentifierText(decl.name) + '_preventPropRenaming_doNotUse';
-      emit(`\n/** @typedef {{${
-              [...propNames].map(p => `${p}: ?`).join(', ')}}} */\n`);
+        getIdentifierText(decl.name) + '_preventPropRenaming_doNotUse';
+      emit(
+        `\n/** @typedef {{${[...propNames]
+          .map((p) => `${p}: ?`)
+          .join(', ')}}} */\n`,
+      );
       writeVariableStatement(helperName, namespace);
     }
   }
 
-  function writeTypeAlias(decl: ts.TypeAliasDeclaration, namespace: ReadonlyArray<string>) {
+  function writeTypeAlias(
+    decl: ts.TypeAliasDeclaration,
+    namespace: ReadonlyArray<string>,
+  ) {
     const typeStr = mtt.typeToClosure(decl, undefined);
     emit(`\n/** @typedef {${typeStr}} */\n`);
     writeVariableStatement(getIdentifierText(decl.name), namespace);
@@ -451,7 +520,9 @@ export function generateExterns(
   }
 
   function writeType(
-      decl: ts.InterfaceDeclaration|ts.ClassDeclaration, namespace: ReadonlyArray<string>) {
+    decl: ts.InterfaceDeclaration | ts.ClassDeclaration,
+    namespace: ReadonlyArray<string>,
+  ) {
     const name = decl.name;
     if (!name) {
       reportDiagnostic(diagnostics, decl, 'anonymous type in externs');
@@ -461,9 +532,11 @@ export function generateExterns(
     // gbigint, as defined in
     // google3/third_party/java_src/clutz/src/resources/closure.lib.d.ts, is
     // defined separately in TypeScript and JavaScript.
-    if (name.escapedText === 'gbigint'
-        // Just the terminal filename so we can test this.
-        && decl.getSourceFile().fileName.endsWith('closure.lib.d.ts')) {
+    if (
+      name.escapedText === 'gbigint' &&
+      // Just the terminal filename so we can test this.
+      decl.getSourceFile().fileName.endsWith('closure.lib.d.ts')
+    ) {
       return;
     }
 
@@ -512,8 +585,9 @@ export function generateExterns(
               type = '?|undefined';
             }
             const isReadonly = hasModifierFlag(prop, ts.ModifierFlags.Readonly);
-            emit(jsdoc.toString(
-                [{tagName: isReadonly ? 'const' : 'type', type}]));
+            emit(
+              jsdoc.toString([{tagName: isReadonly ? 'const' : 'type', type}]),
+            );
             if (hasModifierFlag(prop, ts.ModifierFlags.Static)) {
               emit(`\n${typeName}.${prop.name.getText()};\n`);
             } else {
@@ -534,8 +608,10 @@ export function generateExterns(
             // of the extern property, if a getter exists. Both the setter and
             // getter should give the same type when we query the compiler,
             // but prefer the getter to ensure consistency.
-            if (!accessors.has(name) ||
-                accessor.kind === ts.SyntaxKind.GetAccessor) {
+            if (
+              !accessors.has(name) ||
+              accessor.kind === ts.SyntaxKind.GetAccessor
+            ) {
               accessors.set(name, accessor);
             }
             continue;
@@ -545,7 +621,9 @@ export function generateExterns(
         case ts.SyntaxKind.MethodDeclaration:
           const method = member as ts.MethodDeclaration;
           const isStatic = hasModifierFlag(method, ts.ModifierFlags.Static);
-          const methodSignature = `${method.name.getText()}$$$${isStatic ? 'static' : 'instance'}`;
+          const methodSignature = `${method.name.getText()}$$$${
+            isStatic ? 'static' : 'instance'
+          }`;
 
           if (methods.has(methodSignature)) {
             methods.get(methodSignature)!.push(method);
@@ -554,7 +632,7 @@ export function generateExterns(
           }
           continue;
         case ts.SyntaxKind.Constructor:
-          continue;  // Handled above.
+          continue; // Handled above.
         default:
           // Members can include things like index signatures, for e.g.
           //   interface Foo { [key: string]: number; }
@@ -566,7 +644,11 @@ export function generateExterns(
       if (member.name) {
         memberName = memberName.concat([member.name.getText()]);
       }
-      emit(`\n/* TODO: ${ts.SyntaxKind[member.kind]}: ${memberName.join('.')} */\n`);
+      emit(
+        `\n/* TODO: ${ts.SyntaxKind[member.kind]}: ${memberName.join(
+          '.',
+        )} */\n`,
+      );
     }
 
     // Handle accessors (get/set) separately so that we only emit one property
@@ -603,16 +685,26 @@ export function generateExterns(
   }
 
   function writeExportDeclaration(
-      exportDeclaration: ts.ExportDeclaration, namespace: ReadonlyArray<string>) {
+    exportDeclaration: ts.ExportDeclaration,
+    namespace: ReadonlyArray<string>,
+  ) {
     if (!exportDeclaration.exportClause) {
-      emit(`\n// TODO(tsickle): export * declaration in ${
-          debugLocationStr(exportDeclaration, namespace)}\n`);
+      emit(
+        `\n// TODO(tsickle): export * declaration in ${debugLocationStr(
+          exportDeclaration,
+          namespace,
+        )}\n`,
+      );
       return;
     }
     if (ts.isNamespaceExport(exportDeclaration.exportClause)) {
       // TODO(#1135): Support generating externs using this syntax.
-      emit(`\n// TODO(tsickle): export * as declaration in ${
-          debugLocationStr(exportDeclaration, namespace)}\n`);
+      emit(
+        `\n// TODO(tsickle): export * as declaration in ${debugLocationStr(
+          exportDeclaration,
+          namespace,
+        )}\n`,
+      );
       return;
     }
     for (const exportSpecifier of exportDeclaration.exportClause.elements) {
@@ -620,8 +712,10 @@ export function generateExterns(
       if (!exportSpecifier.propertyName) continue;
       emit('/** @const */\n');
       writeVariableStatement(
-          exportSpecifier.name.text, namespace,
-          namespace.join('.') + '.' + exportSpecifier.propertyName.text);
+        exportSpecifier.name.text,
+        namespace,
+        namespace.join('.') + '.' + exportSpecifier.propertyName.text,
+      );
     }
   }
 
@@ -632,19 +726,19 @@ export function generateExterns(
    */
   function getCtors(decl: ts.ClassDeclaration): ts.ConstructorDeclaration[] {
     // Get ctors from current class
-    const currentCtors =
-        decl.members.filter((m) => m.kind === ts.SyntaxKind.Constructor);
+    const currentCtors = decl.members.filter(
+      (m) => m.kind === ts.SyntaxKind.Constructor,
+    );
     if (currentCtors.length) {
       return currentCtors as ts.ConstructorDeclaration[];
     }
 
     // Or look at base classes
     if (decl.heritageClauses) {
-      const baseSymbols =
-          decl.heritageClauses
-              .filter((h) => h.token === ts.SyntaxKind.ExtendsKeyword)
-              .flatMap((h) => h.types)
-              .filter((t) => t.expression.kind === ts.SyntaxKind.Identifier);
+      const baseSymbols = decl.heritageClauses
+        .filter((h) => h.token === ts.SyntaxKind.ExtendsKeyword)
+        .flatMap((h) => h.types)
+        .filter((t) => t.expression.kind === ts.SyntaxKind.Identifier);
       for (const base of baseSymbols) {
         const sym = typeChecker.getSymbolAtLocation(base.expression);
         if (!sym || !sym.declarations) return [];
@@ -669,8 +763,9 @@ export function generateExterns(
    * imported module URI and produce `path.to.module.Symbol` as an alias, and use that when
    * referencing the type.
    */
-  function addImportAliases(decl: ts.ImportDeclaration|
-                            ts.ImportEqualsDeclaration) {
+  function addImportAliases(
+    decl: ts.ImportDeclaration | ts.ImportEqualsDeclaration,
+  ) {
     // Side effect import, like "import 'somepath';" declares no local aliases.
     if (ts.isImportDeclaration(decl) && !decl.importClause) return;
 
@@ -693,21 +788,36 @@ export function generateExterns(
     const moduleSymbol = typeChecker.getSymbolAtLocation(moduleUri);
     if (!moduleSymbol) {
       reportDiagnostic(
-          importDiagnostics, moduleUri, `imported module has no symbol`);
+        importDiagnostics,
+        moduleUri,
+        `imported module has no symbol`,
+      );
       return;
     }
 
     const googNamespace = jsPathToNamespace(
-        host, moduleUri, importDiagnostics, moduleUri.text, () => moduleSymbol);
+      host,
+      moduleUri,
+      importDiagnostics,
+      moduleUri.text,
+      () => moduleSymbol,
+    );
     const isDefaultImport =
-        ts.isImportDeclaration(decl) && !!decl.importClause?.name;
+      ts.isImportDeclaration(decl) && !!decl.importClause?.name;
     if (googNamespace) {
       mtt.registerImportSymbolAliases(
-          googNamespace, isDefaultImport, moduleSymbol, () => googNamespace);
+        googNamespace,
+        isDefaultImport,
+        moduleSymbol,
+        () => googNamespace,
+      );
     } else {
       mtt.registerImportSymbolAliases(
-          /* googNamespace= */ undefined, isDefaultImport, moduleSymbol,
-          getAliasPrefixForEsModule(moduleUri));
+        /* googNamespace= */ undefined,
+        isDefaultImport,
+        moduleSymbol,
+        getAliasPrefixForEsModule(moduleUri),
+      );
     }
   }
 
@@ -720,10 +830,15 @@ export function generateExterns(
     // Calls to moduleNameAsIdentifier and host.pathToModuleName can incur
     // file system accesses, which are slow. Make sure they are only called
     // once and if/when needed.
-    const ambientModulePrefix =
-        moduleNameAsIdentifier(host, moduleUri.text, sourceFile.fileName);
-    const defaultPrefix =
-        host.pathToModuleName(sourceFile.fileName, moduleUri.text);
+    const ambientModulePrefix = moduleNameAsIdentifier(
+      host,
+      moduleUri.text,
+      sourceFile.fileName,
+    );
+    const defaultPrefix = host.pathToModuleName(
+      sourceFile.fileName,
+      moduleUri.text,
+    );
     return (exportedSymbol: ts.Symbol) => {
       // While type_translator does add the mangled prefix for ambient
       // declarations, it only does so for non-aliased (i.e. not imported)
@@ -733,9 +848,11 @@ export function generateExterns(
       // already contains the correct module name, which means the mangled
       // module name in case of imports symbols. This only applies to
       // non-Closure ('goog:') imports.
-      const isAmbientModuleDeclaration = exportedSymbol.declarations &&
-          exportedSymbol.declarations.some(
-              d => isAmbient(d) || d.getSourceFile().isDeclarationFile);
+      const isAmbientModuleDeclaration =
+        exportedSymbol.declarations &&
+        exportedSymbol.declarations.some(
+          (d) => isAmbient(d) || d.getSourceFile().isDeclarationFile,
+        );
       return isAmbientModuleDeclaration ? ambientModulePrefix : defaultPrefix;
     };
   }
@@ -746,7 +863,11 @@ export function generateExterns(
    * covered.
    */
   function errorUnimplementedKind(node: ts.Node, where: string) {
-    reportDiagnostic(diagnostics, node, `${ts.SyntaxKind[node.kind]} not implemented in ${where}`);
+    reportDiagnostic(
+      diagnostics,
+      node,
+      `${ts.SyntaxKind[node.kind]} not implemented in ${where}`,
+    );
   }
 
   /**
@@ -773,7 +894,9 @@ export function generateExterns(
    * without the namespace wrapper.
    */
   function getNamespaceForTopLevelDeclaration(
-      declaration: ts.Declaration, namespace: ReadonlyArray<string>): ReadonlyArray<string> {
+    declaration: ts.Declaration,
+    namespace: ReadonlyArray<string>,
+  ): ReadonlyArray<string> {
     // Only use rootNamespace for top level symbols, any other namespacing (global names, nested
     // namespaces) is always kept.
     if (namespace.length !== 0) return namespace;
@@ -781,7 +904,9 @@ export function generateExterns(
     // namespace prefixed.
     if (isDts && isExternalModule) return [rootNamespace];
     // Same for exported declarations in regular .ts files.
-    if (hasModifierFlag(declaration, ts.ModifierFlags.Export)) return [rootNamespace];
+    if (hasModifierFlag(declaration, ts.ModifierFlags.Export)) {
+      return [rootNamespace];
+    }
     // But local declarations in .ts files or .d.ts files (1b, 2b) are global, too.
     return [];
   }
@@ -797,15 +922,20 @@ export function generateExterns(
   function debugLocationStr(node: ts.Node, namespace: ReadonlyArray<string>) {
     // Use a regex to grab the filename without a path, to make the output stable
     // under bazel where sandboxes use different paths.
-    return namespace.join('.') || node.getSourceFile().fileName.replace(/.*[/\\]/, '');
+    return (
+      namespace.join('.') ||
+      node.getSourceFile().fileName.replace(/.*[/\\]/, '')
+    );
   }
 
   function importsVisitor(node: ts.Node) {
     switch (node.kind) {
       case ts.SyntaxKind.ImportEqualsDeclaration:
         const importEquals = node as ts.ImportEqualsDeclaration;
-        if (importEquals.moduleReference.kind ===
-            ts.SyntaxKind.ExternalModuleReference) {
+        if (
+          importEquals.moduleReference.kind ===
+          ts.SyntaxKind.ExternalModuleReference
+        ) {
           addImportAliases(importEquals);
         }
         break;
@@ -820,7 +950,10 @@ export function generateExterns(
 
   function visitor(node: ts.Node, namespace: ReadonlyArray<string>) {
     if (node.parent === sourceFile) {
-      namespace = getNamespaceForTopLevelDeclaration(node as ts.DeclarationStatement, namespace);
+      namespace = getNamespaceForTopLevelDeclaration(
+        node as ts.DeclarationStatement,
+        namespace,
+      );
     }
 
     switch (node.kind) {
@@ -850,8 +983,11 @@ export function generateExterns(
             // file, so effectively this augments any existing module.
 
             const importName = decl.name.text;
-            const mangled =
-                moduleNameAsIdentifier(host, importName, sourceFile.fileName);
+            const mangled = moduleNameAsIdentifier(
+              host,
+              importName,
+              sourceFile.fileName,
+            );
             emit(`// Derived from: declare module "${importName}"\n`);
             namespace = [mangled];
 
@@ -864,7 +1000,10 @@ export function generateExterns(
             if (decl.body) visitor(decl.body, [mangled]);
             break;
           default:
-            errorUnimplementedKind(decl.name, 'externs generation of namespace');
+            errorUnimplementedKind(
+              decl.name,
+              'externs generation of namespace',
+            );
             break;
         }
         break;
@@ -876,25 +1015,37 @@ export function generateExterns(
         break;
       case ts.SyntaxKind.ImportEqualsDeclaration:
         const importEquals = node as ts.ImportEqualsDeclaration;
-        if (importEquals.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference) {
+        if (
+          importEquals.moduleReference.kind ===
+          ts.SyntaxKind.ExternalModuleReference
+        ) {
           // Handled in `importsVisitor`.
           break;
         }
         const localName = getIdentifierText(importEquals.name);
-        const qn = qualifiedNameToMangledIdentifier(importEquals.moduleReference);
+        const qn = qualifiedNameToMangledIdentifier(
+          importEquals.moduleReference,
+        );
         // @const so that Closure Compiler understands this is an alias.
         emit('/** @const */\n');
         writeVariableStatement(localName, namespace, qn);
         break;
       case ts.SyntaxKind.ClassDeclaration:
       case ts.SyntaxKind.InterfaceDeclaration:
-        writeType(node as ts.InterfaceDeclaration | ts.ClassDeclaration, namespace);
+        writeType(
+          node as ts.InterfaceDeclaration | ts.ClassDeclaration,
+          namespace,
+        );
         break;
       case ts.SyntaxKind.FunctionDeclaration:
         const fnDecl = node as ts.FunctionDeclaration;
         const name = fnDecl.name;
         if (!name) {
-          reportDiagnostic(diagnostics, fnDecl, 'anonymous function in externs');
+          reportDiagnostic(
+            diagnostics,
+            fnDecl,
+            'anonymous function in externs',
+          );
           break;
         }
         // Gather up all overloads of this function.
@@ -906,7 +1057,8 @@ export function generateExterns(
         writeFunction(name, params, namespace);
         break;
       case ts.SyntaxKind.VariableStatement:
-        for (const decl of (node as ts.VariableStatement).declarationList.declarations) {
+        for (const decl of (node as ts.VariableStatement).declarationList
+          .declarations) {
           writeVariableDeclaration(decl, namespace);
         }
         break;
@@ -928,8 +1080,11 @@ export function generateExterns(
         writeExportDeclaration(exportDeclaration, namespace);
         break;
       default:
-        emit(`\n// TODO(tsickle): ${ts.SyntaxKind[node.kind]} in ${
-            debugLocationStr(node, namespace)}\n`);
+        emit(
+          `\n// TODO(tsickle): ${
+            ts.SyntaxKind[node.kind]
+          } in ${debugLocationStr(node, namespace)}\n`,
+        );
         break;
     }
   }
