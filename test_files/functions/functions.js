@@ -1,10 +1,8 @@
 // test_files/functions/functions.ts(38,20): warning TS0: failed to resolve rest parameter type, emitting ?
 /**
- *
  * @fileoverview
  * Generated from: test_files/functions/functions.ts
  * @suppress {checkTypes}
- *
  */
 goog.module('test_files.functions.functions');
 var module = module || { id: 'test_files/functions/functions.ts' };
