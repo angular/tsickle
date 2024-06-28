@@ -93,6 +93,18 @@ var TemplateStringsArray;
 /** @typedef {!RegExpResult} */
 var RegExpMatchArray;
 
+/** @typedef {!Array} */
+var ArrayConstructor;
+
+/** @typedef {!String} */
+var StringConstructor;
+
+/** @typedef {!ObjectPropertyDescriptor} */
+var PropertyDescriptor;
+
+/** @typedef {!onbeforeunload} */
+var BeforeUnloadEvent;
+
 /** @record */
 function ImportMeta() {};
 
