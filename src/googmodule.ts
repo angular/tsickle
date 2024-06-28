@@ -301,6 +301,88 @@ export function extractModuleMarker(
   return literalTypeOfSymbol(localSymbol);
 }
 
+// node -p "require('module').builtinModules"
+const NODEJS_BUILTIN_MODULES = new Set([
+  '_http_agent',
+  '_http_client',
+  '_http_common',
+  '_http_incoming',
+  '_http_outgoing',
+  '_http_server',
+  '_stream_duplex',
+  '_stream_passthrough',
+  '_stream_readable',
+  '_stream_transform',
+  '_stream_wrap',
+  '_stream_writable',
+  '_tls_common',
+  '_tls_wrap',
+  'assert',
+  'assert/strict',
+  'async_hooks',
+  'buffer',
+  'child_process',
+  'cluster',
+  'console',
+  'constants',
+  'crypto',
+  'dgram',
+  'diagnostics_channel',
+  'dns',
+  'dns/promises',
+  'domain',
+  'events',
+  'fs',
+  'fs/promises',
+  'http',
+  'http2',
+  'https',
+  'inspector',
+  'module',
+  'net',
+  'os',
+  'path',
+  'path/posix',
+  'path/win32',
+  'perf_hooks',
+  'process',
+  'punycode',
+  'querystring',
+  'readline',
+  'readline/promises',
+  'repl',
+  'stream',
+  'stream/consumers',
+  'stream/promises',
+  'stream/web',
+  'string_decoder',
+  'sys',
+  'timers',
+  'timers/promises',
+  'tls',
+  'trace_events',
+  'tty',
+  'url',
+  'util',
+  'util/types',
+  'v8',
+  'vm',
+  'wasi',
+  'worker_threads',
+  'zlib',
+]);
+
+// Possible patterns:
+// - "fs" (\w+)
+// - "node:fs" (node:\w+)
+// - "fs/promises" (\w+/\w+)
+// - "node:fs/promises" (node:\w+/\w+)
+const NODEJS_BUILTIN_PATTERN = /^(?:node:)?(\w+(?:\/\w+)?)$/;
+function isNodeJSBuiltin(specifier: string): boolean {
+  const match = specifier.match(NODEJS_BUILTIN_PATTERN);
+  return match !== null && NODEJS_BUILTIN_MODULES.has(match[1]);
+}
+
 /** Internal TypeScript APIs on ts.Declaration. */
 declare interface InternalTsDeclaration {
   locals?: ts.SymbolTable;
@@ -706,6 +788,7 @@ export function commonJsToGoogmoduleTransformer(
           newIdent: ts.Identifier|undefined): ts.Statement|null {
         const importedUrl = extractRequire(call);
         if (!importedUrl) return null;
+        if (isNodeJSBuiltin(importedUrl.text)) return null;
         // if importPathToGoogNamespace reports an error, it has already been
         // reported when originally transforming the file to JS (e.g. to produce
         // the goog.requireType call). Side-effect imports generate no
