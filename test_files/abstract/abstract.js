@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/abstract/abstract.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.abstract.abstract');
 var module = module || { id: 'test_files/abstract/abstract.ts' };

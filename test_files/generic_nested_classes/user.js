@@ -1,8 +1,6 @@
 /**
- *
  * @fileoverview Tests template parameters for generic classes nested inside
  * another generic class.
- *
  * Generated from: test_files/generic_nested_classes/user.ts
  */
 goog.module('test_files.generic_nested_classes.user');

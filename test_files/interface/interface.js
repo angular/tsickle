@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/interface/interface.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.interface.interface');
 var module = module || { id: 'test_files/interface/interface.ts' };

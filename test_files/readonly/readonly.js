@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview Tests `readonly` properties are annotated with `\@const`.
  * Generated from: test_files/readonly/readonly.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.readonly.readonly');
 var module = module || { id: 'test_files/readonly/readonly.ts' };
