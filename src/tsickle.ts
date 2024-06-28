@@ -222,7 +222,7 @@ export function emit(
     }
     tsickleSourceTransformers.push(
         jsdocTransformer(host, tsOptions, typeChecker, tsickleDiagnostics));
-    tsickleSourceTransformers.push(enumTransformer(typeChecker));
+    tsickleSourceTransformers.push(enumTransformer(host, typeChecker));
   }
   if (host.transformDecorators) {
     tsickleSourceTransformers.push(
