@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview Regression test for single valued enums. TypeScript's getBaseTypeOfLiteralType
  * returns the EnumLiteral type for SingleValuedEnum.C below, instead of SingleValuedEnum directly.
  * Previously, tsickle would then emit the type as `SingleValuedEnum.C`, which is illegal in
  * Closure.
- *
  * Generated from: test_files/single_value_enum/single_value_enum.ts
  */
 goog.module('test_files.single_value_enum.single_value_enum');

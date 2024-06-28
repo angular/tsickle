@@ -3,13 +3,11 @@ var module = module || { id: 'test_files/private_field/private_field.ts' };
 var _ContainsPrivateField_someField;
 const tslib_1 = goog.require('tslib');
 /**
- *
  * @fileoverview Tests the generation of private field accessors from Tsickle.
  * They do not generate any externs, as they do not exist on the class
  * themselves when downleveled by TypeScript.
  * Generated from: test_files/private_field/private_field.ts
  * @suppress {checkTypes,uselessCode}
- *
  */
 class ContainsPrivateField {
     /**

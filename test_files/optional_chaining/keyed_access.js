@@ -3,7 +3,6 @@ var module = module || { id: 'test_files/optional_chaining/keyed_access.ts' };
 goog.require('tslib');
 var _a;
 /**
- *
  * @fileoverview Tests that tsickle correctly handles casting to the correct
  * type after an optional property access. There was a bug where tsickle's
  * non-nullable assertion transformation would remove type information from a
@@ -12,7 +11,6 @@ var _a;
  * that crash.
  * Generated from: test_files/optional_chaining/keyed_access.ts
  * @suppress {checkTypes,uselessCode}
- *
  */
 /**
  * @record

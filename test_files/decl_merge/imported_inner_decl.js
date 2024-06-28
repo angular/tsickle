@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview Ensure transformed inner classes and enums can be
  * imported and used, and the types are properly annotated in the
  * JS output.
- *
  * Generated from: test_files/decl_merge/imported_inner_decl.ts
  */
 goog.module('test_files.decl_merge.imported_inner_decl');
