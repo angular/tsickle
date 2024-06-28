@@ -9,7 +9,10 @@
 import * as ts from 'typescript';
 
 /** @return true if node has the specified modifier flag set. */
-export function hasModifierFlag(declaration: ts.Declaration, flag: ts.ModifierFlags): boolean {
+export function hasModifierFlag(
+  declaration: ts.Declaration,
+  flag: ts.ModifierFlags,
+): boolean {
   return (ts.getCombinedModifierFlags(declaration) & flag) !== 0;
 }
 
@@ -18,7 +21,7 @@ export function hasModifierFlag(declaration: ts.Declaration, flag: ts.ModifierFl
  *     set.
  */
 export function isAmbient(node: ts.Node): boolean {
-  let current: ts.Node|undefined = node;
+  let current: ts.Node | undefined = node;
   while (current) {
     if (hasModifierFlag(current as ts.Declaration, ts.ModifierFlags.Ambient)) {
       return true;
@@ -78,15 +81,23 @@ export function unescapeName(name: ts.__String): string {
  * from the original statement as synthetic comments to it, so that they get retained in the output.
  */
 export function createNotEmittedStatementWithComments(
-    sourceFile: ts.SourceFile, original: ts.Node): ts.Statement {
+  sourceFile: ts.SourceFile,
+  original: ts.Node,
+): ts.Statement {
   let replacement = ts.factory.createNotEmittedStatement(original);
   // NB: synthetic nodes can have pos/end == -1. This is handled by the underlying implementation.
-  const leading = ts.getLeadingCommentRanges(sourceFile.text, original.pos) || [];
-  const trailing = ts.getTrailingCommentRanges(sourceFile.text, original.end) || [];
-  replacement =
-      ts.setSyntheticLeadingComments(replacement, synthesizeCommentRanges(sourceFile, leading));
-  replacement =
-      ts.setSyntheticTrailingComments(replacement, synthesizeCommentRanges(sourceFile, trailing));
+  const leading =
+    ts.getLeadingCommentRanges(sourceFile.text, original.pos) || [];
+  const trailing =
+    ts.getTrailingCommentRanges(sourceFile.text, original.end) || [];
+  replacement = ts.setSyntheticLeadingComments(
+    replacement,
+    synthesizeCommentRanges(sourceFile, leading),
+  );
+  replacement = ts.setSyntheticTrailingComments(
+    replacement,
+    synthesizeCommentRanges(sourceFile, trailing),
+  );
   return replacement;
 }
 
@@ -94,7 +105,9 @@ export function createNotEmittedStatementWithComments(
  * Converts `ts.CommentRange`s into `ts.SynthesizedComment`s.
  */
 export function synthesizeCommentRanges(
-    sourceFile: ts.SourceFile, parsedComments: ts.CommentRange[]): ts.SynthesizedComment[] {
+  sourceFile: ts.SourceFile,
+  parsedComments: ts.CommentRange[],
+): ts.SynthesizedComment[] {
   const synthesizedComments: ts.SynthesizedComment[] = [];
   parsedComments.forEach(({kind, pos, end, hasTrailingNewLine}) => {
     let commentText = sourceFile.text.substring(pos, end).trim();
@@ -107,20 +120,15 @@ export function synthesizeCommentRanges(
       }
       commentText = commentText.replace(/(^\/\/)/g, '');
     }
-    synthesizedComments.push({kind, text: commentText, hasTrailingNewLine, pos: -1, end: -1});
+    synthesizedComments.push({
+      kind,
+      text: commentText,
+      hasTrailingNewLine,
+      pos: -1,
+      end: -1,
+    });
   });
   return synthesizedComments;
-}
-
-/**
- * Creates a non emitted statement that can be used to store synthesized comments.
- */
-export function createNotEmittedStatement(sourceFile: ts.SourceFile): ts.NotEmittedStatement {
-  const stmt = ts.factory.createNotEmittedStatement(sourceFile);
-  ts.setOriginalNode(stmt, undefined);
-  ts.setTextRange(stmt, {pos: 0, end: 0});
-  ts.setEmitFlags(stmt, ts.EmitFlags.CustomPrologue);
-  return stmt;
 }
 
 /**
@@ -130,10 +138,16 @@ export function createNotEmittedStatement(sourceFile: ts.SourceFile): ts.NotEmit
  * See https://github.com/Microsoft/TypeScript/issues/17384
  */
 export function visitEachChild(
-    node: ts.Node, visitor: ts.Visitor, context: ts.TransformationContext): ts.Node {
+  node: ts.Node,
+  visitor: ts.Visitor,
+  context: ts.TransformationContext,
+): ts.Node {
   if (node.kind === ts.SyntaxKind.SourceFile) {
     const sf = node as ts.SourceFile;
-    return updateSourceFileNode(sf, ts.visitLexicalEnvironment(sf.statements, visitor, context));
+    return updateSourceFileNode(
+      sf,
+      ts.visitLexicalEnvironment(sf.statements, visitor, context),
+    );
   }
 
   return ts.visitEachChild(node, visitor, context);
@@ -146,18 +160,20 @@ export function visitEachChild(
  * TODO(#634): This has been fixed in TS 2.5. Investigate removal.
  */
 export function updateSourceFileNode(
-    sf: ts.SourceFile, statements: ts.NodeArray<ts.Statement>): ts.SourceFile {
+  sf: ts.SourceFile,
+  statements: ts.NodeArray<ts.Statement>,
+): ts.SourceFile {
   if (statements === sf.statements) {
     return sf;
   }
   sf = ts.factory.updateSourceFile(
-      sf,
-      statements,
-      sf.isDeclarationFile,
-      sf.referencedFiles,
-      sf.typeReferenceDirectives,
-      sf.hasNoDefaultLib,
-      sf.libReferenceDirectives,
+    sf,
+    ts.setTextRange(statements, sf.statements),
+    sf.isDeclarationFile,
+    sf.referencedFiles,
+    sf.typeReferenceDirectives,
+    sf.hasNoDefaultLib,
+    sf.libReferenceDirectives,
   );
   return sf;
 }
@@ -183,7 +199,9 @@ export function createSingleLineComment(original: ts.Node, text: string) {
     end: -1,
   };
   return ts.setSyntheticTrailingComments(
-      ts.factory.createNotEmittedStatement(original), [comment]);
+    ts.factory.createNotEmittedStatement(original),
+    [comment],
+  );
 }
 
 /** Creates a not emitted statement with the given text as a single line comment. */
@@ -196,7 +214,9 @@ export function createMultiLineComment(original: ts.Node, text: string) {
     end: -1,
   };
   return ts.setSyntheticTrailingComments(
-      ts.factory.createNotEmittedStatement(original), [comment]);
+    ts.factory.createNotEmittedStatement(original),
+    [comment],
+  );
 }
 
 /**
@@ -207,10 +227,19 @@ export function createMultiLineComment(original: ts.Node, text: string) {
  * behind a debug flag, as warnings are only for tsickle to debug itself.
  */
 export function reportDebugWarning(
-    host: {logWarning ? (d: ts.Diagnostic) : void}, node: ts.Node, messageText: string) {
+  host: {logWarning?(d: ts.Diagnostic): void},
+  node: ts.Node,
+  messageText: string,
+) {
   if (!host.logWarning) return;
-  host.logWarning(createDiagnostic(
-      node, messageText, /* textRange */ undefined, ts.DiagnosticCategory.Warning));
+  host.logWarning(
+    createDiagnostic(
+      node,
+      messageText,
+      /* textRange */ undefined,
+      ts.DiagnosticCategory.Warning,
+    ),
+  );
 }
 
 /**
@@ -227,28 +256,36 @@ export function reportDebugWarning(
  * @param textRange pass to overrride the text range from the node with a more specific range.
  */
 export function reportDiagnostic(
-    diagnostics: ts.Diagnostic[], node: ts.Node, messageText: string, textRange?: ts.TextRange,
-    category = ts.DiagnosticCategory.Error) {
+  diagnostics: ts.Diagnostic[],
+  node: ts.Node | undefined,
+  messageText: string,
+  textRange?: ts.TextRange,
+  category = ts.DiagnosticCategory.Error,
+) {
   diagnostics.push(createDiagnostic(node, messageText, textRange, category));
 }
 
 function createDiagnostic(
-    node: ts.Node, messageText: string, textRange: ts.TextRange|undefined,
-    category: ts.DiagnosticCategory): ts.Diagnostic {
-  let start, length: number;
+  node: ts.Node | undefined,
+  messageText: string,
+  textRange: ts.TextRange | undefined,
+  category: ts.DiagnosticCategory,
+): ts.Diagnostic {
+  let start: number | undefined;
+  let length: number | undefined;
   // getStart on a synthesized node can crash (due to not finding an associated
   // source file). Make sure to use the original node.
   node = ts.getOriginalNode(node);
   if (textRange) {
     start = textRange.pos;
     length = textRange.end - textRange.pos;
-  } else {
+  } else if (node) {
     // Only use getStart if node has a valid pos, as it might be synthesized.
     start = node.pos >= 0 ? node.getStart() : 0;
     length = node.end - node.pos;
   }
   return {
-    file: node.getSourceFile(),
+    file: node?.getSourceFile(),
     start,
     length,
     messageText,
@@ -262,12 +299,17 @@ function createDiagnostic(
  * non-synthetic comments on the given node, with their text included. The returned comments must
  * not be mutated, as their content might or might not be reflected back into the AST.
  */
-export function getAllLeadingComments(node: ts.Node):
-    ReadonlyArray<Readonly<ts.CommentRange&{text: string}>> {
-  const allRanges: Array<Readonly<ts.CommentRange&{text: string}>> = [];
+export function getAllLeadingComments(
+  node: ts.Node,
+): ReadonlyArray<Readonly<ts.CommentRange & {text: string}>> {
+  const allRanges: Array<Readonly<ts.CommentRange & {text: string}>> = [];
   const nodeText = node.getFullText();
   const cr = ts.getLeadingCommentRanges(nodeText, 0);
-  if (cr) allRanges.push(...cr.map(c => ({...c, text: nodeText.substring(c.pos, c.end)})));
+  if (cr) {
+    allRanges.push(
+      ...cr.map((c) => ({...c, text: nodeText.substring(c.pos, c.end)})),
+    );
+  }
   const synthetic = ts.getSyntheticLeadingComments(node);
   if (synthetic) allRanges.push(...synthetic);
   return allRanges;
@@ -277,11 +319,17 @@ export function getAllLeadingComments(node: ts.Node):
  * Creates a call expression corresponding to `goog.${methodName}(${literal})`.
  */
 export function createGoogCall(
-    methodName: string, literal: ts.StringLiteral): ts.CallExpression {
+  methodName: string,
+  literal: ts.StringLiteral,
+): ts.CallExpression {
   return ts.factory.createCallExpression(
-      ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier('goog'), methodName),
-      undefined, [literal]);
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier('goog'),
+      methodName,
+    ),
+    undefined,
+    [literal],
+  );
 }
 
 /**
@@ -289,13 +337,15 @@ export function createGoogCall(
  * `$fnName` when pased `goog.$fnName`), or null if the given call expression is
  * not of the form `goog.$fnName`.
  */
-export function getGoogFunctionName(call: ts.CallExpression): string|null {
+export function getGoogFunctionName(call: ts.CallExpression): string | null {
   if (!ts.isPropertyAccessExpression(call.expression)) {
     return null;
   }
   const propAccess = call.expression;
-  if (!ts.isIdentifier(propAccess.expression) ||
-      propAccess.expression.escapedText !== 'goog') {
+  if (
+    !ts.isIdentifier(propAccess.expression) ||
+    propAccess.expression.escapedText !== 'goog'
+  ) {
     return null;
   }
   return propAccess.name.text;
@@ -306,7 +356,9 @@ export function getGoogFunctionName(call: ts.CallExpression): string|null {
  * not check whether `goog` is the expected symbol (vs e.g. a local variable).
  */
 export function isGoogCallExpressionOf(
-    n: ts.Node, fnName: string): n is ts.CallExpression {
+  n: ts.Node,
+  fnName: string,
+): n is ts.CallExpression {
   return ts.isCallExpression(n) && getGoogFunctionName(n) === fnName;
 }
 
@@ -317,9 +369,11 @@ export function isGoogCallExpressionOf(
  * variable).
  */
 export function isAnyTsmesCall(n: ts.Node): n is ts.CallExpression {
-  return isGoogCallExpressionOf(n, 'tsMigrationExportsShim') ||
-      isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
-      isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim');
+  return (
+    isGoogCallExpressionOf(n, 'tsMigrationExportsShim') ||
+    isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
+    isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim')
+  );
 }
 
 /**
@@ -329,18 +383,23 @@ export function isAnyTsmesCall(n: ts.Node): n is ts.CallExpression {
  * (vs e.g. a local variable).
  */
 export function isTsmesShorthandCall(n: ts.Node): n is ts.CallExpression {
-  return isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
-      isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim');
+  return (
+    isGoogCallExpressionOf(n, 'tsMigrationDefaultExportsShim') ||
+    isGoogCallExpressionOf(n, 'tsMigrationNamedExportsShim')
+  );
 }
 
 /**
  * Returns true if the given call executes
  * `goog.tsMigrationExportsShimDeclareLegacyNamespace`.
  */
-export function isTsmesDeclareLegacyNamespaceCall(n: ts.Node):
-    n is ts.CallExpression {
+export function isTsmesDeclareLegacyNamespaceCall(
+  n: ts.Node,
+): n is ts.CallExpression {
   return isGoogCallExpressionOf(
-      n, 'tsMigrationExportsShimDeclareLegacyNamespace');
+    n,
+    'tsMigrationExportsShimDeclareLegacyNamespace',
+  );
 }
 
 /**
@@ -356,25 +415,37 @@ export function isTsmesDeclareLegacyNamespaceCall(n: ts.Node):
  * https://github.com/google/closure-library/blob/master/closure/goog/base.js
  */
 export function createGoogLoadedModulesRegistration(
-    moduleId: string, exports: ts.Expression): ts.Statement {
-  return ts.factory.createExpressionStatement(ts.factory.createAssignment(
+  moduleId: string,
+  exports: ts.Expression,
+): ts.Statement {
+  return ts.factory.createExpressionStatement(
+    ts.factory.createAssignment(
       ts.factory.createElementAccessExpression(
-          ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier('goog'),
-              ts.factory.createIdentifier('loadedModules_')),
-          createSingleQuoteStringLiteral(moduleId)),
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier('goog'),
+          ts.factory.createIdentifier('loadedModules_'),
+        ),
+        createSingleQuoteStringLiteral(moduleId),
+      ),
       ts.factory.createObjectLiteralExpression([
         ts.factory.createPropertyAssignment('exports', exports),
         ts.factory.createPropertyAssignment(
-            'type',
+          'type',
+          ts.factory.createPropertyAccessExpression(
             ts.factory.createPropertyAccessExpression(
-                ts.factory.createPropertyAccessExpression(
-                    ts.factory.createIdentifier('goog'),
-                    ts.factory.createIdentifier('ModuleType')),
-                ts.factory.createIdentifier('GOOG'))),
+              ts.factory.createIdentifier('goog'),
+              ts.factory.createIdentifier('ModuleType'),
+            ),
+            ts.factory.createIdentifier('GOOG'),
+          ),
+        ),
         ts.factory.createPropertyAssignment(
-            'moduleId', createSingleQuoteStringLiteral(moduleId)),
-      ])));
+          'moduleId',
+          createSingleQuoteStringLiteral(moduleId),
+        ),
+      ]),
+    ),
+  );
 }
 
 /**
@@ -395,7 +466,7 @@ export function markAsMergedDeclaration(decl: ts.Declaration) {
  * Returns the namespace declaration if node is contained inside a
  * namespace that has been transformed by namespaceTransformer.
  */
-export function getTransformedNs(node: ts.Node): ts.ModuleDeclaration|null {
+export function getTransformedNs(node: ts.Node): ts.ModuleDeclaration | null {
   node = ts.getOriginalNode(node);
   let parent = node.parent;
   while (parent) {
@@ -406,7 +477,6 @@ export function getTransformedNs(node: ts.Node): ts.ModuleDeclaration|null {
   }
   return null;
 }
-
 
 /**
  * Returns true if node (or its original if updated) is contained inside a
@@ -421,12 +491,17 @@ export function nodeIsInTransformedNs(node: ts.Node): boolean {
  * of 'thisDecl'.
  */
 export function getPreviousDeclaration(
-    sym: ts.Symbol, thisDecl: ts.Declaration): ts.Declaration|null {
+  sym: ts.Symbol,
+  thisDecl: ts.Declaration,
+): ts.Declaration | null {
   if (!sym.declarations) return null;
   const sf = thisDecl.getSourceFile();
   for (const decl of sym.declarations) {
-    if (!isAmbient(decl) && (decl.getSourceFile()) === sf &&
-        (decl.pos < thisDecl.pos)) {
+    if (
+      !isAmbient(decl) &&
+      decl.getSourceFile() === sf &&
+      decl.pos < thisDecl.pos
+    ) {
       return decl;
     }
   }
