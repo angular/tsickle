@@ -457,6 +457,9 @@ class Generator {
     fileSummary.addStrongRequire({type: Type.CLOSURE, name: 'goog'});
     fileSummary.addStrongRequire(
         {type: Type.CLOSURE, name: this.srcIds.googModuleId});
+    if (maybeDeclareLegacyNameCall) {
+      fileSummary.legacyNamespace = true;
+    }
 
     fileSummary.autochunk = isAutoChunk;
     fileSummary.moduleType = ModuleType.GOOG_MODULE;
