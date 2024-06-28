@@ -2,14 +2,12 @@ goog.module('test_files.async_functions.async_functions');
 var module = module || { id: 'test_files/async_functions/async_functions.ts' };
 const tslib_1 = goog.require('tslib');
 /**
- *
  * @fileoverview
  * Exercises various forms of async functions.  When TypeScript downlevels these
  * functions, it inserts a reference to 'this' which then tickles a Closure
  * check around whether 'this' has a known type.
  * Generated from: test_files/async_functions/async_functions.ts
  * @suppress {uselessCode}
- *
  */
 /**
  * @param {string} param
