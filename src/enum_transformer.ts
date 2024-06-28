@@ -19,6 +19,7 @@
  * type resolve ("@type {Foo}").
  */
 
+import {TsickleHost} from 'tsickle';
 import * as ts from 'typescript';
 
 import * as jsdoc from './jsdoc';
@@ -95,7 +96,7 @@ export function getEnumType(typeChecker: ts.TypeChecker, enumDecl: ts.EnumDeclar
 /**
  * Transformer factory for the enum transformer. See fileoverview for details.
  */
-export function enumTransformer(typeChecker: ts.TypeChecker):
+export function enumTransformer(host: TsickleHost, typeChecker: ts.TypeChecker):
     (context: ts.TransformationContext) => ts.Transformer<ts.SourceFile> {
   return (context: ts.TransformationContext) => {
     function visitor<T extends ts.Node>(node: T): T|ts.Node[] {
@@ -180,7 +181,11 @@ export function enumTransformer(typeChecker: ts.TypeChecker):
                   /* modifiers */ undefined,
                   ts.factory.createVariableDeclarationList(
                       [varDecl],
-                      /* create a const var */ ts.NodeFlags.Const)),
+                      /* When using unoptimized namespaces, create a var
+                         declaration, otherwise create a const var. See b/157460535 */
+                      host.useDeclarationMergingTransformation ?
+                          ts.NodeFlags.Const :
+                          undefined)),
               node),
           node);
 

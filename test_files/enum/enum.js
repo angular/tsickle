@@ -57,7 +57,8 @@ let variableUsingExportedEnum;
 const ComponentIndex = {
     Scheme: 1,
     UserInfo: 2,
-    Domain: 0,
+    // TODO: b/313666408 - Fix tsc to not duplicate comments like the following
+    Domain: 0, // Be sure to exercise the code with a 0 enum value.
     // Be sure to exercise the code with a 0 enum value.
     UserInfo2: 2,
 };
