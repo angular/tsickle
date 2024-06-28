@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview Tests type only usage of symbols imported using import equals
  * syntax. TypeScript elides those imports, so type references have to use
  * tsickle's requireType symbols.
- *
  * Generated from: test_files/import_equals/import_equals_type_usage.ts
  */
 goog.module('test_files.import_equals.import_equals_type_usage');

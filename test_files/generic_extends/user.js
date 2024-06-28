@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview Tests template parameters in extends clauses.
  * Generated from: test_files/generic_extends/user.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.generic_extends.user');
 var module = module || { id: 'test_files/generic_extends/user.ts' };
