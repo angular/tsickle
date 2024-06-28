@@ -1,12 +1,10 @@
 /**
- *
  * @fileoverview Ensure enums nested in a class, defined with declaration
  * merging are properly transformed and hoisted out of the namespace, and no
  * iife is created for the namespace.
  *
  * Generated from: test_files/decl_merge/inner_enum.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.decl_merge.inner_enum');
 var module = module || { id: 'test_files/decl_merge/inner_enum.ts' };

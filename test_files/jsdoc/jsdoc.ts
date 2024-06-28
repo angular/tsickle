@@ -158,3 +158,15 @@ const DEFINE_WITH_DECLARED_TYPE: string = 'y';
 
 /** @logTypeInCompiler */
 const logTypeInCompiler = 0;
+
+class NgInjectClass {
+  /** @ngInject */
+  constructor() {}
+}
+
+class NgInjectClassWithStruct {
+  // The @struct tag does not mean anything to TypeScript but is ok to use.
+  // TODO(b/335205805): don't escape @ngInject here.
+  /** @struct @ngInject */
+  constructor() {}
+}

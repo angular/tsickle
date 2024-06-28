@@ -1,9 +1,7 @@
 /**
- *
  * @fileoverview
  * Generated from: test_files/super/super.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.super.super');
 var module = module || { id: 'test_files/super/super.ts' };

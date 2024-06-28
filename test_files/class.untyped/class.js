@@ -1,10 +1,8 @@
 // test_files/class.untyped/class.ts(48,1): warning TS0: type/symbol conflict for Zone, using {?} for now
 /**
- *
  * @fileoverview
  * Generated from: test_files/class.untyped/class.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.class.untyped.class');
 var module = module || { id: 'test_files/class.untyped/class.ts' };

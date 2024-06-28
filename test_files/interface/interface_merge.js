@@ -1,10 +1,8 @@
 /**
- *
  * @fileoverview Test to ensure that there is only one record declaration
  * for a merged interface.
  * Generated from: test_files/interface/interface_merge.ts
  * @suppress {uselessCode}
- *
  */
 goog.module('test_files.interface.interface_merge');
 var module = module || { id: 'test_files/interface/interface_merge.ts' };
